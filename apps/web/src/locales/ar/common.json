@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "نظام ERP",
+    "description": "منصة ERP معيارية"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "items": "الأصناف",
+    "warehouses": "المستودعات",
+    "sales": "المبيعات",
+    "purchases": "المشتريات",
+    "customers": "العملاء",
+    "suppliers": "الموردين",
+    "expenses": "المصروفات",
+    "reports": "التقارير",
+    "settings": "الإعدادات"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "signUp": "إنشاء حساب",
+    "signIn": "تسجيل الدخول"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "noResults": "لا توجد نتائج",
+    "actions": "إجراءات"
+  }
+}

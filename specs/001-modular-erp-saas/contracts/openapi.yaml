@@ -1,0 +1,1378 @@
+openapi: 3.0.3
+info:
+  title: ERP SaaS API
+  description: Modular ERP SaaS Platform API - Stock Management, Accounting, HR
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.erp-saas.com/api/v1
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Items
+    description: Item/Product management
+  - name: Warehouses
+    description: Warehouse management
+  - name: Invoices
+    description: Sales and purchase invoices
+  - name: Parties
+    description: Customers and suppliers
+  - name: Payments
+    description: Payment recording
+  - name: Expenses
+    description: Expense tracking
+  - name: Reports
+    description: Report generation
+
+paths:
+  # ============ AUTH ============
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new tenant and admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, tenant_name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                tenant_name:
+                  type: string
+                full_name:
+                  type: string
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+
+  # ============ ITEMS ============
+  /items:
+    get:
+      tags: [Items]
+      summary: List items with pagination
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: search
+          in: query
+          description: Search by name, SKU, barcode
+          schema:
+            type: string
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: warehouse_id
+          in: query
+          description: Include stock quantity for warehouse
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags: [Items]
+      summary: Create new item
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          description: Validation error
+        '402':
+          description: Item limit exceeded (Freemium plan)
+
+  /items/{id}:
+    get:
+      tags: [Items]
+      summary: Get item by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          description: Item not found
+
+    put:
+      tags: [Items]
+      summary: Update item
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+
+    delete:
+      tags: [Items]
+      summary: Soft delete item
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Item deleted
+        '409':
+          description: Item has open transactions
+
+  /items/bulk-price-update:
+    post:
+      tags: [Items]
+      summary: Bulk update item prices
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [item_ids, adjustment_type, adjustment_value]
+              properties:
+                item_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                adjustment_type:
+                  type: string
+                  enum: [percentage, fixed]
+                adjustment_value:
+                  type: number
+                price_tier:
+                  type: string
+                  default: retail
+      responses:
+        '200':
+          description: Prices updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated_count:
+                    type: integer
+
+  # ============ WAREHOUSES ============
+  /warehouses:
+    get:
+      tags: [Warehouses]
+      summary: List warehouses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Warehouse'
+
+    post:
+      tags: [Warehouses]
+      summary: Create warehouse
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWarehouseRequest'
+      responses:
+        '201':
+          description: Warehouse created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+
+  /warehouses/{id}/inventory:
+    get:
+      tags: [Warehouses]
+      summary: Get inventory for warehouse
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: low_stock_only
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventoryItem'
+                  total_value:
+                    type: number
+
+  # ============ INVOICES ============
+  /invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [sale, purchase]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, final, returned, canceled]
+        - name: party_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags: [Invoices]
+      summary: Create invoice
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '402':
+          description: Transaction limit exceeded (Freemium)
+        '409':
+          description: Insufficient stock
+
+  /invoices/{id}:
+    get:
+      tags: [Invoices]
+      summary: Get invoice with items
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetail'
+
+    put:
+      tags: [Invoices]
+      summary: Update draft invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInvoiceRequest'
+      responses:
+        '200':
+          description: Invoice updated
+        '400':
+          description: Cannot update finalized invoice
+
+  /invoices/{id}/finalize:
+    post:
+      tags: [Invoices]
+      summary: Finalize draft invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice finalized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '400':
+          description: Already finalized
+        '409':
+          description: Insufficient stock
+
+  /invoices/{id}/return:
+    post:
+      tags: [Invoices]
+      summary: Create return from invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      invoice_item_id:
+                        type: string
+                        format: uuid
+                      quantity:
+                        type: number
+                reason:
+                  type: string
+      responses:
+        '201':
+          description: Return invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  # ============ PARTIES ============
+  /parties:
+    get:
+      tags: [Parties]
+      summary: List customers or suppliers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [customer, supplier]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Party'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags: [Parties]
+      summary: Create customer or supplier
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePartyRequest'
+      responses:
+        '201':
+          description: Party created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Party'
+
+  # ============ PAYMENTS ============
+  /payments:
+    get:
+      tags: [Payments]
+      summary: List payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: party_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [received, made]
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+
+    post:
+      tags: [Payments]
+      summary: Record payment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+
+  # ============ EXPENSES ============
+  /expenses:
+    get:
+      tags: [Expenses]
+      summary: List expenses
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Expense'
+
+    post:
+      tags: [Expenses]
+      summary: Create expense
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExpenseRequest'
+      responses:
+        '201':
+          description: Expense created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+
+  # ============ REPORTS ============
+  /reports/sales:
+    get:
+      tags: [Reports]
+      summary: Sales report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, customer, item]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf]
+            default: json
+      responses:
+        '200':
+          description: Report data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesReport'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '402':
+          description: PDF export not available (Freemium)
+
+  /reports/inventory:
+    get:
+      tags: [Reports]
+      summary: Inventory report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: warehouse_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, pdf]
+            default: json
+      responses:
+        '200':
+          description: Report data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryReport'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ---- Auth ----
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        tenant:
+          $ref: '#/components/schemas/Tenant'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        role:
+          type: string
+        preferences:
+          type: object
+
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        subscription_plan:
+          type: string
+          enum: [freemium, premium]
+        features:
+          type: object
+          properties:
+            max_items:
+              type: integer
+            max_users:
+              type: integer
+            max_transactions_per_month:
+              type: integer
+            pdf_export:
+              type: boolean
+
+    # ---- Items ----
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        name_alias:
+          type: string
+        sku:
+          type: string
+        barcode:
+          type: string
+        brand:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+        unit_of_measure:
+          type: string
+        tax_rate:
+          type: number
+        is_active:
+          type: boolean
+        images:
+          type: array
+          items:
+            type: string
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemPrice'
+        stock:
+          description: Stock quantity (when warehouse_id provided)
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    ItemPrice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        price_tier:
+          type: string
+        price:
+          type: number
+        currency:
+          type: string
+
+    CreateItemRequest:
+      type: object
+      required: [name, unit_of_measure]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        name_alias:
+          type: string
+        sku:
+          type: string
+        barcode:
+          type: string
+        brand:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        unit_of_measure:
+          type: string
+        tax_rate:
+          type: number
+          minimum: 0
+          maximum: 100
+        images:
+          type: array
+          items:
+            type: string
+        prices:
+          type: array
+          items:
+            type: object
+            properties:
+              price_tier:
+                type: string
+              price:
+                type: number
+              currency:
+                type: string
+
+    UpdateItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        name_alias:
+          type: string
+        sku:
+          type: string
+        barcode:
+          type: string
+        brand:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        unit_of_measure:
+          type: string
+        tax_rate:
+          type: number
+        is_active:
+          type: boolean
+        images:
+          type: array
+          items:
+            type: string
+
+    # ---- Warehouses ----
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+        total_value:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    CreateWarehouseRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+
+    InventoryItem:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+        quantity:
+          type: number
+        reserved_quantity:
+          type: number
+        low_stock_threshold:
+          type: number
+        is_low_stock:
+          type: boolean
+        unit_cost:
+          type: number
+        total_value:
+          type: number
+
+    # ---- Invoices ----
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoice_number:
+          type: string
+        type:
+          type: string
+          enum: [sale, purchase]
+        status:
+          type: string
+          enum: [draft, final, returned, canceled]
+        party_id:
+          type: string
+          format: uuid
+        party_name:
+          type: string
+        warehouse_id:
+          type: string
+          format: uuid
+        warehouse_name:
+          type: string
+        subtotal:
+          type: number
+        tax_amount:
+          type: number
+        discount_amount:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        finalized_at:
+          type: string
+          format: date-time
+
+    InvoiceDetail:
+      allOf:
+        - $ref: '#/components/schemas/Invoice'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/InvoiceItem'
+            notes:
+              type: string
+
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        item_id:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        unit_price:
+          type: number
+        discount_percent:
+          type: number
+        tax_rate:
+          type: number
+        line_total:
+          type: number
+        sort_order:
+          type: integer
+
+    CreateInvoiceRequest:
+      type: object
+      required: [type, warehouse_id, items]
+      properties:
+        type:
+          type: string
+          enum: [sale, purchase]
+        status:
+          type: string
+          enum: [draft, final]
+          default: draft
+        party_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            required: [item_id, quantity, unit_price]
+            properties:
+              item_id:
+                type: string
+                format: uuid
+              quantity:
+                type: number
+                minimum: 0
+              unit_price:
+                type: number
+                minimum: 0
+              discount_percent:
+                type: number
+                default: 0
+        discount_amount:
+          type: number
+          default: 0
+        notes:
+          type: string
+        currency:
+          type: string
+        exchange_rate:
+          type: number
+
+    UpdateInvoiceRequest:
+      type: object
+      properties:
+        party_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_id:
+                type: string
+                format: uuid
+              quantity:
+                type: number
+              unit_price:
+                type: number
+              discount_percent:
+                type: number
+        discount_amount:
+          type: number
+        notes:
+          type: string
+
+    # ---- Parties ----
+    Party:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [customer, supplier]
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        tax_number:
+          type: string
+        balance:
+          type: number
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    CreatePartyRequest:
+      type: object
+      required: [type, name]
+      properties:
+        type:
+          type: string
+          enum: [customer, supplier]
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        address:
+          type: string
+        tax_number:
+          type: string
+
+    # ---- Payments ----
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        party_id:
+          type: string
+          format: uuid
+        party_name:
+          type: string
+        type:
+          type: string
+          enum: [received, made]
+        amount:
+          type: number
+        currency:
+          type: string
+        payment_method:
+          type: string
+        reference:
+          type: string
+        invoice_id:
+          type: string
+          format: uuid
+        invoice_number:
+          type: string
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreatePaymentRequest:
+      type: object
+      required: [party_id, type, amount]
+      properties:
+        party_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [received, made]
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        exchange_rate:
+          type: number
+        payment_method:
+          type: string
+        reference:
+          type: string
+        invoice_id:
+          type: string
+          format: uuid
+        notes:
+          type: string
+
+    # ---- Expenses ----
+    Expense:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        expense_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+
+    CreateExpenseRequest:
+      type: object
+      required: [amount, expense_date]
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        exchange_rate:
+          type: number
+        description:
+          type: string
+        expense_date:
+          type: string
+          format: date
+
+    # ---- Reports ----
+    SalesReport:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        summary:
+          type: object
+          properties:
+            total_sales:
+              type: number
+            total_returns:
+              type: number
+            net_sales:
+              type: number
+            invoice_count:
+              type: integer
+        data:
+          type: array
+          items:
+            type: object
+
+    InventoryReport:
+      type: object
+      properties:
+        warehouse_id:
+          type: string
+          format: uuid
+        warehouse_name:
+          type: string
+        summary:
+          type: object
+          properties:
+            total_items:
+              type: integer
+            total_quantity:
+              type: number
+            total_value:
+              type: number
+            low_stock_count:
+              type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryItem'
+
+    # ---- Common ----
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer

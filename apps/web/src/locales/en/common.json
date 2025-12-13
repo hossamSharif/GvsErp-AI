@@ -1,0 +1,45 @@
+{
+  "app": {
+    "name": "ERP SaaS",
+    "description": "Modular ERP Platform"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "items": "Items",
+    "warehouses": "Warehouses",
+    "sales": "Sales",
+    "purchases": "Purchases",
+    "customers": "Customers",
+    "suppliers": "Suppliers",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign Up",
+    "signIn": "Sign In"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "actions": "Actions"
+  }
+}
