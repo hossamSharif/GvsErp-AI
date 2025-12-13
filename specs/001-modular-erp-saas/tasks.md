@@ -155,41 +155,41 @@
 
 ### Database & Types
 
-- [ ] T068 [P] [US2] Create Invoice, InvoiceItem tables migration in packages/database/migrations/004_invoices_schema.sql
-- [ ] T069 [P] [US2] Define Invoice entity types in packages/shared/src/types/invoices.ts
-- [ ] T070 [P] [US2] Create Zod validation schemas for invoices in packages/shared/src/validation/invoices.ts
+- [X] T068 [P] [US2] Create Invoice, InvoiceItem tables migration in packages/database/migrations/004_invoices_schema.sql
+- [X] T069 [P] [US2] Define Invoice entity types in packages/shared/src/types/invoices.ts
+- [X] T070 [P] [US2] Create Zod validation schemas for invoices in packages/shared/src/validation/invoices.ts
 
 ### Backend - Sales API
 
-- [ ] T071 [US2] Create InvoiceRepository in apps/api/src/repositories/invoice.repository.ts
-- [ ] T072 [US2] Create InvoiceService with stock calculations in apps/api/src/services/invoice.service.ts
-- [ ] T073 [US2] Implement GET /invoices with filters in apps/api/src/routes/invoices.routes.ts
-- [ ] T074 [US2] Implement POST /invoices (create) in apps/api/src/routes/invoices.routes.ts
-- [ ] T075 [US2] Implement GET /invoices/:id in apps/api/src/routes/invoices.routes.ts
-- [ ] T076 [US2] Implement PUT /invoices/:id (update draft) in apps/api/src/routes/invoices.routes.ts
-- [ ] T077 [US2] Implement POST /invoices/:id/finalize in apps/api/src/routes/invoices.routes.ts
-- [ ] T078 [US2] Implement POST /invoices/:id/return in apps/api/src/routes/invoices.routes.ts
-- [ ] T079 [US2] Add invoice number auto-generation (SAL-YYYYMM-XXXX) in apps/api/src/services/invoice.service.ts
+- [X] T071 [US2] Create InvoiceRepository in apps/api/src/repositories/invoice.repository.ts
+- [X] T072 [US2] Create InvoiceService with stock calculations in apps/api/src/services/invoice.service.ts
+- [X] T073 [US2] Implement GET /invoices with filters in apps/api/src/routes/invoices.routes.ts
+- [X] T074 [US2] Implement POST /invoices (create) in apps/api/src/routes/invoices.routes.ts
+- [X] T075 [US2] Implement GET /invoices/:id in apps/api/src/routes/invoices.routes.ts
+- [X] T076 [US2] Implement PUT /invoices/:id (update draft) in apps/api/src/routes/invoices.routes.ts
+- [X] T077 [US2] Implement POST /invoices/:id/finalize in apps/api/src/routes/invoices.routes.ts
+- [X] T078 [US2] Implement POST /invoices/:id/return in apps/api/src/routes/invoices.routes.ts
+- [X] T079 [US2] Add invoice number auto-generation (SAL-YYYYMM-XXXX) in apps/api/src/services/invoice.service.ts
 
 ### Frontend - Sales UI
 
-- [ ] T080 [US2] Create draft autosave store with Zustand persist in apps/web/src/stores/draft-store.ts
-- [ ] T081 [US2] Create useInvoices hook in apps/web/src/hooks/use-invoices.ts
-- [ ] T082 [US2] Create Excel-like invoice item list component in apps/web/src/components/tables/invoice-items-table.tsx
-- [ ] T083 [US2] Add drag-drop reorder, inline editing to invoice items table
-- [ ] T084 [US2] Create searchable customer dropdown with balance preview in apps/web/src/components/forms/party-select.tsx
-- [ ] T085 [US2] Create sales invoice form with autosave in apps/web/src/components/forms/invoice-form.tsx
-- [ ] T086 [US2] Create sales list page in apps/web/src/app/[locale]/(dashboard)/sales/page.tsx
-- [ ] T087 [US2] Create new sale page in apps/web/src/app/[locale]/(dashboard)/sales/new/page.tsx
-- [ ] T088 [US2] Create edit sale page in apps/web/src/app/[locale]/(dashboard)/sales/[id]/page.tsx
-- [ ] T089 [US2] Create return invoice dialog in apps/web/src/components/dialogs/return-invoice-dialog.tsx
-- [ ] T090 [US2] Add real-time stock availability display in invoice item selection
+- [X] T080 [US2] Create draft autosave store with Zustand persist in apps/web/src/stores/draft-store.ts
+- [X] T081 [US2] Create useInvoices hook in apps/web/src/hooks/use-invoices.ts
+- [X] T082 [US2] Create Excel-like invoice item list component in apps/web/src/components/tables/invoice-items-table.tsx
+- [X] T083 [US2] Add drag-drop reorder, inline editing to invoice items table
+- [X] T084 [US2] Create searchable customer dropdown with balance preview in apps/web/src/components/forms/party-select.tsx
+- [X] T085 [US2] Create sales invoice form with autosave in apps/web/src/components/forms/invoice-form.tsx
+- [X] T086 [US2] Create sales list page in apps/web/src/app/[locale]/(dashboard)/sales/page.tsx
+- [X] T087 [US2] Create new sale page in apps/web/src/app/[locale]/(dashboard)/sales/new/page.tsx
+- [X] T088 [US2] Create edit sale page in apps/web/src/app/[locale]/(dashboard)/sales/[id]/page.tsx
+- [X] T089 [US2] Create return invoice dialog in apps/web/src/components/dialogs/return-invoice-dialog.tsx
+- [X] T090 [US2] Add real-time stock availability display in invoice item selection
 
 ### Reports - Sales
 
-- [ ] T091 [US2] Create sales report endpoint GET /reports/sales in apps/api/src/routes/reports.routes.ts
-- [ ] T092 [US2] Create sales report PDF template in apps/web/src/components/reports/sales-report.tsx
-- [ ] T093 [US2] Create sales invoice PDF template in apps/web/src/components/reports/invoice-pdf.tsx
+- [X] T091 [US2] Create sales report endpoint GET /reports/sales in apps/api/src/routes/reports.routes.ts
+- [X] T092 [US2] Create sales report PDF template in apps/web/src/components/reports/sales-report.tsx
+- [X] T093 [US2] Create sales invoice PDF template in apps/web/src/components/reports/invoice-pdf.tsx
 
 **Checkpoint**: User Story 2 complete - Sales invoices fully functional
 
@@ -203,21 +203,21 @@
 
 ### Backend - Purchases API
 
-- [ ] T094 [US3] Extend InvoiceService for purchase type logic in apps/api/src/services/invoice.service.ts
-- [ ] T095 [US3] Add purchase-specific validation (stock increases on finalize) in apps/api/src/services/invoice.service.ts
-- [ ] T096 [US3] Add invoice number format for purchases (PUR-YYYYMM-XXXX)
+- [X] T094 [US3] Extend InvoiceService for purchase type logic in apps/api/src/services/invoice.service.ts
+- [X] T095 [US3] Add purchase-specific validation (stock increases on finalize) in apps/api/src/services/invoice.service.ts
+- [X] T096 [US3] Add invoice number format for purchases (PUR-YYYYMM-XXXX)
 
 ### Frontend - Purchases UI
 
-- [ ] T097 [US3] Create searchable supplier dropdown with balance preview in apps/web/src/components/forms/party-select.tsx
-- [ ] T098 [US3] Create purchases list page in apps/web/src/app/[locale]/(dashboard)/purchases/page.tsx
-- [ ] T099 [US3] Create new purchase page in apps/web/src/app/[locale]/(dashboard)/purchases/new/page.tsx
-- [ ] T100 [US3] Create edit purchase page in apps/web/src/app/[locale]/(dashboard)/purchases/[id]/page.tsx
-- [ ] T101 [US3] Add current stock levels display in purchase item selection
+- [X] T097 [US3] Create searchable supplier dropdown with balance preview in apps/web/src/components/forms/party-select.tsx
+- [X] T098 [US3] Create purchases list page in apps/web/src/app/[locale]/(dashboard)/purchases/page.tsx
+- [X] T099 [US3] Create new purchase page in apps/web/src/app/[locale]/(dashboard)/purchases/new/page.tsx
+- [X] T100 [US3] Create edit purchase page in apps/web/src/app/[locale]/(dashboard)/purchases/[id]/page.tsx
+- [X] T101 [US3] Add current stock levels display in purchase item selection
 
 ### Reports - Purchases
 
-- [ ] T102 [US3] Create purchase report PDF template in apps/web/src/components/reports/purchase-report.tsx
+- [X] T102 [US3] Create purchase report PDF template in apps/web/src/components/reports/purchase-report.tsx
 
 **Checkpoint**: User Story 3 complete - Purchase orders fully functional
 
