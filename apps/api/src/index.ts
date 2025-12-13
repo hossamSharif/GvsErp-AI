@@ -8,6 +8,10 @@ import {
   apiRateLimiter,
 } from './middleware';
 import authRoutes from './routes/auth.routes';
+import itemRoutes from './routes/items.routes';
+import categoryRoutes from './routes/categories.routes';
+import invoiceRoutes from './routes/invoices.routes';
+import reportRoutes from './routes/reports.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -52,16 +56,10 @@ app.get('/api', (_req, res) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
-
-// Protected routes (added in later phases)
-// app.use('/api/v1/items', authMiddleware, tenantMiddleware, itemRoutes);
-// app.use('/api/v1/invoices', authMiddleware, tenantMiddleware, invoiceRoutes);
-// app.use('/api/v1/parties', authMiddleware, tenantMiddleware, partyRoutes);
-// app.use('/api/v1/warehouses', authMiddleware, tenantMiddleware, warehouseRoutes);
-// app.use('/api/v1/payments', authMiddleware, tenantMiddleware, paymentRoutes);
-// app.use('/api/v1/expenses', authMiddleware, tenantMiddleware, expenseRoutes);
-// app.use('/api/v1/reports', authMiddleware, tenantMiddleware, reportRoutes);
-// app.use('/api/v1/settings', authMiddleware, tenantMiddleware, settingsRoutes);
+app.use('/api/v1/items', itemRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/invoices', invoiceRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
