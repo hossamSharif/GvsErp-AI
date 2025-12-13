@@ -108,40 +108,40 @@
 
 ### Database & Types
 
-- [ ] T043 [P] [US1] Create Item, ItemPrice, ItemPackaging, Category tables migration in packages/database/migrations/003_items_schema.sql
-- [ ] T044 [P] [US1] Define Item entity types in packages/shared/src/types/items.ts
-- [ ] T045 [P] [US1] Create Zod validation schemas for items in packages/shared/src/validation/items.ts
+- [X] T043 [P] [US1] Create Item, ItemPrice, ItemPackaging, Category tables migration in packages/database/migrations/003_items_schema.sql
+- [X] T044 [P] [US1] Define Item entity types in packages/shared/src/types/items.ts
+- [X] T045 [P] [US1] Create Zod validation schemas for items in packages/shared/src/validation/items.ts
 
 ### Backend - Items API
 
-- [ ] T046 [US1] Create ItemRepository with CRUD operations in apps/api/src/repositories/item.repository.ts
-- [ ] T047 [US1] Create CategoryRepository in apps/api/src/repositories/category.repository.ts
-- [ ] T048 [US1] Create ItemService with business logic in apps/api/src/services/item.service.ts
-- [ ] T049 [US1] Implement GET /items with pagination, search, filters in apps/api/src/routes/items.routes.ts
-- [ ] T050 [US1] Implement POST /items (create item) in apps/api/src/routes/items.routes.ts
-- [ ] T051 [US1] Implement GET /items/:id in apps/api/src/routes/items.routes.ts
-- [ ] T052 [US1] Implement PUT /items/:id (update) in apps/api/src/routes/items.routes.ts
-- [ ] T053 [US1] Implement DELETE /items/:id (soft delete) in apps/api/src/routes/items.routes.ts
-- [ ] T054 [US1] Implement POST /items/bulk-price-update in apps/api/src/routes/items.routes.ts
-- [ ] T055 [P] [US1] Implement GET /categories and POST /categories in apps/api/src/routes/categories.routes.ts
+- [X] T046 [US1] Create ItemRepository with CRUD operations in apps/api/src/repositories/item.repository.ts
+- [X] T047 [US1] Create CategoryRepository in apps/api/src/repositories/category.repository.ts
+- [X] T048 [US1] Create ItemService with business logic in apps/api/src/services/item.service.ts
+- [X] T049 [US1] Implement GET /items with pagination, search, filters in apps/api/src/routes/items.routes.ts
+- [X] T050 [US1] Implement POST /items (create item) in apps/api/src/routes/items.routes.ts
+- [X] T051 [US1] Implement GET /items/:id in apps/api/src/routes/items.routes.ts
+- [X] T052 [US1] Implement PUT /items/:id (update) in apps/api/src/routes/items.routes.ts
+- [X] T053 [US1] Implement DELETE /items/:id (soft delete) in apps/api/src/routes/items.routes.ts
+- [X] T054 [US1] Implement POST /items/bulk-price-update in apps/api/src/routes/items.routes.ts
+- [X] T055 [P] [US1] Implement GET /categories and POST /categories in apps/api/src/routes/categories.routes.ts
 
 ### Frontend - Items UI
 
-- [ ] T056 [US1] Create useItems hook with TanStack Query in apps/web/src/hooks/use-items.ts
-- [ ] T057 [US1] Create DataTable component with TanStack Table in apps/web/src/components/tables/data-table.tsx
-- [ ] T058 [US1] Add fixed headers, column resize, virtualization to DataTable in apps/web/src/components/tables/data-table.tsx
-- [ ] T059 [US1] Create items list page with DataTable in apps/web/src/app/[locale]/(dashboard)/items/page.tsx
-- [ ] T060 [US1] Create item form component in apps/web/src/components/forms/item-form.tsx
-- [ ] T061 [US1] Create new item page in apps/web/src/app/[locale]/(dashboard)/items/new/page.tsx
-- [ ] T062 [US1] Create edit item page in apps/web/src/app/[locale]/(dashboard)/items/[id]/page.tsx
-- [ ] T063 [US1] Create bulk price update dialog in apps/web/src/components/dialogs/bulk-price-dialog.tsx
-- [ ] T064 [P] [US1] Create category management UI in apps/web/src/app/[locale]/(dashboard)/items/categories/page.tsx
-- [ ] T065 [P] [US1] Create image upload component with Supabase Storage in apps/web/src/components/forms/image-upload.tsx
+- [X] T056 [US1] Create useItems hook with TanStack Query in apps/web/src/hooks/use-items.ts
+- [X] T057 [US1] Create DataTable component with TanStack Table in apps/web/src/components/tables/data-table.tsx
+- [X] T058 [US1] Add fixed headers, column resize, virtualization to DataTable in apps/web/src/components/tables/data-table-virtualized.tsx
+- [X] T059 [US1] Create items list page with DataTable in apps/web/src/app/[locale]/(dashboard)/items/page.tsx
+- [X] T060 [US1] Create item form component in apps/web/src/components/forms/item-form.tsx
+- [X] T061 [US1] Create new item page in apps/web/src/app/[locale]/(dashboard)/items/new/page.tsx
+- [X] T062 [US1] Create edit item page in apps/web/src/app/[locale]/(dashboard)/items/[id]/page.tsx
+- [X] T063 [US1] Create bulk price update dialog in apps/web/src/components/dialogs/bulk-price-dialog.tsx
+- [X] T064 [P] [US1] Create category management UI in apps/web/src/app/[locale]/(dashboard)/items/categories/page.tsx
+- [X] T065 [P] [US1] Create image upload component with Supabase Storage in apps/web/src/components/forms/image-upload.tsx
 
 ### Reports - Items
 
-- [ ] T066 [US1] Create items report PDF template with @react-pdf/renderer in apps/web/src/components/reports/items-report.tsx
-- [ ] T067 [US1] Add PDF export button to items list page
+- [X] T066 [US1] Create items report PDF template with @react-pdf/renderer in apps/web/src/components/reports/items-report.tsx
+- [X] T067 [US1] Add PDF export button to items list page (apps/web/src/app/[locale]/(dashboard)/items/report/page.tsx)
 
 **Checkpoint**: User Story 1 complete - Items management fully functional
 
