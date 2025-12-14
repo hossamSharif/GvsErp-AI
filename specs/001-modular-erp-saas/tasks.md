@@ -489,32 +489,32 @@
 
 ### Backend - HR API
 
-- [ ] T225 [US10] Create EmployeeRepository in apps/api/src/repositories/employee.repository.ts
-- [ ] T226 [US10] Create AttendanceRepository in apps/api/src/repositories/attendance.repository.ts
-- [ ] T227 [US10] Create PayrollRepository in apps/api/src/repositories/payroll.repository.ts
-- [ ] T228 [US10] Create EmployeeService in apps/api/src/services/employee.service.ts
-- [ ] T229 [US10] Create AttendanceService in apps/api/src/services/attendance.service.ts
-- [ ] T230 [US10] Create PayrollService with calculations in apps/api/src/services/payroll.service.ts
-- [ ] T231 [US10] Implement employees CRUD in apps/api/src/routes/employees.routes.ts
-- [ ] T232 [US10] Implement attendance CRUD in apps/api/src/routes/attendance.routes.ts
-- [ ] T233 [US10] Implement payroll endpoints in apps/api/src/routes/payroll.routes.ts
-- [ ] T234 [US10] Wire payroll to accounting (auto-post expenses) in apps/api/src/services/payroll.service.ts
+- [X] T225 [US10] Create EmployeeRepository in apps/api/src/repositories/employee.repository.ts
+- [X] T226 [US10] Create AttendanceRepository in apps/api/src/repositories/attendance.repository.ts
+- [X] T227 [US10] Create PayrollRepository in apps/api/src/repositories/payroll.repository.ts
+- [X] T228 [US10] Create EmployeeService in apps/api/src/services/employee.service.ts
+- [X] T229 [US10] Create AttendanceService in apps/api/src/services/attendance.service.ts
+- [X] T230 [US10] Create PayrollService with calculations in apps/api/src/services/payroll.service.ts
+- [X] T231 [US10] Implement employees CRUD in apps/api/src/routes/employees.routes.ts
+- [X] T232 [US10] Implement attendance CRUD in apps/api/src/routes/attendance.routes.ts
+- [X] T233 [US10] Implement payroll endpoints in apps/api/src/routes/payroll.routes.ts
+- [X] T234 [US10] Wire payroll to accounting (auto-post expenses) in apps/api/src/services/payroll.service.ts
 
 ### Frontend - HR UI
 
-- [ ] T235 [US10] Create HR module activation in apps/web/src/components/wizards/hr-activation.tsx
-- [ ] T236 [US10] Create employees list page in apps/web/src/app/[locale]/(dashboard)/hr/employees/page.tsx
-- [ ] T237 [US10] Create employee form in apps/web/src/components/forms/employee-form.tsx
+- [X] T235 [US10] Create HR module activation in apps/web/src/components/wizards/hr-activation.tsx
+- [X] T236 [US10] Create employees list page in apps/web/src/app/[locale]/(dashboard)/hr/employees/page.tsx
+- [X] T237 [US10] Create employee form in apps/web/src/components/forms/employee-form.tsx
 - [ ] T238 [US10] Create employee detail page in apps/web/src/app/[locale]/(dashboard)/hr/employees/[id]/page.tsx
-- [ ] T239 [US10] Create attendance page in apps/web/src/app/[locale]/(dashboard)/hr/attendance/page.tsx
+- [X] T239 [US10] Create attendance page in apps/web/src/app/[locale]/(dashboard)/hr/attendance/page.tsx
 - [ ] T240 [US10] Create leave management page in apps/web/src/app/[locale]/(dashboard)/hr/leave/page.tsx
-- [ ] T241 [US10] Create payroll page in apps/web/src/app/[locale]/(dashboard)/hr/payroll/page.tsx
+- [X] T241 [US10] Create payroll page in apps/web/src/app/[locale]/(dashboard)/hr/payroll/page.tsx
 - [ ] T242 [US10] Create payroll run form with autosave in apps/web/src/components/forms/payroll-form.tsx
 
 ### Reports - HR
 
-- [ ] T243 [US10] Create payroll summary PDF template in apps/web/src/components/reports/payroll-report.tsx
-- [ ] T244 [US10] Create salary slip PDF template in apps/web/src/components/reports/salary-slip.tsx
+- [X] T243 [US10] Create payroll summary PDF template in apps/web/src/components/reports/payroll-report.tsx
+- [X] T244 [US10] Create salary slip PDF template in apps/web/src/components/reports/salary-slip.tsx
 
 **Checkpoint**: User Story 10 complete - HR module functional
 
