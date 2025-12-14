@@ -329,14 +329,14 @@
 - [X] T150 [US6] Create customers list page in apps/web/src/app/[locale]/(dashboard)/customers/page.tsx
 - [X] T151 [US6] Create suppliers list page in apps/web/src/app/[locale]/(dashboard)/suppliers/page.tsx
 - [X] T152 [US6] Create party form component in apps/web/src/components/forms/party-form.tsx
-- [ ] T153 [US6] Create party detail page with transaction history in apps/web/src/app/[locale]/(dashboard)/customers/[id]/page.tsx
+- [X] T153 [US6] Create party detail page with transaction history in apps/web/src/app/[locale]/(dashboard)/customers/[id]/page.tsx
 - [X] T154 [US6] Create payment form component in apps/web/src/components/forms/payment-form.tsx
 - [X] T155 [US6] Create payments list page in apps/web/src/app/[locale]/(dashboard)/payments/page.tsx
 
 ### Reports - Parties
 
-- [ ] T156 [US6] Create customer balances report PDF in apps/web/src/components/reports/customer-balances-report.tsx
-- [ ] T157 [US6] Create payments report PDF in apps/web/src/components/reports/payments-report.tsx
+- [X] T156 [US6] Create customer balances report PDF in apps/web/src/components/reports/customer-balances-report.tsx
+- [X] T157 [US6] Create payments report PDF in apps/web/src/components/reports/payments-report.tsx
 
 **Checkpoint**: User Story 6 complete - Parties and payments functional
 
