@@ -15,6 +15,8 @@ import reportRoutes from './routes/reports.routes';
 import warehouseRoutes from './routes/warehouses.routes';
 import transferRoutes from './routes/transfers.routes';
 import posRoutes from './routes/pos.routes';
+import partyRoutes from './routes/parties.routes';
+import paymentRoutes from './routes/payments.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -66,6 +68,8 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/warehouses', warehouseRoutes);
 app.use('/api/v1/transfers', transferRoutes);
 app.use('/api/v1/pos', posRoutes);
+app.use('/api/v1/parties', partyRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);

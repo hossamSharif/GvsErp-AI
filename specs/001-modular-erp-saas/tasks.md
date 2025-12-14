@@ -306,31 +306,32 @@
 
 ### Database & Types
 
-- [ ] T137 [P] [US6] Create Party, Payment tables migration in packages/database/migrations/007_parties_schema.sql
-- [ ] T138 [P] [US6] Define Party, Payment types in packages/shared/src/types/parties.ts
-- [ ] T139 [P] [US6] Create Zod validation schemas in packages/shared/src/validation/parties.ts
+- [X] T137 [P] [US6] Create Party, Payment tables migration in packages/database/migrations/007_parties_schema.sql
+- [X] T138 [P] [US6] Define Party, Payment types in packages/shared/src/types/parties.ts
+- [X] T139 [P] [US6] Create Zod validation schemas in packages/shared/src/validation/parties.ts
 
 ### Backend - Parties & Payments API
 
-- [ ] T140 [US6] Create PartyRepository in apps/api/src/repositories/party.repository.ts
-- [ ] T141 [US6] Create PaymentRepository in apps/api/src/repositories/payment.repository.ts
-- [ ] T142 [US6] Create PartyService with balance calculations in apps/api/src/services/party.service.ts
-- [ ] T143 [US6] Create PaymentService in apps/api/src/services/payment.service.ts
-- [ ] T144 [US6] Implement GET /parties with type filter in apps/api/src/routes/parties.routes.ts
-- [ ] T145 [US6] Implement POST /parties in apps/api/src/routes/parties.routes.ts
-- [ ] T146 [US6] Implement PUT /parties/:id in apps/api/src/routes/parties.routes.ts
-- [ ] T147 [US6] Implement GET /payments and POST /payments in apps/api/src/routes/payments.routes.ts
-- [ ] T148 [US6] Wire party balance updates to invoice finalization in apps/api/src/services/invoice.service.ts
+- [X] T140 [US6] Create PartyRepository in apps/api/src/repositories/party.repository.ts
+- [X] T141 [US6] Create PaymentRepository in apps/api/src/repositories/payment.repository.ts
+- [X] T142 [US6] Create PartyService with balance calculations in apps/api/src/services/party.service.ts
+- [X] T143 [US6] Create PaymentService in apps/api/src/services/payment.service.ts
+- [X] T144 [US6] Implement GET /parties with type filter in apps/api/src/routes/parties.routes.ts
+- [X] T145 [US6] Implement POST /parties in apps/api/src/routes/parties.routes.ts
+- [X] T146 [US6] Implement PUT /parties/:id in apps/api/src/routes/parties.routes.ts
+- [X] T147 [US6] Implement GET /payments and POST /payments in apps/api/src/routes/payments.routes.ts
+- [X] T148 [US6] Wire party balance updates to invoice finalization (handled by database triggers in 007_parties_schema.sql)
 
 ### Frontend - Parties & Payments UI
 
-- [ ] T149 [US6] Create useParties hook in apps/web/src/hooks/use-parties.ts
-- [ ] T150 [US6] Create customers list page in apps/web/src/app/[locale]/(dashboard)/customers/page.tsx
-- [ ] T151 [US6] Create suppliers list page in apps/web/src/app/[locale]/(dashboard)/suppliers/page.tsx
-- [ ] T152 [US6] Create party form component in apps/web/src/components/forms/party-form.tsx
+- [X] T149 [US6] Create useParties hook in apps/web/src/hooks/use-parties.ts
+- [X] T149.1 [US6] Create usePayments hook in apps/web/src/hooks/use-payments.ts
+- [X] T150 [US6] Create customers list page in apps/web/src/app/[locale]/(dashboard)/customers/page.tsx
+- [X] T151 [US6] Create suppliers list page in apps/web/src/app/[locale]/(dashboard)/suppliers/page.tsx
+- [X] T152 [US6] Create party form component in apps/web/src/components/forms/party-form.tsx
 - [ ] T153 [US6] Create party detail page with transaction history in apps/web/src/app/[locale]/(dashboard)/customers/[id]/page.tsx
-- [ ] T154 [US6] Create payment form component in apps/web/src/components/forms/payment-form.tsx
-- [ ] T155 [US6] Create payments list page in apps/web/src/app/[locale]/(dashboard)/payments/page.tsx
+- [X] T154 [US6] Create payment form component in apps/web/src/components/forms/payment-form.tsx
+- [X] T155 [US6] Create payments list page in apps/web/src/app/[locale]/(dashboard)/payments/page.tsx
 
 ### Reports - Parties
 
