@@ -12,6 +12,8 @@ import itemRoutes from './routes/items.routes';
 import categoryRoutes from './routes/categories.routes';
 import invoiceRoutes from './routes/invoices.routes';
 import reportRoutes from './routes/reports.routes';
+import warehouseRoutes from './routes/warehouses.routes';
+import transferRoutes from './routes/transfers.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -60,6 +62,8 @@ app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/invoices', invoiceRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/warehouses', warehouseRoutes);
+app.use('/api/v1/transfers', transferRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
@@ -69,7 +73,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(port, () => {
-  console.log(`API server running on http://localhost:${port}`);
+  console.log(\`API server running on http://localhost:\${port}\`);
 });
 
 export default app;
