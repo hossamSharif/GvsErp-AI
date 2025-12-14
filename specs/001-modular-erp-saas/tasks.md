@@ -350,31 +350,31 @@
 
 ### Database & Types
 
-- [ ] T158 [P] [US7] Create Expense, ExpenseCategory tables migration in packages/database/migrations/008_expenses_schema.sql
-- [ ] T159 [P] [US7] Define Expense types in packages/shared/src/types/expenses.ts
-- [ ] T160 [P] [US7] Create Zod validation schemas in packages/shared/src/validation/expenses.ts
+- [X] T158 [P] [US7] Create Expense, ExpenseCategory tables migration in packages/database/migrations/008_expenses_schema.sql
+- [X] T159 [P] [US7] Define Expense types in packages/shared/src/types/expenses.ts
+- [X] T160 [P] [US7] Create Zod validation schemas in packages/shared/src/validation/expenses.ts
 
 ### Backend - Expenses API
 
-- [ ] T161 [US7] Create ExpenseRepository in apps/api/src/repositories/expense.repository.ts
-- [ ] T162 [US7] Create ExpenseCategoryRepository in apps/api/src/repositories/expense-category.repository.ts
-- [ ] T163 [US7] Create ExpenseService in apps/api/src/services/expense.service.ts
-- [ ] T164 [US7] Implement GET /expenses with filters in apps/api/src/routes/expenses.routes.ts
-- [ ] T165 [US7] Implement POST /expenses in apps/api/src/routes/expenses.routes.ts
-- [ ] T166 [US7] Implement PUT /expenses/:id in apps/api/src/routes/expenses.routes.ts
-- [ ] T167 [P] [US7] Implement expense categories CRUD in apps/api/src/routes/expense-categories.routes.ts
+- [X] T161 [US7] Create ExpenseRepository in apps/api/src/repositories/expense.repository.ts
+- [X] T162 [US7] Create ExpenseCategoryRepository in apps/api/src/repositories/expense-category.repository.ts
+- [X] T163 [US7] Create ExpenseService in apps/api/src/services/expense.service.ts
+- [X] T164 [US7] Implement GET /expenses with filters in apps/api/src/routes/expenses.routes.ts
+- [X] T165 [US7] Implement POST /expenses in apps/api/src/routes/expenses.routes.ts
+- [X] T166 [US7] Implement PUT /expenses/:id in apps/api/src/routes/expenses.routes.ts
+- [X] T167 [P] [US7] Implement expense categories CRUD in apps/api/src/routes/expense-categories.routes.ts
 
 ### Frontend - Expenses UI
 
-- [ ] T168 [US7] Create useExpenses hook in apps/web/src/hooks/use-expenses.ts
-- [ ] T169 [US7] Create expenses list page in apps/web/src/app/[locale]/(dashboard)/expenses/page.tsx
-- [ ] T170 [US7] Create expense form component in apps/web/src/components/forms/expense-form.tsx
-- [ ] T171 [US7] Create new expense page in apps/web/src/app/[locale]/(dashboard)/expenses/new/page.tsx
-- [ ] T172 [P] [US7] Create expense categories management UI in apps/web/src/app/[locale]/(dashboard)/expenses/categories/page.tsx
+- [X] T168 [US7] Create useExpenses hook in apps/web/src/hooks/use-expenses.ts
+- [X] T169 [US7] Create expenses list page in apps/web/src/app/[locale]/(dashboard)/expenses/page.tsx
+- [X] T170 [US7] Create expense form component in apps/web/src/components/forms/expense-form.tsx
+- [X] T171 [US7] Create new expense page in apps/web/src/app/[locale]/(dashboard)/expenses/new/page.tsx
+- [X] T172 [P] [US7] Create expense categories management UI in apps/web/src/app/[locale]/(dashboard)/expenses/categories/page.tsx
 
 ### Reports - Expenses
 
-- [ ] T173 [US7] Create expense report PDF template in apps/web/src/components/reports/expense-report.tsx
+- [X] T173 [US7] Create expense report PDF template in apps/web/src/components/reports/expense-report.tsx
 
 **Checkpoint**: User Story 7 complete - Expense tracking functional
 

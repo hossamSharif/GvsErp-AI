@@ -147,3 +147,8 @@ export function requirePermission(...permissions: Permission[]) {
     next();
   };
 }
+
+/**
+ * Alias for authMiddleware for backward compatibility
+ */
+export const requireAuth = authMiddleware;

@@ -5,6 +5,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@erp/database';
 
 // Extend Express Request type
 declare global {
@@ -67,5 +69,43 @@ export function verifyTenantAccess(paramName: string = 'tenantId') {
     }
 
     next();
+  };
+}
+
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+
+/**
+ * Get tenant context helper for creating service instances
+ */
+export function getTenantContext(req: Request): {
+  supabase: SupabaseClient<Database>;
+  tenantId: string;
+  userId: string;
+} {
+  if (!req.user || !req.user.tenant_id) {
+    throw new Error('Tenant context not available');
+  }
+
+  if (!req.accessToken) {
+    throw new Error('Access token not available');
+  }
+
+  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${req.accessToken}`,
+      },
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return {
+    supabase,
+    tenantId: req.user.tenant_id,
+    userId: req.user.id,
   };
 }
