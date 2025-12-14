@@ -231,38 +231,38 @@
 
 ### Database & Types
 
-- [ ] T103 [P] [US4] Create Warehouse, Inventory, Transfer, TransferItem tables migration in packages/database/migrations/005_warehouse_schema.sql
-- [ ] T104 [P] [US4] Define Warehouse, Inventory, Transfer types in packages/shared/src/types/warehouse.ts
-- [ ] T105 [P] [US4] Create Zod validation schemas in packages/shared/src/validation/warehouse.ts
+- [X] T103 [P] [US4] Create Warehouse, Inventory, Transfer, TransferItem tables migration in packages/database/migrations/005_warehouse_schema.sql
+- [X] T104 [P] [US4] Define Warehouse, Inventory, Transfer types in packages/shared/src/types/warehouse.ts
+- [X] T105 [P] [US4] Create Zod validation schemas in packages/shared/src/validation/warehouse.ts
 
 ### Backend - Warehouse API
 
-- [ ] T106 [US4] Create WarehouseRepository in apps/api/src/repositories/warehouse.repository.ts
-- [ ] T107 [US4] Create InventoryRepository in apps/api/src/repositories/inventory.repository.ts
-- [ ] T108 [US4] Create TransferRepository in apps/api/src/repositories/transfer.repository.ts
-- [ ] T109 [US4] Create WarehouseService with value calculations in apps/api/src/services/warehouse.service.ts
-- [ ] T110 [US4] Create TransferService with stock movement logic in apps/api/src/services/transfer.service.ts
-- [ ] T111 [US4] Implement GET /warehouses in apps/api/src/routes/warehouses.routes.ts
-- [ ] T112 [US4] Implement POST /warehouses in apps/api/src/routes/warehouses.routes.ts
-- [ ] T113 [US4] Implement GET /warehouses/:id/inventory in apps/api/src/routes/warehouses.routes.ts
-- [ ] T114 [US4] Implement POST /transfers and GET /transfers in apps/api/src/routes/transfers.routes.ts
-- [ ] T115 [US4] Implement POST /transfers/:id/complete in apps/api/src/routes/transfers.routes.ts
-- [ ] T116 [US4] Create low stock alert checker service in apps/api/src/services/alerts.service.ts
+- [X] T106 [US4] Create WarehouseRepository in apps/api/src/repositories/warehouse.repository.ts
+- [X] T107 [US4] Create InventoryRepository in apps/api/src/repositories/inventory.repository.ts
+- [X] T108 [US4] Create TransferRepository in apps/api/src/repositories/transfer.repository.ts
+- [X] T109 [US4] Create WarehouseService with value calculations in apps/api/src/services/warehouse.service.ts
+- [X] T110 [US4] Create TransferService with stock movement logic in apps/api/src/services/transfer.service.ts
+- [X] T111 [US4] Implement GET /warehouses in apps/api/src/routes/warehouses.routes.ts
+- [X] T112 [US4] Implement POST /warehouses in apps/api/src/routes/warehouses.routes.ts
+- [X] T113 [US4] Implement GET /warehouses/:id/inventory in apps/api/src/routes/warehouses.routes.ts
+- [X] T114 [US4] Implement POST /transfers and GET /transfers in apps/api/src/routes/transfers.routes.ts
+- [X] T115 [US4] Implement POST /transfers/:id/complete in apps/api/src/routes/transfers.routes.ts
+- [X] T116 [US4] Create low stock alert checker service in apps/api/src/services/alerts.service.ts
 
 ### Frontend - Warehouse UI
 
-- [ ] T117 [US4] Create useWarehouses hook in apps/web/src/hooks/use-warehouses.ts
-- [ ] T118 [US4] Create warehouses list page in apps/web/src/app/[locale]/(dashboard)/warehouses/page.tsx
-- [ ] T119 [US4] Create warehouse detail page with inventory in apps/web/src/app/[locale]/(dashboard)/warehouses/[id]/page.tsx
-- [ ] T120 [US4] Create transfer form component in apps/web/src/components/forms/transfer-form.tsx
-- [ ] T121 [US4] Create transfers list page in apps/web/src/app/[locale]/(dashboard)/warehouses/transfers/page.tsx
-- [ ] T122 [US4] Create low stock alert configuration UI in apps/web/src/components/forms/low-stock-config.tsx
-- [ ] T123 [US4] Add low stock badge/indicator in inventory views
+- [X] T117 [US4] Create useWarehouses hook in apps/web/src/hooks/use-warehouses.ts
+- [X] T118 [US4] Create warehouses list page in apps/web/src/app/[locale]/(dashboard)/warehouses/page.tsx
+- [X] T119 [US4] Create warehouse detail page with inventory in apps/web/src/app/[locale]/(dashboard)/warehouses/[id]/page.tsx
+- [X] T120 [US4] Create transfer form component in apps/web/src/components/forms/transfer-form.tsx
+- [X] T121 [US4] Create transfers list page in apps/web/src/app/[locale]/(dashboard)/warehouses/transfers/page.tsx
+- [X] T122 [US4] Create low stock alert configuration UI in apps/web/src/components/forms/low-stock-config.tsx
+- [X] T123 [US4] Add low stock badge/indicator in inventory views
 
 ### Reports - Inventory
 
-- [ ] T124 [US4] Create inventory report endpoint GET /reports/inventory in apps/api/src/routes/reports.routes.ts
-- [ ] T125 [US4] Create inventory report PDF template in apps/web/src/components/reports/inventory-report.tsx
+- [X] T124 [US4] Create inventory report endpoint GET /reports/inventory in apps/api/src/routes/reports.routes.ts
+- [X] T125 [US4] Create inventory report PDF template in apps/web/src/components/reports/inventory-report.tsx
 
 **Checkpoint**: User Story 4 complete - Warehouses and transfers functional
 
@@ -388,46 +388,46 @@
 
 ### Database & Types
 
-- [ ] T174 [P] [US8] Create Currency, ExchangeRate tables migration in packages/database/migrations/009_settings_schema.sql
-- [ ] T175 [P] [US8] Define settings/currency types in packages/shared/src/types/settings.ts
-- [ ] T176 [P] [US8] Create Zod validation schemas in packages/shared/src/validation/settings.ts
+- [X] T174 [P] [US8] Create Currency, ExchangeRate tables migration in packages/database/migrations/009_settings_schema.sql
+- [X] T175 [P] [US8] Define settings/currency types in packages/shared/src/types/settings.ts
+- [X] T176 [P] [US8] Create Zod validation schemas in packages/shared/src/validation/settings.ts
 
 ### Backend - Settings API
 
-- [ ] T177 [US8] Create UserRepository in apps/api/src/repositories/user.repository.ts
-- [ ] T178 [US8] Create RoleRepository in apps/api/src/repositories/role.repository.ts
-- [ ] T179 [US8] Create CurrencyRepository in apps/api/src/repositories/currency.repository.ts
-- [ ] T180 [US8] Create SettingsService in apps/api/src/services/settings.service.ts
-- [ ] T181 [US8] Create UserService with role assignment in apps/api/src/services/user.service.ts
-- [ ] T182 [US8] Implement GET /users and POST /users in apps/api/src/routes/users.routes.ts
-- [ ] T183 [US8] Implement roles CRUD in apps/api/src/routes/roles.routes.ts
-- [ ] T184 [US8] Implement currencies CRUD in apps/api/src/routes/currencies.routes.ts
-- [ ] T185 [US8] Implement exchange rates CRUD in apps/api/src/routes/exchange-rates.routes.ts
-- [ ] T186 [US8] Implement tenant settings endpoint in apps/api/src/routes/settings.routes.ts
+- [X] T177 [US8] Create UserRepository in apps/api/src/repositories/user.repository.ts
+- [X] T178 [US8] Create RoleRepository in apps/api/src/repositories/role.repository.ts
+- [X] T179 [US8] Create CurrencyRepository in apps/api/src/repositories/currency.repository.ts
+- [X] T180 [US8] Create SettingsService in apps/api/src/services/settings.service.ts
+- [X] T181 [US8] Create UserService with role assignment in apps/api/src/services/user.service.ts
+- [X] T182 [US8] Implement GET /users and POST /users in apps/api/src/routes/users.routes.ts
+- [X] T183 [US8] Implement roles CRUD in apps/api/src/routes/roles.routes.ts
+- [X] T184 [US8] Implement currencies CRUD in apps/api/src/routes/currencies.routes.ts
+- [X] T185 [US8] Implement exchange rates CRUD in apps/api/src/routes/exchange-rates.routes.ts
+- [X] T186 [US8] Implement tenant settings endpoint in apps/api/src/routes/settings.routes.ts
 
 ### Frontend - Settings UI
 
-- [ ] T187 [US8] Create settings layout page in apps/web/src/app/[locale]/(dashboard)/settings/page.tsx
-- [ ] T188 [US8] Create users management page in apps/web/src/app/[locale]/(dashboard)/settings/users/page.tsx
-- [ ] T189 [US8] Create roles management page in apps/web/src/app/[locale]/(dashboard)/settings/roles/page.tsx
-- [ ] T190 [US8] Create currency settings page in apps/web/src/app/[locale]/(dashboard)/settings/currencies/page.tsx
-- [ ] T191 [US8] Create exchange rates page in apps/web/src/app/[locale]/(dashboard)/settings/exchange-rates/page.tsx
-- [ ] T192 [US8] Create general settings page (language, theme) in apps/web/src/app/[locale]/(dashboard)/settings/general/page.tsx
+- [X] T187 [US8] Create settings layout page in apps/web/src/app/[locale]/(dashboard)/settings/page.tsx
+- [X] T188 [US8] Create users management page in apps/web/src/app/[locale]/(dashboard)/settings/users/page.tsx
+- [X] T189 [US8] Create roles management page in apps/web/src/app/[locale]/(dashboard)/settings/roles/page.tsx
+- [X] T190 [US8] Create currency settings page in apps/web/src/app/[locale]/(dashboard)/settings/currencies/page.tsx
+- [X] T191 [US8] Create exchange rates page in apps/web/src/app/[locale]/(dashboard)/settings/exchange-rates/page.tsx
+- [X] T192 [US8] Create general settings page (language, theme) in apps/web/src/app/[locale]/(dashboard)/settings/general/page.tsx
 
 ### Subscription & Limits (Stripe Integration)
 
-- [ ] T193 [US8] Create SubscriptionService with Stripe in apps/api/src/services/subscription.service.ts
-- [ ] T194 [US8] Create Stripe webhook handler in apps/api/src/routes/webhooks.routes.ts
-- [ ] T195 [US8] Create subscription limits middleware in apps/api/src/middleware/limits.ts
-- [ ] T196 [US8] Create subscription/billing page in apps/web/src/app/[locale]/(dashboard)/settings/subscription/page.tsx
-- [ ] T197 [US8] Add upgrade prompts when limits reached in apps/web/src/components/dialogs/upgrade-dialog.tsx
+- [X] T193 [US8] Create SubscriptionService with Stripe in apps/api/src/services/subscription.service.ts
+- [X] T194 [US8] Create Stripe webhook handler in apps/api/src/routes/webhooks.routes.ts
+- [X] T195 [US8] Create subscription limits middleware in apps/api/src/middleware/limits.ts
+- [X] T196 [US8] Create subscription/billing page in apps/web/src/app/[locale]/(dashboard)/settings/subscription/page.tsx
+- [X] T197 [US8] Add upgrade prompts when limits reached in apps/web/src/components/dialogs/upgrade-dialog.tsx
 
 ### Audit Logging
 
-- [ ] T198 [P] [US8] Create AuditLog table migration in packages/database/migrations/010_audit_schema.sql
-- [ ] T199 [US8] Create AuditService in apps/api/src/services/audit.service.ts
-- [ ] T200 [US8] Add audit logging to all mutation operations
-- [ ] T201 [US8] Create audit logs viewer in apps/web/src/app/[locale]/(dashboard)/settings/audit-logs/page.tsx
+- [X] T198 [P] [US8] Create AuditLog table migration in packages/database/migrations/010_audit_schema.sql
+- [X] T199 [US8] Create AuditService in apps/api/src/services/audit.service.ts
+- [X] T200 [US8] Add audit logging to all mutation operations
+- [X] T201 [US8] Create audit logs viewer in apps/web/src/app/[locale]/(dashboard)/settings/audit-logs/page.tsx
 
 **Checkpoint**: User Story 8 complete - System configuration functional
 
@@ -441,35 +441,35 @@
 
 ### Database & Types
 
-- [ ] T202 [P] [US9] Create Account, JournalEntry, JournalLine tables migration in packages/database/migrations/011_accounting_schema.sql
-- [ ] T203 [P] [US9] Define accounting types in packages/shared/src/types/accounting.ts
-- [ ] T204 [P] [US9] Create Zod validation schemas in packages/shared/src/validation/accounting.ts
+- [X] T202 [P] [US9] Create Account, JournalEntry, JournalLine tables migration in packages/database/migrations/011_accounting_schema.sql
+- [X] T203 [P] [US9] Define accounting types in packages/shared/src/types/accounting.ts
+- [X] T204 [P] [US9] Create Zod validation schemas in packages/shared/src/validation/accounting.ts
 
 ### Backend - Accounting API
 
-- [ ] T205 [US9] Create AccountRepository in apps/api/src/repositories/account.repository.ts
-- [ ] T206 [US9] Create JournalEntryRepository in apps/api/src/repositories/journal-entry.repository.ts
-- [ ] T207 [US9] Create AccountingService with trial balance in apps/api/src/services/accounting.service.ts
-- [ ] T208 [US9] Create journal entry auto-generation from stock transactions in apps/api/src/services/accounting.service.ts
-- [ ] T209 [US9] Implement accounts CRUD in apps/api/src/routes/accounts.routes.ts
-- [ ] T210 [US9] Implement journal entries CRUD in apps/api/src/routes/journal-entries.routes.ts
-- [ ] T211 [US9] Create activation wizard endpoint POST /accounting/activate in apps/api/src/routes/accounting.routes.ts
-- [ ] T212 [US9] Create financial statements endpoints (income, balance sheet, cash flow) in apps/api/src/routes/accounting.routes.ts
+- [X] T205 [US9] Create AccountRepository in apps/api/src/repositories/account.repository.ts
+- [X] T206 [US9] Create JournalEntryRepository in apps/api/src/repositories/journal-entry.repository.ts
+- [X] T207 [US9] Create AccountingService with trial balance in apps/api/src/services/accounting.service.ts
+- [X] T208 [US9] Create journal entry auto-generation from stock transactions in apps/api/src/services/accounting.service.ts
+- [X] T209 [US9] Implement accounts CRUD in apps/api/src/routes/accounts.routes.ts
+- [X] T210 [US9] Implement journal entries CRUD in apps/api/src/routes/journal-entries.routes.ts
+- [X] T211 [US9] Create activation wizard endpoint POST /accounting/activate in apps/api/src/routes/accounting.routes.ts
+- [X] T212 [US9] Create financial statements endpoints (income, balance sheet, cash flow) in apps/api/src/routes/accounting.routes.ts
 
 ### Frontend - Accounting UI
 
-- [ ] T213 [US9] Create accounting module activation wizard in apps/web/src/components/wizards/accounting-activation.tsx
-- [ ] T214 [US9] Create chart of accounts page in apps/web/src/app/[locale]/(dashboard)/accounting/accounts/page.tsx
-- [ ] T215 [US9] Create journal entries page in apps/web/src/app/[locale]/(dashboard)/accounting/journal/page.tsx
-- [ ] T216 [US9] Create journal entry form with autosave in apps/web/src/components/forms/journal-entry-form.tsx
-- [ ] T217 [US9] Create general ledger page in apps/web/src/app/[locale]/(dashboard)/accounting/ledger/page.tsx
-- [ ] T218 [US9] Create trial balance page in apps/web/src/app/[locale]/(dashboard)/accounting/trial-balance/page.tsx
-- [ ] T219 [US9] Create income statement page in apps/web/src/app/[locale]/(dashboard)/accounting/income-statement/page.tsx
-- [ ] T220 [US9] Create balance sheet page in apps/web/src/app/[locale]/(dashboard)/accounting/balance-sheet/page.tsx
+- [X] T213 [US9] Create accounting module activation wizard in apps/web/src/components/wizards/accounting-activation.tsx
+- [X] T214 [US9] Create chart of accounts page in apps/web/src/app/[locale]/(dashboard)/accounting/accounts/page.tsx
+- [X] T215 [US9] Create journal entries page in apps/web/src/app/[locale]/(dashboard)/accounting/journal/page.tsx
+- [X] T216 [US9] Create journal entry form with autosave in apps/web/src/components/forms/journal-entry-form.tsx
+- [X] T217 [US9] Create general ledger page in apps/web/src/app/[locale]/(dashboard)/accounting/ledger/page.tsx
+- [X] T218 [US9] Create trial balance page in apps/web/src/app/[locale]/(dashboard)/accounting/trial-balance/page.tsx
+- [X] T219 [US9] Create income statement page in apps/web/src/app/[locale]/(dashboard)/accounting/income-statement/page.tsx
+- [X] T220 [US9] Create balance sheet page in apps/web/src/app/[locale]/(dashboard)/accounting/balance-sheet/page.tsx
 
 ### Reports - Accounting
 
-- [ ] T221 [US9] Create financial statements PDF templates in apps/web/src/components/reports/financial-statements/
+- [X] T221 [US9] Create financial statements PDF templates in apps/web/src/components/reports/financial-statements/
 
 **Checkpoint**: User Story 9 complete - Accounting module functional
 
@@ -483,9 +483,9 @@
 
 ### Database & Types
 
-- [ ] T222 [P] [US10] Create Employee, Attendance, PayrollRun tables migration in packages/database/migrations/012_hr_schema.sql
-- [ ] T223 [P] [US10] Define HR types in packages/shared/src/types/hr.ts
-- [ ] T224 [P] [US10] Create Zod validation schemas in packages/shared/src/validation/hr.ts
+- [X] T222 [P] [US10] Create Employee, Attendance, PayrollRun tables migration in packages/database/migrations/012_hr_schema.sql
+- [X] T223 [P] [US10] Define HR types in packages/shared/src/types/hr.ts
+- [X] T224 [P] [US10] Create Zod validation schemas in packages/shared/src/validation/hr.ts
 
 ### Backend - HR API
 
