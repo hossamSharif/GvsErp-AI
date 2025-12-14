@@ -276,23 +276,23 @@
 
 ### Database & Types
 
-- [ ] T126 [P] [US5] Create POSLocation table migration in packages/database/migrations/006_pos_schema.sql
-- [ ] T127 [P] [US5] Define POSLocation types in packages/shared/src/types/pos.ts
+- [X] T126 [P] [US5] Create POSLocation table migration in packages/database/migrations/006_pos_schema.sql
+- [X] T127 [P] [US5] Define POSLocation types in packages/shared/src/types/pos.ts
 
 ### Backend - POS API
 
-- [ ] T128 [US5] Create POSLocationRepository in apps/api/src/repositories/pos.repository.ts
-- [ ] T129 [US5] Create POSService in apps/api/src/services/pos.service.ts
-- [ ] T130 [US5] Implement CRUD endpoints for POS locations in apps/api/src/routes/pos.routes.ts
-- [ ] T131 [US5] Implement quick sale endpoint POST /pos/:id/sale in apps/api/src/routes/pos.routes.ts
+- [X] T128 [US5] Create POSLocationRepository in apps/api/src/repositories/pos.repository.ts
+- [X] T129 [US5] Create POSService in apps/api/src/services/pos.service.ts
+- [X] T130 [US5] Implement CRUD endpoints for POS locations in apps/api/src/routes/pos.routes.ts
+- [X] T131 [US5] Implement quick sale endpoint POST /pos/:id/sale in apps/api/src/routes/pos.routes.ts
 
 ### Frontend - POS UI
 
-- [ ] T132 [US5] Create POS locations management page in apps/web/src/app/[locale]/(dashboard)/pos/page.tsx
-- [ ] T133 [US5] Create POS terminal interface in apps/web/src/app/[locale]/(dashboard)/pos/[id]/terminal/page.tsx
-- [ ] T134 [US5] Create receipt template component in apps/web/src/components/reports/receipt.tsx
-- [ ] T135 [US5] Add discount/promotion application logic to POS terminal
-- [ ] T136 [P] [US5] Create loyalty program configuration UI in apps/web/src/components/forms/loyalty-config.tsx
+- [X] T132 [US5] Create POS locations management page in apps/web/src/app/[locale]/(dashboard)/pos/page.tsx
+- [X] T133 [US5] Create POS terminal interface in apps/web/src/app/[locale]/(dashboard)/pos/[id]/terminal/page.tsx
+- [X] T134 [US5] Create receipt template component in apps/web/src/components/reports/receipt.tsx
+- [X] T135 [US5] Add discount/promotion application logic to POS terminal
+- [X] T136 [P] [US5] Create loyalty program configuration UI in apps/web/src/components/forms/loyalty-config.tsx
 
 **Checkpoint**: User Story 5 complete - POS locations functional
 
