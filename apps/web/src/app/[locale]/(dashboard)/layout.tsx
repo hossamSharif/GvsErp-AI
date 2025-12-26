@@ -13,6 +13,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/stores/language-store';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { AIPanel } from '@/components/ai/ai-panel';
 import { cn } from '@/lib/utils';
 import { type ReactNode } from 'react';
 
@@ -24,18 +25,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const { direction, isRtl } = useDirection();
   const locale = params.locale as string;
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (with delay to ensure auth state is loaded)
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push(`/${locale}/login`);
-    }
-  }, [user, isLoading, router, locale]);
+    if (isLoading) return;
+
+    // Give more time for session to fully propagate from cookies
+    const timer = setTimeout(() => {
+      setAuthChecked(true);
+      if (!user && !session) {
+        router.push(`/${locale}/login`);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [user, session, isLoading, router, locale]);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -43,7 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [children]);
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || !authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -55,7 +65,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   // Don't render if not authenticated
-  if (!user) {
+  if (!user && !session) {
     return null;
   }
 
@@ -112,6 +122,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <main className="p-4 md:p-6">{children}</main>
       </div>
+
+      {/* AI Assistant Panel */}
+      <AIPanel />
     </div>
   );
 }

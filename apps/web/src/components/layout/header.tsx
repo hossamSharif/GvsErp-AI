@@ -11,6 +11,7 @@ import { useRouter, usePathname, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
 import { useLanguageStore, useDirection } from '@/stores/language-store';
+import { useAIPanelStore } from '@/stores/ai-panel-store';
 import { locales, localeNames, type Locale } from '@/i18n/config';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useThemeStore();
   const { locale, setLocale } = useLanguageStore();
   const { isRtl } = useDirection();
+  const { togglePanel } = useAIPanelStore();
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
@@ -115,6 +117,15 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           <BellIcon className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+        </button>
+
+        {/* AI Assistant */}
+        <button
+          onClick={togglePanel}
+          className="p-2 rounded-md hover:bg-muted transition-colors relative"
+          aria-label="AI Assistant"
+        >
+          <SparklesIcon className="w-5 h-5" />
         </button>
 
         {/* User Menu */}
@@ -277,6 +288,18 @@ function ChevronDownIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+      <path d="M5 3v4" />
+      <path d="M19 17v4" />
+      <path d="M3 5h4" />
+      <path d="M17 19h4" />
     </svg>
   );
 }

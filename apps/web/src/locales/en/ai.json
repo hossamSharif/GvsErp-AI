@@ -1,0 +1,51 @@
+{
+  "panel": {
+    "title": "AI Assistant",
+    "new": "New Chat",
+    "messages": "messages",
+    "noConversations": "No conversations yet",
+    "welcome": "Welcome to AI Assistant",
+    "getStarted": "Start a new conversation to get insights about your business",
+    "startConversation": "Start Conversation",
+    "newConversation": "New Conversation"
+  },
+  "chat": {
+    "welcome": "Hello! I'm your AI Business Assistant",
+    "welcomeMessage": "I can help you analyze your sales, inventory, customers, and more. Ask me anything about your business data!",
+    "placeholder": "Ask me anything about your business...",
+    "hint": "Press Enter to send, Shift+Enter for new line"
+  },
+  "roles": {
+    "label": "Assistant Mode",
+    "general": "General Assistant",
+    "general_desc": "Balanced insights across all areas",
+    "general_help": "Get comprehensive answers about your entire business",
+    "marketing": "Marketing Consultant",
+    "marketing_desc": "Sales trends & customer insights",
+    "marketing_help": "Focus on sales analysis, customer behavior, and growth strategies",
+    "legal": "Legal Consultant",
+    "legal_desc": "Compliance & documentation",
+    "legal_help": "Get guidance on compliance, contracts, and record-keeping (not legal advice)",
+    "customer_service": "Customer Service",
+    "customer_service_desc": "Order status & customer support",
+    "customer_service_help": "Help with customer inquiries, orders, and support tasks",
+    "financial_analyst": "Financial Analyst",
+    "financial_analyst_desc": "Financial metrics & analysis",
+    "financial_analyst_help": "Deep dive into financials, KPIs, and profitability analysis"
+  },
+  "usage": {
+    "title": "Usage",
+    "questions": "Questions",
+    "documents": "Documents",
+    "tasks": "Tasks",
+    "upgrade": "Upgrade to {{tier}}",
+    "monthly": "This month",
+    "questionsLabel": "questions"
+  },
+  "errors": {
+    "loadFailed": "Failed to load AI assistant",
+    "sendFailed": "Failed to send message",
+    "createFailed": "Failed to create conversation",
+    "limitReached": "Usage limit reached. Please upgrade your plan."
+  }
+}

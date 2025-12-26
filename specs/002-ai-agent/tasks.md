@@ -90,16 +90,16 @@
 - [X] T036 [US1] Create messages endpoint in apps/api/src/routes/ai-conversations.routes.ts (POST /api/ai/conversations/:id/messages with SSE streaming)
 - [X] T037 [US1] Create usage endpoint in apps/api/src/routes/ai-conversations.routes.ts (GET /api/ai/usage)
 - [X] T038 [US1] Register AI routes in apps/api/src/index.ts
-- [ ] T039 [P] [US1] Create AI panel container component in apps/web/src/components/ai/ai-panel.tsx with toggle functionality
-- [ ] T040 [P] [US1] Create chat interface component in apps/web/src/components/ai/chat-interface.tsx with message display and streaming response handling
-- [ ] T041 [P] [US1] Create role selector component in apps/web/src/components/ai/role-selector.tsx (general, marketing, legal, customer_service, financial_analyst)
-- [ ] T042 [P] [US1] Create usage indicator component in apps/web/src/components/ai/usage-indicator.tsx showing daily/monthly limits
-- [ ] T043 [US1] Create Zustand store in apps/web/src/stores/ai-panel-store.ts for panel state management
-- [ ] T044 [US1] Create TanStack Query hooks in apps/web/src/hooks/use-ai-conversation.ts (useConversations, useCreateConversation, useSendMessage)
-- [ ] T045 [US1] Create TanStack Query hooks in apps/web/src/hooks/use-ai-usage.ts (useUsageStats)
-- [ ] T046 [US1] Add AI panel to dashboard layout in apps/web/src/components/layout/index.tsx
-- [ ] T047 [P] [US1] Add English localization keys in apps/web/src/locales/en/common.json for AI feature
-- [ ] T048 [P] [US1] Add Arabic localization keys in apps/web/src/locales/ar/common.json for AI feature with RTL support
+- [X] T039 [P] [US1] Create AI panel container component in apps/web/src/components/ai/ai-panel.tsx with toggle functionality
+- [X] T040 [P] [US1] Create chat interface component in apps/web/src/components/ai/chat-interface.tsx with message display and streaming response handling
+- [X] T041 [P] [US1] Create role selector component in apps/web/src/components/ai/role-selector.tsx (general, marketing, legal, customer_service, financial_analyst)
+- [X] T042 [P] [US1] Create usage indicator component in apps/web/src/components/ai/usage-indicator.tsx showing daily/monthly limits
+- [X] T043 [US1] Create Zustand store in apps/web/src/stores/ai-panel-store.ts for panel state management
+- [X] T044 [US1] Create TanStack Query hooks in apps/web/src/hooks/use-ai-conversation.ts (useConversations, useCreateConversation, useSendMessage)
+- [X] T045 [US1] Create TanStack Query hooks in apps/web/src/hooks/use-ai-usage.ts (useUsageStats)
+- [X] T046 [US1] Add AI panel to dashboard layout in apps/web/src/app/[locale]/(dashboard)/layout.tsx and add AI button to header
+- [X] T047 [P] [US1] Add English localization keys in apps/web/src/locales/en/ai.json for AI feature
+- [X] T048 [P] [US1] Add Arabic localization keys in apps/web/src/locales/ar/ai.json for AI feature with RTL support
 
 **Checkpoint**: User Story 1 complete - Users can ask questions and receive AI responses with conversation management
 
