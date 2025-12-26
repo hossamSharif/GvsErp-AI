@@ -64,11 +64,11 @@
 
 ### Base Repositories
 
-- [ ] T026 Create AIConversationRepository in apps/api/src/repositories/ai-conversation.repository.ts extending BaseRepository
-- [ ] T027 [P] Create AIMessageRepository in apps/api/src/repositories/ai-message.repository.ts extending BaseRepository
-- [ ] T028 [P] Create AIUsageRepository in apps/api/src/repositories/ai-usage.repository.ts extending BaseRepository
-- [ ] T029 [P] Create AITaskRepository in apps/api/src/repositories/ai-task.repository.ts extending BaseRepository
-- [ ] T030 [P] Create AIDocumentRepository in apps/api/src/repositories/ai-document.repository.ts extending BaseRepository
+- [X] T026 Create AIConversationRepository in apps/api/src/repositories/ai-conversation.repository.ts extending BaseRepository
+- [X] T027 [P] Create AIMessageRepository in apps/api/src/repositories/ai-message.repository.ts extending BaseRepository
+- [X] T028 [P] Create AIUsageRepository in apps/api/src/repositories/ai-usage.repository.ts extending BaseRepository
+- [X] T029 [P] Create AITaskRepository in apps/api/src/repositories/ai-task.repository.ts extending BaseRepository
+- [X] T030 [P] Create AIDocumentRepository in apps/api/src/repositories/ai-document.repository.ts extending BaseRepository
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
