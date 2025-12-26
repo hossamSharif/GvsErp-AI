@@ -137,17 +137,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T060 [US3] Implement AIDocumentService in apps/api/src/services/ai-document.service.ts with upload(), process(), getExtractionPrompt() methods
-- [ ] T061 [US3] Add document processing with AI vision capabilities in apps/api/src/services/ai-document.service.ts (PDF text extraction + vision API)
-- [ ] T062 [US3] Implement structured data parsing from AI extraction results in apps/api/src/services/ai-document.service.ts
-- [ ] T063 [US3] Create document routes in apps/api/src/routes/ai-documents.routes.ts (POST /api/ai/documents, GET /api/ai/documents/:id)
-- [ ] T064 [US3] Add Supabase Storage bucket configuration for ai-documents with tenant isolation
-- [ ] T065 [US3] Register document routes in apps/api/src/index.ts
-- [ ] T066 [P] [US3] Create document upload component in apps/web/src/components/ai/document-upload.tsx with drag-and-drop
-- [ ] T067 [US3] Add file type validation in apps/web/src/components/ai/document-upload.tsx (PDF, PNG, JPG, max 10MB)
-- [ ] T068 [US3] Create TanStack Query hooks in apps/web/src/hooks/use-ai-documents.ts (useUploadDocument, useDocument)
-- [ ] T069 [US3] Add document processing status display in apps/web/src/components/ai/chat-interface.tsx
-- [ ] T070 [US3] Integrate extracted data with task generation in apps/web/src/components/ai/chat-interface.tsx
+- [X] T060 [US3] Implement AIDocumentService in apps/api/src/services/ai-document.service.ts with upload(), process(), getExtractionPrompt() methods
+- [X] T061 [US3] Add document processing with AI vision capabilities in apps/api/src/services/ai-document.service.ts (PDF text extraction + vision API)
+- [X] T062 [US3] Implement structured data parsing from AI extraction results in apps/api/src/services/ai-document.service.ts
+- [X] T063 [US3] Create document routes in apps/api/src/routes/ai-documents.routes.ts (POST /api/ai/documents, GET /api/ai/documents/:id)
+- [X] T064 [US3] Add Supabase Storage bucket configuration for ai-documents with tenant isolation
+- [X] T065 [US3] Register document routes in apps/api/src/index.ts
+- [X] T066 [P] [US3] Create document upload component in apps/web/src/components/ai/document-upload.tsx with drag-and-drop
+- [X] T067 [US3] Add file type validation in apps/web/src/components/ai/document-upload.tsx (PDF, PNG, JPG, max 10MB)
+- [X] T068 [US3] Create TanStack Query hooks in apps/web/src/hooks/use-ai-documents.ts (useUploadDocument, useDocument)
+- [X] T069 [US3] Add document processing status display in apps/web/src/components/ai/chat-interface.tsx
+- [X] T070 [US3] Integrate extracted data with task generation in apps/web/src/components/ai/chat-interface.tsx
 
 **Checkpoint**: User Story 3 complete - Users can upload documents and AI extracts structured data
 
@@ -161,12 +161,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T071 [US4] Extend AIAgentService in apps/api/src/services/ai-agent.service.ts with report generation logic (detectReportIntent, generateReport)
-- [ ] T072 [US4] Implement data aggregation queries in apps/api/src/lib/data-access-layer.ts for common report types
-- [ ] T073 [US4] Add report formatting and export capabilities in apps/api/src/services/ai-agent.service.ts
-- [ ] T074 [P] [US4] Create report display component in apps/web/src/components/ai/report-display.tsx with tables and charts
-- [ ] T075 [US4] Add report export buttons in apps/web/src/components/ai/report-display.tsx (CSV, PDF)
-- [ ] T076 [US4] Integrate report generation with chat interface in apps/web/src/components/ai/chat-interface.tsx
+- [X] T071 [US4] Extend AIAgentService in apps/api/src/services/ai-agent.service.ts with report generation logic (detectReportIntent, generateReport)
+- [X] T072 [US4] Implement data aggregation queries in apps/api/src/lib/data-access-layer.ts for common report types
+- [X] T073 [US4] Add report formatting and export capabilities in apps/api/src/services/ai-agent.service.ts
+- [X] T074 [P] [US4] Create report display component in apps/web/src/components/ai/report-display.tsx with tables and charts
+- [X] T075 [US4] Add report export buttons in apps/web/src/components/ai/report-display.tsx (CSV, PDF)
+- [X] T076 [US4] Integrate report generation with chat interface in apps/web/src/components/ai/chat-interface.tsx
 
 **Checkpoint**: User Story 4 complete - Users can generate custom reports via AI
 

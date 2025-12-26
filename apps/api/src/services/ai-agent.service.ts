@@ -923,4 +923,255 @@ Generate a journal entry JSON with the following structure:
     const date = new Date(dateString);
     return date instanceof Date && !isNaN(date.getTime());
   }
+
+  /**
+   * Detect if user message is requesting a report
+   * @param message - User message
+   * @returns Report type or null
+   */
+  detectReportIntent(
+    message: string
+  ): 'sales' | 'inventory' | 'financial' | 'customer' | 'general' | null {
+    const lowerMessage = message.toLowerCase();
+
+    // Sales report keywords
+    if (
+      lowerMessage.includes('sales report') ||
+      lowerMessage.includes('revenue report') ||
+      lowerMessage.includes('sales analysis') ||
+      lowerMessage.includes('sales summary')
+    ) {
+      return 'sales';
+    }
+
+    // Inventory report keywords
+    if (
+      lowerMessage.includes('inventory report') ||
+      lowerMessage.includes('stock report') ||
+      lowerMessage.includes('inventory analysis') ||
+      lowerMessage.includes('stock levels')
+    ) {
+      return 'inventory';
+    }
+
+    // Financial report keywords
+    if (
+      lowerMessage.includes('financial report') ||
+      lowerMessage.includes('balance sheet') ||
+      lowerMessage.includes('income statement') ||
+      lowerMessage.includes('profit and loss') ||
+      lowerMessage.includes('p&l') ||
+      lowerMessage.includes('financial summary')
+    ) {
+      return 'financial';
+    }
+
+    // Customer report keywords
+    if (
+      lowerMessage.includes('customer report') ||
+      lowerMessage.includes('customer analysis') ||
+      lowerMessage.includes('customer balances') ||
+      lowerMessage.includes('top customers')
+    ) {
+      return 'customer';
+    }
+
+    // General analysis/report keywords
+    if (
+      lowerMessage.includes('report') ||
+      lowerMessage.includes('analysis') ||
+      lowerMessage.includes('summary')
+    ) {
+      return 'general';
+    }
+
+    return null;
+  }
+
+  /**
+   * Generate a business report based on user request
+   * @param userContext - User context
+   * @param reportType - Type of report
+   * @param message - User's message with specific requirements
+   * @returns Report data and formatted text
+   */
+  async generateReport(
+    userContext: UserContext,
+    reportType: 'sales' | 'inventory' | 'financial' | 'customer' | 'general',
+    message: string
+  ): Promise<{
+    reportData: any;
+    formattedReport: string;
+  }> {
+    let reportData: any = {};
+
+    // Fetch relevant data based on report type
+    switch (reportType) {
+      case 'sales':
+        reportData = await this.generateSalesReport(userContext);
+        break;
+      case 'inventory':
+        reportData = await this.generateInventoryReport(userContext);
+        break;
+      case 'financial':
+        reportData = await this.generateFinancialReport(userContext);
+        break;
+      case 'customer':
+        reportData = await this.generateCustomerReport(userContext);
+        break;
+      case 'general':
+        reportData = await this.generateGeneralReport(userContext);
+        break;
+    }
+
+    // Use AI to format the report based on user's specific request
+    const formattedReport = await this.formatReportWithAI(
+      reportType,
+      reportData,
+      message,
+      userContext
+    );
+
+    return {
+      reportData,
+      formattedReport,
+    };
+  }
+
+  /**
+   * Generate sales report
+   */
+  private async generateSalesReport(userContext: UserContext): Promise<any> {
+    const salesData = await this.dataAccessLayer.getRecentSalesInvoices(
+      userContext,
+      100
+    );
+    const topCustomers = await this.dataAccessLayer.getTopCustomers(
+      userContext,
+      10
+    );
+
+    // Calculate totals
+    const totalSales = salesData.data.reduce(
+      (sum, invoice: any) => sum + (invoice.total_amount || 0),
+      0
+    );
+
+    return {
+      sales: salesData.data,
+      topCustomers: topCustomers.data,
+      totalSales,
+      count: salesData.data.length,
+    };
+  }
+
+  /**
+   * Generate inventory report
+   */
+  private async generateInventoryReport(userContext: UserContext): Promise<any> {
+    const inventoryData = await this.dataAccessLayer.getInventoryLevels(
+      userContext,
+      100
+    );
+
+    return {
+      items: inventoryData.data,
+      totalItems: inventoryData.data.length,
+      totalValue: inventoryData.data.reduce(
+        (sum: number, item: any) =>
+          sum + (item.quantity || 0) * (item.unit_price || 0),
+        0
+      ),
+    };
+  }
+
+  /**
+   * Generate financial report
+   */
+  private async generateFinancialReport(userContext: UserContext): Promise<any> {
+    const accountingOverview =
+      await this.dataAccessLayer.getAccountingOverview(userContext);
+
+    return {
+      overview: accountingOverview,
+    };
+  }
+
+  /**
+   * Generate customer report
+   */
+  private async generateCustomerReport(userContext: UserContext): Promise<any> {
+    const topCustomers = await this.dataAccessLayer.getTopCustomers(
+      userContext,
+      20
+    );
+
+    return {
+      customers: topCustomers.data,
+      totalCustomers: topCustomers.data.length,
+    };
+  }
+
+  /**
+   * Generate general report
+   */
+  private async generateGeneralReport(userContext: UserContext): Promise<any> {
+    // Fetch all available data for general analysis
+    const [salesData, inventoryData, customerData, financeData] =
+      await Promise.all([
+        this.dataAccessLayer.getRecentSalesInvoices(userContext, 20),
+        this.dataAccessLayer.getInventoryLevels(userContext, 20),
+        this.dataAccessLayer.getTopCustomers(userContext, 10),
+        this.dataAccessLayer.getAccountingOverview(userContext),
+      ]);
+
+    return {
+      sales: salesData.data,
+      inventory: inventoryData.data,
+      customers: customerData.data,
+      finance: financeData,
+    };
+  }
+
+  /**
+   * Format report using AI
+   * @param reportType - Type of report
+   * @param reportData - Raw report data
+   * @param userMessage - User's original message
+   * @param userContext - User context
+   */
+  private async formatReportWithAI(
+    reportType: string,
+    reportData: any,
+    userMessage: string,
+    userContext: UserContext
+  ): Promise<string> {
+    const model = ModelFactory.getDefaultModel();
+
+    const prompt = `You are a business intelligence analyst creating a report for an ERP system.
+
+User Request: ${userMessage}
+Report Type: ${reportType}
+
+Data:
+${JSON.stringify(reportData, null, 2)}
+
+Please create a comprehensive, well-formatted report that:
+1. Answers the user's specific request
+2. Highlights key insights and trends
+3. Includes relevant metrics and KPIs
+4. Provides actionable recommendations
+5. Uses clear headings and sections
+6. Formats numbers with proper currency symbols and units
+7. Is easy to read and understand
+
+Format the report in markdown with tables, bullet points, and headings as appropriate.`;
+
+    const { text } = await generateText({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return text;
+  }
 }

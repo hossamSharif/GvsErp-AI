@@ -10,11 +10,14 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, Loader2, AlertCircle, Paperclip, File, CheckCircle, XCircle } from 'lucide-react';
 import { useMessages, useSendMessage } from '@/hooks/use-ai-conversation';
 import { useAIPanelStore } from '@/stores/ai-panel-store';
 import { useTasks, useApproveTask, useRejectTask, useExecuteTask } from '@/hooks/use-ai-tasks';
+import { useConversationDocuments } from '@/hooks/use-ai-documents';
 import { TaskPreview } from './task-preview';
+import { DocumentUpload } from './document-upload';
+import { ReportDisplay, ReportData } from './report-display';
 import { cn } from '@/lib/utils';
 import type { Message, Task } from '@erp-saas/shared';
 
@@ -26,6 +29,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const t = useTranslations('ai.chat');
   const [input, setInput] = useState('');
   const [streamingText, setStreamingText] = useState('');
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: messagesData, isLoading } = useMessages(conversationId);
@@ -37,6 +41,9 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const approveTask = useApproveTask();
   const rejectTask = useRejectTask();
   const executeTask = useExecuteTask();
+
+  // Fetch documents for this conversation
+  const { data: documents = [] } = useConversationDocuments(conversationId);
 
   const messages = messagesData?.data || [];
   const allTasks = tasksData?.tasks || [];
@@ -184,8 +191,58 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-3">
+        {/* Document Upload Section */}
+        {showDocumentUpload && (
+          <div className="border rounded-lg p-4 bg-muted/50">
+            <DocumentUpload
+              conversationId={conversationId}
+              onUploadSuccess={(doc) => {
+                console.log('Document uploaded:', doc);
+              }}
+              onUploadError={(error) => {
+                console.error('Upload error:', error);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Documents Status */}
+        {documents.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs border',
+                  doc.processing_status === 'completed' && 'bg-green-50 border-green-200 text-green-700',
+                  doc.processing_status === 'failed' && 'bg-red-50 border-red-200 text-red-700',
+                  (doc.processing_status === 'pending' || doc.processing_status === 'processing') &&
+                    'bg-blue-50 border-blue-200 text-blue-700'
+                )}
+              >
+                <File className="h-3 w-3" />
+                <span className="truncate max-w-[150px]">{doc.file_name}</span>
+                {doc.processing_status === 'completed' && <CheckCircle className="h-3 w-3" />}
+                {doc.processing_status === 'failed' && <XCircle className="h-3 w-3" />}
+                {(doc.processing_status === 'pending' || doc.processing_status === 'processing') && (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDocumentUpload(!showDocumentUpload)}
+            className="flex-shrink-0"
+            title={t('upload_document')}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -207,7 +264,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground">
           {t('hint')}
         </p>
       </div>
@@ -215,8 +272,43 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   );
 }
 
+/**
+ * Check if message content is a report
+ * Reports are detected by checking for markdown headings and tables
+ */
+function detectReport(content: string): ReportData | null {
+  const lowerContent = content.toLowerCase();
+
+  // Check if this looks like a report (has headings and possibly tables)
+  const hasHeadings = /^#{1,3}\s+/m.test(content);
+  const hasTables = /\|.*\|/m.test(content);
+
+  if (!hasHeadings && !hasTables) {
+    return null;
+  }
+
+  // Detect report type from content
+  let type: ReportData['type'] = 'general';
+  if (lowerContent.includes('sales') || lowerContent.includes('revenue')) {
+    type = 'sales';
+  } else if (lowerContent.includes('inventory') || lowerContent.includes('stock')) {
+    type = 'inventory';
+  } else if (lowerContent.includes('financial') || lowerContent.includes('balance sheet')) {
+    type = 'financial';
+  } else if (lowerContent.includes('customer')) {
+    type = 'customer';
+  }
+
+  return {
+    type,
+    formattedReport: content,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === 'user';
+  const report = !isUser ? detectReport(message.content) : null;
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
@@ -237,16 +329,20 @@ function MessageBubble({ message }: { message: Message }) {
         </div>
       </div>
       <div className={cn('flex-1 space-y-2', isUser && 'text-right')}>
-        <div
-          className={cn(
-            'inline-block rounded-lg px-4 py-2',
-            isUser
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted prose prose-sm dark:prose-invert max-w-none'
-          )}
-        >
-          {message.content}
-        </div>
+        {report ? (
+          <ReportDisplay report={report} />
+        ) : (
+          <div
+            className={cn(
+              'inline-block rounded-lg px-4 py-2',
+              isUser
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted prose prose-sm dark:prose-invert max-w-none'
+            )}
+          >
+            {message.content}
+          </div>
+        )}
         <div className="text-xs text-muted-foreground">
           {new Date(message.createdAt).toLocaleTimeString()}
         </div>
