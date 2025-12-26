@@ -57,10 +57,10 @@
 
 ### AI Model Integration Core
 
-- [ ] T022 Create ModelFactory in apps/api/src/lib/ai-models/model-factory.ts with getDefaultModel() and getSummaryModel() methods
-- [ ] T023 [P] Create ConversationContextManager in apps/api/src/lib/context-manager.ts with prepareContext() and summarizeMessages() methods
-- [ ] T024 [P] Create DataAccessLayer in apps/api/src/lib/data-access-layer.ts for permission-aware data retrieval
-- [ ] T025 Create AI rate limiting middleware in apps/api/src/middleware/ai-rate-limit.ts (10 questions/minute limit)
+- [X] T022 Create ModelFactory in apps/api/src/lib/ai-models/model-factory.ts with getDefaultModel() and getSummaryModel() methods
+- [X] T023 [P] Create ConversationContextManager in apps/api/src/lib/context-manager.ts with prepareContext() and summarizeMessages() methods
+- [X] T024 [P] Create DataAccessLayer in apps/api/src/lib/data-access-layer.ts for permission-aware data retrieval
+- [X] T025 Create AI rate limiting middleware in apps/api/src/middleware/ai-rate-limit.ts (10 questions/minute limit)
 
 ### Base Repositories
 
