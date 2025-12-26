@@ -230,8 +230,8 @@
 - [X] T099 Implement retry queue for failed AI requests in apps/api/src/services/ai-queue.service.ts (3 attempts over 5 minutes)
 - [X] T100 Add exponential backoff retry logic in apps/api/src/services/ai-agent.service.ts
 - [X] T101 Implement graceful degradation when AI service unavailable in apps/api/src/services/ai-agent.service.ts
-- [ ] T102 [P] Add error notifications in apps/web/src/components/ai/chat-interface.tsx (usage limits, service unavailable, etc.)
-- [ ] T103 [P] Add retry status display in apps/web/src/components/ai/chat-interface.tsx
+- [X] T102 [P] Add error notifications in apps/web/src/components/ai/chat-interface.tsx (usage limits, service unavailable, etc.)
+- [X] T103 [P] Add retry status display in apps/web/src/components/ai/chat-interface.tsx
 
 ---
 
