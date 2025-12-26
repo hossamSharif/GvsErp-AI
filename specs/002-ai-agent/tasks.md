@@ -49,11 +49,11 @@
 
 ### Shared Types and Validation
 
-- [ ] T017 Create TypeScript types in packages/shared/src/types/ai.ts (Conversation, Message, Document, Task, UsageRecord, AuditLog, Configuration)
-- [ ] T018 [P] Create AI model types in packages/shared/src/types/ai-models.ts (ConsultantRole, ModelProvider, AIModelConfig)
-- [ ] T019 Create Zod validation schemas in packages/shared/src/validation/ai.ts (createConversationSchema, sendMessageSchema, updateTaskStatusSchema)
-- [ ] T020 Update packages/shared/src/types/index.ts to export ai.ts and ai-models.ts
-- [ ] T021 Update packages/shared/src/validation/index.ts to export ai.ts
+- [X] T017 Create TypeScript types in packages/shared/src/types/ai.ts (Conversation, Message, Document, Task, UsageRecord, AuditLog, Configuration)
+- [X] T018 [P] Create AI model types in packages/shared/src/types/ai-models.ts (ConsultantRole, ModelProvider, AIModelConfig)
+- [X] T019 Create Zod validation schemas in packages/shared/src/validation/ai.ts (createConversationSchema, sendMessageSchema, updateTaskStatusSchema)
+- [X] T020 Update packages/shared/src/types/index.ts to export ai.ts and ai-models.ts
+- [X] T021 Update packages/shared/src/validation/index.ts to export ai.ts
 
 ### AI Model Integration Core
 

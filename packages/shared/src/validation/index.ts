@@ -9,3 +9,6 @@ export * from './warehouse';
 export * from './pos';
 export * from './parties';
 export * from './audit';
+export * from './expenses';
+export * from './settings';
+export * from './ai';
