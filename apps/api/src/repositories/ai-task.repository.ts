@@ -337,4 +337,123 @@ export class AITaskRepository extends BaseRepository<
       throw error;
     }
   }
+
+  /**
+   * Find task by ID
+   * @param id - Task ID
+   * @returns Task or null
+   */
+  async findById(id: string): Promise<Task | null> {
+    const { data, error } = await this.supabase
+      .from('ai_tasks')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw error;
+    }
+
+    return data as Task;
+  }
+
+  /**
+   * Find task by ID with details
+   * @param id - Task ID
+   * @returns Task with details or null
+   */
+  async findByIdWithDetails(id: string): Promise<TaskWithDetails | null> {
+    const { data, error } = await this.supabase
+      .from('ai_tasks')
+      .select(
+        `
+        *,
+        conversation:ai_conversations(id, title),
+        user:users(id, full_name, email)
+      `
+      )
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw error;
+    }
+
+    return data as TaskWithDetails;
+  }
+
+  /**
+   * Find many tasks with details using filters
+   * @param filters - Filter conditions
+   * @param limit - Limit
+   * @param offset - Offset
+   * @returns Tasks with details and count
+   */
+  async findManyWithDetails(
+    filters: Record<string, any>,
+    limit: number,
+    offset: number
+  ): Promise<{ data: TaskWithDetails[]; count: number | null }> {
+    let query = this.supabase
+      .from('ai_tasks')
+      .select(
+        `
+        *,
+        conversation:ai_conversations(id, title),
+        user:users(id, full_name, email)
+      `,
+        { count: 'exact' }
+      );
+
+    // Apply filters
+    Object.entries(filters).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
+
+    // Apply pagination and sorting
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      data: (data || []) as TaskWithDetails[],
+      count,
+    };
+  }
+
+  /**
+   * Update task fields
+   * @param id - Task ID
+   * @param updates - Fields to update
+   * @returns Updated task or null
+   */
+  async updateTask(id: string, updates: Partial<TaskUpdate>): Promise<Task | null> {
+    const { data, error } = await this.supabase
+      .from('ai_tasks')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw error;
+    }
+
+    return data as Task;
+  }
 }

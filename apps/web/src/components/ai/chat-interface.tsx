@@ -13,8 +13,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User, Loader2, AlertCircle } from 'lucide-react';
 import { useMessages, useSendMessage } from '@/hooks/use-ai-conversation';
 import { useAIPanelStore } from '@/stores/ai-panel-store';
+import { useTasks, useApproveTask, useRejectTask, useExecuteTask } from '@/hooks/use-ai-tasks';
+import { TaskPreview } from './task-preview';
 import { cn } from '@/lib/utils';
-import type { Message } from '@erp-saas/shared';
+import type { Message, Task } from '@erp-saas/shared';
 
 interface ChatInterfaceProps {
   conversationId: string;
@@ -30,7 +32,23 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const { sendMessage } = useSendMessage(conversationId);
   const { isStreaming, setStreaming } = useAIPanelStore();
 
+  // Fetch tasks for this conversation
+  const { data: tasksData } = useTasks({ limit: 50 });
+  const approveTask = useApproveTask();
+  const rejectTask = useRejectTask();
+  const executeTask = useExecuteTask();
+
   const messages = messagesData?.data || [];
+  const allTasks = tasksData?.tasks || [];
+
+  // Group tasks by message ID for display
+  const tasksByMessage = allTasks.reduce((acc, task) => {
+    if (!acc[task.messageId]) {
+      acc[task.messageId] = [];
+    }
+    acc[task.messageId].push(task);
+    return acc;
+  }, {} as Record<string, Task[]>);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -74,6 +92,30 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     }
   };
 
+  const handleApproveTask = async (taskId: string) => {
+    try {
+      await approveTask.mutateAsync(taskId);
+    } catch (error) {
+      console.error('Error approving task:', error);
+    }
+  };
+
+  const handleRejectTask = async (taskId: string) => {
+    try {
+      await rejectTask.mutateAsync(taskId);
+    } catch (error) {
+      console.error('Error rejecting task:', error);
+    }
+  };
+
+  const handleExecuteTask = async (task: Task) => {
+    try {
+      await executeTask.mutateAsync(task.id);
+    } catch (error) {
+      console.error('Error executing task:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -98,7 +140,26 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
           )}
 
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+            <div key={message.id} className="space-y-3">
+              <MessageBubble message={message} />
+
+              {/* Display tasks associated with this message */}
+              {tasksByMessage[message.id]?.map((task) => (
+                <div key={task.id} className="ml-11">
+                  <TaskPreview
+                    task={task}
+                    onApprove={handleApproveTask}
+                    onReject={handleRejectTask}
+                    onExecute={handleExecuteTask}
+                    isLoading={
+                      approveTask.isPending ||
+                      rejectTask.isPending ||
+                      executeTask.isPending
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           ))}
 
           {/* Streaming message */}

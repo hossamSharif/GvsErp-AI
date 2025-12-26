@@ -13,6 +13,8 @@ import type {
   AIModelConfig,
   Document,
   UsageActionType,
+  TaskType,
+  Task,
 } from '@erp-saas/shared';
 import { ModelFactory } from '../lib/ai-models/model-factory';
 import { ConversationContextManager } from '../lib/context-manager';
@@ -21,6 +23,7 @@ import { buildSystemPrompt, buildTitleGenerationPrompt } from '../lib/ai-models/
 import { AIMessageRepository } from '../repositories/ai-message.repository';
 import { AIUsageRepository } from '../repositories/ai-usage.repository';
 import { AIDocumentRepository } from '../repositories/ai-document.repository';
+import { AITaskRepository } from '../repositories/ai-task.repository';
 
 /**
  * Streaming response interface
@@ -51,6 +54,7 @@ export class AIAgentService {
   private messageRepo: AIMessageRepository;
   private usageRepo: AIUsageRepository;
   private documentRepo: AIDocumentRepository;
+  private taskRepo: AITaskRepository;
   private contextManager: ConversationContextManager;
   private dataAccessLayer: DataAccessLayer;
 
@@ -58,6 +62,7 @@ export class AIAgentService {
     this.messageRepo = new AIMessageRepository(supabase);
     this.usageRepo = new AIUsageRepository(supabase);
     this.documentRepo = new AIDocumentRepository(supabase);
+    this.taskRepo = new AITaskRepository(supabase);
     this.contextManager = new ConversationContextManager(supabase);
     this.dataAccessLayer = new DataAccessLayer(supabase);
   }
@@ -386,5 +391,536 @@ export class AIAgentService {
     // For regeneration, we simply process the message again
     // The conversation history will automatically exclude the old assistant response
     return this.processMessage(options);
+  }
+
+  /**
+   * Detect if user message contains task creation intent
+   * @param userMessage - User's message content
+   * @returns Task type if detected, null otherwise
+   */
+  async detectTaskIntent(userMessage: string): Promise<TaskType | null> {
+    const messageLower = userMessage.toLowerCase();
+
+    // Intent keywords for different task types
+    const taskIntents = {
+      invoice: [
+        'create invoice',
+        'generate invoice',
+        'new invoice',
+        'make invoice',
+        'invoice for',
+        'bill customer',
+        'bill client',
+      ],
+      purchase_order: [
+        'create purchase order',
+        'new purchase order',
+        'order from supplier',
+        'purchase from',
+        'buy from',
+        'create po',
+      ],
+      sales_order: [
+        'create sales order',
+        'new sales order',
+        'sales order for',
+        'sell to',
+        'create so',
+      ],
+      payment: [
+        'create payment',
+        'record payment',
+        'make payment',
+        'pay invoice',
+        'receive payment',
+        'payment for',
+        'pay supplier',
+        'pay vendor',
+      ],
+      journal_entry: [
+        'create journal entry',
+        'new journal entry',
+        'record transaction',
+        'make entry',
+        'debit',
+        'credit',
+      ],
+    };
+
+    // Check each task type for intent keywords
+    for (const [taskType, keywords] of Object.entries(taskIntents)) {
+      if (keywords.some((keyword) => messageLower.includes(keyword))) {
+        return taskType as TaskType;
+      }
+    }
+
+    // If no clear intent, use AI to analyze more complex requests
+    try {
+      const model = ModelFactory.getSummaryModel(); // Use faster model for intent detection
+
+      const result = await generateText({
+        model,
+        prompt: `Analyze this user message and determine if they want to create a transaction.
+User message: "${userMessage}"
+
+Respond with ONLY ONE of these exact words (or "none" if not a task request):
+- invoice (for sales invoices)
+- purchase_order (for purchase orders)
+- sales_order (for sales orders)
+- payment (for payments or receipts)
+- journal_entry (for accounting entries)
+- none (if not asking to create a transaction)
+
+Response:`,
+        temperature: 0.3,
+        maxTokens: 20,
+      });
+
+      const intent = result.text.trim().toLowerCase();
+      if (
+        intent === 'invoice' ||
+        intent === 'purchase_order' ||
+        intent === 'sales_order' ||
+        intent === 'payment' ||
+        intent === 'journal_entry'
+      ) {
+        return intent as TaskType;
+      }
+    } catch (error) {
+      console.error('Error detecting task intent:', error);
+    }
+
+    return null;
+  }
+
+  /**
+   * Generate structured task data using AI
+   * @param userContext - User context
+   * @param conversationId - Conversation ID
+   * @param messageId - Message ID that triggered task
+   * @param taskType - Type of task to generate
+   * @param userMessage - User's message content
+   * @returns Generated task data
+   */
+  async generateTaskData(
+    userContext: UserContext,
+    conversationId: string,
+    messageId: string,
+    taskType: TaskType,
+    userMessage: string
+  ): Promise<Record<string, any>> {
+    const model = ModelFactory.getDefaultModel();
+
+    // Build task-specific prompt
+    const taskPrompt = this.buildTaskGenerationPrompt(taskType, userMessage, userContext);
+
+    // Get relevant business data for context
+    const businessContext = await this.fetchBusinessContext(userContext, userMessage);
+
+    try {
+      const result = await generateText({
+        model,
+        prompt: `${taskPrompt}
+
+BUSINESS DATA CONTEXT:
+${businessContext}
+
+USER MESSAGE:
+${userMessage}
+
+Generate the transaction data in valid JSON format. The response MUST be valid JSON only, no explanations.`,
+        temperature: 0.5,
+        maxTokens: 2048,
+      });
+
+      // Parse the generated JSON
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Failed to extract JSON from AI response');
+      }
+
+      const generatedData = JSON.parse(jsonMatch[0]);
+
+      return generatedData;
+    } catch (error) {
+      console.error('Error generating task data:', error);
+      throw new Error('Failed to generate task data. Please try rephrasing your request.');
+    }
+  }
+
+  /**
+   * Build task-specific generation prompt
+   * @param taskType - Type of task
+   * @param userMessage - User's message
+   * @param userContext - User context
+   * @returns Prompt for task generation
+   */
+  private buildTaskGenerationPrompt(
+    taskType: TaskType,
+    userMessage: string,
+    userContext: UserContext
+  ): string {
+    const basePrompt = `You are an ERP assistant helping to create a ${taskType.replace('_', ' ')}.
+Extract all relevant information from the user's message and business data context.`;
+
+    const taskPrompts: Record<TaskType, string> = {
+      invoice: `${basePrompt}
+
+Generate a sales invoice JSON with the following structure:
+{
+  "type": "sales_invoice",
+  "party_id": "uuid-of-customer",
+  "party_name": "Customer Name (if not found in data, use name from message)",
+  "invoice_date": "YYYY-MM-DD",
+  "due_date": "YYYY-MM-DD",
+  "items": [
+    {
+      "item_id": "uuid-of-item",
+      "item_name": "Item Name (if not found in data, use name from message)",
+      "quantity": number,
+      "unit_price": number,
+      "discount_percent": number (default 0),
+      "tax_percent": number (default from item or 0)
+    }
+  ],
+  "notes": "string (any special notes mentioned)",
+  "payment_terms": "string (e.g., 'Net 30')"
+}`,
+      purchase_order: `${basePrompt}
+
+Generate a purchase order JSON with the following structure:
+{
+  "type": "purchase_order",
+  "supplier_id": "uuid-of-supplier",
+  "supplier_name": "Supplier Name (if not found in data, use name from message)",
+  "order_date": "YYYY-MM-DD",
+  "expected_date": "YYYY-MM-DD",
+  "items": [
+    {
+      "item_id": "uuid-of-item",
+      "item_name": "Item Name (if not found in data, use name from message)",
+      "quantity": number,
+      "unit_price": number
+    }
+  ],
+  "notes": "string (delivery instructions, etc.)"
+}`,
+      sales_order: `${basePrompt}
+
+Generate a sales order JSON with the following structure:
+{
+  "type": "sales_order",
+  "customer_id": "uuid-of-customer",
+  "customer_name": "Customer Name (if not found in data, use name from message)",
+  "order_date": "YYYY-MM-DD",
+  "delivery_date": "YYYY-MM-DD",
+  "items": [
+    {
+      "item_id": "uuid-of-item",
+      "item_name": "Item Name (if not found in data, use name from message)",
+      "quantity": number,
+      "unit_price": number
+    }
+  ],
+  "notes": "string"
+}`,
+      payment: `${basePrompt}
+
+Generate a payment record JSON with the following structure:
+{
+  "type": "payment",
+  "payment_type": "received" | "sent",
+  "party_id": "uuid-of-customer-or-supplier",
+  "party_name": "Party Name (if not found in data, use name from message)",
+  "amount": number,
+  "payment_date": "YYYY-MM-DD",
+  "payment_method": "cash" | "bank_transfer" | "check" | "credit_card",
+  "reference": "string (check number, transaction ref, etc.)",
+  "notes": "string"
+}`,
+      journal_entry: `${basePrompt}
+
+Generate a journal entry JSON with the following structure:
+{
+  "type": "journal_entry",
+  "entry_date": "YYYY-MM-DD",
+  "reference": "string",
+  "description": "string",
+  "lines": [
+    {
+      "account_code": "string (account code or name)",
+      "debit": number (0 if credit),
+      "credit": number (0 if debit),
+      "description": "string"
+    }
+  ]
+}`,
+    };
+
+    return taskPrompts[taskType] || basePrompt;
+  }
+
+  /**
+   * Validate generated task data against business rules
+   * @param taskType - Type of task
+   * @param generatedData - AI-generated task data
+   * @param userContext - User context for permission checks
+   * @returns Validation result with errors if any
+   */
+  async validateTaskData(
+    taskType: TaskType,
+    generatedData: Record<string, any>,
+    userContext: UserContext
+  ): Promise<{ valid: boolean; errors: string[] }> {
+    const errors: string[] = [];
+
+    try {
+      // Common validations
+      if (!generatedData || typeof generatedData !== 'object') {
+        errors.push('Generated data must be a valid object');
+        return { valid: false, errors };
+      }
+
+      // Task-specific validations
+      switch (taskType) {
+        case 'invoice':
+          await this.validateInvoiceData(generatedData, errors, userContext);
+          break;
+        case 'purchase_order':
+          await this.validatePurchaseOrderData(generatedData, errors, userContext);
+          break;
+        case 'sales_order':
+          await this.validateSalesOrderData(generatedData, errors, userContext);
+          break;
+        case 'payment':
+          await this.validatePaymentData(generatedData, errors, userContext);
+          break;
+        case 'journal_entry':
+          await this.validateJournalEntryData(generatedData, errors, userContext);
+          break;
+      }
+
+      return { valid: errors.length === 0, errors };
+    } catch (error) {
+      console.error('Error validating task data:', error);
+      errors.push('Validation error occurred');
+      return { valid: false, errors };
+    }
+  }
+
+  /**
+   * Validate invoice data
+   */
+  private async validateInvoiceData(
+    data: Record<string, any>,
+    errors: string[],
+    userContext: UserContext
+  ): Promise<void> {
+    // Required fields
+    if (!data.party_name) {
+      errors.push('Customer name is required');
+    }
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+      errors.push('At least one item is required');
+    }
+
+    // Validate items
+    if (data.items && Array.isArray(data.items)) {
+      data.items.forEach((item: any, index: number) => {
+        if (!item.item_name) {
+          errors.push(`Item ${index + 1}: Item name is required`);
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`Item ${index + 1}: Quantity must be greater than 0`);
+        }
+        if (!item.unit_price || item.unit_price < 0) {
+          errors.push(`Item ${index + 1}: Unit price must be 0 or greater`);
+        }
+      });
+    }
+
+    // Validate dates
+    if (data.invoice_date && !this.isValidDate(data.invoice_date)) {
+      errors.push('Invoice date must be a valid date (YYYY-MM-DD)');
+    }
+    if (data.due_date && !this.isValidDate(data.due_date)) {
+      errors.push('Due date must be a valid date (YYYY-MM-DD)');
+    }
+  }
+
+  /**
+   * Validate purchase order data
+   */
+  private async validatePurchaseOrderData(
+    data: Record<string, any>,
+    errors: string[],
+    userContext: UserContext
+  ): Promise<void> {
+    // Required fields
+    if (!data.supplier_name) {
+      errors.push('Supplier name is required');
+    }
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+      errors.push('At least one item is required');
+    }
+
+    // Validate items
+    if (data.items && Array.isArray(data.items)) {
+      data.items.forEach((item: any, index: number) => {
+        if (!item.item_name) {
+          errors.push(`Item ${index + 1}: Item name is required`);
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`Item ${index + 1}: Quantity must be greater than 0`);
+        }
+        if (!item.unit_price || item.unit_price < 0) {
+          errors.push(`Item ${index + 1}: Unit price must be 0 or greater`);
+        }
+      });
+    }
+
+    // Validate dates
+    if (data.order_date && !this.isValidDate(data.order_date)) {
+      errors.push('Order date must be a valid date (YYYY-MM-DD)');
+    }
+    if (data.expected_date && !this.isValidDate(data.expected_date)) {
+      errors.push('Expected date must be a valid date (YYYY-MM-DD)');
+    }
+  }
+
+  /**
+   * Validate sales order data
+   */
+  private async validateSalesOrderData(
+    data: Record<string, any>,
+    errors: string[],
+    userContext: UserContext
+  ): Promise<void> {
+    // Required fields
+    if (!data.customer_name) {
+      errors.push('Customer name is required');
+    }
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+      errors.push('At least one item is required');
+    }
+
+    // Validate items
+    if (data.items && Array.isArray(data.items)) {
+      data.items.forEach((item: any, index: number) => {
+        if (!item.item_name) {
+          errors.push(`Item ${index + 1}: Item name is required`);
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`Item ${index + 1}: Quantity must be greater than 0`);
+        }
+        if (!item.unit_price || item.unit_price < 0) {
+          errors.push(`Item ${index + 1}: Unit price must be 0 or greater`);
+        }
+      });
+    }
+
+    // Validate dates
+    if (data.order_date && !this.isValidDate(data.order_date)) {
+      errors.push('Order date must be a valid date (YYYY-MM-DD)');
+    }
+    if (data.delivery_date && !this.isValidDate(data.delivery_date)) {
+      errors.push('Delivery date must be a valid date (YYYY-MM-DD)');
+    }
+  }
+
+  /**
+   * Validate payment data
+   */
+  private async validatePaymentData(
+    data: Record<string, any>,
+    errors: string[],
+    userContext: UserContext
+  ): Promise<void> {
+    // Required fields
+    if (!data.party_name) {
+      errors.push('Party name (customer or supplier) is required');
+    }
+    if (!data.amount || data.amount <= 0) {
+      errors.push('Payment amount must be greater than 0');
+    }
+    if (!data.payment_type || !['received', 'sent'].includes(data.payment_type)) {
+      errors.push('Payment type must be either "received" or "sent"');
+    }
+    if (
+      data.payment_method &&
+      !['cash', 'bank_transfer', 'check', 'credit_card'].includes(data.payment_method)
+    ) {
+      errors.push('Invalid payment method');
+    }
+
+    // Validate date
+    if (data.payment_date && !this.isValidDate(data.payment_date)) {
+      errors.push('Payment date must be a valid date (YYYY-MM-DD)');
+    }
+  }
+
+  /**
+   * Validate journal entry data
+   */
+  private async validateJournalEntryData(
+    data: Record<string, any>,
+    errors: string[],
+    userContext: UserContext
+  ): Promise<void> {
+    // Required fields
+    if (!data.description) {
+      errors.push('Description is required');
+    }
+    if (!data.lines || !Array.isArray(data.lines) || data.lines.length < 2) {
+      errors.push('At least two journal entry lines are required (debit and credit)');
+    }
+
+    // Validate lines
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    if (data.lines && Array.isArray(data.lines)) {
+      data.lines.forEach((line: any, index: number) => {
+        if (!line.account_code) {
+          errors.push(`Line ${index + 1}: Account code is required`);
+        }
+        if (line.debit === undefined && line.credit === undefined) {
+          errors.push(`Line ${index + 1}: Either debit or credit must be specified`);
+        }
+        if ((line.debit || 0) < 0 || (line.credit || 0) < 0) {
+          errors.push(`Line ${index + 1}: Debit and credit amounts must be non-negative`);
+        }
+        if (line.debit && line.credit && line.debit > 0 && line.credit > 0) {
+          errors.push(`Line ${index + 1}: Cannot have both debit and credit on the same line`);
+        }
+
+        totalDebit += line.debit || 0;
+        totalCredit += line.credit || 0;
+      });
+
+      // Check if debits equal credits (with small tolerance for floating point)
+      if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        errors.push(
+          `Total debits (${totalDebit}) must equal total credits (${totalCredit})`
+        );
+      }
+    }
+
+    // Validate date
+    if (data.entry_date && !this.isValidDate(data.entry_date)) {
+      errors.push('Entry date must be a valid date (YYYY-MM-DD)');
+    }
+  }
+
+  /**
+   * Validate date format (YYYY-MM-DD)
+   */
+  private isValidDate(dateString: string): boolean {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) {
+      return false;
+    }
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date.getTime());
   }
 }

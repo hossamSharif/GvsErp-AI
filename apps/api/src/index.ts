@@ -35,6 +35,7 @@ import employeeRoutes from './routes/employees.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import payrollRoutes from './routes/payroll.routes';
 import aiConversationsRoutes from './routes/ai-conversations.routes';
+import aiTasksRoutes from './routes/ai-tasks.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -127,6 +128,7 @@ app.use('/api/v1/employees', employeeRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/payroll', payrollRoutes);
 app.use('/api/v1/ai/conversations', aiConversationsRoutes);
+app.use('/api/v1/ai/tasks', aiTasksRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
