@@ -40,6 +40,69 @@ export class DataAccessLayer {
   }
 
   /**
+   * Sanitize sensitive data before sending to AI
+   * Removes passwords, API keys, payment details, etc.
+   * Implements FR-008 data sanitization requirements
+   */
+  private sanitizeData(data: any): any {
+    if (!data) return data;
+
+    // Handle arrays
+    if (Array.isArray(data)) {
+      return data.map((item) => this.sanitizeData(item));
+    }
+
+    // Handle non-objects
+    if (typeof data !== 'object') {
+      return data;
+    }
+
+    // List of sensitive field patterns to remove/redact
+    const sensitiveFields = [
+      'password',
+      'password_hash',
+      'secret',
+      'api_key',
+      'apiKey',
+      'token',
+      'access_token',
+      'refresh_token',
+      'credit_card',
+      'creditCard',
+      'card_number',
+      'cardNumber',
+      'cvv',
+      'cvc',
+      'ssn',
+      'social_security',
+      'tax_id',
+      'taxId',
+      'pin',
+      'private_key',
+      'privateKey',
+      'auth_token',
+      'authToken',
+    ];
+
+    const result: any = {};
+
+    for (const [key, value] of Object.entries(data)) {
+      const lowerKey = key.toLowerCase();
+      const isSensitive = sensitiveFields.some((field) => lowerKey.includes(field.toLowerCase()));
+
+      if (isSensitive) {
+        result[key] = '[REDACTED]';
+      } else if (typeof value === 'object' && value !== null) {
+        result[key] = this.sanitizeData(value);
+      } else {
+        result[key] = value;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Get recent sales invoices
    * Requires: sales:read permission
    */
@@ -64,7 +127,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -95,7 +158,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -126,7 +189,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -158,7 +221,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -190,7 +253,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -222,7 +285,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -252,7 +315,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -283,7 +346,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };
@@ -314,7 +377,7 @@ export class DataAccessLayer {
     if (error) throw error;
 
     return {
-      data: data || [],
+      data: this.sanitizeData(data || []),
       count: count || 0,
       hasMore: (count || 0) > limit,
     };

@@ -212,13 +212,13 @@
 
 **Purpose**: Comprehensive audit trails and security hardening
 
-- [ ] T091 Implement audit logging in apps/api/src/services/ai-audit.service.ts (logInteraction, logTaskExecution, logPermissionDenial)
-- [ ] T092 Add audit logging calls to AIAgentService in apps/api/src/services/ai-agent.service.ts
-- [ ] T093 Add audit logging calls to AITaskService in apps/api/src/services/ai-task.service.ts
-- [ ] T094 Add audit logging calls to AIDocumentService in apps/api/src/services/ai-document.service.ts
-- [ ] T095 [P] Implement data sanitization in apps/api/src/lib/data-access-layer.ts (remove passwords, API keys, payment details)
-- [ ] T096 [P] Add XSS prevention in frontend components (sanitize AI responses before rendering)
-- [ ] T097 Add permission context to all audit logs in apps/api/src/services/ai-audit.service.ts
+- [X] T091 Implement audit logging in apps/api/src/services/ai-audit.service.ts (logInteraction, logTaskExecution, logPermissionDenial)
+- [X] T092 Add audit logging calls to AIAgentService in apps/api/src/services/ai-agent.service.ts
+- [X] T093 Add audit logging calls to AITaskService in apps/api/src/services/ai-task.service.ts
+- [X] T094 Add audit logging calls to AIDocumentService in apps/api/src/services/ai-document.service.ts
+- [X] T095 [P] Implement data sanitization in apps/api/src/lib/data-access-layer.ts (remove passwords, API keys, payment details)
+- [X] T096 [P] Add XSS prevention in frontend components (sanitize AI responses before rendering)
+- [X] T097 Add permission context to all audit logs in apps/api/src/services/ai-audit.service.ts
 
 ---
 
@@ -226,10 +226,10 @@
 
 **Purpose**: Graceful degradation and retry mechanisms
 
-- [ ] T098 Create AIError class in apps/api/src/lib/ai-models/errors.ts with error codes and retry logic
-- [ ] T099 Implement retry queue for failed AI requests in apps/api/src/services/ai-queue.service.ts (3 attempts over 5 minutes)
-- [ ] T100 Add exponential backoff retry logic in apps/api/src/services/ai-agent.service.ts
-- [ ] T101 Implement graceful degradation when AI service unavailable in apps/api/src/services/ai-agent.service.ts
+- [X] T098 Create AIError class in apps/api/src/lib/ai-models/errors.ts with error codes and retry logic
+- [X] T099 Implement retry queue for failed AI requests in apps/api/src/services/ai-queue.service.ts (3 attempts over 5 minutes)
+- [X] T100 Add exponential backoff retry logic in apps/api/src/services/ai-agent.service.ts
+- [X] T101 Implement graceful degradation when AI service unavailable in apps/api/src/services/ai-agent.service.ts
 - [ ] T102 [P] Add error notifications in apps/web/src/components/ai/chat-interface.tsx (usage limits, service unavailable, etc.)
 - [ ] T103 [P] Add retry status display in apps/web/src/components/ai/chat-interface.tsx
 

@@ -7,6 +7,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp-saas/database';
 import { AIDocumentRepository } from '../repositories/ai-document.repository';
 import { AIUsageRepository } from '../repositories/ai-usage.repository';
+import { AIAuditService } from './ai-audit.service';
 import type { Document, ProcessingStatus } from '@erp-saas/shared';
 import pdfParse from 'pdf-parse';
 import { anthropic } from '@ai-sdk/anthropic';
@@ -24,6 +25,7 @@ export interface DocumentUploadOptions {
   messageId?: string;
   tenantId: string;
   userId: string;
+  userPermissions?: string[];
   file: Buffer;
   fileName: string;
   fileType: string;
@@ -48,12 +50,14 @@ export interface DocumentProcessingResult {
 export class AIDocumentService {
   private documentRepository: AIDocumentRepository;
   private usageRepository: AIUsageRepository;
+  private auditService: AIAuditService;
   private supabase: SupabaseClient<Database>;
 
   constructor(supabase: SupabaseClient<Database>) {
     this.supabase = supabase;
     this.documentRepository = new AIDocumentRepository(supabase);
     this.usageRepository = new AIUsageRepository(supabase);
+    this.auditService = new AIAuditService();
   }
 
   /**
@@ -141,8 +145,20 @@ export class AIDocumentService {
       },
     });
 
+    // Audit log document upload
+    await this.auditService.logDocumentUpload({
+      tenantId,
+      userId,
+      conversationId,
+      fileName,
+      fileType,
+      fileSize,
+      processingStatus: 'pending',
+      permissions: options.userPermissions,
+    });
+
     // Start async processing
-    this.processDocument(documentId, file, fileType).catch((error) => {
+    this.processDocument(documentId, file, fileType, tenantId, userId, conversationId, options.userPermissions).catch((error) => {
       console.error(`Document processing failed for ${documentId}:`, error);
     });
 
@@ -154,11 +170,19 @@ export class AIDocumentService {
    * @param documentId - Document ID
    * @param fileBuffer - File buffer
    * @param fileType - MIME type
+   * @param tenantId - Tenant ID for audit logging
+   * @param userId - User ID for audit logging
+   * @param conversationId - Conversation ID for audit logging
+   * @param userPermissions - User permissions for audit logging
    */
   async processDocument(
     documentId: string,
     fileBuffer: Buffer,
-    fileType: string
+    fileType: string,
+    tenantId?: string,
+    userId?: string,
+    conversationId?: string,
+    userPermissions?: string[]
   ): Promise<DocumentProcessingResult> {
     try {
       // Update status to processing
@@ -193,6 +217,27 @@ export class AIDocumentService {
         'completed',
         extractedText
       );
+
+      // Audit log successful processing
+      if (tenantId && userId) {
+        const doc = await this.documentRepository.findById(documentId);
+        if (doc) {
+          await this.auditService.logDocumentUpload({
+            tenantId,
+            userId,
+            conversationId,
+            fileName: doc.file_name,
+            fileType: doc.file_type,
+            fileSize: doc.file_size,
+            processingStatus: 'completed',
+            extractedDataSummary: structuredData ? {
+              hasStructuredData: true,
+              textLength: extractedText?.length || 0,
+            } : undefined,
+            permissions: userPermissions,
+          });
+        }
+      }
 
       return {
         documentId,

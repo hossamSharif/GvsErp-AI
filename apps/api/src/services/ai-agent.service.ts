@@ -24,6 +24,7 @@ import { AIMessageRepository } from '../repositories/ai-message.repository';
 import { AIUsageRepository } from '../repositories/ai-usage.repository';
 import { AIDocumentRepository } from '../repositories/ai-document.repository';
 import { AITaskRepository } from '../repositories/ai-task.repository';
+import { AIAuditService } from './ai-audit.service';
 
 /**
  * Streaming response interface
@@ -57,6 +58,7 @@ export class AIAgentService {
   private taskRepo: AITaskRepository;
   private contextManager: ConversationContextManager;
   private dataAccessLayer: DataAccessLayer;
+  private auditService: AIAuditService;
 
   constructor(private supabase: SupabaseClient<Database>) {
     this.messageRepo = new AIMessageRepository(supabase);
@@ -65,6 +67,7 @@ export class AIAgentService {
     this.taskRepo = new AITaskRepository(supabase);
     this.contextManager = new ConversationContextManager(supabase);
     this.dataAccessLayer = new DataAccessLayer(supabase);
+    this.auditService = new AIAuditService();
   }
 
   /**
@@ -100,7 +103,9 @@ export class AIAgentService {
     const systemPrompt = buildSystemPrompt(userContext, consultantRole);
 
     // 5. Fetch relevant business data if needed
-    const businessContext = await this.fetchBusinessContext(userContext, userMessage);
+    // Track data accessed for audit purposes
+    const dataAccessedForAudit: Record<string, any> = {};
+    const businessContext = await this.fetchBusinessContext(userContext, userMessage, dataAccessedForAudit);
 
     // 6. Get AI model
     const model = modelConfig
@@ -163,6 +168,17 @@ export class AIAgentService {
           inputTokens: event.usage?.promptTokens || 0,
           outputTokens: event.usage?.completionTokens || 0,
         });
+
+        // Audit log the interaction
+        await this.auditService.logInteraction({
+          tenantId: userContext.tenantId,
+          userId: userContext.userId,
+          conversationId,
+          prompt: userMessage,
+          response: fullResponse,
+          dataAccessed: dataAccessedForAudit,
+          permissions: userContext.permissions,
+        });
       },
     });
 
@@ -188,11 +204,13 @@ export class AIAgentService {
    * Fetch relevant business context based on user query
    * @param userContext - User context
    * @param query - User query
+   * @param auditTracker - Object to track accessed data for auditing
    * @returns Business context string
    */
   private async fetchBusinessContext(
     userContext: UserContext,
-    query: string
+    query: string,
+    auditTracker?: Record<string, any>
   ): Promise<string> {
     const queryLower = query.toLowerCase();
     const contextParts: string[] = [];
@@ -207,6 +225,9 @@ export class AIAgentService {
         const salesData = await this.dataAccessLayer.getRecentSalesInvoices(userContext, 10);
         if (salesData.data.length > 0) {
           contextParts.push(`Recent Sales: ${JSON.stringify(salesData.data)}`);
+          if (auditTracker) {
+            auditTracker.sales_invoices = salesData.data.length;
+          }
         }
       }
 
@@ -219,6 +240,9 @@ export class AIAgentService {
         const inventoryData = await this.dataAccessLayer.getInventoryLevels(userContext, 10);
         if (inventoryData.data.length > 0) {
           contextParts.push(`Inventory Levels: ${JSON.stringify(inventoryData.data)}`);
+          if (auditTracker) {
+            auditTracker.inventory_items = inventoryData.data.length;
+          }
         }
       }
 
@@ -227,6 +251,9 @@ export class AIAgentService {
         const customerData = await this.dataAccessLayer.getTopCustomers(userContext, 10);
         if (customerData.data.length > 0) {
           contextParts.push(`Top Customers: ${JSON.stringify(customerData.data)}`);
+          if (auditTracker) {
+            auditTracker.customers = customerData.data.length;
+          }
         }
       }
 
@@ -239,6 +266,9 @@ export class AIAgentService {
         const financeData = await this.dataAccessLayer.getAccountingOverview(userContext);
         if (financeData) {
           contextParts.push(`Financial Overview: ${JSON.stringify(financeData)}`);
+          if (auditTracker) {
+            auditTracker.financial_overview = true;
+          }
         }
       }
     } catch (error) {

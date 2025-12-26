@@ -16,6 +16,7 @@ import type {
 } from '@erp-saas/shared';
 import { AITaskRepository } from '../repositories/ai-task.repository';
 import { AIUsageRepository } from '../repositories/ai-usage.repository';
+import { AIAuditService } from './ai-audit.service';
 
 /**
  * Create task options
@@ -52,10 +53,12 @@ export interface ExecuteTaskOptions {
 export class AITaskService {
   private taskRepo: AITaskRepository;
   private usageRepo: AIUsageRepository;
+  private auditService: AIAuditService;
 
   constructor(private supabase: SupabaseClient<Database>) {
     this.taskRepo = new AITaskRepository(supabase);
     this.usageRepo = new AIUsageRepository(supabase);
+    this.auditService = new AIAuditService();
   }
 
   /**
@@ -79,6 +82,17 @@ export class AITaskService {
 
     // Track usage
     await this.trackTaskUsage(userContext, conversationId);
+
+    // Audit log task creation
+    await this.auditService.logTaskExecution({
+      tenantId: userContext.tenantId,
+      userId: userContext.userId,
+      conversationId,
+      taskType,
+      taskData: generatedData,
+      approvalStatus: 'pending',
+      permissions: userContext.permissions,
+    });
 
     return task;
   }
@@ -185,6 +199,17 @@ export class AITaskService {
       throw new Error('Failed to update task status');
     }
 
+    // Audit log status change
+    await this.auditService.logTaskExecution({
+      tenantId: userContext.tenantId,
+      userId: userContext.userId,
+      conversationId: existingTask.conversation_id,
+      taskType: existingTask.task_type as TaskType,
+      taskData: existingTask.generated_data as Record<string, any>,
+      approvalStatus,
+      permissions: userContext.permissions,
+    });
+
     return updatedTask;
   }
 
@@ -232,10 +257,17 @@ export class AITaskService {
 
   /**
    * Mark task as executed with result ID
+   * @param userContext - User context (for audit logging)
    * @param taskId - Task ID
    * @param resultId - ID of created transaction
    */
-  async markAsExecuted(taskId: string, resultId: string): Promise<Task> {
+  async markAsExecuted(userContext: UserContext, taskId: string, resultId: string): Promise<Task> {
+    // Get task for audit logging
+    const task = await this.taskRepo.findById(taskId);
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
     const updatedTask = await this.taskRepo.updateTask(taskId, {
       approval_status: 'executed',
       executed_at: new Date().toISOString(),
@@ -245,6 +277,18 @@ export class AITaskService {
     if (!updatedTask) {
       throw new Error('Failed to mark task as executed');
     }
+
+    // Audit log execution
+    await this.auditService.logTaskExecution({
+      tenantId: userContext.tenantId,
+      userId: userContext.userId,
+      conversationId: task.conversation_id,
+      taskType: task.task_type as TaskType,
+      taskData: task.generated_data as Record<string, any>,
+      approvalStatus: 'executed',
+      resultId,
+      permissions: userContext.permissions,
+    });
 
     return updatedTask;
   }
