@@ -82,14 +82,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T031 [P] [US1] Create system prompt builder function in apps/api/src/lib/ai-models/system-prompts.ts with BASE_SYSTEM_PROMPT and ROLE_PROMPTS
-- [ ] T032 [US1] Implement AIAgentService in apps/api/src/services/ai-agent.service.ts with processMessage() method for streaming AI responses
-- [ ] T033 [US1] Implement AIConversationService in apps/api/src/services/ai-conversation.service.ts with create(), list(), get(), update(), delete() methods
-- [ ] T034 [US1] Implement AIUsageService in apps/api/src/services/ai-usage.service.ts with checkLimit(), trackUsage(), getStats() methods
-- [ ] T035 [US1] Create conversations routes in apps/api/src/routes/ai-conversations.routes.ts (GET /api/ai/conversations, POST /api/ai/conversations, GET /api/ai/conversations/:id, PATCH /api/ai/conversations/:id, DELETE /api/ai/conversations/:id)
-- [ ] T036 [US1] Create messages endpoint in apps/api/src/routes/ai-conversations.routes.ts (POST /api/ai/conversations/:id/messages with SSE streaming)
-- [ ] T037 [US1] Create usage endpoint in apps/api/src/routes/ai-conversations.routes.ts (GET /api/ai/usage)
-- [ ] T038 [US1] Register AI routes in apps/api/src/index.ts
+- [X] T031 [P] [US1] Create system prompt builder function in apps/api/src/lib/ai-models/system-prompts.ts with BASE_SYSTEM_PROMPT and ROLE_PROMPTS
+- [X] T032 [US1] Implement AIAgentService in apps/api/src/services/ai-agent.service.ts with processMessage() method for streaming AI responses
+- [X] T033 [US1] Implement AIConversationService in apps/api/src/services/ai-conversation.service.ts with create(), list(), get(), update(), delete() methods
+- [X] T034 [US1] Implement AIUsageService in apps/api/src/services/ai-usage.service.ts with checkLimit(), trackUsage(), getStats() methods
+- [X] T035 [US1] Create conversations routes in apps/api/src/routes/ai-conversations.routes.ts (GET /api/ai/conversations, POST /api/ai/conversations, GET /api/ai/conversations/:id, PATCH /api/ai/conversations/:id, DELETE /api/ai/conversations/:id)
+- [X] T036 [US1] Create messages endpoint in apps/api/src/routes/ai-conversations.routes.ts (POST /api/ai/conversations/:id/messages with SSE streaming)
+- [X] T037 [US1] Create usage endpoint in apps/api/src/routes/ai-conversations.routes.ts (GET /api/ai/usage)
+- [X] T038 [US1] Register AI routes in apps/api/src/index.ts
 - [ ] T039 [P] [US1] Create AI panel container component in apps/web/src/components/ai/ai-panel.tsx with toggle functionality
 - [ ] T040 [P] [US1] Create chat interface component in apps/web/src/components/ai/chat-interface.tsx with message display and streaming response handling
 - [ ] T041 [P] [US1] Create role selector component in apps/web/src/components/ai/role-selector.tsx (general, marketing, legal, customer_service, financial_analyst)
