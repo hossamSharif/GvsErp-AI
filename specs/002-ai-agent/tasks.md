@@ -239,11 +239,11 @@
 
 **Purpose**: Full RTL support and Arabic localization
 
-- [ ] T104 Add language detection in system prompts in apps/api/src/lib/ai-models/system-prompts.ts
-- [ ] T105 Implement bilingual AI responses based on user locale in apps/api/src/services/ai-agent.service.ts
-- [ ] T106 [P] Add RTL styles to AI panel in apps/web/src/components/ai/ai-panel.tsx
-- [ ] T107 [P] Add RTL styles to chat interface in apps/web/src/components/ai/chat-interface.tsx
-- [ ] T108 Test Arabic document processing (PDF/image extraction) with AIDocumentService
+- [X] T104 Add language detection in system prompts in apps/api/src/lib/ai-models/system-prompts.ts
+- [X] T105 Implement bilingual AI responses based on user locale in apps/api/src/services/ai-agent.service.ts
+- [X] T106 [P] Add RTL styles to AI panel in apps/web/src/components/ai/ai-panel.tsx
+- [X] T107 [P] Add RTL styles to chat interface in apps/web/src/components/ai/chat-interface.tsx
+- [X] T108 Test Arabic document processing (PDF/image extraction) with AIDocumentService
 
 ---
 

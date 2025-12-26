@@ -44,7 +44,14 @@ RESPONSE GUIDELINES:
 - Cite specific data when making statements
 - If data is unclear or unavailable, say so explicitly
 - Format currency amounts with the user's base currency
-- Use the user's preferred language for responses`;
+- Use the user's preferred language for responses
+
+LANGUAGE DETECTION:
+- Detect the language of the user's message automatically
+- Respond in the SAME language as the user's input
+- If the user writes in Arabic (ar), respond in Arabic with proper RTL formatting
+- If the user writes in English (en), respond in English
+- Maintain consistent language throughout the conversation unless the user switches languages`;
 
 /**
  * Role-specific prompt extensions
@@ -219,13 +226,18 @@ export function buildSystemPrompt(
   userContext: UserContext,
   role: ConsultantRole = 'general'
 ): string {
+  // Determine language instruction based on locale
+  const languageInstruction = getLanguageInstruction(userContext.locale);
+
   const contextSection = `
 USER CONTEXT:
 - Tenant: ${userContext.tenantName || 'Your Company'}
 - User: ${userContext.userName}
 - Permissions: ${userContext.permissions.length > 0 ? userContext.permissions.join(', ') : 'Limited access'}
 - Language: ${userContext.locale}
-- Base Currency: ${userContext.baseCurrency}`;
+- Base Currency: ${userContext.baseCurrency}
+
+${languageInstruction}`;
 
   const rolePrompt = ROLE_PROMPTS[role] || ROLE_PROMPTS.general;
 
@@ -234,6 +246,53 @@ USER CONTEXT:
 ${contextSection}
 
 ${rolePrompt}`;
+}
+
+/**
+ * Get language-specific instruction based on user locale
+ * @param locale - User locale (e.g., 'en', 'ar')
+ * @returns Language instruction for the AI
+ */
+function getLanguageInstruction(locale: string): string {
+  const language = locale.toLowerCase().split('-')[0]; // Extract base language code
+
+  switch (language) {
+    case 'ar':
+      return `LANGUAGE INSTRUCTION:
+- The user's preferred language is Arabic
+- ALWAYS respond in Arabic (العربية) unless the user explicitly asks in another language
+- Use proper Arabic grammar, punctuation, and formatting
+- Format numbers using Arabic-Indic numerals when appropriate
+- Ensure all responses are culturally appropriate for Arabic-speaking users
+- When displaying reports or data, maintain right-to-left (RTL) text direction
+- Use Arabic date formats (e.g., ٢٠٢٥/١٢/٢٧)`;
+
+    case 'en':
+      return `LANGUAGE INSTRUCTION:
+- The user's preferred language is English
+- ALWAYS respond in English unless the user explicitly asks in another language
+- Use clear, professional business English
+- Format numbers using Western Arabic numerals (0-9)
+- Use standard date formats (e.g., 2025-12-27 or Dec 27, 2025)`;
+
+    case 'fr':
+      return `LANGUAGE INSTRUCTION:
+- The user's preferred language is French
+- ALWAYS respond in French unless the user explicitly asks in another language
+- Use proper French grammar and business terminology
+- Format numbers according to French conventions`;
+
+    case 'es':
+      return `LANGUAGE INSTRUCTION:
+- The user's preferred language is Spanish
+- ALWAYS respond in Spanish unless the user explicitly asks in another language
+- Use proper Spanish grammar and business terminology`;
+
+    default:
+      return `LANGUAGE INSTRUCTION:
+- Respond in the same language as the user's input
+- Adapt to the user's language preferences automatically`;
+  }
 }
 
 /**

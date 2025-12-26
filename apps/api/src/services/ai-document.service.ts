@@ -385,41 +385,69 @@ export class AIDocumentService {
   getExtractionPrompt(): string {
     return `You are an expert data extraction assistant for an ERP system. Extract structured data from the provided document.
 
+IMPORTANT: This system supports multiple languages including English and Arabic (العربية). Extract text in its original language and detect:
+- If the document is in Arabic, extract Arabic text as-is (e.g., names, items, descriptions in Arabic)
+- If the document is in English, extract English text
+- Preserve the original language in the extracted data
+- For dates: convert to ISO format (YYYY-MM-DD) regardless of source language
+- For numbers: use standard decimal notation (123.45)
+
 Identify the document type (invoice, receipt, price list, purchase order, etc.) and extract relevant fields:
 
 For INVOICES/RECEIPTS:
-- Vendor/Supplier name
+- Vendor/Supplier name (preserve original language)
 - Invoice number
-- Date
-- Line items (item name, quantity, unit price, total)
+- Date (convert to YYYY-MM-DD format)
+- Line items (item name in original language, quantity, unit price, total)
 - Subtotal, tax, total amount
 - Payment terms
 
 For PRICE LISTS:
-- Items/products with prices
+- Items/products with prices (preserve original language)
 - Category/description
 - Unit of measure
 - Any applicable discounts
 
 For PURCHASE ORDERS:
 - PO number
-- Vendor
-- Date
-- Items ordered (name, quantity, unit price)
+- Vendor (preserve original language)
+- Date (convert to YYYY-MM-DD format)
+- Items ordered (name in original language, quantity, unit price)
 - Total amount
 - Delivery address
 
 Return the data in JSON format with clear field names. If certain fields are not present, omit them or set to null.
 
-Example response format:
+Example response format (English):
 {
   "document_type": "invoice",
+  "language": "en",
   "vendor_name": "ABC Suppliers",
   "invoice_number": "INV-2024-001",
   "date": "2024-01-15",
   "line_items": [
     {
       "item_name": "Product A",
+      "quantity": 10,
+      "unit_price": 25.00,
+      "total": 250.00
+    }
+  ],
+  "subtotal": 250.00,
+  "tax": 25.00,
+  "total_amount": 275.00
+}
+
+Example response format (Arabic):
+{
+  "document_type": "invoice",
+  "language": "ar",
+  "vendor_name": "مورد الشرق",
+  "invoice_number": "INV-2024-001",
+  "date": "2024-01-15",
+  "line_items": [
+    {
+      "item_name": "منتج أ",
       "quantity": 10,
       "unit_price": 25.00,
       "total": 250.00

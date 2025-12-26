@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +27,8 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const t = useTranslations('ai.chat');
+  const locale = useLocale();
+  const isRTL = locale === 'ar';
   const [input, setInput] = useState('');
   const [streamingText, setStreamingText] = useState('');
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
@@ -162,7 +164,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
@@ -408,6 +410,8 @@ function detectReport(content: string): ReportData | null {
 }
 
 function MessageBubble({ message }: { message: Message }) {
+  const locale = useLocale();
+  const isRTL = locale === 'ar';
   const isUser = message.role === 'user';
   const report = !isUser ? detectReport(message.content) : null;
 
@@ -429,7 +433,7 @@ function MessageBubble({ message }: { message: Message }) {
           )}
         </div>
       </div>
-      <div className={cn('flex-1 space-y-2', isUser && 'text-right')}>
+      <div className={cn('flex-1 space-y-2', isUser && (isRTL ? 'text-left' : 'text-right'))}>
         {report ? (
           <ReportDisplay report={report} />
         ) : (
@@ -440,6 +444,7 @@ function MessageBubble({ message }: { message: Message }) {
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted prose prose-sm dark:prose-invert max-w-none'
             )}
+            style={{ direction: isRTL ? 'rtl' : 'ltr' }}
           >
             {message.content}
           </div>

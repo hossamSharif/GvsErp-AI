@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -33,6 +33,9 @@ import { cn } from '@/lib/utils';
 
 export function AIPanel() {
   const t = useTranslations('ai.panel');
+  const locale = useLocale();
+  const isRTL = locale === 'ar';
+
   const {
     isOpen,
     isExpanded,
@@ -84,8 +87,10 @@ export function AIPanel() {
 
   return (
     <div
+      dir={isRTL ? 'rtl' : 'ltr'}
       className={cn(
-        'fixed bottom-4 right-4 bg-background border rounded-lg shadow-2xl flex flex-col z-50 transition-all duration-200',
+        'fixed bottom-4 bg-background border rounded-lg shadow-2xl flex flex-col z-50 transition-all duration-200',
+        isRTL ? 'left-4' : 'right-4',
         isExpanded
           ? 'w-[800px] h-[600px]'
           : 'w-[400px] h-[600px]'
