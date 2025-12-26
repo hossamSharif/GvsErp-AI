@@ -39,7 +39,7 @@ import type {
   PartyType,
   CreatePartyInput,
   UpdatePartyInput,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { Save, Loader2 } from 'lucide-react';
 
 // =============================================================================

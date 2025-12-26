@@ -1,0 +1,34 @@
+{
+  "expenses": {
+    "title": "المصروفات",
+    "description": "تتبع وإدارة مصروفات الأعمال",
+    "addExpense": "إضافة مصروف",
+    "editExpense": "تعديل المصروف",
+    "viewExpense": "عرض المصروف",
+    "deleteExpense": "حذف المصروف",
+    "fields": {
+      "category": "الفئة",
+      "amount": "المبلغ",
+      "currency": "العملة",
+      "exchangeRate": "سعر الصرف",
+      "description": "الوصف",
+      "expenseDate": "تاريخ المصروف",
+      "createdBy": "أنشئ بواسطة",
+      "receipt": "الإيصال"
+    },
+    "categories": {
+      "title": "فئات المصروفات",
+      "addCategory": "إضافة فئة",
+      "editCategory": "تعديل الفئة",
+      "deleteCategory": "حذف الفئة",
+      "name": "اسم الفئة",
+      "parent": "الفئة الأساسية"
+    },
+    "summary": {
+      "totalExpenses": "إجمالي المصروفات",
+      "thisMonth": "هذا الشهر",
+      "thisYear": "هذا العام",
+      "byCategory": "حسب الفئة"
+    }
+  }
+}

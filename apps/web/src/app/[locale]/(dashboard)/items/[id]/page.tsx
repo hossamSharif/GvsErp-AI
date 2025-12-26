@@ -8,6 +8,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useItem, useUpdateItem } from '@/hooks/use-items';
 import { ItemForm } from '@/components/forms/item-form';
@@ -15,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/lib/api-client';
-import type { Category, UpdateItemInput } from '@erp/shared';
+import type { Category, UpdateItemInput } from '@erp-saas/shared';
 import { ArrowLeft } from 'lucide-react';
 
 interface CategoriesResponse {
@@ -29,6 +30,8 @@ export default function EditItemPage() {
   const locale = params.locale as string;
   const itemId = params.id as string;
   const { toast } = useToast();
+  const t = useTranslations('items');
+  const tc = useTranslations('common');
 
   // Fetch item data
   const {
@@ -50,14 +53,14 @@ export default function EditItemPage() {
   const updateMutation = useUpdateItem({
     onSuccess: (response) => {
       toast({
-        title: 'Item updated',
-        description: `${response.data.name} has been updated successfully.`,
+        title: t('messages.itemUpdated'),
+        description: t('messages.itemUpdatedSuccess', { name: response.data.name }),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update item',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -100,10 +103,10 @@ export default function EditItemPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
         <p className="text-destructive">
-          {itemError?.message || 'Item not found'}
+          {itemError?.message || t('messages.itemNotFound')}
         </p>
         <Button onClick={() => router.push(`/${locale}/items`)}>
-          Back to Items
+          {tc('backTo', { page: t('title') })}
         </Button>
       </div>
     );

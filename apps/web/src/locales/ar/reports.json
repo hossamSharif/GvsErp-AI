@@ -1,0 +1,185 @@
+{
+  "reports": {
+    "title": "التقارير",
+    "description": "إنشاء وتصدير تقارير الأعمال",
+    "generate": "إنشاء التقرير",
+    "export": "تصدير",
+    "print": "طباعة",
+    "download": "تحميل PDF",
+    "dateRange": "نطاق التاريخ",
+    "filters": "الفلاتر",
+    "categories": {
+      "salesRevenue": "المبيعات والإيرادات",
+      "purchasesCosts": "المشتريات والتكاليف",
+      "inventoryStock": "المخزون",
+      "financial": "التقارير المالية",
+      "expenses": "المصروفات",
+      "accounting": "تقارير المحاسبة",
+      "hr": "تقارير الموارد البشرية"
+    },
+    "quickStats": {
+      "totalSales": "إجمالي المبيعات",
+      "totalPurchases": "إجمالي المشتريات",
+      "totalExpenses": "إجمالي المصروفات",
+      "netProfit": "صافي الربح",
+      "thisMonth": "هذا الشهر"
+    },
+    "sales": {
+      "title": "تقرير المبيعات",
+      "description": "تحليل أداء المبيعات",
+      "viewSalesPerformance": "عرض أداء المبيعات والاتجاهات",
+      "salesByCustomer": {
+        "title": "المبيعات حسب العميل",
+        "description": "تحليل توزيع المبيعات عبر العملاء",
+        "stats": "تفصيل الإيرادات حسب العميل"
+      },
+      "salesByItem": {
+        "title": "المبيعات حسب الصنف",
+        "description": "المنتجات الأكثر مبيعاً والإيرادات حسب الصنف",
+        "stats": "مقاييس أداء المنتج"
+      },
+      "fields": {
+        "totalSales": "إجمالي المبيعات",
+        "totalRevenue": "إجمالي الإيرادات",
+        "averageOrderValue": "متوسط قيمة الطلب",
+        "topItems": "الأصناف الأكثر مبيعاً",
+        "salesByCustomer": "المبيعات حسب العميل",
+        "salesByPeriod": "المبيعات حسب الفترة"
+      }
+    },
+    "purchases": {
+      "title": "تقرير المشتريات",
+      "description": "تتبع أوامر الشراء والتكاليف",
+      "trackPurchaseOrders": "تتبع أوامر الشراء والتكاليف",
+      "purchasesBySupplier": {
+        "title": "المشتريات حسب المورد",
+        "description": "تحليل معاملات الموردين والمدفوعات المستحقة",
+        "stats": "تفصيل المشتريات حسب المورد"
+      },
+      "fields": {
+        "totalPurchases": "إجمالي المشتريات",
+        "totalCost": "إجمالي التكلفة",
+        "topSuppliers": "أفضل الموردين",
+        "purchasesByCategory": "المشتريات حسب الفئة"
+      }
+    },
+    "inventory": {
+      "title": "تقرير المخزون",
+      "description": "مستويات المخزون والتقييم",
+      "stockLevelsValuation": "مستويات المخزون والتقييم",
+      "lowStockAlerts": {
+        "title": "تنبيهات المخزون المنخفض",
+        "description": "أصناف أقل من حد إعادة الطلب",
+        "stats": "تنبيهات المخزون الحرجة"
+      },
+      "itemCategories": {
+        "title": "فئات الأصناف",
+        "description": "تفصيل المخزون حسب الفئة",
+        "stats": "تحليل حسب الفئة"
+      },
+      "fields": {
+        "totalItems": "إجمالي الأصناف",
+        "totalValue": "إجمالي القيمة",
+        "lowStockItems": "أصناف بمخزون منخفض",
+        "outOfStock": "نفذ من المخزون",
+        "inventoryTurnover": "معدل دوران المخزون",
+        "stockByWarehouse": "المخزون حسب المستودع",
+        "stockByCategory": "المخزون حسب الفئة"
+      }
+    },
+    "customerBalances": {
+      "title": "أرصدة العملاء",
+      "description": "المستحقات القائمة",
+      "stats": "المستحقات القائمة",
+      "fields": {
+        "customer": "العميل",
+        "balance": "الرصيد",
+        "lastPayment": "آخر دفعة",
+        "totalReceivables": "إجمالي المستحقات"
+      }
+    },
+    "supplierBalances": {
+      "title": "أرصدة الموردين",
+      "description": "المدفوعات المستحقة",
+      "stats": "المدفوعات المستحقة",
+      "fields": {
+        "supplier": "المورد",
+        "balance": "الرصيد",
+        "lastPayment": "آخر دفعة",
+        "totalPayables": "إجمالي المدفوعات المستحقة"
+      }
+    },
+    "paymentsReport": {
+      "title": "تقرير المدفوعات",
+      "description": "جميع المدفوعات المستلمة والمدفوعة",
+      "stats": "تتبع التدفق النقدي"
+    },
+    "expenses": {
+      "title": "تقرير المصروفات",
+      "description": "تتبع مصروفات الأعمال",
+      "trackBusinessExpenses": "تتبع مصروفات الأعمال",
+      "expensesByCategory": {
+        "title": "المصروفات حسب الفئة",
+        "description": "تفصيل المصروفات حسب الفئة",
+        "stats": "تحليل المصروفات حسب الفئة"
+      },
+      "fields": {
+        "totalExpenses": "إجمالي المصروفات",
+        "byCategory": "حسب الفئة",
+        "byPeriod": "حسب الفترة",
+        "topCategories": "أعلى الفئات"
+      }
+    },
+    "payroll": {
+      "title": "تقرير الرواتب",
+      "description": "ملخص تعويضات الموظفين",
+      "stats": "الراتب والتعويضات",
+      "fields": {
+        "totalGross": "إجمالي الراتب الأساسي",
+        "totalDeductions": "إجمالي الاستقطاعات",
+        "totalNet": "إجمالي الصافي",
+        "byDepartment": "حسب القسم",
+        "byEmployee": "حسب الموظف"
+      }
+    },
+    "accounting": {
+      "trialBalance": {
+        "title": "ميزان المراجعة",
+        "description": "ملخص أرصدة جميع الحسابات",
+        "stats": "إجماليات المدين والدائن"
+      },
+      "incomeStatement": {
+        "title": "قائمة الدخل",
+        "description": "الإيرادات والمصروفات والأرباح",
+        "stats": "ملخص الأرباح والخسائر"
+      },
+      "balanceSheet": {
+        "title": "الميزانية العمومية",
+        "description": "الأصول والالتزامات وحقوق الملكية",
+        "stats": "المركز المالي"
+      },
+      "generalLedger": {
+        "title": "دفتر الأستاذ العام",
+        "description": "معاملات الحسابات التفصيلية",
+        "stats": "سجل المعاملات"
+      },
+      "journalEntries": {
+        "title": "قيود اليومية",
+        "description": "جميع القيود المحاسبية",
+        "stats": "سجلات القيد المزدوج"
+      }
+    },
+    "hr": {
+      "employeeAttendance": {
+        "title": "حضور الموظفين",
+        "description": "تتبع سجلات حضور الموظفين",
+        "stats": "تتبع الحضور"
+      },
+      "leaveManagement": {
+        "title": "إدارة الإجازات",
+        "description": "أرصدة وسجل إجازات الموظفين",
+        "stats": "تتبع الإجازات"
+      }
+    }
+  }
+}

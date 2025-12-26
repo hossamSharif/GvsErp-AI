@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useCurrencies, useDeleteCurrency, useCreateCurrency, useUpdateCurrency } from '@/hooks/use-currencies';
 import { DataTable } from '@/components/tables/data-table';
@@ -57,7 +58,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { Currency, CreateCurrencyInput, UpdateCurrencyInput } from '@erp/shared';
+import type { Currency, CreateCurrencyInput, UpdateCurrencyInput } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -91,6 +92,8 @@ export default function CurrenciesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.currencies');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<CurrencyQueryParams>({
@@ -113,16 +116,16 @@ export default function CurrenciesPage() {
   const createMutation = useCreateCurrency({
     onSuccess: () => {
       toast({
-        title: 'Currency created',
-        description: 'The currency has been created successfully.',
+        title: t('messages.currencyCreated'),
+        description: t('messages.currencyCreatedDescription'),
       });
       setDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create currency',
+        title: tc('error'),
+        description: error.message || t('messages.createError'),
         variant: 'destructive',
       });
     },
@@ -131,8 +134,8 @@ export default function CurrenciesPage() {
   const updateMutation = useUpdateCurrency({
     onSuccess: () => {
       toast({
-        title: 'Currency updated',
-        description: 'The currency has been updated successfully.',
+        title: t('messages.currencyUpdated'),
+        description: t('messages.currencyUpdatedDescription'),
       });
       setDialogOpen(false);
       setEditingCurrency(null);
@@ -140,8 +143,8 @@ export default function CurrenciesPage() {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update currency',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -150,16 +153,16 @@ export default function CurrenciesPage() {
   const deleteMutation = useDeleteCurrency({
     onSuccess: () => {
       toast({
-        title: 'Currency deleted',
-        description: 'The currency has been deleted successfully.',
+        title: t('messages.currencyDeleted'),
+        description: t('messages.currencyDeletedDescription'),
       });
       setDeleteDialogOpen(false);
       setCurrencyToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete currency',
+        title: tc('error'),
+        description: error.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     },
@@ -271,7 +274,7 @@ export default function CurrenciesPage() {
     () => [
       {
         accessorKey: 'code',
-        header: 'Code',
+        header: t('fields.code'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <span className="font-mono font-medium">{row.original.code}</span>
@@ -283,28 +286,28 @@ export default function CurrenciesPage() {
       },
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('fields.name'),
         cell: ({ row }) => <span>{row.original.name}</span>,
       },
       {
         accessorKey: 'symbol',
-        header: 'Symbol',
+        header: t('fields.symbol'),
         cell: ({ row }) => (
           <span className="font-medium">{row.original.symbol || '-'}</span>
         ),
       },
       {
         accessorKey: 'is_default',
-        header: 'Status',
+        header: t('fields.status'),
         cell: ({ row }) => (
           <Badge variant={row.original.is_default ? 'default' : 'secondary'}>
-            {row.original.is_default ? 'Default' : 'Active'}
+            {row.original.is_default ? t('status.default') : t('status.active')}
           </Badge>
         ),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('fields.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -314,15 +317,15 @@ export default function CurrenciesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('fields.actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleEditCurrency(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
               {!row.original.is_default && (
                 <DropdownMenuItem onClick={() => handleSetDefault(row.original)}>
                   <Star className="mr-2 h-4 w-4" />
-                  Set as Default
+                  {t('actions.setDefault')}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -332,14 +335,14 @@ export default function CurrenciesPage() {
                 disabled={row.original.is_default}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleEditCurrency, handleSetDefault, handleDeleteCurrency]
+    [t, handleEditCurrency, handleSetDefault, handleDeleteCurrency]
   );
 
   return (
@@ -355,15 +358,15 @@ export default function CurrenciesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Currencies</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
             <p className="text-muted-foreground">
-              Manage currencies and set your default currency
+              {t('pageDescription')}
             </p>
           </div>
         </div>
         <Button onClick={handleAddCurrency}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Currency
+          {t('addCurrency')}
         </Button>
       </div>
 
@@ -377,7 +380,7 @@ export default function CurrenciesPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search currencies..."
+        searchPlaceholder={t('searchPlaceholder')}
         isLoading={isLoading}
       />
 
@@ -385,11 +388,11 @@ export default function CurrenciesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingCurrency ? 'Edit Currency' : 'Add Currency'}</DialogTitle>
+            <DialogTitle>{editingCurrency ? t('dialogs.edit') : t('dialogs.add')}</DialogTitle>
             <DialogDescription>
               {editingCurrency
-                ? 'Update the currency details below.'
-                : 'Fill in the currency details below.'}
+                ? t('dialogs.editDescription')
+                : t('dialogs.addDescription')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -399,7 +402,7 @@ export default function CurrenciesPage() {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency Code</FormLabel>
+                    <FormLabel>{t('fields.code')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="USD"
@@ -410,7 +413,7 @@ export default function CurrenciesPage() {
                       />
                     </FormControl>
                     <FormDescription>
-                      3-letter ISO currency code (e.g., USD, EUR, GBP)
+                      {t('fields.codeDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -422,7 +425,7 @@ export default function CurrenciesPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency Name</FormLabel>
+                    <FormLabel>{t('fields.currencyName')}</FormLabel>
                     <FormControl>
                       <Input placeholder="US Dollar" {...field} />
                     </FormControl>
@@ -436,12 +439,12 @@ export default function CurrenciesPage() {
                 name="symbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Symbol</FormLabel>
+                    <FormLabel>{t('fields.symbol')}</FormLabel>
                     <FormControl>
                       <Input placeholder="$" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Currency symbol (e.g., $, €, £)
+                      {t('fields.symbolDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -454,9 +457,9 @@ export default function CurrenciesPage() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Set as Default</FormLabel>
+                      <FormLabel>{t('fields.setAsDefault')}</FormLabel>
                       <FormDescription>
-                        Use this as the default currency
+                        {t('fields.setAsDefaultDescription')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -472,7 +475,7 @@ export default function CurrenciesPage() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -481,7 +484,7 @@ export default function CurrenciesPage() {
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {editingCurrency ? 'Update' : 'Create'}
+                  {editingCurrency ? t('actions.update') : t('actions.create')}
                 </Button>
               </DialogFooter>
             </form>
@@ -493,19 +496,18 @@ export default function CurrenciesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the currency "{currencyToDelete?.code} - {currencyToDelete?.name}".
-              This action cannot be undone.
+              {t('dialogs.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t('actions.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

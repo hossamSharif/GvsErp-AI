@@ -8,6 +8,8 @@
  */
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Calendar as CalendarIcon, Clock, Download, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,16 +55,14 @@ const useAttendance = () => {
   };
 };
 
-const getStatusBadge = (status: string) => {
-  const variants: Record<string, any> = {
-    present: { variant: 'default', label: 'Present' },
-    absent: { variant: 'destructive', label: 'Absent' },
-    leave: { variant: 'secondary', label: 'On Leave' },
-    holiday: { variant: 'outline', label: 'Holiday' },
+const getStatusVariant = (status: string) => {
+  const variants: Record<string, string> = {
+    present: 'default',
+    absent: 'destructive',
+    leave: 'secondary',
+    holiday: 'outline',
   };
-
-  const config = variants[status] || variants.present;
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+  return variants[status] || 'default';
 };
 
 const calculateHours = (checkIn: string | null, checkOut: string | null) => {
@@ -74,6 +74,10 @@ const calculateHours = (checkIn: string | null, checkOut: string | null) => {
 };
 
 export default function AttendancePage() {
+  const params = useParams();
+  const locale = params.locale as string;
+  const t = useTranslations('hr');
+  const tc = useTranslations('common');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -82,23 +86,23 @@ export default function AttendancePage() {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'employee.employee_number',
-      header: 'Employee #',
+      header: t('attendance.fields.employee'),
     },
     {
       accessorKey: 'employee.full_name',
-      header: 'Name',
+      header: t('employees.fields.fullName'),
     },
     {
       accessorKey: 'date',
-      header: 'Date',
-      cell: ({ row }) => new Date(row.original.date).toLocaleDateString(),
+      header: t('attendance.fields.date'),
+      cell: ({ row }) => new Date(row.original.date).toLocaleDateString(locale),
     },
     {
       accessorKey: 'check_in',
-      header: 'Check In',
+      header: t('attendance.fields.checkIn'),
       cell: ({ row }) => {
         if (!row.original.check_in) return '-';
-        return new Date(row.original.check_in).toLocaleTimeString('en-US', {
+        return new Date(row.original.check_in).toLocaleTimeString(locale, {
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -106,10 +110,10 @@ export default function AttendancePage() {
     },
     {
       accessorKey: 'check_out',
-      header: 'Check Out',
+      header: t('attendance.fields.checkOut'),
       cell: ({ row }) => {
         if (!row.original.check_out) return '-';
-        return new Date(row.original.check_out).toLocaleTimeString('en-US', {
+        return new Date(row.original.check_out).toLocaleTimeString(locale, {
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -117,13 +121,17 @@ export default function AttendancePage() {
     },
     {
       id: 'hours',
-      header: 'Hours',
+      header: t('attendance.fields.workHours'),
       cell: ({ row }) => calculateHours(row.original.check_in, row.original.check_out),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      header: t('attendance.fields.status'),
+      cell: ({ row }) => (
+        <Badge variant={getStatusVariant(row.original.status) as any}>
+          {t(`attendance.statuses.${row.original.status}`)}
+        </Badge>
+      ),
     },
   ];
 
@@ -132,15 +140,15 @@ export default function AttendancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Attendance</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('attendance.title')}</h1>
           <p className="text-muted-foreground">
-            Track employee attendance and work hours
+            {t('description')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export Report
+            <Download className="me-2 h-4 w-4" />
+            {tc('export')}
           </Button>
         </div>
       </div>
@@ -149,7 +157,7 @@ export default function AttendancePage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Today's Attendance</CardDescription>
+            <CardDescription>{t('attendance.summary.presentDays')}</CardDescription>
             <CardTitle className="text-3xl flex items-center gap-2">
               <Users className="h-6 w-6" />
               {data?.data?.filter((a) => a.status === 'present').length || 0}
@@ -157,14 +165,14 @@ export default function AttendancePage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Out of {data?.meta?.total || 0} employees
+              {t('attendance.summary.totalDays')}: {data?.meta?.total || 0}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Present</CardDescription>
+            <CardDescription>{t('attendance.statuses.present')}</CardDescription>
             <CardTitle className="text-3xl text-green-600">
               {data?.data?.filter((a) => a.status === 'present').length || 0}
             </CardTitle>
@@ -173,7 +181,7 @@ export default function AttendancePage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Absent</CardDescription>
+            <CardDescription>{t('attendance.statuses.absent')}</CardDescription>
             <CardTitle className="text-3xl text-red-600">
               {data?.data?.filter((a) => a.status === 'absent').length || 0}
             </CardTitle>
@@ -182,7 +190,7 @@ export default function AttendancePage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>On Leave</CardDescription>
+            <CardDescription>{t('attendance.statuses.leave')}</CardDescription>
             <CardTitle className="text-3xl text-blue-600">
               {data?.data?.filter((a) => a.status === 'leave').length || 0}
             </CardTitle>
@@ -193,7 +201,7 @@ export default function AttendancePage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Attendance Records</CardTitle>
+          <CardTitle>{t('attendance.viewAttendance')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-4">
@@ -212,11 +220,11 @@ export default function AttendancePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="present">Present</SelectItem>
-                <SelectItem value="absent">Absent</SelectItem>
-                <SelectItem value="leave">On Leave</SelectItem>
-                <SelectItem value="holiday">Holiday</SelectItem>
+                <SelectItem value="all">{tc('allStatus')}</SelectItem>
+                <SelectItem value="present">{t('attendance.statuses.present')}</SelectItem>
+                <SelectItem value="absent">{t('attendance.statuses.absent')}</SelectItem>
+                <SelectItem value="leave">{t('attendance.statuses.leave')}</SelectItem>
+                <SelectItem value="holiday">{t('attendance.statuses.holiday')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -232,32 +240,32 @@ export default function AttendancePage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common attendance operations</CardDescription>
+          <CardTitle>{tc('actions')}</CardTitle>
+          <CardDescription>{t('attendance.markAttendance')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-start rtl:items-end">
               <Clock className="h-6 w-6 mb-2" />
-              <div className="text-left">
-                <div className="font-semibold">Check In</div>
-                <div className="text-sm text-muted-foreground">Mark employee check-in</div>
+              <div className="text-start">
+                <div className="font-semibold">{t('attendance.fields.checkIn')}</div>
+                <div className="text-sm text-muted-foreground">{t('attendance.markAttendance')}</div>
               </div>
             </Button>
 
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-start rtl:items-end">
               <Clock className="h-6 w-6 mb-2" />
-              <div className="text-left">
-                <div className="font-semibold">Check Out</div>
-                <div className="text-sm text-muted-foreground">Mark employee check-out</div>
+              <div className="text-start">
+                <div className="font-semibold">{t('attendance.fields.checkOut')}</div>
+                <div className="text-sm text-muted-foreground">{t('attendance.markAttendance')}</div>
               </div>
             </Button>
 
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
+            <Button variant="outline" className="h-auto p-4 flex flex-col items-start rtl:items-end">
               <CalendarIcon className="h-6 w-6 mb-2" />
-              <div className="text-left">
-                <div className="font-semibold">Mark Holiday</div>
-                <div className="text-sm text-muted-foreground">Set day as holiday</div>
+              <div className="text-start">
+                <div className="font-semibold">{t('attendance.statuses.holiday')}</div>
+                <div className="text-sm text-muted-foreground">{t('attendance.markAttendance')}</div>
               </div>
             </Button>
           </div>

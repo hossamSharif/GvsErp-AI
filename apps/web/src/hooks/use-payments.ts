@@ -22,7 +22,7 @@ import type {
   UpdatePaymentInput,
   PaymentReportParams,
   PaymentReportResponse,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

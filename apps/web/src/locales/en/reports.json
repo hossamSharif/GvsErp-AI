@@ -1,0 +1,185 @@
+{
+  "reports": {
+    "title": "Reports",
+    "description": "Generate and export business reports",
+    "generate": "Generate Report",
+    "export": "Export",
+    "print": "Print",
+    "download": "Download PDF",
+    "dateRange": "Date Range",
+    "filters": "Filters",
+    "categories": {
+      "salesRevenue": "Sales & Revenue",
+      "purchasesCosts": "Purchases & Costs",
+      "inventoryStock": "Inventory & Stock",
+      "financial": "Financial Reports",
+      "expenses": "Expenses",
+      "accounting": "Accounting Reports",
+      "hr": "HR Reports"
+    },
+    "quickStats": {
+      "totalSales": "Total Sales",
+      "totalPurchases": "Total Purchases",
+      "totalExpenses": "Total Expenses",
+      "netProfit": "Net Profit",
+      "thisMonth": "This month"
+    },
+    "sales": {
+      "title": "Sales Report",
+      "description": "Analyze sales performance",
+      "viewSalesPerformance": "View sales performance and trends",
+      "salesByCustomer": {
+        "title": "Sales by Customer",
+        "description": "Analyze sales distribution across customers",
+        "stats": "Customer-wise revenue breakdown"
+      },
+      "salesByItem": {
+        "title": "Sales by Item",
+        "description": "Top selling products and revenue by item",
+        "stats": "Product performance metrics"
+      },
+      "fields": {
+        "totalSales": "Total Sales",
+        "totalRevenue": "Total Revenue",
+        "averageOrderValue": "Average Order Value",
+        "topItems": "Top Selling Items",
+        "salesByCustomer": "Sales by Customer",
+        "salesByPeriod": "Sales by Period"
+      }
+    },
+    "purchases": {
+      "title": "Purchase Report",
+      "description": "Track purchase orders and costs",
+      "trackPurchaseOrders": "Track purchase orders and costs",
+      "purchasesBySupplier": {
+        "title": "Purchases by Supplier",
+        "description": "Analyze supplier transactions and payables",
+        "stats": "Supplier-wise purchase breakdown"
+      },
+      "fields": {
+        "totalPurchases": "Total Purchases",
+        "totalCost": "Total Cost",
+        "topSuppliers": "Top Suppliers",
+        "purchasesByCategory": "Purchases by Category"
+      }
+    },
+    "inventory": {
+      "title": "Inventory Report",
+      "description": "Stock levels and valuation",
+      "stockLevelsValuation": "Stock levels and valuation",
+      "lowStockAlerts": {
+        "title": "Low Stock Alerts",
+        "description": "Items below reorder threshold",
+        "stats": "Critical inventory alerts"
+      },
+      "itemCategories": {
+        "title": "Item Categories",
+        "description": "Inventory breakdown by category",
+        "stats": "Category-wise analysis"
+      },
+      "fields": {
+        "totalItems": "Total Items",
+        "totalValue": "Total Value",
+        "lowStockItems": "Low Stock Items",
+        "outOfStock": "Out of Stock",
+        "inventoryTurnover": "Inventory Turnover",
+        "stockByWarehouse": "Stock by Warehouse",
+        "stockByCategory": "Stock by Category"
+      }
+    },
+    "customerBalances": {
+      "title": "Customer Balances",
+      "description": "Outstanding receivables",
+      "stats": "Outstanding receivables",
+      "fields": {
+        "customer": "Customer",
+        "balance": "Balance",
+        "lastPayment": "Last Payment",
+        "totalReceivables": "Total Receivables"
+      }
+    },
+    "supplierBalances": {
+      "title": "Supplier Balances",
+      "description": "Outstanding payables",
+      "stats": "Outstanding payables",
+      "fields": {
+        "supplier": "Supplier",
+        "balance": "Balance",
+        "lastPayment": "Last Payment",
+        "totalPayables": "Total Payables"
+      }
+    },
+    "paymentsReport": {
+      "title": "Payments Report",
+      "description": "All payments received and made",
+      "stats": "Cash flow tracking"
+    },
+    "expenses": {
+      "title": "Expense Report",
+      "description": "Track business expenses",
+      "trackBusinessExpenses": "Track business expenses",
+      "expensesByCategory": {
+        "title": "Expenses by Category",
+        "description": "Breakdown of expenses by category",
+        "stats": "Category-wise expense analysis"
+      },
+      "fields": {
+        "totalExpenses": "Total Expenses",
+        "byCategory": "By Category",
+        "byPeriod": "By Period",
+        "topCategories": "Top Categories"
+      }
+    },
+    "payroll": {
+      "title": "Payroll Report",
+      "description": "Employee compensation summary",
+      "stats": "Salary and compensation",
+      "fields": {
+        "totalGross": "Total Gross",
+        "totalDeductions": "Total Deductions",
+        "totalNet": "Total Net",
+        "byDepartment": "By Department",
+        "byEmployee": "By Employee"
+      }
+    },
+    "accounting": {
+      "trialBalance": {
+        "title": "Trial Balance",
+        "description": "Summary of all account balances",
+        "stats": "Debit and credit totals"
+      },
+      "incomeStatement": {
+        "title": "Income Statement",
+        "description": "Revenue, expenses and profit",
+        "stats": "Profit and loss summary"
+      },
+      "balanceSheet": {
+        "title": "Balance Sheet",
+        "description": "Assets, liabilities and equity",
+        "stats": "Financial position"
+      },
+      "generalLedger": {
+        "title": "General Ledger",
+        "description": "Detailed account transactions",
+        "stats": "Transaction history"
+      },
+      "journalEntries": {
+        "title": "Journal Entries",
+        "description": "All accounting entries",
+        "stats": "Double-entry records"
+      }
+    },
+    "hr": {
+      "employeeAttendance": {
+        "title": "Employee Attendance",
+        "description": "Track employee attendance records",
+        "stats": "Attendance tracking"
+      },
+      "leaveManagement": {
+        "title": "Leave Management",
+        "description": "Employee leave balances and history",
+        "stats": "Leave tracking"
+      }
+    }
+  }
+}

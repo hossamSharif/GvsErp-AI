@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { WarehouseRepository } from '../repositories/warehouse.repository';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import type {
@@ -21,7 +21,7 @@ import type {
   InventoryReportEntry,
   InventoryReportSummary,
   InventoryReportParams,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { QueryResult } from '../repositories/base.repository';
 
 /**

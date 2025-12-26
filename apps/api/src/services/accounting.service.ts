@@ -9,7 +9,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { AccountRepository } from '../repositories/account.repository';
 import { JournalEntryRepository } from '../repositories/journal-entry.repository';
 import type {
@@ -28,7 +28,7 @@ import type {
   GeneralLedgerEntry,
   CreateAccountInput,
   UpdateAccountInput,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 export class AccountingService {
   private accountRepo: AccountRepository;
@@ -37,6 +37,24 @@ export class AccountingService {
   constructor(supabase: SupabaseClient<Database>) {
     this.accountRepo = new AccountRepository(supabase);
     this.journalRepo = new JournalEntryRepository(supabase);
+  }
+
+  // ==================== Activation Status ====================
+
+  /**
+   * Check if accounting module is activated for tenant
+   * Activation is determined by the existence of accounts
+   */
+  async getActivationStatus(tenantId: string): Promise<{ is_activated: boolean; account_count: number }> {
+    const accounts = await this.accountRepo.findAll({
+      tenantId,
+      limit: 1,
+    });
+
+    return {
+      is_activated: accounts.meta.total > 0,
+      account_count: accounts.meta.total,
+    };
   }
 
   // ==================== Chart of Accounts ====================

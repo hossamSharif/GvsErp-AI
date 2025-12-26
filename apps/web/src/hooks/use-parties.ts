@@ -24,7 +24,7 @@ import type {
   PartyStatementParams,
   CustomerBalanceReportParams,
   CustomerBalanceReportResponse,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

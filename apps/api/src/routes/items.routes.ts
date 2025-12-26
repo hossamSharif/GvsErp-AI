@@ -16,7 +16,7 @@ import {
   createItemPackagingSchema,
   updateItemPackagingSchema,
   itemReportParamsSchema,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -69,6 +69,7 @@ router.get(
         search?: string;
         categoryId?: string;
         isActive?: boolean;
+        includePrices?: boolean;
         page?: number;
         limit?: number;
         sortBy?: string;
@@ -110,73 +111,43 @@ router.post(
   }
 );
 
+// =============================================================================
+// SPECIFIC ROUTES (Must be before /:id routes to avoid route matching issues)
+// =============================================================================
+
 /**
- * GET /items/:id
- * Get a single item by ID with all relations
+ * GET /items/report
+ * Get items data for report generation
  */
 router.get(
-  '/:id',
+  '/report',
+  validateRequest({ query: itemReportParamsSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getItemService(req);
-      const item = await service.getItem(req.params.id);
+      const params = req.query as unknown as {
+        categoryId?: string;
+        isActive?: boolean;
+        includePrices?: boolean;
+        priceTier?: string;
+        currency?: string;
+      };
+
+      const data = await service.getItemsForReport(params);
 
       res.json({
         success: true,
-        data: item,
+        data,
+        meta: {
+          total: data.length,
+          generatedAt: new Date().toISOString(),
+        },
       });
     } catch (error) {
       handleItemError(error, res, next);
     }
   }
 );
-
-/**
- * PUT /items/:id
- * Update an item
- */
-router.put(
-  '/:id',
-  validateRequest({ body: updateItemSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.updateItem(req.params.id, req.body);
-
-      res.json({
-        success: true,
-        data: item,
-      });
-    } catch (error) {
-      handleItemError(error, res, next);
-    }
-  }
-);
-
-/**
- * DELETE /items/:id
- * Soft delete an item
- */
-router.delete(
-  '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      await service.deleteItem(req.params.id);
-
-      res.json({
-        success: true,
-        message: 'Item deleted successfully',
-      });
-    } catch (error) {
-      handleItemError(error, res, next);
-    }
-  }
-);
-
-// =============================================================================
-// BULK OPERATIONS
-// =============================================================================
 
 /**
  * POST /items/bulk-price-update
@@ -199,10 +170,6 @@ router.post(
     }
   }
 );
-
-// =============================================================================
-// LOOKUP ENDPOINTS
-// =============================================================================
 
 /**
  * GET /items/by-sku/:sku
@@ -261,6 +228,74 @@ router.get(
       res.json({
         success: true,
         data: item,
+      });
+    } catch (error) {
+      handleItemError(error, res, next);
+    }
+  }
+);
+
+// =============================================================================
+// ITEM CRUD WITH ID PARAMETER
+// =============================================================================
+
+/**
+ * GET /items/:id
+ * Get a single item by ID with all relations
+ */
+router.get(
+  '/:id',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getItemService(req);
+      const item = await service.getItem(req.params.id);
+
+      res.json({
+        success: true,
+        data: item,
+      });
+    } catch (error) {
+      handleItemError(error, res, next);
+    }
+  }
+);
+
+/**
+ * PUT /items/:id
+ * Update an item
+ */
+router.put(
+  '/:id',
+  validateRequest({ body: updateItemSchema }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getItemService(req);
+      const item = await service.updateItem(req.params.id, req.body);
+
+      res.json({
+        success: true,
+        data: item,
+      });
+    } catch (error) {
+      handleItemError(error, res, next);
+    }
+  }
+);
+
+/**
+ * DELETE /items/:id
+ * Soft delete an item
+ */
+router.delete(
+  '/:id',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getItemService(req);
+      await service.deleteItem(req.params.id);
+
+      res.json({
+        success: true,
+        message: 'Item deleted successfully',
       });
     } catch (error) {
       handleItemError(error, res, next);
@@ -441,44 +476,6 @@ router.delete(
       res.json({
         success: true,
         message: 'Packaging deleted successfully',
-      });
-    } catch (error) {
-      handleItemError(error, res, next);
-    }
-  }
-);
-
-// =============================================================================
-// REPORT ENDPOINTS
-// =============================================================================
-
-/**
- * GET /items/report
- * Get items data for report generation
- */
-router.get(
-  '/report',
-  validateRequest({ query: itemReportParamsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const params = req.query as unknown as {
-        categoryId?: string;
-        isActive?: boolean;
-        includePrices?: boolean;
-        priceTier?: string;
-        currency?: string;
-      };
-
-      const data = await service.getItemsForReport(params);
-
-      res.json({
-        success: true,
-        data,
-        meta: {
-          total: data.length,
-          generatedAt: new Date().toISOString(),
-        },
       });
     } catch (error) {
       handleItemError(error, res, next);

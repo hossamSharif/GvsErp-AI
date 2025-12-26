@@ -1,0 +1,75 @@
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً بعودتك",
+    "subtitle": "إليك ما يحدث في عملك اليوم.",
+    "overview": "نظرة عامة",
+    "quickActions": "إجراءات سريعة",
+    "recentActivity": "النشاط الأخير",
+    "noRecentActivity": "لا يوجد نشاط حديث",
+    "recentTransactions": "ستظهر معاملاتك الأخيرة هنا",
+    "topProducts": "أفضل المنتجات",
+    "noProducts": "لا توجد منتجات بعد",
+    "recentInvoices": "الفواتير الأخيرة",
+    "noInvoices": "لا توجد فواتير بعد",
+    "lowStockAlerts": "تنبيهات المخزون المنخفض",
+    "noAlerts": "لا توجد تنبيهات",
+    "fromLastMonth": "من الشهر الماضي",
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "invoices": "الفواتير",
+      "products": "المنتجات",
+      "customers": "العملاء"
+    },
+    "actions": {
+      "newInvoice": "فاتورة جديدة",
+      "addProduct": "إضافة منتج",
+      "addCustomer": "إضافة عميل",
+      "viewReports": "عرض التقارير"
+    },
+    "widgets": {
+      "sales": {
+        "title": "مبيعات اليوم",
+        "totalRevenue": "إجمالي الإيرادات",
+        "totalOrders": "إجمالي الطلبات",
+        "viewAll": "عرض جميع المبيعات"
+      },
+      "inventory": {
+        "title": "حالة المخزون",
+        "totalItems": "إجمالي الأصناف",
+        "lowStock": "مخزون منخفض",
+        "outOfStock": "نفذ من المخزون",
+        "viewAll": "عرض المخزون"
+      },
+      "customers": {
+        "title": "العملاء",
+        "totalCustomers": "إجمالي العملاء",
+        "newThisMonth": "جديد هذا الشهر",
+        "topCustomers": "أفضل العملاء"
+      },
+      "expenses": {
+        "title": "مصروفات هذا الشهر",
+        "total": "الإجمالي",
+        "byCategory": "حسب الفئة"
+      },
+      "pendingTasks": {
+        "title": "المهام المعلقة",
+        "pendingOrders": "طلبات معلقة",
+        "lowStockAlerts": "تنبيهات المخزون المنخفض",
+        "pendingPayments": "مدفوعات معلقة"
+      }
+    },
+    "charts": {
+      "salesTrend": "اتجاه المبيعات",
+      "topProducts": "أفضل المنتجات",
+      "revenueByCategory": "الإيرادات حسب الفئة"
+    },
+    "periods": {
+      "today": "اليوم",
+      "thisWeek": "هذا الأسبوع",
+      "thisMonth": "هذا الشهر",
+      "thisYear": "هذا العام",
+      "custom": "مخصص"
+    }
+  }
+}

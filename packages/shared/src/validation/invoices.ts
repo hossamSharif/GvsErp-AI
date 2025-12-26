@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { currencySchema, sortDirectionSchema, uuidSchema } from './items';
+import { currencySchema, sortDirectionSchema } from './items';
 
 // =============================================================================
 // COMMON SCHEMAS
@@ -290,26 +290,4 @@ export const draftInvoiceSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type InvoiceType = z.infer<typeof invoiceTypeSchema>;
-export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
-
-export type CreateInvoiceItemInput = z.infer<typeof createInvoiceItemSchema>;
-export type UpdateInvoiceItemInput = z.infer<typeof updateInvoiceItemSchema>;
-
-export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
-export type UpdateInvoiceInput = z.infer<typeof updateInvoiceSchema>;
-export type FinalizeInvoiceInput = z.infer<typeof finalizeInvoiceSchema>;
-
-export type ReturnInvoiceItemInput = z.infer<typeof returnInvoiceItemSchema>;
-export type ReturnInvoiceInput = z.infer<typeof returnInvoiceSchema>;
-
-export type InvoiceQueryParams = z.infer<typeof invoiceQuerySchema>;
-export type SalesReportParams = z.infer<typeof salesReportParamsSchema>;
-export type PurchaseReportParams = z.infer<typeof purchaseReportParamsSchema>;
-
-export type DraftInvoiceItem = z.infer<typeof draftInvoiceItemSchema>;
-export type DraftInvoice = z.infer<typeof draftInvoiceSchema>;
+// Type exports are in types/invoices.ts to avoid duplicate exports

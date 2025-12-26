@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import {
   Form,
   FormControl,
@@ -44,7 +45,7 @@ import type {
   PaymentType,
   CreatePaymentInput,
   Party,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { Save, Loader2, DollarSign } from 'lucide-react';
 
 // =============================================================================
@@ -121,6 +122,9 @@ export function PaymentForm({
   onCancel,
   isLoading = false,
 }: PaymentFormProps) {
+  const t = useTranslations('payments');
+  const tc = useTranslations('common');
+
   // Form setup
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -181,8 +185,9 @@ export function PaymentForm({
     await onSubmit(submitData);
   };
 
-  const paymentLabel = paymentType === 'received' ? 'Payment Received' : 'Payment Made';
-  const partyTypeLabel = paymentType === 'received' ? 'Customer' : 'Supplier';
+  const paymentLabel = paymentType === 'received' ? t('form.receivedTitle') : t('form.madeTitle');
+  const paymentDesc = paymentType === 'received' ? t('form.receivedDesc') : t('form.madeDesc');
+  const partyTypeLabel = paymentType === 'received' ? t('form.customer') : t('form.supplier');
 
   return (
     <Form {...form}>
@@ -192,7 +197,7 @@ export function PaymentForm({
           <CardHeader>
             <CardTitle>{paymentLabel}</CardTitle>
             <CardDescription>
-              Record a payment {paymentType === 'received' ? 'from' : 'to'} a {partyTypeLabel.toLowerCase()}
+              {paymentDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -208,7 +213,7 @@ export function PaymentForm({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={`Select ${partyTypeLabel.toLowerCase()}`} />
+                        <SelectValue placeholder={t('form.selectParty', { type: partyTypeLabel.toLowerCase() })} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -217,7 +222,7 @@ export function PaymentForm({
                           {party.name}
                           {party.balance !== 0 && (
                             <span className="ml-2 text-sm text-muted-foreground">
-                              (Balance: ${party.balance.toFixed(2)})
+                              ({t('form.balance')}: ${party.balance.toFixed(2)})
                             </span>
                           )}
                         </SelectItem>
@@ -236,7 +241,7 @@ export function PaymentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Amount <span className="text-red-500">*</span>
+                    {t('fields.amount')} <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
@@ -263,7 +268,7 @@ export function PaymentForm({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{t('fields.currency')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -288,7 +293,7 @@ export function PaymentForm({
                 name="exchangeRate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exchange Rate</FormLabel>
+                    <FormLabel>{t('fields.exchangeRate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -298,7 +303,7 @@ export function PaymentForm({
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>Rate to USD</FormDescription>
+                    <FormDescription>{t('form.rateToUSD')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -311,7 +316,7 @@ export function PaymentForm({
               name="paymentDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Date</FormLabel>
+                  <FormLabel>{t('form.paymentDate')}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -326,11 +331,11 @@ export function PaymentForm({
               name="paymentMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Method</FormLabel>
+                  <FormLabel>{t('fields.paymentMethod')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
+                        <SelectValue placeholder={t('form.selectMethod')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -352,16 +357,16 @@ export function PaymentForm({
               name="reference"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Reference Number</FormLabel>
+                  <FormLabel>{t('form.referenceNumber')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Check number, transaction ID, etc."
+                      placeholder={t('form.referencePlaceholder')}
                       {...field}
                       value={field.value || ''}
                     />
                   </FormControl>
                   <FormDescription>
-                    Optional reference for this payment
+                    {t('form.referenceDesc')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -374,10 +379,10 @@ export function PaymentForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t('fields.notes')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes about this payment"
+                      placeholder={t('form.notesPlaceholder')}
                       className="min-h-[80px]"
                       {...field}
                       value={field.value || ''}
@@ -394,19 +399,19 @@ export function PaymentForm({
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+              {tc('cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Recording...
+                {t('form.recording')}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Record Payment
+                {t('addPayment')}
               </>
             )}
           </Button>

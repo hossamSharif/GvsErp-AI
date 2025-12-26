@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import type { ApiError, ErrorCode } from '@erp/shared';
+import type { ApiError, ErrorCode } from '@erp-saas/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

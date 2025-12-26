@@ -1,0 +1,45 @@
+{
+  "purchases": {
+    "title": "أوامر الشراء",
+    "description": "إدارة أوامر الشراء وفواتير الموردين",
+    "newPurchase": "شراء جديد",
+    "searchPlaceholder": "البحث برقم الفاتورة...",
+    "filterByStatus": "تصفية حسب الحالة",
+    "loading": "جاري التحميل...",
+    "errorLoading": "خطأ في تحميل الفواتير",
+    "noPurchases": "لم يتم العثور على أوامر شراء",
+    "createFirst": "إنشاء أول عملية شراء",
+    "noSupplier": "لا يوجد مورد",
+    "stats": {
+      "totalPurchases": "إجمالي المشتريات",
+      "drafts": "المسودات",
+      "finalized": "المؤكدة",
+      "thisMonth": "هذا الشهر"
+    },
+    "status": {
+      "all": "جميع الحالات",
+      "draft": "مسودة",
+      "finalized": "مؤكد",
+      "returned": "مرتجع",
+      "canceled": "ملغي"
+    },
+    "table": {
+      "invoiceNumber": "رقم الفاتورة",
+      "supplier": "المورد",
+      "date": "التاريخ",
+      "status": "الحالة",
+      "total": "الإجمالي"
+    },
+    "actions": {
+      "title": "الإجراءات",
+      "viewDetails": "عرض التفاصيل",
+      "edit": "تعديل",
+      "createReturn": "إنشاء مرتجع"
+    },
+    "pagination": {
+      "showing": "عرض {from} إلى {to} من {total} فاتورة",
+      "previous": "السابق",
+      "next": "التالي"
+    }
+  }
+}

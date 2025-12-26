@@ -12,7 +12,7 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import type { Role, CreateRoleInput, UpdateRoleInput } from '@erp/shared';
+import type { Role, CreateRoleInput, UpdateRoleInput } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

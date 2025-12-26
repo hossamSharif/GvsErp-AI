@@ -7,12 +7,12 @@
  * Supports filtering by category and status.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { useItemsReport } from '@/hooks/use-items';
 import { useCategories } from '@/hooks/use-categories';
-import { downloadItemsReport } from '@/components/reports/items-report';
+import { useTenantSettings } from '@/hooks/use-settings';
+import { downloadItemsReport, generateItemsReportBlob } from '@/components/reports/items-report';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -32,22 +32,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import type { ItemReportParams } from '@erp/shared';
+import type { ItemReportParams } from '@erp-saas/shared';
 import { ArrowLeft, Download, FileText, Loader2, Eye } from 'lucide-react';
-
-// Dynamically import PDFViewer to avoid SSR issues
-const PDFViewer = dynamic(
-  () => import('@react-pdf/renderer').then((mod) => mod.PDFViewer),
-  { ssr: false, loading: () => <Skeleton className="w-full h-[600px]" /> }
-);
-
-const ItemsReportDocument = dynamic(
-  () =>
-    import('@/components/reports/items-report').then(
-      (mod) => mod.ItemsReportDocument
-    ),
-  { ssr: false }
-);
 
 // =============================================================================
 // CONSTANTS
@@ -78,11 +64,22 @@ export default function ItemsReportPage() {
     priceTier: 'retail',
     currency: 'USD',
   });
-  const [showPreview, setShowPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   // Queries
   const { data: categoriesData } = useCategories();
+  const { data: settingsData } = useTenantSettings();
   const {
     data: reportData,
     isLoading,
@@ -91,6 +88,10 @@ export default function ItemsReportPage() {
   } = useItemsReport(reportParams, {
     enabled: false, // Don't fetch automatically
   });
+
+  // Get company info from tenant settings
+  const companyName = settingsData?.data?.company_name || 'Your Company';
+  const companyLogo = settingsData?.data?.logo_url || undefined;
 
   // Get currency symbol
   const currencySymbol =
@@ -113,11 +114,40 @@ export default function ItemsReportPage() {
     return parts.length > 0 ? parts.join(', ') : 'All items';
   }, [reportParams, categoriesData]);
 
-  // Handle preview
+  // Handle preview - generates PDF blob and displays in iframe
   const handlePreview = useCallback(async () => {
-    await refetch();
-    setShowPreview(true);
-  }, [refetch]);
+    setIsGeneratingPreview(true);
+    try {
+      const result = await refetch();
+      if (result.data?.data) {
+        // Revoke previous URL if exists
+        if (pdfUrl) {
+          URL.revokeObjectURL(pdfUrl);
+        }
+        // Generate PDF blob
+        const blob = await generateItemsReportBlob({
+          title: 'Inventory Items Report',
+          companyName,
+          companyLogo,
+          items: result.data.data,
+          currencySymbol,
+          filterDescription: getFilterDescription(),
+          generatedAt: new Date(),
+        });
+        // Create blob URL for iframe
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate preview',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPreview(false);
+    }
+  }, [refetch, pdfUrl, currencySymbol, getFilterDescription, toast]);
 
   // Handle download
   const handleDownload = useCallback(async () => {
@@ -128,7 +158,8 @@ export default function ItemsReportPage() {
         await downloadItemsReport(
           {
             title: 'Inventory Items Report',
-            companyName: 'Your Company', // TODO: Get from tenant settings
+            companyName,
+            companyLogo,
             items: result.data.data,
             currencySymbol,
             filterDescription: getFilterDescription(),
@@ -281,11 +312,11 @@ export default function ItemsReportPage() {
 
             {/* Actions */}
             <div className="flex flex-col gap-2 pt-4">
-              <Button onClick={handlePreview} disabled={isLoading}>
-                {isLoading ? (
+              <Button onClick={handlePreview} disabled={isGeneratingPreview || isLoading}>
+                {isGeneratingPreview || isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
+                    Generating...
                   </>
                 ) : (
                   <>
@@ -332,7 +363,12 @@ export default function ItemsReportPage() {
                   Try again
                 </Button>
               </div>
-            ) : !showPreview || !reportData?.data ? (
+            ) : isGeneratingPreview ? (
+              <div className="flex flex-col items-center justify-center h-[600px] text-center">
+                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+                <p className="text-muted-foreground">Generating PDF preview...</p>
+              </div>
+            ) : !pdfUrl ? (
               <div className="flex flex-col items-center justify-center h-[600px] text-center">
                 <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
@@ -341,16 +377,13 @@ export default function ItemsReportPage() {
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
-                <PDFViewer width="100%" height={600} showToolbar={false}>
-                  <ItemsReportDocument
-                    title="Inventory Items Report"
-                    companyName="Your Company"
-                    items={reportData.data}
-                    currencySymbol={currencySymbol}
-                    filterDescription={getFilterDescription()}
-                    generatedAt={new Date()}
-                  />
-                </PDFViewer>
+                <iframe
+                  src={pdfUrl}
+                  width="100%"
+                  height={600}
+                  className="border-0"
+                  title="PDF Preview"
+                />
               </div>
             )}
           </CardContent>

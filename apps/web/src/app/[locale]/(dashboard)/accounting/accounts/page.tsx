@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/use-accounts';
 import { useAccountingStatus } from '@/hooks/use-accounting';
 import { AccountingActivationWizard } from '@/components/wizards/accounting-activation';
@@ -31,10 +32,12 @@ import {
 } from '@/components/ui/select';
 import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Account, AccountType, CreateAccountInput } from '@erp/shared';
+import type { Account, AccountType, CreateAccountInput } from '@erp-saas/shared';
 
 export default function ChartOfAccountsPage() {
   const { toast } = useToast();
+  const t = useTranslations('accounting.accounts');
+  const tc = useTranslations('common');
   const [showActivation, setShowActivation] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -104,39 +107,39 @@ export default function ChartOfAccountsPage() {
           data: formData,
         });
         toast({
-          title: 'Success',
-          description: 'Account updated successfully',
+          title: tc('success'),
+          description: t('messages.accountUpdated'),
         });
       } else {
         await createMutation.mutateAsync(formData);
         toast({
-          title: 'Success',
-          description: 'Account created successfully',
+          title: tc('success'),
+          description: t('messages.accountCreated'),
         });
       }
       handleCloseDialog();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to save account',
+        title: tc('error'),
+        description: error.response?.data?.error?.message || t('messages.saveError'),
         variant: 'destructive',
       });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this account?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       await deleteMutation.mutateAsync(id);
       toast({
-        title: 'Success',
-        description: 'Account deleted successfully',
+        title: tc('success'),
+        description: t('messages.accountDeleted'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete account',
+        title: tc('error'),
+        description: error.response?.data?.error?.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     }
@@ -304,18 +307,18 @@ export default function ChartOfAccountsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingAccount ? 'Edit Account' : 'Create Account'}
+              {editingAccount ? t('editAccount') : t('createAccount')}
             </DialogTitle>
             <DialogDescription>
               {editingAccount
-                ? 'Update account information'
-                : 'Add a new account to your chart of accounts'}
+                ? t('updateAccountInfo')
+                : t('addNewAccountDesc')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Account Code</Label>
+              <Label htmlFor="code">{t('fields.code')}</Label>
               <Input
                 id="code"
                 value={formData.code}
@@ -325,7 +328,7 @@ export default function ChartOfAccountsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Account Name</Label>
+              <Label htmlFor="name">{t('fields.name')}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -335,7 +338,7 @@ export default function ChartOfAccountsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Account Type</Label>
+              <Label htmlFor="type">{t('fields.type')}</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) =>
@@ -346,11 +349,11 @@ export default function ChartOfAccountsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="asset">Asset</SelectItem>
-                  <SelectItem value="liability">Liability</SelectItem>
-                  <SelectItem value="equity">Equity</SelectItem>
-                  <SelectItem value="revenue">Revenue</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="asset">{t('types.asset')}</SelectItem>
+                  <SelectItem value="liability">{t('types.liability')}</SelectItem>
+                  <SelectItem value="equity">{t('types.equity')}</SelectItem>
+                  <SelectItem value="revenue">{t('types.revenue')}</SelectItem>
+                  <SelectItem value="expense">{t('types.expense')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -358,7 +361,7 @@ export default function ChartOfAccountsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -367,7 +370,7 @@ export default function ChartOfAccountsPage() {
               {(createMutation.isPending || updateMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {editingAccount ? 'Update' : 'Create'}
+              {editingAccount ? t('update') : t('create')}
             </Button>
           </DialogFooter>
         </DialogContent>

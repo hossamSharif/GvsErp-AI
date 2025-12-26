@@ -12,7 +12,7 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import type { User, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, CreateUserInput, UpdateUserInput } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

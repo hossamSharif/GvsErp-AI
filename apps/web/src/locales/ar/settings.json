@@ -1,0 +1,468 @@
+{
+  "settings": {
+    "title": "الإعدادات",
+    "description": "تكوين تفضيلات النظام والمستخدمين",
+    "general": {
+      "title": "الإعدادات العامة",
+      "description": "تكوين اللغة والمظهر وتفضيلات العرض",
+      "pageDescription": "تكوين اللغة والمظهر ومعلومات الشركة",
+      "language": "اللغة",
+      "theme": "المظهر",
+      "dateFormat": "تنسيق التاريخ",
+      "timeZone": "المنطقة الزمنية",
+      "companyLogo": "شعار الشركة",
+      "companyLogoDescription": "ارفع شعار شركتك لعرضه على الفواتير والتقارير",
+      "logoRecommendedSize": "الحجم الموصى به: 200×200 بكسل، الحد الأقصى 2 ميجابايت",
+      "logoRemove": "إزالة الشعار",
+      "logoFormats": "الصيغ المدعومة: JPEG، PNG، WebP، GIF",
+      "themes": {
+        "light": "فاتح",
+        "dark": "داكن",
+        "system": "النظام"
+      },
+      "languages": {
+        "en": "الإنجليزية",
+        "ar": "العربية"
+      },
+      "sections": {
+        "preferences": "التفضيلات",
+        "preferencesDescription": "إعدادات اللغة والمظهر الافتراضية لمؤسستك",
+        "companyInfo": "معلومات الشركة",
+        "companyInfoDescription": "تفاصيل شركتك للفواتير والتقارير",
+        "businessPreferences": "تفضيلات العمل",
+        "businessPreferencesDescription": "تكوين السنة المالية والمنطقة الزمنية",
+        "moduleActivation": "تفعيل الوحدات",
+        "moduleActivationDescription": "تمكين أو تعطيل الوحدات الاختيارية لمؤسستك"
+      },
+      "fields": {
+        "defaultLanguage": "اللغة الافتراضية",
+        "defaultLanguageDescription": "اللغة الافتراضية للمستخدمين الجدد ورسائل النظام",
+        "defaultTheme": "المظهر الافتراضي",
+        "defaultThemeDescription": "المظهر الافتراضي للمستخدمين الجدد",
+        "defaultCurrency": "العملة الافتراضية",
+        "defaultCurrencyDescription": "العملة الافتراضية للمعاملات والتقارير",
+        "selectCurrency": "اختر العملة",
+        "dateFormatDescription": "كيفية عرض التواريخ",
+        "companyName": "اسم الشركة",
+        "companyEmail": "البريد الإلكتروني للشركة",
+        "companyPhone": "هاتف الشركة",
+        "companyAddress": "عنوان الشركة",
+        "taxNumber": "الرقم الضريبي / رقم ضريبة القيمة المضافة",
+        "taxNumberDescription": "رقم التسجيل الضريبي لشركتك",
+        "fiscalYearStart": "بداية السنة المالية",
+        "fiscalYearStartDescription": "الشهر واليوم الذي تبدأ فيه سنتك المالية (على سبيل المثال، 01-01 ليناير الأول)",
+        "timeZoneDescription": "معرف المنطقة الزمنية IANA (على سبيل المثال، America/New_York، Europe/London)",
+        "accountingModule": "وحدة المحاسبة",
+        "accountingModuleDescription": "تمكين ميزات المحاسبة المتقدمة ودليل الحسابات",
+        "hrModule": "وحدة الموارد البشرية",
+        "hrModuleDescription": "تمكين إدارة الموارد البشرية وميزات كشوف المرتبات"
+      },
+      "messages": {
+        "settingsUpdated": "تم تحديث الإعدادات",
+        "settingsUpdatedDescription": "تم تحديث إعداداتك بنجاح.",
+        "updateError": "فشل في تحديث الإعدادات"
+      },
+      "actions": {
+        "saveSettings": "حفظ الإعدادات",
+        "saving": "جاري الحفظ..."
+      }
+    },
+    "users": {
+      "title": "المستخدمين",
+      "description": "إدارة حسابات المستخدمين والصلاحيات",
+      "pageDescription": "إدارة حسابات المستخدمين والصلاحيات",
+      "addUser": "إضافة مستخدم",
+      "editUser": "تعديل المستخدم",
+      "viewUser": "عرض المستخدم",
+      "deleteUser": "حذف المستخدم",
+      "searchPlaceholder": "البحث عن مستخدمين...",
+      "fields": {
+        "email": "البريد الإلكتروني",
+        "fullName": "الاسم الكامل",
+        "role": "الدور",
+        "isActive": "نشط",
+        "lastLogin": "آخر تسجيل دخول",
+        "createdAt": "تاريخ الإنشاء",
+        "name": "الاسم",
+        "status": "الحالة",
+        "language": "اللغة",
+        "actions": "الإجراءات",
+        "password": "كلمة المرور",
+        "passwordDescription": "8 أحرف على الأقل",
+        "selectRole": "اختر دوراً",
+        "activeDescription": "يمكن للمستخدم الوصول إلى النظام"
+      },
+      "status": {
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "actions": {
+        "edit": "تعديل",
+        "deactivate": "تعطيل",
+        "activate": "تفعيل",
+        "delete": "حذف",
+        "update": "تحديث",
+        "create": "إنشاء"
+      },
+      "dialogs": {
+        "add": "إضافة مستخدم",
+        "edit": "تعديل المستخدم",
+        "addDescription": "املأ تفاصيل المستخدم أدناه.",
+        "editDescription": "حدّث تفاصيل المستخدم أدناه.",
+        "deleteTitle": "هل أنت متأكد؟",
+        "deleteDescription": "سيؤدي هذا إلى حذف المستخدم. لا يمكن التراجع عن هذا الإجراء.",
+        "noRole": "بدون دور"
+      },
+      "messages": {
+        "userCreated": "تم إنشاء المستخدم",
+        "userCreatedDescription": "تم إنشاء المستخدم بنجاح.",
+        "createError": "فشل في إنشاء المستخدم",
+        "userUpdated": "تم تحديث المستخدم",
+        "userUpdatedDescription": "تم تحديث المستخدم بنجاح.",
+        "updateError": "فشل في تحديث المستخدم",
+        "userDeleted": "تم حذف المستخدم",
+        "userDeletedDescription": "تم حذف المستخدم بنجاح.",
+        "deleteError": "فشل في حذف المستخدم"
+      }
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "description": "تكوين الأدوار والتحكم في الوصول",
+      "pageDescription": "تكوين الأدوار والتحكم في الوصول للمستخدمين",
+      "addRole": "إضافة دور",
+      "editRole": "تعديل الدور",
+      "deleteRole": "حذف الدور",
+      "searchPlaceholder": "البحث عن أدوار...",
+      "fields": {
+        "name": "اسم الدور",
+        "roleName": "اسم الدور",
+        "permissions": "الصلاحيات",
+        "isSystem": "دور النظام",
+        "actions": "الإجراءات"
+      },
+      "defaultRoles": {
+        "admin": "المدير",
+        "sales": "المبيعات",
+        "warehouse": "المستودع",
+        "viewer": "المشاهد"
+      },
+      "permissions": {
+        "items": "الأصناف",
+        "invoices": "الفواتير",
+        "warehouses": "المستودعات",
+        "parties": "العملاء والموردين",
+        "payments": "المدفوعات",
+        "expenses": "المصروفات",
+        "reports": "التقارير",
+        "settings": "الإعدادات",
+        "read": "عرض",
+        "write": "إنشاء/تعديل",
+        "delete": "حذف",
+        "export": "تصدير",
+        "selectPermissions": "حدد الصلاحيات لهذا الدور"
+      },
+      "badges": {
+        "system": "النظام",
+        "permissionsCount": "{count} صلاحية"
+      },
+      "dialogs": {
+        "add": "إضافة دور",
+        "edit": "تعديل الدور",
+        "addDescription": "املأ تفاصيل الدور واختر الصلاحيات أدناه.",
+        "editDescription": "حدّث تفاصيل الدور والصلاحيات أدناه.",
+        "deleteTitle": "هل أنت متأكد؟",
+        "deleteDescription": "سيؤدي هذا إلى حذف الدور. لا يمكن التراجع عن هذا الإجراء. سيفقد المستخدمون الذين لديهم هذا الدور صلاحياتهم."
+      },
+      "actions": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "update": "تحديث",
+        "create": "إنشاء"
+      },
+      "messages": {
+        "roleCreated": "تم إنشاء الدور",
+        "roleCreatedDescription": "تم إنشاء الدور بنجاح.",
+        "createError": "فشل في إنشاء الدور",
+        "roleUpdated": "تم تحديث الدور",
+        "roleUpdatedDescription": "تم تحديث الدور بنجاح.",
+        "updateError": "فشل في تحديث الدور",
+        "roleDeleted": "تم حذف الدور",
+        "roleDeletedDescription": "تم حذف الدور بنجاح.",
+        "deleteError": "فشل في حذف الدور"
+      }
+    },
+    "currencies": {
+      "title": "العملات",
+      "description": "إدارة العملات والإعدادات الافتراضية",
+      "pageDescription": "إدارة العملات وتعيين عملتك الافتراضية",
+      "addCurrency": "إضافة عملة",
+      "editCurrency": "تعديل العملة",
+      "deleteCurrency": "حذف العملة",
+      "searchPlaceholder": "البحث عن عملات...",
+      "fields": {
+        "code": "رمز العملة",
+        "name": "الاسم",
+        "currencyName": "اسم العملة",
+        "symbol": "الرمز",
+        "isDefault": "العملة الافتراضية",
+        "status": "الحالة",
+        "actions": "الإجراءات",
+        "codeDescription": "رمز عملة ISO المكون من 3 أحرف (على سبيل المثال، USD، EUR، GBP)",
+        "symbolDescription": "رمز العملة (على سبيل المثال، $، €، £)",
+        "setAsDefault": "تعيين كافتراضي",
+        "setAsDefaultDescription": "استخدام هذه كعملة افتراضية"
+      },
+      "status": {
+        "default": "افتراضي",
+        "active": "نشط"
+      },
+      "dialogs": {
+        "add": "إضافة عملة",
+        "edit": "تعديل العملة",
+        "addDescription": "املأ تفاصيل العملة أدناه.",
+        "editDescription": "حدّث تفاصيل العملة أدناه.",
+        "deleteTitle": "هل أنت متأكد؟",
+        "deleteDescription": "سيؤدي هذا إلى حذف العملة. لا يمكن التراجع عن هذا الإجراء."
+      },
+      "actions": {
+        "edit": "تعديل",
+        "setDefault": "تعيين كافتراضي",
+        "delete": "حذف",
+        "update": "تحديث",
+        "create": "إنشاء"
+      },
+      "messages": {
+        "currencyCreated": "تم إنشاء العملة",
+        "currencyCreatedDescription": "تم إنشاء العملة بنجاح.",
+        "createError": "فشل في إنشاء العملة",
+        "currencyUpdated": "تم تحديث العملة",
+        "currencyUpdatedDescription": "تم تحديث العملة بنجاح.",
+        "updateError": "فشل في تحديث العملة",
+        "currencyDeleted": "تم حذف العملة",
+        "currencyDeletedDescription": "تم حذف العملة بنجاح.",
+        "deleteError": "فشل في حذف العملة"
+      }
+    },
+    "exchangeRates": {
+      "title": "أسعار الصرف",
+      "description": "إعداد وإدارة أسعار صرف العملات",
+      "pageDescription": "إدارة أسعار صرف العملات للمعاملات متعددة العملات",
+      "addRate": "إضافة سعر",
+      "editRate": "تعديل السعر",
+      "deleteRate": "حذف السعر",
+      "searchPlaceholder": "البحث حسب العملة...",
+      "fields": {
+        "fromCurrency": "من عملة",
+        "toCurrency": "إلى عملة",
+        "rateType": "نوع السعر",
+        "rate": "السعر",
+        "exchangeRate": "سعر الصرف",
+        "effectiveDate": "تاريخ السريان",
+        "from": "من",
+        "to": "إلى",
+        "type": "النوع",
+        "actions": "الإجراءات",
+        "selectCurrency": "اختر العملة",
+        "rateDescription": "كم عدد وحدات \"العملة المستهدفة\" تساوي وحدة واحدة من \"العملة المصدر\"",
+        "effectiveDateDescription": "التاريخ الذي يصبح فيه هذا السعر ساري المفعول"
+      },
+      "rateTypes": {
+        "formal": "رسمي",
+        "blackMarket": "السوق السوداء"
+      },
+      "dialogs": {
+        "add": "إضافة سعر صرف",
+        "edit": "تعديل سعر الصرف",
+        "addDescription": "املأ تفاصيل سعر الصرف أدناه.",
+        "editDescription": "حدّث تفاصيل سعر الصرف أدناه.",
+        "deleteTitle": "هل أنت متأكد؟",
+        "deleteDescription": "سيؤدي هذا إلى حذف سعر الصرف. لا يمكن التراجع عن هذا الإجراء."
+      },
+      "actions": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "update": "تحديث",
+        "create": "إنشاء"
+      },
+      "messages": {
+        "rateCreated": "تم إنشاء سعر الصرف",
+        "rateCreatedDescription": "تم إنشاء سعر الصرف بنجاح.",
+        "createError": "فشل في إنشاء سعر الصرف",
+        "rateUpdated": "تم تحديث سعر الصرف",
+        "rateUpdatedDescription": "تم تحديث سعر الصرف بنجاح.",
+        "updateError": "فشل في تحديث سعر الصرف",
+        "rateDeleted": "تم حذف سعر الصرف",
+        "rateDeletedDescription": "تم حذف سعر الصرف بنجاح.",
+        "deleteError": "فشل في حذف سعر الصرف"
+      }
+    },
+    "subscription": {
+      "title": "الاشتراك والفوترة",
+      "description": "إدارة خطة اشتراكك ومعلومات الفوترة",
+      "currentPlan": "الخطة الحالية",
+      "yourActivePlan": "خطة اشتراكك النشطة",
+      "upgrade": "ترقية الخطة",
+      "upgradeToPremium": "الترقية إلى المميز",
+      "manageSubscription": "إدارة الاشتراك",
+      "manageBilling": "إدارة الفوترة",
+      "availablePlans": "الخطط المتاحة",
+      "currentPlanButton": "الخطة الحالية",
+      "freePlan": "الخطة المجانية",
+      "recommended": "موصى به",
+      "current": "الحالي",
+      "plans": {
+        "freemium": "مجاني",
+        "freemiumPlan": "الخطة المجانية",
+        "premium": "مميز",
+        "premiumPlan": "الخطة المميزة"
+      },
+      "pricing": {
+        "free": "مجاني",
+        "perMonth": "شهرياً",
+        "month": "شهر"
+      },
+      "features": {
+        "upToItems": "حتى {count} صنف",
+        "upTo50Items": "حتى 50 صنف",
+        "oneUser": "مستخدم واحد",
+        "transactionsPerMonth": "{count} معاملة/شهر",
+        "25TransactionsPerMonth": "25 معاملة/شهر",
+        "basicFeatures": "ميزات أساسية",
+        "communitySupport": "دعم المجتمع",
+        "unlimitedItems": "أصناف غير محدودة",
+        "unlimitedUsers": "مستخدمون غير محدودين",
+        "unlimitedTransactions": "معاملات غير محدودة",
+        "pdfExport": "تصدير PDF",
+        "prioritySupport": "دعم ذو أولوية",
+        "advancedReports": "تقارير متقدمة",
+        "apiAccess": "الوصول للـ API",
+        "accountingModule": "وحدة المحاسبة",
+        "hrModule": "وحدة الموارد البشرية"
+      },
+      "usage": {
+        "title": "الاستخدام",
+        "description": "استخدامك الحالي والحدود",
+        "items": "الأصناف",
+        "users": "المستخدمين",
+        "monthlyTransactions": "المعاملات الشهرية",
+        "unlimited": "غير محدود"
+      },
+      "limits": {
+        "items": "الأصناف",
+        "users": "المستخدمين",
+        "transactions": "المعاملات الشهرية",
+        "modules": "الوحدات"
+      },
+      "billing": {
+        "title": "سجل الفوترة",
+        "description": "سجل المدفوعات والفواتير",
+        "nextBillingDate": "تاريخ الفاتورة التالية",
+        "nextBilling": "الفاتورة التالية",
+        "amount": "المبلغ",
+        "paymentMethod": "طريقة الدفع",
+        "invoices": "الفواتير",
+        "noHistory": "لا يوجد سجل فوترة بعد",
+        "paid": "مدفوع",
+        "pending": "قيد الانتظار"
+      },
+      "status": {
+        "active": "نشط",
+        "trialing": "فترة تجريبية",
+        "canceled": "ملغي",
+        "pastDue": "متأخر السداد"
+      },
+      "alerts": {
+        "pastDueTitle": "تأخر في السداد",
+        "pastDueDescription": "تأخر سداد اشتراكك. يرجى تحديث طريقة الدفع للاستمرار في استخدام جميع الميزات.",
+        "updatePaymentMethod": "تحديث طريقة الدفع",
+        "canceledTitle": "تم إلغاء الاشتراك",
+        "canceledDescription": "سينتهي اشتراكك في {date}. يمكنك استئناف اشتراكك في أي وقت.",
+        "subscriptionEndsAt": "سينتهي اشتراكك في نهاية الفترة الحالية"
+      },
+      "cancel": {
+        "title": "إلغاء الاشتراك",
+        "description": "إلغاء اشتراكك. ستظل لديك إمكانية الوصول حتى نهاية فترة الفوترة الحالية.",
+        "button": "إلغاء الاشتراك",
+        "confirmTitle": "هل أنت متأكد؟",
+        "confirmDescription": "سيتم إلغاء اشتراكك في نهاية فترة الفوترة الحالية. ستفقد الوصول إلى ميزات المميز عند انتهاء اشتراكك.",
+        "keepSubscription": "الاحتفاظ بالاشتراك",
+        "yesCancel": "نعم، إلغاء"
+      },
+      "resume": {
+        "button": "استئناف الاشتراك",
+        "resuming": "جاري الاستئناف..."
+      }
+    },
+    "auditLogs": {
+      "title": "سجلات المراجعة",
+      "description": "عرض نشاط النظام والتغييرات",
+      "pageDescription": "عرض وتصفية سجل تدقيق النظام",
+      "filters": "الفلاتر",
+      "export": "تصدير",
+      "activeFilters": "الفلاتر النشطة",
+      "clearAll": "مسح الكل",
+      "viewDetails": "عرض التفاصيل",
+      "noLogsFound": "لم يتم العثور على سجلات تدقيق",
+      "filterDialog": {
+        "title": "تصفية سجلات المراجعة",
+        "description": "طبّق الفلاتر لتضييق نطاق سجلات المراجعة",
+        "action": "الإجراء",
+        "allActions": "جميع الإجراءات",
+        "entityType": "نوع الكيان",
+        "allEntities": "جميع الكيانات",
+        "fromDate": "من تاريخ",
+        "toDate": "إلى تاريخ",
+        "applyFilters": "تطبيق الفلاتر"
+      },
+      "detailsDialog": {
+        "title": "تفاصيل سجل المراجعة",
+        "description": "التفاصيل الكاملة لإدخال سجل المراجعة",
+        "timestamp": "الطابع الزمني",
+        "user": "المستخدم",
+        "action": "الإجراء",
+        "entityType": "نوع الكيان",
+        "entityId": "معرف الكيان",
+        "ipAddress": "عنوان IP",
+        "oldValues": "القيم القديمة",
+        "newValues": "القيم الجديدة",
+        "userAgent": "وكيل المستخدم",
+        "system": "النظام"
+      },
+      "fields": {
+        "user": "المستخدم",
+        "action": "الإجراء",
+        "entityType": "نوع الكيان",
+        "entityId": "معرف الكيان",
+        "timestamp": "الوقت",
+        "ipAddress": "عنوان IP",
+        "changes": "التغييرات"
+      },
+      "actions": {
+        "create": "تم الإنشاء",
+        "update": "تم التحديث",
+        "delete": "تم الحذف",
+        "login": "تسجيل دخول",
+        "logout": "تسجيل خروج",
+        "finalize": "إنهاء",
+        "cancel": "إلغاء"
+      },
+      "entities": {
+        "item": "صنف",
+        "invoice": "فاتورة",
+        "party": "طرف",
+        "payment": "دفعة",
+        "warehouse": "مستودع",
+        "expense": "مصروف",
+        "user": "مستخدم"
+      },
+      "messages": {
+        "filtersApplied": "تم تطبيق الفلاتر",
+        "filtersAppliedDescription": "تم تصفية سجلات المراجعة.",
+        "filtersCleared": "تم مسح الفلاتر",
+        "filtersClearedDescription": "تم إزالة جميع الفلاتر.",
+        "exportStarted": "بدأ التصدير",
+        "exportStartedDescription": "جاري تصدير سجلات المراجعة..."
+      }
+    }
+  }
+}

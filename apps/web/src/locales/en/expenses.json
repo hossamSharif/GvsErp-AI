@@ -1,0 +1,34 @@
+{
+  "expenses": {
+    "title": "Expenses",
+    "description": "Track and manage business expenses",
+    "addExpense": "Add Expense",
+    "editExpense": "Edit Expense",
+    "viewExpense": "View Expense",
+    "deleteExpense": "Delete Expense",
+    "fields": {
+      "category": "Category",
+      "amount": "Amount",
+      "currency": "Currency",
+      "exchangeRate": "Exchange Rate",
+      "description": "Description",
+      "expenseDate": "Expense Date",
+      "createdBy": "Created By",
+      "receipt": "Receipt"
+    },
+    "categories": {
+      "title": "Expense Categories",
+      "addCategory": "Add Category",
+      "editCategory": "Edit Category",
+      "deleteCategory": "Delete Category",
+      "name": "Category Name",
+      "parent": "Parent Category"
+    },
+    "summary": {
+      "totalExpenses": "Total Expenses",
+      "thisMonth": "This Month",
+      "thisYear": "This Year",
+      "byCategory": "By Category"
+    }
+  }
+}

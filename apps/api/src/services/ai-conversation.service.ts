@@ -162,6 +162,82 @@ export class AIConversationService {
   }
 
   /**
+   * Switch consultant role in a conversation
+   * This method updates the role and adds a system message to the conversation
+   * to inform the user about the role change
+   * @param tenantId - Tenant ID
+   * @param conversationId - Conversation ID
+   * @param userId - User ID
+   * @param newRole - New consultant role
+   * @returns Updated conversation
+   */
+  async switchConsultantRole(
+    tenantId: string,
+    conversationId: string,
+    userId: string,
+    newRole: ConsultantRole
+  ): Promise<Conversation> {
+    // Get current conversation
+    const conversation = await this.getConversation(tenantId, conversationId);
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user_id !== userId) {
+      throw new Error('Unauthorized to modify this conversation');
+    }
+
+    const oldRole = conversation.consultant_role;
+
+    // Update conversation with new role
+    const updated = await this.updateConversation(tenantId, conversationId, {
+      consultantRole: newRole,
+    });
+
+    // Add a system message to indicate role change
+    const roleNames: Record<ConsultantRole, string> = {
+      general: 'General Assistant',
+      marketing: 'Marketing Consultant',
+      legal: 'Legal Consultant',
+      customer_service: 'Customer Service',
+      financial_analyst: 'Financial Analyst',
+    };
+
+    const systemMessage = `Switched from ${roleNames[oldRole]} to ${roleNames[newRole]} mode. I'll now focus on ${this.getRoleFocusDescription(newRole)}.`;
+
+    await this.messageRepo.create({
+      conversation_id: conversationId,
+      role: 'system',
+      content: systemMessage,
+      metadata: {
+        type: 'role_change',
+        old_role: oldRole,
+        new_role: newRole,
+      },
+    });
+
+    return updated;
+  }
+
+  /**
+   * Get role focus description for system messages
+   * @param role - Consultant role
+   * @returns Focus description
+   */
+  private getRoleFocusDescription(role: ConsultantRole): string {
+    const descriptions: Record<ConsultantRole, string> = {
+      general: 'providing balanced, comprehensive support across all business areas',
+      marketing: 'sales trends, customer insights, and revenue optimization strategies',
+      legal: 'compliance, regulatory adherence, and documentation standards',
+      customer_service: 'order tracking, customer inquiries, and service excellence',
+      financial_analyst: 'financial performance, profitability analysis, and data-driven insights',
+    };
+
+    return descriptions[role];
+  }
+
+  /**
    * Archive conversation
    * @param tenantId - Tenant ID
    * @param id - Conversation ID

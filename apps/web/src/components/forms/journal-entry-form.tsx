@@ -34,7 +34,7 @@ import {
   TableFooter,
 } from '@/components/ui/table';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
-import type { CreateJournalLineInput } from '@erp/shared';
+import type { CreateJournalLineInput } from '@erp-saas/shared';
 
 interface JournalEntryFormProps {
   initialData?: {

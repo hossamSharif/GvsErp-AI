@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 import type {
   Invoice,
@@ -15,7 +15,7 @@ import type {
   InvoiceItemWithDetails,
   InvoiceType,
   InvoiceStatus,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type InvoiceRow = Database['public']['Tables']['invoices']['Row'];
 type InvoiceInsert = Database['public']['Tables']['invoices']['Insert'];

@@ -7,14 +7,14 @@
  * Features collapsible state and RTL support.
  */
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useDirection } from '@/stores/language-store';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   href: string;
   icon: React.ReactNode;
   permission?: string;
@@ -22,54 +22,54 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    label: 'Dashboard',
+    labelKey: 'dashboard',
     href: '',
     icon: <HomeIcon className="w-5 h-5" />,
   },
   {
-    label: 'Items',
+    labelKey: 'items',
     href: '/items',
     icon: <BoxIcon className="w-5 h-5" />,
     permission: 'items:read',
   },
   {
-    label: 'Invoices',
+    labelKey: 'invoices',
     href: '/invoices',
     icon: <FileTextIcon className="w-5 h-5" />,
     permission: 'invoices:read',
   },
   {
-    label: 'Parties',
+    labelKey: 'parties',
     href: '/parties',
     icon: <UsersIcon className="w-5 h-5" />,
     permission: 'parties:read',
   },
   {
-    label: 'Warehouses',
+    labelKey: 'warehouses',
     href: '/warehouses',
     icon: <WarehouseIcon className="w-5 h-5" />,
     permission: 'warehouses:read',
   },
   {
-    label: 'Payments',
+    labelKey: 'payments',
     href: '/payments',
     icon: <CreditCardIcon className="w-5 h-5" />,
     permission: 'payments:read',
   },
   {
-    label: 'Expenses',
+    labelKey: 'expenses',
     href: '/expenses',
     icon: <ReceiptIcon className="w-5 h-5" />,
     permission: 'expenses:read',
   },
   {
-    label: 'Reports',
+    labelKey: 'reports',
     href: '/reports',
     icon: <ChartIcon className="w-5 h-5" />,
     permission: 'reports:read',
   },
   {
-    label: 'Settings',
+    labelKey: 'settings',
     href: '/settings',
     icon: <SettingsIcon className="w-5 h-5" />,
   },
@@ -84,6 +84,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const params = useParams();
   const { isRtl } = useDirection();
+  const t = useTranslations('nav');
   const locale = params.locale as string;
 
   const basePath = `/${locale}`;
@@ -131,6 +132,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 ? pathname === basePath || pathname === `${basePath}/`
                 : pathname.startsWith(href);
 
+            const label = t(item.labelKey);
             return (
               <li key={item.href}>
                 <Link
@@ -142,10 +144,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                       : 'hover:bg-muted text-foreground',
                     isCollapsed && 'justify-center'
                   )}
-                  title={isCollapsed ? item.label : undefined}
+                  title={isCollapsed ? label : undefined}
                 >
                   {item.icon}
-                  {!isCollapsed && <span>{item.label}</span>}
+                  {!isCollapsed && <span>{label}</span>}
                 </Link>
               </li>
             );

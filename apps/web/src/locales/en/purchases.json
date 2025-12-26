@@ -1,0 +1,45 @@
+{
+  "purchases": {
+    "title": "Purchase Orders",
+    "description": "Manage your purchase orders and supplier invoices",
+    "newPurchase": "New Purchase",
+    "searchPlaceholder": "Search by invoice number...",
+    "filterByStatus": "Filter by status",
+    "loading": "Loading...",
+    "errorLoading": "Error loading invoices",
+    "noPurchases": "No purchase orders found",
+    "createFirst": "Create your first purchase",
+    "noSupplier": "No supplier",
+    "stats": {
+      "totalPurchases": "Total Purchases",
+      "drafts": "Drafts",
+      "finalized": "Finalized",
+      "thisMonth": "This Month"
+    },
+    "status": {
+      "all": "All Statuses",
+      "draft": "Draft",
+      "finalized": "Finalized",
+      "returned": "Returned",
+      "canceled": "Canceled"
+    },
+    "table": {
+      "invoiceNumber": "Invoice #",
+      "supplier": "Supplier",
+      "date": "Date",
+      "status": "Status",
+      "total": "Total"
+    },
+    "actions": {
+      "title": "Actions",
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "createReturn": "Create Return"
+    },
+    "pagination": {
+      "showing": "Showing {from} to {to} of {total} invoices",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  }
+}

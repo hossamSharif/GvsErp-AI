@@ -6,8 +6,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
-import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
+import type { Database } from '@erp-saas/database';
+import type { TenantSettings, UpdateTenantSettingsInput } from '@erp-saas/shared';
 
 /**
  * Application error for settings-related operations

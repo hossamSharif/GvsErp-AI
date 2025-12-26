@@ -8,7 +8,7 @@
 
 import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
-import type { InvoiceWithRelations, InvoiceStatus } from '@erp/shared';
+import type { InvoiceWithRelations, InvoiceStatus } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

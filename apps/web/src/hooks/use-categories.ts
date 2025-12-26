@@ -17,7 +17,7 @@ import type {
   CategoryWithChildren,
   CreateCategoryInput,
   UpdateCategoryInput,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

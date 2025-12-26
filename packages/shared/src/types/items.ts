@@ -250,6 +250,8 @@ export interface ItemQueryParams {
   categoryId?: string;
   /** Filter by active status */
   isActive?: boolean;
+  /** Include item prices in the response */
+  includePrices?: boolean;
   /** Page number (1-indexed) */
   page?: number;
   /** Items per page (default: 20, max: 100) */

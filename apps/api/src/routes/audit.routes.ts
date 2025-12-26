@@ -6,11 +6,11 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuditService, AuditError } from '../services/audit.service';
-import { auditLogQuerySchema } from '@erp/shared';
+import { auditLogQuerySchema } from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
-import type { AuditLogQueryParams } from '@erp/shared';
+import type { AuditLogQueryParams } from '@erp-saas/shared';
 
 const router = Router();
 

@@ -8,7 +8,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuditService } from '../services/audit.service';
 import { getTenantContext } from './tenant';
-import type { AuditEntityType, AuditAction } from '@erp/shared';
+import type { AuditEntityType, AuditAction } from '@erp-saas/shared';
 
 // Extend Express Request to include audit metadata
 declare global {

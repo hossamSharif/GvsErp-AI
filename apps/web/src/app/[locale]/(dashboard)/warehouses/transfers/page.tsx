@@ -63,37 +63,37 @@ import {
   useQuickCompleteTransfer,
   useCancelTransfer,
 } from '@/hooks/use-warehouses';
-import type { TransferWithDetails, TransferQueryParams, TransferStatus } from '@erp/shared';
-
-const statusConfig: Record<
-  TransferStatus,
-  { label: string; icon: React.ReactNode; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
-> = {
-  pending: {
-    label: 'Pending',
-    icon: <Clock className="h-3 w-3" />,
-    variant: 'secondary',
-  },
-  in_transit: {
-    label: 'In Transit',
-    icon: <Loader2 className="h-3 w-3 animate-spin" />,
-    variant: 'default',
-  },
-  completed: {
-    label: 'Completed',
-    icon: <CheckCircle className="h-3 w-3" />,
-    variant: 'outline',
-  },
-  canceled: {
-    label: 'Canceled',
-    icon: <XCircle className="h-3 w-3" />,
-    variant: 'destructive',
-  },
-};
+import type { TransferWithDetails, TransferQueryParams, TransferStatus } from '@erp-saas/shared';
 
 export default function TransfersPage() {
-  const t = useTranslations('transfers');
+  const t = useTranslations('warehouses.transfersList');
   const router = useRouter();
+
+  const statusConfig: Record<
+    TransferStatus,
+    { label: string; icon: React.ReactNode; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  > = {
+    pending: {
+      label: t('statuses.pending'),
+      icon: <Clock className="h-3 w-3" />,
+      variant: 'secondary',
+    },
+    in_transit: {
+      label: t('statuses.in_transit'),
+      icon: <Loader2 className="h-3 w-3 animate-spin" />,
+      variant: 'default',
+    },
+    completed: {
+      label: t('statuses.completed'),
+      icon: <CheckCircle className="h-3 w-3" />,
+      variant: 'outline',
+    },
+    canceled: {
+      label: t('statuses.canceled'),
+      icon: <XCircle className="h-3 w-3" />,
+      variant: 'destructive',
+    },
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');

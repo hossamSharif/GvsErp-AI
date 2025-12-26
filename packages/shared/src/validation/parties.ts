@@ -4,15 +4,12 @@
  */
 
 import { z } from 'zod';
+import { uuidSchema, sortDirectionSchema, currencySchema } from './items';
+import { exchangeRateSchema } from './invoices';
 
 // =============================================================================
 // COMMON SCHEMAS
 // =============================================================================
-
-/**
- * UUID validation schema
- */
-export const uuidSchema = z.string().uuid('Invalid UUID format');
 
 /**
  * Party type validation
@@ -36,11 +33,6 @@ export const paymentMethodSchema = z.enum([
 ]);
 
 /**
- * Sort direction validation
- */
-export const sortDirectionSchema = z.enum(['asc', 'desc']).default('desc');
-
-/**
  * Party sort field validation
  */
 export const partySortFieldSchema = z.enum([
@@ -59,30 +51,14 @@ export const paymentSortFieldSchema = z.enum([
   'createdAt',
 ]).default('paymentDate');
 
-/**
- * Currency validation (3-letter ISO code)
- */
-export const currencySchema = z.string()
-  .length(3, 'Currency code must be 3 characters')
-  .toUpperCase()
-  .default('USD');
-
-/**
- * Exchange rate validation
- */
-export const exchangeRateSchema = z.coerce.number()
-  .positive('Exchange rate must be positive')
-  .max(1000000, 'Exchange rate too high')
-  .default(1);
-
 // =============================================================================
 // PARTY SCHEMAS
 // =============================================================================
 
 /**
- * Email validation with proper format check
+ * Email validation with proper format check (nullable for parties)
  */
-export const emailSchema = z.string()
+const partyEmailSchema = z.string()
   .email('Invalid email format')
   .max(255, 'Email must be 255 characters or less')
   .nullable()
@@ -91,7 +67,7 @@ export const emailSchema = z.string()
 /**
  * Phone validation
  */
-export const phoneSchema = z.string()
+const partyPhoneSchema = z.string()
   .max(50, 'Phone must be 50 characters or less')
   .nullable()
   .optional();
@@ -105,8 +81,8 @@ export const createPartySchema = z.object({
     .min(1, 'Name is required')
     .max(255, 'Name must be 255 characters or less')
     .trim(),
-  email: emailSchema,
-  phone: phoneSchema,
+  email: partyEmailSchema,
+  phone: partyPhoneSchema,
   address: z.string()
     .max(500, 'Address must be 500 characters or less')
     .nullable()
@@ -130,8 +106,8 @@ export const updatePartySchema = z.object({
     .max(255, 'Name must be 255 characters or less')
     .trim()
     .optional(),
-  email: emailSchema,
-  phone: phoneSchema,
+  email: partyEmailSchema,
+  phone: partyPhoneSchema,
   address: z.string()
     .max(500, 'Address must be 500 characters or less')
     .nullable()
@@ -308,23 +284,4 @@ export const partyStatementParamsSchema = z.object({
   { message: 'Date from must be before or equal to date to' }
 );
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type PartyType = z.infer<typeof partyTypeSchema>;
-export type PaymentType = z.infer<typeof paymentTypeSchema>;
-export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
-
-export type CreatePartyInput = z.infer<typeof createPartySchema>;
-export type UpdatePartyInput = z.infer<typeof updatePartySchema>;
-
-export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
-export type UpdatePaymentInput = z.infer<typeof updatePaymentSchema>;
-
-export type PartyQueryParams = z.infer<typeof partyQuerySchema>;
-export type PaymentQueryParams = z.infer<typeof paymentQuerySchema>;
-
-export type CustomerBalanceReportParams = z.infer<typeof customerBalanceReportParamsSchema>;
-export type PaymentReportParams = z.infer<typeof paymentReportParamsSchema>;
-export type PartyStatementParams = z.infer<typeof partyStatementParamsSchema>;
+// Type exports are in types/parties.ts to avoid duplicate exports

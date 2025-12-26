@@ -5,8 +5,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
-import type { PaginationParams, PaginationMeta, SortParams } from '@erp/shared';
+import type { Database } from '@erp-saas/database';
+import type { PaginationParams, PaginationMeta, SortParams } from '@erp-saas/shared';
 
 export type TableName = keyof Database['public']['Tables'];
 

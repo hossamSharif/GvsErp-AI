@@ -6,9 +6,9 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
-import type { User, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, CreateUserInput, UpdateUserInput } from '@erp-saas/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**

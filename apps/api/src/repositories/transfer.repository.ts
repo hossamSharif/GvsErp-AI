@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryResult } from './base.repository';
 import type {
   Transfer,
@@ -15,7 +15,7 @@ import type {
   TransferStatus,
   TransferQueryParams,
   CreateTransferItemInput,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type TransferRow = Database['public']['Tables']['transfers']['Row'];
 type TransferInsert = Database['public']['Tables']['transfers']['Insert'];

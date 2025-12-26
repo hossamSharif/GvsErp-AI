@@ -11,6 +11,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   useCategories,
   useCategoryTree,
@@ -56,7 +57,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import type { Category, CategoryWithChildren } from '@erp/shared';
+import type { Category, CategoryWithChildren } from '@erp-saas/shared';
 import {
   ArrowLeft,
   Plus,
@@ -186,6 +187,8 @@ export default function CategoriesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('items.categories');
+  const tc = useTranslations('common');
 
   // UI State
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -203,13 +206,13 @@ export default function CategoriesPage() {
   // Mutations
   const createMutation = useCreateCategory({
     onSuccess: () => {
-      toast({ title: 'Category created', description: 'The category has been created.' });
+      toast({ title: t('categoryCreated'), description: t('categoryCreatedSuccess') });
       closeDialog();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create category',
+        title: tc('error'),
+        description: error.message || t('createCategoryError'),
         variant: 'destructive',
       });
     },
@@ -217,13 +220,13 @@ export default function CategoriesPage() {
 
   const updateMutation = useUpdateCategory({
     onSuccess: () => {
-      toast({ title: 'Category updated', description: 'The category has been updated.' });
+      toast({ title: t('categoryUpdated'), description: t('categoryUpdatedSuccess') });
       closeDialog();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update category',
+        title: tc('error'),
+        description: error.message || t('updateCategoryError'),
         variant: 'destructive',
       });
     },
@@ -231,14 +234,14 @@ export default function CategoriesPage() {
 
   const deleteMutation = useDeleteCategory({
     onSuccess: () => {
-      toast({ title: 'Category deleted', description: 'The category has been deleted.' });
+      toast({ title: t('categoryDeleted'), description: t('categoryDeletedSuccess') });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete category',
+        title: tc('error'),
+        description: error.message || t('deleteCategoryError'),
         variant: 'destructive',
       });
     },
@@ -368,12 +371,12 @@ export default function CategoriesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Edit Category' : 'New Category'}
+              {editingCategory ? t('editCategory') : t('newCategory')}
             </DialogTitle>
             <DialogDescription>
               {editingCategory
-                ? 'Update the category details.'
-                : 'Create a new category to organize your items.'}
+                ? t('updateCategoryDesc')
+                : t('createCategoryDesc')}
             </DialogDescription>
           </DialogHeader>
 
@@ -418,18 +421,18 @@ export default function CategoriesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog} disabled={isSubmitting}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting || !categoryName.trim()}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {tc('saving')}
                 </>
               ) : editingCategory ? (
-                'Save Changes'
+                t('saveButton')
               ) : (
-                'Create Category'
+                t('createButton')
               )}
             </Button>
           </DialogFooter>
@@ -440,23 +443,21 @@ export default function CategoriesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{categoryToDelete?.name}&quot;?
-              This action cannot be undone.
+              {t('deleteConfirmMessage', { name: categoryToDelete?.name })}
               <br />
               <br />
-              <strong>Note:</strong> You can only delete categories that have no
-              subcategories and no items.
+              <strong>{t('deleteNote')}</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

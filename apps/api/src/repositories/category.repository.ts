@@ -5,9 +5,9 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository } from './base.repository';
-import type { Category, CategoryWithChildren } from '@erp/shared';
+import type { Category, CategoryWithChildren } from '@erp-saas/shared';
 
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
 type CategoryInsert = Database['public']['Tables']['categories']['Insert'];

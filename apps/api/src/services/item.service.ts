@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { ItemRepository } from '../repositories/item.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import type {
@@ -25,7 +25,7 @@ import type {
   BulkPriceUpdateResult,
   ItemReportEntry,
   ItemReportParams,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -66,7 +66,7 @@ export class ItemService {
   /**
    * Get paginated list of items with filters
    */
-  async getItems(params: ItemQueryParams): Promise<QueryResult<ItemWithCategory>> {
+  async getItems(params: ItemQueryParams): Promise<QueryResult<ItemWithCategory | ItemWithRelations>> {
     return this.itemRepository.findAllWithFilters({
       tenantId: this.tenantId,
       page: params.page,
@@ -75,6 +75,7 @@ export class ItemService {
       sort_order: params.sortDir,
       search: params.search,
       categoryId: params.categoryId,
+      includePrices: params.includePrices,
       includeInactive: params.isActive === false ? true : !params.isActive,
     });
   }

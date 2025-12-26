@@ -8,7 +8,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Plus,
   Search,
@@ -52,7 +52,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInvoices, usePrefetchInvoice } from '@/hooks/use-invoices';
-import type { InvoiceStatus, InvoiceQueryParams } from '@erp/shared';
+import type { InvoiceStatus, InvoiceQueryParams } from '@erp-saas/shared';
 
 // =============================================================================
 // CONSTANTS
@@ -71,6 +71,8 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementT
 
 export default function SalesListPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const prefetchInvoice = usePrefetchInvoice();
 
   // Filter state
@@ -97,7 +99,7 @@ export default function SalesListPage() {
 
   // Handle row click
   const handleRowClick = (invoiceId: string) => {
-    router.push(`/sales/${invoiceId}`);
+    router.push(`/${locale}/sales/${invoiceId}`);
   };
 
   // Handle row hover (prefetch)
@@ -116,7 +118,7 @@ export default function SalesListPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/sales/new">
+          <Link href={`/${locale}/sales/new`}>
             <Plus className="h-4 w-4 mr-2" />
             New Sale
           </Link>
@@ -229,7 +231,7 @@ export default function SalesListPage() {
                       <FileText className="h-8 w-8" />
                       <p>No sales invoices found</p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href="/sales/new">Create your first sale</Link>
+                        <Link href={`/${locale}/sales/new`}>Create your first sale</Link>
                       </Button>
                     </div>
                   </TableCell>
@@ -280,14 +282,14 @@ export default function SalesListPage() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/sales/${invoice.id}`}>
+                              <Link href={`/${locale}/sales/${invoice.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </Link>
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/sales/${invoice.id}/edit`}>
+                                <Link href={`/${locale}/sales/${invoice.id}/edit`}>
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit
                                 </Link>
@@ -295,7 +297,7 @@ export default function SalesListPage() {
                             )}
                             {invoice.status === 'final' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/sales/${invoice.id}?return=true`}>
+                                <Link href={`/${locale}/sales/${invoice.id}?return=true`}>
                                   <Undo2 className="h-4 w-4 mr-2" />
                                   Create Return
                                 </Link>

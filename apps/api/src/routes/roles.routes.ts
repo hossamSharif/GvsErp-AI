@@ -9,7 +9,7 @@ import { RoleRepository } from '../repositories/role.repository';
 import {
   createRoleSchema,
   updateRoleSchema,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -110,7 +110,7 @@ router.post(
         is_system: false,
       };
 
-      const role = await repository.create({ tenant_id: tenantId, ...roleData });
+      const role = await repository.create(tenantId, roleData);
 
       res.status(201).json({
         success: true,

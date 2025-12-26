@@ -505,11 +505,11 @@
 - [X] T235 [US10] Create HR module activation in apps/web/src/components/wizards/hr-activation.tsx
 - [X] T236 [US10] Create employees list page in apps/web/src/app/[locale]/(dashboard)/hr/employees/page.tsx
 - [X] T237 [US10] Create employee form in apps/web/src/components/forms/employee-form.tsx
-- [ ] T238 [US10] Create employee detail page in apps/web/src/app/[locale]/(dashboard)/hr/employees/[id]/page.tsx
+- [X] T238 [US10] Create employee detail page in apps/web/src/app/[locale]/(dashboard)/hr/employees/[id]/page.tsx
 - [X] T239 [US10] Create attendance page in apps/web/src/app/[locale]/(dashboard)/hr/attendance/page.tsx
-- [ ] T240 [US10] Create leave management page in apps/web/src/app/[locale]/(dashboard)/hr/leave/page.tsx
+- [X] T240 [US10] Create leave management page in apps/web/src/app/[locale]/(dashboard)/hr/leave/page.tsx
 - [X] T241 [US10] Create payroll page in apps/web/src/app/[locale]/(dashboard)/hr/payroll/page.tsx
-- [ ] T242 [US10] Create payroll run form with autosave in apps/web/src/components/forms/payroll-form.tsx
+- [X] T242 [US10] Create payroll run form with autosave in apps/web/src/components/forms/payroll-form.tsx
 
 ### Reports - HR
 
@@ -526,9 +526,9 @@
 
 ### i18n & RTL
 
-- [ ] T245 [P] Complete Arabic translations in apps/web/src/locales/ar/
-- [ ] T246 [P] Complete English translations in apps/web/src/locales/en/
-- [ ] T247 RTL layout testing and fixes across all components
+- [X] T245 [P] Complete Arabic translations in apps/web/src/locales/ar/
+- [X] T246 [P] Complete English translations in apps/web/src/locales/en/
+- [X] T247 RTL layout testing and fixes across all components
 
 ### Performance & UX
 

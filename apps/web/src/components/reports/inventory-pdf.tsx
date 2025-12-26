@@ -77,6 +77,7 @@ interface InventoryReportData {
 interface InventoryPdfProps {
   report: InventoryReportData;
   companyName?: string;
+  companyLogo?: string;
   companyAddress?: string;
   showLowStockHighlight?: boolean;
   className?: string;
@@ -91,6 +92,7 @@ export const InventoryPdf = forwardRef<HTMLDivElement, InventoryPdfProps>(
     {
       report,
       companyName = 'Your Company',
+      companyLogo,
       companyAddress = '123 Business St, City, Country',
       showLowStockHighlight = true,
       className,
@@ -300,7 +302,11 @@ export const InventoryPdf = forwardRef<HTMLDivElement, InventoryPdfProps>(
         <div className="flex justify-between items-start mb-6 border-b pb-4">
           {/* Company Info */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{companyName}</h1>
+            {companyLogo ? (
+              <img src={companyLogo} alt={companyName} className="h-12 mb-2 object-contain" />
+            ) : (
+              <h1 className="text-2xl font-bold text-gray-900">{companyName}</h1>
+            )}
             <p className="text-sm text-gray-600 mt-1">{companyAddress}</p>
           </div>
 

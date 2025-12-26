@@ -1,0 +1,133 @@
+{
+  "parties": {
+    "title": "Parties",
+    "description": "Manage your customers and suppliers",
+    "customers": "Customers",
+    "suppliers": "Suppliers",
+    "customersDescription": "Manage your customer relationships and receivables",
+    "suppliersDescription": "Manage your supplier relationships and payables",
+    "addCustomer": "Add Customer",
+    "addSupplier": "Add Supplier",
+    "editParty": "Edit",
+    "viewParty": "View Details",
+    "deleteParty": "Delete",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "taxNumber": "Tax Number",
+      "balance": "Balance",
+      "type": "Type",
+      "isActive": "Active"
+    },
+    "balance": {
+      "credit": "Credit",
+      "debit": "Debit",
+      "zero": "Settled"
+    },
+    "transactions": {
+      "title": "Transaction History",
+      "date": "Date",
+      "type": "Type",
+      "amount": "Amount",
+      "balance": "Balance"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "messages": {
+      "customerDeleted": "Customer deleted",
+      "customerDeletedSuccess": "The customer has been deleted successfully.",
+      "supplierDeleted": "Supplier deleted",
+      "supplierDeletedSuccess": "The supplier has been deleted successfully.",
+      "deleteError": "Failed to delete",
+      "deleteCustomerError": "Failed to delete customer",
+      "deleteSupplierError": "Failed to delete supplier"
+    }
+  },
+  "payments": {
+    "title": "Payments",
+    "description": "Track all payments received and made",
+    "addPayment": "Record Payment",
+    "viewPayment": "View Payment",
+    "viewDetails": "View Details",
+    "exportReport": "Export Report",
+    "allPayments": "All Payments",
+    "receivedOnly": "Received Only",
+    "madeOnly": "Made Only",
+    "searchPlaceholder": "Search by reference or notes...",
+    "deleteSuccess": "The payment has been deleted and balances updated.",
+    "deleteError": "Failed to delete payment",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConfirmMessage": "This will delete the payment with reference \"{reference}\" and reverse the balance change. This action cannot be undone.",
+    "recordSuccess": "Payment recorded",
+    "recordSuccessDesc": "Payment of ${amount} has been recorded.",
+    "recordError": "Failed to record payment",
+    "newPageDesc": "Record a payment received from a customer or made to a supplier",
+    "fields": {
+      "party": "Customer/Supplier",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "exchangeRate": "Exchange Rate",
+      "paymentMethod": "Payment Method",
+      "reference": "Reference",
+      "invoice": "Invoice",
+      "notes": "Notes",
+      "date": "Date"
+    },
+    "types": {
+      "received": "Received",
+      "made": "Made"
+    },
+    "methods": {
+      "cash": "Cash",
+      "bank": "Bank Transfer",
+      "check": "Check",
+      "card": "Card"
+    },
+    "form": {
+      "receivedTitle": "Payment Received",
+      "madeTitle": "Payment Made",
+      "receivedDesc": "Record a payment from a customer",
+      "madeDesc": "Record a payment to a supplier",
+      "customer": "Customer",
+      "supplier": "Supplier",
+      "selectParty": "Select {type}",
+      "balance": "Balance",
+      "rateToUSD": "Rate to USD",
+      "paymentDate": "Payment Date",
+      "selectMethod": "Select method",
+      "referenceNumber": "Reference Number",
+      "referencePlaceholder": "Check number, transaction ID, etc.",
+      "referenceDesc": "Optional reference for this payment",
+      "notesPlaceholder": "Additional notes about this payment",
+      "recording": "Recording..."
+    },
+    "report": {
+      "title": "Payments Report",
+      "description": "Generate and download payment reports as PDF.",
+      "options": "Report Options",
+      "optionsDesc": "Configure filters and options for the report.",
+      "allTypes": "All Types",
+      "allParties": "All Parties",
+      "dateFrom": "Date From",
+      "dateTo": "Date To",
+      "generating": "Generating...",
+      "preview": "Preview Report",
+      "downloadPDF": "Download PDF",
+      "previewTitle": "Preview",
+      "previewDesc": "Preview the report before downloading.",
+      "loadError": "Failed to load report data",
+      "tryAgain": "Try again",
+      "generatingPreview": "Generating PDF preview...",
+      "clickToPreview": "Click \"Preview Report\" to see the report",
+      "previewError": "Failed to generate preview",
+      "downloadSuccess": "Report downloaded",
+      "downloadSuccessDesc": "The PDF report has been downloaded successfully.",
+      "downloadError": "Failed to generate report"
+    }
+  }
+}

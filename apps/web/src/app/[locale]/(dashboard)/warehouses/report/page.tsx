@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { InventoryPdf } from '@/components/reports/inventory-pdf';
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useCategories } from '@/hooks/use-categories';
+import { useTenantSettings } from '@/hooks/use-settings';
 import { api } from '@/lib/api';
 
 interface ReportFilters {
@@ -60,9 +61,12 @@ export default function InventoryReportPage() {
 
   const { data: warehousesData } = useActiveWarehouses();
   const { data: categoriesData } = useCategories({});
+  const { data: settingsData } = useTenantSettings();
 
   const warehouses = warehousesData?.data || [];
   const categories = categoriesData?.data || [];
+  const companyName = settingsData?.data?.company_name || 'Your Company';
+  const companyLogo = settingsData?.data?.logo_url || undefined;
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -308,6 +312,8 @@ export default function InventoryReportPage() {
               <InventoryPdf
                 ref={printRef}
                 report={reportData}
+                companyName={companyName}
+                companyLogo={companyLogo}
                 showLowStockHighlight={true}
               />
             </div>

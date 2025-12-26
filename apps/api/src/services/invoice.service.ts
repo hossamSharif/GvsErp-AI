@@ -6,8 +6,10 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { InvoiceRepository, InvoiceQueryOptions } from '../repositories/invoice.repository';
+import { AccountRepository } from '../repositories/account.repository';
+import { AccountingService } from './accounting.service';
 import type {
   Invoice,
   InvoiceWithParty,
@@ -29,7 +31,7 @@ import type {
   PurchaseReportSummary,
   PurchaseReportParams,
   PurchaseReportResponse,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -51,6 +53,8 @@ export class InvoiceError extends Error {
  */
 export class InvoiceService {
   private readonly invoiceRepository: InvoiceRepository;
+  private readonly accountRepository: AccountRepository;
+  private readonly accountingService: AccountingService;
   private readonly supabase: SupabaseClient<Database>;
   private readonly tenantId: string;
   private readonly userId?: string;
@@ -61,6 +65,8 @@ export class InvoiceService {
     userId?: string
   ) {
     this.invoiceRepository = new InvoiceRepository(supabase);
+    this.accountRepository = new AccountRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
     this.supabase = supabase;
     this.tenantId = tenantId;
     this.userId = userId;
@@ -276,6 +282,9 @@ export class InvoiceService {
     // Update invoice status to final
     await this.invoiceRepository.updateStatus(this.tenantId, id, 'final');
 
+    // Generate journal entry if accounting module is active
+    await this.generateJournalEntryForInvoice(invoice);
+
     // Get updated invoice
     const finalizedInvoice = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
 
@@ -283,6 +292,102 @@ export class InvoiceService {
       invoice: finalizedInvoice!,
       stockMovements,
       partyBalanceUpdate,
+    };
+  }
+
+  /**
+   * Generate journal entry for finalized invoice
+   */
+  private async generateJournalEntryForInvoice(invoice: InvoiceWithRelations): Promise<void> {
+    try {
+      // Check if accounting module is activated
+      const status = await this.accountingService.getActivationStatus(this.tenantId);
+      if (!status.is_activated) {
+        return; // Accounting not active, skip journal entry
+      }
+
+      // Get default accounts by code
+      const defaultAccounts = await this.getDefaultAccounts();
+      if (!defaultAccounts) {
+        console.warn('Default accounts not configured, skipping journal entry');
+        return;
+      }
+
+      const invoiceData = {
+        total: invoice.total,
+        subtotal: invoice.subtotal,
+        tax_amount: invoice.taxAmount,
+        party_id: invoice.partyId || undefined,
+      };
+
+      if (invoice.type === 'sale') {
+        await this.accountingService.generateJournalEntryFromSale(
+          this.tenantId,
+          this.userId || 'system',
+          invoice.id,
+          invoiceData,
+          {
+            cash_account_id: defaultAccounts.cash,
+            accounts_receivable_id: defaultAccounts.accountsReceivable,
+            sales_revenue_id: defaultAccounts.salesRevenue,
+            sales_tax_payable_id: defaultAccounts.salesTaxPayable,
+          }
+        );
+      } else {
+        await this.accountingService.generateJournalEntryFromPurchase(
+          this.tenantId,
+          this.userId || 'system',
+          invoice.id,
+          invoiceData,
+          {
+            cash_account_id: defaultAccounts.cash,
+            accounts_payable_id: defaultAccounts.accountsPayable,
+            inventory_asset_id: defaultAccounts.inventory,
+            cogs_expense_id: defaultAccounts.cogs,
+          }
+        );
+      }
+    } catch (error) {
+      // Log error but don't fail the invoice finalization
+      console.error('Failed to generate journal entry for invoice:', error);
+    }
+  }
+
+  /**
+   * Get default account IDs by standard codes
+   */
+  private async getDefaultAccounts(): Promise<{
+    cash?: string;
+    accountsReceivable?: string;
+    accountsPayable?: string;
+    inventory?: string;
+    salesRevenue?: string;
+    salesTaxPayable?: string;
+    cogs?: string;
+  } | null> {
+    const accountCodes = ['1110', '1120', '1130', '2110', '2120', '4100', '5100'];
+    const accounts: Record<string, string> = {};
+
+    for (const code of accountCodes) {
+      const account = await this.accountRepository.findByCode(this.tenantId, code);
+      if (account) {
+        accounts[code] = account.id;
+      }
+    }
+
+    // Return null if no accounts found (accounting not set up)
+    if (Object.keys(accounts).length === 0) {
+      return null;
+    }
+
+    return {
+      cash: accounts['1110'],
+      accountsReceivable: accounts['1120'],
+      inventory: accounts['1130'],
+      accountsPayable: accounts['2110'],
+      salesTaxPayable: accounts['2120'],
+      salesRevenue: accounts['4100'],
+      cogs: accounts['5100'],
     };
   }
 

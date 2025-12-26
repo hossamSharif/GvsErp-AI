@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import type { Party, PartyQueryParams } from '@erp/shared';
+import type { Party, PartyQueryParams } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,

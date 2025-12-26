@@ -11,7 +11,7 @@ import {
   updatePaymentSchema,
   paymentQuerySchema,
   paymentReportParamsSchema,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -78,12 +78,12 @@ router.get(
 
       res.json({
         success: true,
-        data: result.items,
+        data: result.data,
         meta: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          hasMore: result.hasMore,
+          total: result.meta.total,
+          page: result.meta.page,
+          limit: result.meta.limit,
+          hasMore: result.meta.page < result.meta.total_pages,
         },
       });
     } catch (error) {

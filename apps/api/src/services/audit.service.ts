@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import type {
   AuditLog,
   AuditLogRow,
@@ -14,7 +14,7 @@ import type {
   AuditAction,
   AuditEntityType,
   AuditContext,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 /**
  * Application error for audit-related operations

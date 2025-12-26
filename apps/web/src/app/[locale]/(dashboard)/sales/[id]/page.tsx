@@ -9,6 +9,7 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   ArrowLeft,
   Edit,
@@ -59,17 +60,17 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
-import type { InvoiceStatus } from '@erp/shared';
+import type { InvoiceStatus } from '@erp-saas/shared';
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', icon: Clock, variant: 'secondary' },
-  final: { label: 'Finalized', icon: CheckCircle, variant: 'default' },
-  returned: { label: 'Returned', icon: RotateCcw, variant: 'outline' },
-  canceled: { label: 'Canceled', icon: XCircle, variant: 'destructive' },
+const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  draft: { icon: Clock, variant: 'secondary' },
+  final: { icon: CheckCircle, variant: 'default' },
+  returned: { icon: RotateCcw, variant: 'outline' },
+  canceled: { icon: XCircle, variant: 'destructive' },
 };
 
 // =============================================================================
@@ -81,8 +82,10 @@ export default function SaleDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const t = useTranslations('invoices');
 
   const invoiceId = params.id as string;
+  const locale = params.locale as string;
   const showReturn = searchParams.get('return') === 'true';
 
   // Fetch invoice
@@ -104,17 +107,17 @@ export default function SaleDetailPage() {
       await finalizeInvoice.mutateAsync({ id: invoiceId });
       setShowFinalizeDialog(false);
       toast({
-        title: 'Invoice Finalized',
-        description: 'The invoice has been finalized successfully',
+        title: t('messages.invoiceFinalized'),
+        description: t('messages.invoiceFinalizedDesc'),
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to finalize invoice',
+        title: t('messages.error'),
+        description: error instanceof Error ? error.message : t('messages.failedToFinalize'),
       });
     }
-  }, [invoiceId, finalizeInvoice, toast]);
+  }, [invoiceId, finalizeInvoice, toast, t]);
 
   // Handle cancel
   const handleCancel = useCallback(async () => {
@@ -122,31 +125,31 @@ export default function SaleDetailPage() {
       await cancelInvoice.mutateAsync(invoiceId);
       setShowCancelDialog(false);
       toast({
-        title: 'Invoice Canceled',
-        description: 'The invoice has been canceled',
+        title: t('messages.invoiceCanceled'),
+        description: t('messages.invoiceCanceledDesc'),
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to cancel invoice',
+        title: t('messages.error'),
+        description: error instanceof Error ? error.message : t('messages.failedToCancel'),
       });
     }
-  }, [invoiceId, cancelInvoice, toast]);
+  }, [invoiceId, cancelInvoice, toast, t]);
 
   // Handle return success
   const handleReturnSuccess = useCallback(() => {
     setShowReturnDialog(false);
     toast({
-      title: 'Return Created',
-      description: 'The return invoice has been created',
+      title: t('messages.returnCreated'),
+      description: t('messages.returnCreatedDesc'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading invoice...</p>
+        <p className="text-muted-foreground">{t('messages.loading')}</p>
       </div>
     );
   }
@@ -154,15 +157,15 @@ export default function SaleDetailPage() {
   if (error || !invoice) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-destructive">Invoice not found</p>
+        <p className="text-destructive">{t('messages.notFound')}</p>
         <Button variant="outline" asChild>
-          <Link href="/sales">Back to Sales</Link>
+          <Link href={`/${locale}/sales`}>{t('actions.backToSales')}</Link>
         </Button>
       </div>
     );
   }
 
-  const statusConfig = STATUS_CONFIG[invoice.status];
+  const statusConfig = STATUS_ICONS[invoice.status];
   const StatusIcon = statusConfig.icon;
 
   return (
@@ -171,7 +174,7 @@ export default function SaleDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/sales">
+            <Link href={`/${locale}/sales`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -180,11 +183,11 @@ export default function SaleDetailPage() {
               <h1 className="text-2xl font-bold">{invoice.invoiceNumber}</h1>
               <Badge variant={statusConfig.variant} className="gap-1">
                 <StatusIcon className="h-3 w-3" />
-                {statusConfig.label}
+                {t(`status.${invoice.status}`)}
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Created {new Date(invoice.createdAt).toLocaleDateString()}
+              {t('fields.createdAt')} {new Date(invoice.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -193,21 +196,21 @@ export default function SaleDetailPage() {
           {invoice.status === 'draft' && (
             <>
               <Button variant="outline" asChild>
-                <Link href={`/sales/${invoiceId}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                <Link href={`/${locale}/sales/${invoiceId}/edit`}>
+                  <Edit className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                  {t('actions.edit')}
                 </Link>
               </Button>
               <Button onClick={() => setShowFinalizeDialog(true)}>
-                <Send className="h-4 w-4 mr-2" />
-                Finalize
+                <Send className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t('actions.finalize')}
               </Button>
             </>
           )}
           {invoice.status === 'final' && (
             <Button variant="outline" onClick={() => setShowReturnDialog(true)}>
-              <Undo2 className="h-4 w-4 mr-2" />
-              Create Return
+              <Undo2 className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              {t('createReturn')}
             </Button>
           )}
           <DropdownMenu>
@@ -217,15 +220,15 @@ export default function SaleDetailPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('actions.actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <Printer className="h-4 w-4 mr-2" />
-                Print
+                <Printer className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t('actions.print')}
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
+                <Download className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t('actions.exportPdf')}
               </DropdownMenuItem>
               {invoice.status === 'draft' && (
                 <>
@@ -234,8 +237,8 @@ export default function SaleDetailPage() {
                     className="text-destructive"
                     onClick={() => setShowCancelDialog(true)}
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Cancel Invoice
+                    <XCircle className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t('actions.cancelInvoice')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -249,7 +252,7 @@ export default function SaleDetailPage() {
         {/* Customer Info */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Customer</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('fields.customer')}</CardTitle>
           </CardHeader>
           <CardContent>
             {invoice.party ? (
@@ -266,7 +269,7 @@ export default function SaleDetailPage() {
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground">Walk-in customer</p>
+              <p className="text-muted-foreground">{t('messages.walkInCustomer')}</p>
             )}
           </CardContent>
         </Card>
@@ -274,7 +277,7 @@ export default function SaleDetailPage() {
         {/* Warehouse */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Warehouse</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('fields.warehouse')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-medium">{invoice.warehouse.name}</p>
@@ -284,23 +287,23 @@ export default function SaleDetailPage() {
         {/* Summary */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Summary</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('fields.summary')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">{t('fields.subtotal')}:</span>
               <span>{invoice.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax:</span>
+              <span className="text-muted-foreground">{t('fields.taxAmount')}:</span>
               <span>{invoice.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Discount:</span>
+              <span className="text-muted-foreground">{t('fields.discountAmount')}:</span>
               <span>-{invoice.discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between font-semibold pt-2 border-t">
-              <span>Total:</span>
+              <span>{t('fields.total')}:</span>
               <span>{invoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
           </CardContent>
@@ -310,9 +313,9 @@ export default function SaleDetailPage() {
       {/* Items Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Items</CardTitle>
+          <CardTitle>{t('items.title')}</CardTitle>
           <CardDescription>
-            {invoice.items.length} item(s) in this invoice
+            {t('items.itemsCount', { count: invoice.items.length })}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -320,13 +323,13 @@ export default function SaleDetailPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Disc %</TableHead>
-                <TableHead className="text-right">Tax %</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{t('items.item')}</TableHead>
+                <TableHead>{t('items.description')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('items.qty')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('items.unitPrice')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('items.discPercent')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('items.taxPercent')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('items.total')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -344,13 +347,13 @@ export default function SaleDetailPage() {
                   <TableCell className="text-muted-foreground">
                     {item.description || '-'}
                   </TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right rtl:text-left">{item.quantity}</TableCell>
+                  <TableCell className="text-right rtl:text-left">
                     {item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell className="text-right">{item.discountPercent}%</TableCell>
-                  <TableCell className="text-right">{item.taxRate}%</TableCell>
-                  <TableCell className="text-right font-medium">
+                  <TableCell className="text-right rtl:text-left">{item.discountPercent}%</TableCell>
+                  <TableCell className="text-right rtl:text-left">{item.taxRate}%</TableCell>
+                  <TableCell className="text-right rtl:text-left font-medium">
                     {item.lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
@@ -364,7 +367,7 @@ export default function SaleDetailPage() {
       {invoice.notes && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Notes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('fields.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap">{invoice.notes}</p>
@@ -376,22 +379,22 @@ export default function SaleDetailPage() {
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Finalize Invoice</DialogTitle>
+            <DialogTitle>{t('messages.finalizeTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to finalize this invoice? This will:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Update stock levels</li>
-                <li>Update customer balance</li>
-                <li>Lock the invoice from further edits</li>
+              {t('messages.finalizeDescription')}
+              <ul className="list-disc ltr:list-inside rtl:list-inside mt-2 space-y-1">
+                <li>{t('messages.finalizeUpdateStock')}</li>
+                <li>{t('messages.finalizeUpdateBalance')}</li>
+                <li>{t('messages.finalizeLockInvoice')}</li>
               </ul>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowFinalizeDialog(false)}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleFinalize} disabled={finalizeInvoice.isPending}>
-              {finalizeInvoice.isPending ? 'Finalizing...' : 'Finalize'}
+              {finalizeInvoice.isPending ? t('messages.finalizing') : t('actions.finalize')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -401,21 +404,21 @@ export default function SaleDetailPage() {
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Invoice</DialogTitle>
+            <DialogTitle>{t('messages.cancelTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel this invoice? This action cannot be undone.
+              {t('messages.cancelDescription')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              Keep Invoice
+              {t('actions.keepInvoice')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancel}
               disabled={cancelInvoice.isPending}
             >
-              {cancelInvoice.isPending ? 'Canceling...' : 'Cancel Invoice'}
+              {cancelInvoice.isPending ? t('messages.canceling') : t('actions.cancelInvoice')}
             </Button>
           </DialogFooter>
         </DialogContent>

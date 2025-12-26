@@ -6,7 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AccountingService } from '../services/accounting.service';
-import { createAccountSchema, updateAccountSchema } from '@erp/shared';
+import { createAccountSchema, updateAccountSchema } from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';

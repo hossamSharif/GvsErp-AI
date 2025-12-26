@@ -10,8 +10,8 @@ import type {
   AccountType,
   CreateAccountInput,
   UpdateAccountInput,
-} from '@erp/shared';
-import { apiClient } from '@/lib/api-client';
+} from '@erp-saas/shared';
+import { api } from '@/lib/api-client';
 
 // Query keys
 export const accountKeys = {
@@ -35,7 +35,7 @@ export function useAccounts(params?: { type?: AccountType; tree?: boolean }) {
       if (params?.type) queryParams.append('type', params.type);
       if (params?.tree !== undefined) queryParams.append('tree', String(params.tree));
 
-      const response = await apiClient.get<{ data: Account[] }>(
+      const response = await api.get<{ data: Account[] }>(
         `/accounts?${queryParams.toString()}`
       );
       return response.data;
@@ -50,7 +50,7 @@ export function useAccount(id: string) {
   return useQuery({
     queryKey: accountKeys.detail(id),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Account }>(`/accounts/${id}`);
+      const response = await api.get<{ data: Account }>(`/accounts/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -64,7 +64,7 @@ export function useAccountChildren(id: string) {
   return useQuery({
     queryKey: accountKeys.children(id),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Account[] }>(
+      const response = await api.get<{ data: Account[] }>(
         `/accounts/${id}/children`
       );
       return response.data;
@@ -81,7 +81,7 @@ export function useCreateAccount() {
 
   return useMutation({
     mutationFn: async (data: CreateAccountInput) => {
-      const response = await apiClient.post<{ data: Account }>('/accounts', data);
+      const response = await api.post<{ data: Account }>('/accounts', data);
       return response.data;
     },
     onSuccess: () => {
@@ -98,7 +98,7 @@ export function useUpdateAccount() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateAccountInput }) => {
-      const response = await apiClient.put<{ data: Account }>(`/accounts/${id}`, data);
+      const response = await api.put<{ data: Account }>(`/accounts/${id}`, data);
       return response.data;
     },
     onSuccess: (_, variables) => {
@@ -116,7 +116,7 @@ export function useDeleteAccount() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/accounts/${id}`);
+      await api.delete(`/accounts/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: accountKeys.lists() });

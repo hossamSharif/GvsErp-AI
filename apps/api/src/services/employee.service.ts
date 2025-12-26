@@ -6,7 +6,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import type { QueryResult } from '../repositories/base.repository';
 

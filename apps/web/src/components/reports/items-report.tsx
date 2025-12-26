@@ -13,9 +13,10 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
   Font,
 } from '@react-pdf/renderer';
-import type { ItemReportEntry } from '@erp/shared';
+import type { ItemReportEntry } from '@erp-saas/shared';
 
 // =============================================================================
 // FONT REGISTRATION (Optional - for Arabic support)
@@ -39,6 +40,11 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   title: {
     fontSize: 20,
@@ -167,6 +173,8 @@ interface ItemsReportProps {
   title?: string;
   /** Company/tenant name */
   companyName?: string;
+  /** Company logo URL */
+  companyLogo?: string;
   /** Items data */
   items: ItemReportEntry[];
   /** Currency symbol for prices */
@@ -203,6 +211,7 @@ function formatDate(date: Date): string {
 export function ItemsReportDocument({
   title = 'Inventory Items Report',
   companyName = 'Company Name',
+  companyLogo,
   items,
   currencySymbol = '$',
   filterDescription,
@@ -223,6 +232,7 @@ export function ItemsReportDocument({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{companyName}</Text>
           {filterDescription && (

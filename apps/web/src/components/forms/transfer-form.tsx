@@ -44,7 +44,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useItems } from '@/hooks/use-items';
-import type { Warehouse, CreateTransferInput } from '@erp/shared';
+import type { Warehouse, CreateTransferInput } from '@erp-saas/shared';
 
 // Form validation schema
 const transferFormSchema = z.object({

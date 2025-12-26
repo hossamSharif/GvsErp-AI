@@ -13,8 +13,9 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
-import type { PartyBalanceSummary } from '@erp/shared';
+import type { PartyBalanceSummary } from '@erp-saas/shared';
 
 // =============================================================================
 // STYLES
@@ -28,6 +29,11 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   title: {
     fontSize: 20,
@@ -162,6 +168,8 @@ interface CustomerBalancesReportProps {
   title?: string;
   /** Company/tenant name */
   companyName?: string;
+  /** Company logo URL */
+  companyLogo?: string;
   /** Customer balances data */
   customers: PartyBalanceSummary[];
   /** Currency symbol */
@@ -209,6 +217,7 @@ function getBalanceLabel(balance: number): string {
 export function CustomerBalancesReportDocument({
   title = 'Customer Balances Report',
   companyName = 'Company Name',
+  companyLogo,
   customers,
   currencySymbol = '$',
   filterDescription,
@@ -234,6 +243,7 @@ export function CustomerBalancesReportDocument({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{companyName}</Text>
           {filterDescription && (

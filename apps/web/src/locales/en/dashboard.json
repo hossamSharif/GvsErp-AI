@@ -1,0 +1,75 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "subtitle": "Here's what's happening with your business today.",
+    "overview": "Overview",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No recent activity",
+    "recentTransactions": "Your recent transactions will appear here",
+    "topProducts": "Top Products",
+    "noProducts": "No products yet",
+    "recentInvoices": "Recent Invoices",
+    "noInvoices": "No invoices yet",
+    "lowStockAlerts": "Low Stock Alerts",
+    "noAlerts": "No alerts",
+    "fromLastMonth": "from last month",
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "invoices": "Invoices",
+      "products": "Products",
+      "customers": "Customers"
+    },
+    "actions": {
+      "newInvoice": "New Invoice",
+      "addProduct": "Add Product",
+      "addCustomer": "Add Customer",
+      "viewReports": "View Reports"
+    },
+    "widgets": {
+      "sales": {
+        "title": "Sales Today",
+        "totalRevenue": "Total Revenue",
+        "totalOrders": "Total Orders",
+        "viewAll": "View All Sales"
+      },
+      "inventory": {
+        "title": "Inventory Status",
+        "totalItems": "Total Items",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock",
+        "viewAll": "View Inventory"
+      },
+      "customers": {
+        "title": "Customers",
+        "totalCustomers": "Total Customers",
+        "newThisMonth": "New This Month",
+        "topCustomers": "Top Customers"
+      },
+      "expenses": {
+        "title": "Expenses This Month",
+        "total": "Total",
+        "byCategory": "By Category"
+      },
+      "pendingTasks": {
+        "title": "Pending Tasks",
+        "pendingOrders": "Pending Orders",
+        "lowStockAlerts": "Low Stock Alerts",
+        "pendingPayments": "Pending Payments"
+      }
+    },
+    "charts": {
+      "salesTrend": "Sales Trend",
+      "topProducts": "Top Products",
+      "revenueByCategory": "Revenue by Category"
+    },
+    "periods": {
+      "today": "Today",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "thisYear": "This Year",
+      "custom": "Custom"
+    }
+  }
+}

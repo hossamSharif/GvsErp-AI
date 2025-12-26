@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {  Plus, Settings, Store, MapPin, CheckCircle2, XCircle } from 'lucide-react';
 import { usePOSLocations, useDeletePOSLocation } from '@/hooks/use-pos';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,8 @@ import { CreateWarehouseDialog } from '@/components/dialogs/create-warehouse-dia
 export default function POSLocationsPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('pos');
+  const tc = useTranslations('common');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
@@ -54,16 +57,16 @@ export default function POSLocationsPage() {
   const deleteMutation = useDeletePOSLocation({
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'POS location deleted successfully',
+        title: tc('success'),
+        description: t('locations.messages.deleteSuccess'),
       });
       setDeleteDialogOpen(false);
       setSelectedLocationId(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete POS location',
+        title: tc('error'),
+        description: error.message || t('locations.messages.deleteError'),
         variant: 'destructive',
       });
     },
@@ -87,7 +90,7 @@ export default function POSLocationsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading POS locations...</p>
+          <p className="text-muted-foreground">{t('loadingLocations')}</p>
         </div>
       </div>
     );
@@ -98,14 +101,14 @@ export default function POSLocationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">POS Locations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage point of sale locations and terminals
+            {t('description')}
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add POS Location
+          {t('addPOSLocation')}
         </Button>
       </div>
 
@@ -113,7 +116,7 @@ export default function POSLocationsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Locations</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('locations.totalLocations')}</CardTitle>
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -123,7 +126,7 @@ export default function POSLocationsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('locations.active')}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -135,7 +138,7 @@ export default function POSLocationsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('locations.inactive')}</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -149,33 +152,33 @@ export default function POSLocationsPage() {
       {/* POS Locations Table */}
       <Card>
         <CardHeader>
-          <CardTitle>POS Locations</CardTitle>
+          <CardTitle>{t('locations.title')}</CardTitle>
           <CardDescription>
-            View and manage all point of sale locations
+            {t('locations.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {locations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Store className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No POS locations yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('locations.noPOSLocations')}</h3>
               <p className="text-muted-foreground mb-4">
-                Create your first POS location to start processing sales
+                {t('locations.noPOSLocationsDesc')}
               </p>
               <Button onClick={() => setShowCreateDialog(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create POS Location
+                {t('createPOSLocation')}
               </Button>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Warehouse</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('locations.fields.name')}</TableHead>
+                  <TableHead>{t('locations.fields.warehouse')}</TableHead>
+                  <TableHead>{t('locations.fields.status')}</TableHead>
+                  <TableHead>{t('locations.fields.created')}</TableHead>
+                  <TableHead className="text-right">{t('locations.fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,7 +198,7 @@ export default function POSLocationsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={location.is_active ? 'default' : 'secondary'}>
-                        {location.is_active ? 'Active' : 'Inactive'}
+                        {location.is_active ? t('locations.active') : t('locations.inactive')}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -209,7 +212,7 @@ export default function POSLocationsPage() {
                           onClick={() => handleOpenTerminal(location.id)}
                           disabled={!location.is_active}
                         >
-                          Open Terminal
+                          {t('openTerminal')}
                         </Button>
                         <Button
                           variant="ghost"
@@ -226,7 +229,7 @@ export default function POSLocationsPage() {
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          Delete
+                          {t('delete')}
                         </Button>
                       </div>
                     </TableCell>
@@ -250,14 +253,14 @@ export default function POSLocationsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('locations.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate the POS location. You can reactivate it later if needed.
+              {t('locations.deleteDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('locations.deleteDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('locations.deleteDialog.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

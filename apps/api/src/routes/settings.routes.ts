@@ -6,7 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { SettingsService, SettingsError } from '../services/settings.service';
-import { updateTenantSettingsSchema } from '@erp/shared';
+import { updateTenantSettingsSchema } from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';

@@ -5,9 +5,9 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
-import type { JournalEntry, JournalLine, CreateJournalLineInput } from '@erp/shared';
+import type { JournalEntry, JournalLine, CreateJournalLineInput } from '@erp-saas/shared';
 
 type JournalEntryRow = Database['public']['Tables']['journal_entries']['Row'];
 type JournalEntryInsert = Database['public']['Tables']['journal_entries']['Insert'];
@@ -323,7 +323,7 @@ export class JournalEntryRepository extends BaseRepository<
     let query = this.supabase
       .from('journal_lines')
       .select('*, journal_entries!inner(*)')
-      .eq('journal_lines.tenant_id', tenantId)
+      .eq('tenant_id', tenantId)
       .eq('account_id', accountId)
       .eq('journal_entries.is_posted', true);
 
@@ -335,7 +335,7 @@ export class JournalEntryRepository extends BaseRepository<
       query = query.lte('journal_entries.entry_date', endDate);
     }
 
-    query = query.order('journal_entries.entry_date', { ascending: true });
+    query = query.order('journal_entries(entry_date)', { ascending: true });
 
     const { data, error } = await query;
 

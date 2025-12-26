@@ -1,0 +1,187 @@
+{
+  "accounting": {
+    "title": "Accounting",
+    "description": "Financial management and reporting",
+    "activation": {
+      "title": "Activate Accounting Module",
+      "description": "Set up your chart of accounts and accounting preferences",
+      "wizard": {
+        "step1": "Select Industry Template",
+        "step2": "Configure Fiscal Year",
+        "step3": "Set Opening Balances",
+        "step4": "Review & Activate"
+      }
+    },
+    "accounts": {
+      "title": "Chart of Accounts",
+      "addAccount": "Add Account",
+      "editAccount": "Edit Account",
+      "createAccount": "Create Account",
+      "viewAccount": "View Account",
+      "deleteAccount": "Delete Account",
+      "updateAccountInfo": "Update account information",
+      "addNewAccountDesc": "Add a new account to your chart of accounts",
+      "update": "Update",
+      "create": "Create",
+      "deleteConfirm": "Are you sure you want to delete this account?",
+      "fields": {
+        "code": "Account Code",
+        "name": "Account Name",
+        "type": "Account Type",
+        "parent": "Parent Account",
+        "balance": "Balance",
+        "isActive": "Active"
+      },
+      "types": {
+        "asset": "Asset",
+        "liability": "Liability",
+        "equity": "Equity",
+        "revenue": "Revenue",
+        "expense": "Expense"
+      },
+      "messages": {
+        "accountUpdated": "Account updated successfully",
+        "accountCreated": "Account created successfully",
+        "accountDeleted": "Account deleted successfully",
+        "saveError": "Failed to save account",
+        "deleteError": "Failed to delete account"
+      }
+    },
+    "journal": {
+      "title": "Journal Entries",
+      "description": "Manage your accounting journal entries",
+      "newEntry": "New Entry",
+      "newJournalEntry": "New Journal Entry",
+      "editEntry": "Edit Entry",
+      "viewEntry": "View Entry",
+      "postEntry": "Post Entry",
+      "viewDetails": "View Details",
+      "delete": "Delete",
+      "edit": "Edit",
+      "noEntriesFound": "No journal entries found. Click \"New Journal Entry\" to create one.",
+      "postConfirm": "Are you sure you want to post this journal entry? This action cannot be undone.",
+      "deleteConfirm": "Are you sure you want to delete this journal entry?",
+      "createTitle": "New Journal Entry",
+      "createDescription": "Create a new accounting journal entry",
+      "fields": {
+        "entryNumber": "Entry Number",
+        "entryDate": "Entry Date",
+        "date": "Date",
+        "description": "Description",
+        "sourceType": "Source Type",
+        "source": "Source",
+        "isPosted": "Posted",
+        "account": "Account",
+        "debit": "Debit",
+        "credit": "Credit",
+        "totalDebits": "Total Debits",
+        "totalCredits": "Total Credits",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "posted": "Posted",
+        "draft": "Draft"
+      },
+      "sources": {
+        "manual": "Manual",
+        "sale": "Sale",
+        "purchase": "Purchase",
+        "payment": "Payment",
+        "payroll": "Payroll"
+      },
+      "messages": {
+        "postSuccess": "Journal entry posted successfully",
+        "postError": "Failed to post journal entry",
+        "deleteSuccess": "Journal entry deleted successfully",
+        "deleteError": "Failed to delete journal entry",
+        "createSuccess": "Journal entry created successfully",
+        "createError": "Failed to create journal entry"
+      },
+      "validation": {
+        "balanced": "Entry is balanced",
+        "unbalanced": "Debits must equal credits"
+      }
+    },
+    "ledger": {
+      "title": "General Ledger",
+      "description": "View transaction history for an account",
+      "viewTransactions": "View Transactions",
+      "selectPlaceholder": "Select account",
+      "beginningBalance": "Beginning Balance",
+      "endingBalance": "Ending Balance",
+      "exportPdf": "Export PDF",
+      "generateReport": "Generate Report",
+      "selectAccount": "Select an account to view its general ledger",
+      "fields": {
+        "account": "Account",
+        "date": "Date",
+        "entryNumber": "Entry Number",
+        "description": "Description",
+        "debit": "Debit",
+        "credit": "Credit",
+        "balance": "Balance",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      }
+    },
+    "trialBalance": {
+      "title": "Trial Balance",
+      "description": "View account balances as of a specific date",
+      "asOfDate": "As Of Date",
+      "generateReport": "Generate Report",
+      "exportPdf": "Export PDF",
+      "fields": {
+        "account": "Account",
+        "accountCode": "Account Code",
+        "accountName": "Account Name",
+        "type": "Type",
+        "debit": "Debit",
+        "credit": "Credit"
+      },
+      "totals": {
+        "totalDebits": "Total Debits",
+        "totalCredits": "Total Credits",
+        "difference": "Difference",
+        "totalsLabel": "Totals:"
+      }
+    },
+    "reports": {
+      "incomeStatement": {
+        "title": "Income Statement",
+        "description": "Profit and loss statement for a period",
+        "revenue": "Revenue",
+        "expenses": "Expenses",
+        "netIncome": "Net Income",
+        "netLoss": "Net Loss",
+        "totalRevenue": "Total Revenue",
+        "totalExpenses": "Total Expenses",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "generateReport": "Generate Report",
+        "exportPdf": "Export PDF"
+      },
+      "balanceSheet": {
+        "title": "Balance Sheet",
+        "description": "Assets, liabilities, and equity as of a specific date",
+        "assets": "Assets",
+        "liabilities": "Liabilities",
+        "equity": "Equity",
+        "totalAssets": "Total Assets",
+        "totalLiabilities": "Total Liabilities",
+        "totalEquity": "Total Equity",
+        "totalLiabilitiesEquity": "Total Liabilities & Equity",
+        "asOfDate": "As Of Date",
+        "generateReport": "Generate Report",
+        "exportPdf": "Export PDF"
+      },
+      "cashFlow": {
+        "title": "Cash Flow Statement",
+        "operating": "Operating Activities",
+        "investing": "Investing Activities",
+        "financing": "Financing Activities",
+        "netCashFlow": "Net Cash Flow"
+      }
+    }
+  }
+}

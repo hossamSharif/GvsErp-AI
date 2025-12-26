@@ -6,7 +6,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { PartyRepository } from '../repositories/party.repository';
 import type {
   Party,
@@ -22,7 +22,7 @@ import type {
   CustomerBalanceReportParams,
   CustomerBalanceReportResponse,
   CustomerBalanceReportEntry,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -100,7 +100,6 @@ export class PartyService {
     }
 
     const partyData = {
-      tenant_id: this.tenantId,
       type: input.type,
       name: input.name.trim(),
       email: input.email?.trim() || null,
@@ -112,9 +111,9 @@ export class PartyService {
       is_active: true,
     };
 
-    const party = await this.partyRepository.create(partyData);
+    const party = await this.partyRepository.create(this.tenantId, partyData);
 
-    return party;
+    return this.mapToParty(party);
   }
 
   /**
@@ -265,7 +264,7 @@ export class PartyService {
     const totalCredits = transactions.reduce((sum, txn) => sum + txn.credit, 0);
 
     return {
-      party: this.partyRepository.mapParty(party),
+      party: this.mapToParty(party),
       openingBalance,
       transactions: transactionsWithBalance,
       closingBalance: runningBalance,
@@ -389,7 +388,7 @@ export class PartyService {
     };
 
     const result = await this.getParties(queryParams);
-    const parties = result.items;
+    const parties = result.data;
 
     // Get detailed information for each customer
     const entries: CustomerBalanceReportEntry[] = await Promise.all(
@@ -546,5 +545,26 @@ export class PartyService {
     };
 
     return mapping[field || 'name'] || 'name';
+  }
+
+  /**
+   * Map database row to Party type
+   */
+  private mapToParty(row: any): Party {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      type: row.type as PartyType,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      address: row.address,
+      taxNumber: row.tax_number,
+      balance: Number(row.balance),
+      isActive: row.is_active,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 }

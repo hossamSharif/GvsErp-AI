@@ -29,7 +29,7 @@ import type {
   UpdateItemPackagingInput,
   ItemReportEntry,
   ItemReportParams,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES
@@ -48,7 +48,7 @@ interface ApiResponse<T> {
 
 interface ItemListResponse {
   success: boolean;
-  data: ItemWithCategory[];
+  data: (ItemWithCategory | ItemWithRelations)[];
   meta: {
     page: number;
     limit: number;
@@ -92,6 +92,7 @@ export function useItems(
         search: params.search,
         categoryId: params.categoryId,
         isActive: params.isActive,
+        includePrices: params.includePrices,
         page: params.page,
         limit: params.limit,
         sortBy: params.sortBy,

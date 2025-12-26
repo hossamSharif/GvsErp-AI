@@ -40,7 +40,7 @@ import {
   useFinalizeInvoice,
   useStockAvailability,
 } from '@/hooks/use-invoices';
-import type { DraftInvoice, DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
+import type { DraftInvoice, DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES
@@ -109,15 +109,21 @@ export function InvoiceForm({
     removeItem,
     reorderItems,
     deleteDraft,
+    listDrafts,
+    hasHydrated,
   } = useDraftStore();
 
   // Current draft
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId || null);
+  const [hasCheckedForExistingDraft, setHasCheckedForExistingDraft] = useState(false);
   const draft = currentDraftId ? getDraft(currentDraftId) : undefined;
 
   // Item selection dialog state
   const [showItemSelect, setShowItemSelect] = useState(false);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
+  const [selectedItemForAdd, setSelectedItemForAdd] = useState<typeof items[0] | null>(null);
+  const [customQuantity, setCustomQuantity] = useState<number>(1);
+  const [customPrice, setCustomPrice] = useState<number>(0);
 
   // Mutations
   const createInvoice = useCreateInvoice();
@@ -131,13 +137,38 @@ export function InvoiceForm({
     itemIds
   );
 
-  // Initialize draft
+  // Initialize draft - check for existing draft of same type first (for recovery)
+  // Wait for hydration to complete before checking for existing drafts
   useEffect(() => {
-    if (!currentDraftId && !existingInvoice) {
-      const newDraftId = createDraft(type, defaultWarehouseId);
-      setCurrentDraftId(newDraftId);
+    // Wait for store to hydrate from localStorage
+    if (!hasHydrated) return;
+
+    // Skip if we already have a draft, editing an existing invoice, or already checked
+    if (currentDraftId || existingInvoice || hasCheckedForExistingDraft) return;
+
+    // Mark that we've checked to prevent multiple runs
+    setHasCheckedForExistingDraft(true);
+
+    // Check if there's an existing draft of the same type (for autosave recovery)
+    const existingDrafts = listDrafts(type);
+    if (existingDrafts.length > 0) {
+      // Use the most recently saved draft of this type
+      const sortedDrafts = existingDrafts.sort(
+        (a, b) => new Date(b.lastSavedAt).getTime() - new Date(a.lastSavedAt).getTime()
+      );
+      const recoveredDraft = sortedDrafts[0];
+      setCurrentDraftId(recoveredDraft.id);
+      toast({
+        title: 'Draft Recovered',
+        description: `Restored your unsaved ${type} draft from ${new Date(recoveredDraft.lastSavedAt).toLocaleString()}`,
+      });
+      return;
     }
-  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft]);
+
+    // No existing draft found - create a new one
+    const newDraftId = createDraft(type, defaultWarehouseId);
+    setCurrentDraftId(newDraftId);
+  }, [hasHydrated, currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft, hasCheckedForExistingDraft, listDrafts, toast]);
 
   // Sync existing invoice to draft
   useEffect(() => {
@@ -214,24 +245,49 @@ export function InvoiceForm({
     setShowItemSelect(true);
   }, []);
 
-  const handleSelectItem = useCallback(
-    (selectedItem: typeof items[0]) => {
-      if (!currentDraftId) return;
-      addItem(currentDraftId, {
-        itemId: selectedItem.id,
-        itemName: selectedItem.name,
-        itemSku: selectedItem.sku,
-        description: '',
-        quantity: 1,
-        unitPrice: selectedItem.unitPrice,
-        discountPercent: 0,
-        taxRate: selectedItem.taxRate,
-      });
-      setShowItemSelect(false);
-      setItemSearchQuery('');
-    },
-    [currentDraftId, addItem]
-  );
+  const handleSelectItem = useCallback((item: typeof items[0]) => {
+    setSelectedItemForAdd(item);
+    setCustomQuantity(1);
+    setCustomPrice(item.unitPrice);
+  }, []);
+
+  const handleQuickAdd = useCallback((item: typeof items[0]) => {
+    if (!currentDraftId) return;
+    addItem(currentDraftId, {
+      itemId: item.id,
+      itemName: item.name,
+      itemSku: item.sku,
+      description: '',
+      quantity: 1,
+      unitPrice: item.unitPrice,
+      discountPercent: 0,
+      taxRate: item.taxRate,
+    });
+    setShowItemSelect(false);
+    setItemSearchQuery('');
+    setSelectedItemForAdd(null);
+  }, [currentDraftId, addItem]);
+
+  const handleAddItemWithCustomValues = useCallback(() => {
+    if (!currentDraftId || !selectedItemForAdd) return;
+    addItem(currentDraftId, {
+      itemId: selectedItemForAdd.id,
+      itemName: selectedItemForAdd.name,
+      itemSku: selectedItemForAdd.sku,
+      description: '',
+      quantity: customQuantity,
+      unitPrice: customPrice,
+      discountPercent: 0,
+      taxRate: selectedItemForAdd.taxRate,
+    });
+    setShowItemSelect(false);
+    setItemSearchQuery('');
+    setSelectedItemForAdd(null);
+  }, [currentDraftId, selectedItemForAdd, customQuantity, customPrice, addItem]);
+
+  const handleCancelSelection = useCallback(() => {
+    setSelectedItemForAdd(null);
+  }, []);
 
   const handleRemoveItem = useCallback(
     (localId: string) => {
@@ -522,28 +578,88 @@ export function InvoiceForm({
               onChange={(e) => setItemSearchQuery(e.target.value)}
               autoFocus
             />
-            <div className="max-h-48 overflow-auto border rounded-md">
+            <div className="max-h-64 overflow-auto border rounded-md">
               {filteredItems.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   No items found
                 </div>
               ) : (
                 filteredItems.slice(0, 20).map((item) => (
-                  <button
-                    key={item.id}
-                    className="w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b last:border-b-0"
-                    onClick={() => handleSelectItem(item)}
-                  >
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      {item.sku && (
-                        <p className="text-xs text-muted-foreground">{item.sku}</p>
+                  <div key={item.id}>
+                    <button
+                      className={cn(
+                        "w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b",
+                        selectedItemForAdd?.id === item.id && "bg-muted"
                       )}
-                    </div>
-                    <span className="text-sm">
-                      {item.unitPrice.toLocaleString()}
-                    </span>
-                  </button>
+                      onClick={() => handleSelectItem(item)}
+                      onDoubleClick={() => handleQuickAdd(item)}
+                    >
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        {item.sku && (
+                          <p className="text-xs text-muted-foreground">{item.sku}</p>
+                        )}
+                      </div>
+                      <span className="text-sm">
+                        {item.unitPrice.toLocaleString()}
+                      </span>
+                    </button>
+
+                    {/* Inline Form */}
+                    {selectedItemForAdd?.id === item.id && (
+                      <div className="p-3 bg-muted/30 border-b space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor="quantity">Quantity</Label>
+                            <Input
+                              id="quantity"
+                              type="number"
+                              value={customQuantity}
+                              onChange={(e) => setCustomQuantity(parseFloat(e.target.value) || 1)}
+                              min={0.001}
+                              step={0.001}
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddItemWithCustomValues();
+                                if (e.key === 'Escape') handleCancelSelection();
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unitPrice">Unit Price</Label>
+                            <Input
+                              id="unitPrice"
+                              type="number"
+                              value={customPrice}
+                              onChange={(e) => setCustomPrice(parseFloat(e.target.value) || 0)}
+                              min={0}
+                              step={0.01}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddItemWithCustomValues();
+                                if (e.key === 'Escape') handleCancelSelection();
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCancelSelection}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleAddItemWithCustomValues}
+                            disabled={customQuantity <= 0 || customPrice < 0}
+                          >
+                            Add Item
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))
               )}
             </div>
@@ -553,6 +669,7 @@ export function InvoiceForm({
               onClick={() => {
                 setShowItemSelect(false);
                 setItemSearchQuery('');
+                setSelectedItemForAdd(null);
               }}
             >
               Cancel

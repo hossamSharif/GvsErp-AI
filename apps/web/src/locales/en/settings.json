@@ -1,0 +1,468 @@
+{
+  "settings": {
+    "title": "Settings",
+    "description": "Configure system preferences and users",
+    "general": {
+      "title": "General Settings",
+      "description": "Configure language, theme, and display preferences",
+      "pageDescription": "Configure language, theme, and company information",
+      "language": "Language",
+      "theme": "Theme",
+      "dateFormat": "Date Format",
+      "timeZone": "Time Zone",
+      "companyLogo": "Company Logo",
+      "companyLogoDescription": "Upload your company logo to display on invoices and reports",
+      "logoRecommendedSize": "Recommended: 200x200px, Max 2MB",
+      "logoRemove": "Remove Logo",
+      "logoFormats": "Supported: JPEG, PNG, WebP, GIF",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "languages": {
+        "en": "English",
+        "ar": "Arabic"
+      },
+      "sections": {
+        "preferences": "Preferences",
+        "preferencesDescription": "Default language and theme settings for your organization",
+        "companyInfo": "Company Information",
+        "companyInfoDescription": "Your company details for invoices and reports",
+        "businessPreferences": "Business Preferences",
+        "businessPreferencesDescription": "Configure fiscal year and timezone",
+        "moduleActivation": "Module Activation",
+        "moduleActivationDescription": "Enable or disable optional modules for your organization"
+      },
+      "fields": {
+        "defaultLanguage": "Default Language",
+        "defaultLanguageDescription": "Default language for new users and system messages",
+        "defaultTheme": "Default Theme",
+        "defaultThemeDescription": "Default theme for new users",
+        "defaultCurrency": "Default Currency",
+        "defaultCurrencyDescription": "Default currency for transactions and reports",
+        "selectCurrency": "Select currency",
+        "dateFormatDescription": "How dates are displayed",
+        "companyName": "Company Name",
+        "companyEmail": "Company Email",
+        "companyPhone": "Company Phone",
+        "companyAddress": "Company Address",
+        "taxNumber": "Tax Number / VAT ID",
+        "taxNumberDescription": "Your company's tax registration number",
+        "fiscalYearStart": "Fiscal Year Start",
+        "fiscalYearStartDescription": "Month and day when your fiscal year starts (e.g., 01-01 for January 1st)",
+        "timeZoneDescription": "IANA timezone identifier (e.g., America/New_York, Europe/London)",
+        "accountingModule": "Accounting Module",
+        "accountingModuleDescription": "Enable advanced accounting features and chart of accounts",
+        "hrModule": "HR Module",
+        "hrModuleDescription": "Enable human resources management and payroll features"
+      },
+      "messages": {
+        "settingsUpdated": "Settings updated",
+        "settingsUpdatedDescription": "Your settings have been updated successfully.",
+        "updateError": "Failed to update settings"
+      },
+      "actions": {
+        "saveSettings": "Save Settings",
+        "saving": "Saving..."
+      }
+    },
+    "users": {
+      "title": "Users",
+      "description": "Manage user accounts and permissions",
+      "pageDescription": "Manage user accounts and permissions",
+      "addUser": "Add User",
+      "editUser": "Edit User",
+      "viewUser": "View User",
+      "deleteUser": "Delete User",
+      "searchPlaceholder": "Search users...",
+      "fields": {
+        "email": "Email",
+        "fullName": "Full Name",
+        "role": "Role",
+        "isActive": "Active",
+        "lastLogin": "Last Login",
+        "createdAt": "Created At",
+        "name": "Name",
+        "status": "Status",
+        "language": "Language",
+        "actions": "Actions",
+        "password": "Password",
+        "passwordDescription": "Minimum 8 characters",
+        "selectRole": "Select a role",
+        "activeDescription": "User can access the system"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "delete": "Delete",
+        "update": "Update",
+        "create": "Create"
+      },
+      "dialogs": {
+        "add": "Add User",
+        "edit": "Edit User",
+        "addDescription": "Fill in the user details below.",
+        "editDescription": "Update the user details below.",
+        "deleteTitle": "Are you sure?",
+        "deleteDescription": "This will delete the user. This action cannot be undone.",
+        "noRole": "No Role"
+      },
+      "messages": {
+        "userCreated": "User created",
+        "userCreatedDescription": "The user has been created successfully.",
+        "createError": "Failed to create user",
+        "userUpdated": "User updated",
+        "userUpdatedDescription": "The user has been updated successfully.",
+        "updateError": "Failed to update user",
+        "userDeleted": "User deleted",
+        "userDeletedDescription": "The user has been deleted successfully.",
+        "deleteError": "Failed to delete user"
+      }
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "description": "Configure roles and access control",
+      "pageDescription": "Configure roles and access control for users",
+      "addRole": "Add Role",
+      "editRole": "Edit Role",
+      "deleteRole": "Delete Role",
+      "searchPlaceholder": "Search roles...",
+      "fields": {
+        "name": "Role Name",
+        "roleName": "Role Name",
+        "permissions": "Permissions",
+        "isSystem": "System Role",
+        "actions": "Actions"
+      },
+      "defaultRoles": {
+        "admin": "Administrator",
+        "sales": "Sales",
+        "warehouse": "Warehouse",
+        "viewer": "Viewer"
+      },
+      "permissions": {
+        "items": "Items",
+        "invoices": "Invoices",
+        "warehouses": "Warehouses",
+        "parties": "Customers & Suppliers",
+        "payments": "Payments",
+        "expenses": "Expenses",
+        "reports": "Reports",
+        "settings": "Settings",
+        "read": "View",
+        "write": "Create/Edit",
+        "delete": "Delete",
+        "export": "Export",
+        "selectPermissions": "Select the permissions for this role"
+      },
+      "badges": {
+        "system": "System",
+        "permissionsCount": "{count} permissions"
+      },
+      "dialogs": {
+        "add": "Add Role",
+        "edit": "Edit Role",
+        "addDescription": "Fill in the role details and select permissions below.",
+        "editDescription": "Update the role details and permissions below.",
+        "deleteTitle": "Are you sure?",
+        "deleteDescription": "This will delete the role. This action cannot be undone. Users with this role will lose their permissions."
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "update": "Update",
+        "create": "Create"
+      },
+      "messages": {
+        "roleCreated": "Role created",
+        "roleCreatedDescription": "The role has been created successfully.",
+        "createError": "Failed to create role",
+        "roleUpdated": "Role updated",
+        "roleUpdatedDescription": "The role has been updated successfully.",
+        "updateError": "Failed to update role",
+        "roleDeleted": "Role deleted",
+        "roleDeletedDescription": "The role has been deleted successfully.",
+        "deleteError": "Failed to delete role"
+      }
+    },
+    "currencies": {
+      "title": "Currencies",
+      "description": "Manage currencies and default settings",
+      "pageDescription": "Manage currencies and set your default currency",
+      "addCurrency": "Add Currency",
+      "editCurrency": "Edit Currency",
+      "deleteCurrency": "Delete Currency",
+      "searchPlaceholder": "Search currencies...",
+      "fields": {
+        "code": "Currency Code",
+        "name": "Name",
+        "currencyName": "Currency Name",
+        "symbol": "Symbol",
+        "isDefault": "Default Currency",
+        "status": "Status",
+        "actions": "Actions",
+        "codeDescription": "3-letter ISO currency code (e.g., USD, EUR, GBP)",
+        "symbolDescription": "Currency symbol (e.g., $, €, £)",
+        "setAsDefault": "Set as Default",
+        "setAsDefaultDescription": "Use this as the default currency"
+      },
+      "status": {
+        "default": "Default",
+        "active": "Active"
+      },
+      "dialogs": {
+        "add": "Add Currency",
+        "edit": "Edit Currency",
+        "addDescription": "Fill in the currency details below.",
+        "editDescription": "Update the currency details below.",
+        "deleteTitle": "Are you sure?",
+        "deleteDescription": "This will delete the currency. This action cannot be undone."
+      },
+      "actions": {
+        "edit": "Edit",
+        "setDefault": "Set as Default",
+        "delete": "Delete",
+        "update": "Update",
+        "create": "Create"
+      },
+      "messages": {
+        "currencyCreated": "Currency created",
+        "currencyCreatedDescription": "The currency has been created successfully.",
+        "createError": "Failed to create currency",
+        "currencyUpdated": "Currency updated",
+        "currencyUpdatedDescription": "The currency has been updated successfully.",
+        "updateError": "Failed to update currency",
+        "currencyDeleted": "Currency deleted",
+        "currencyDeletedDescription": "The currency has been deleted successfully.",
+        "deleteError": "Failed to delete currency"
+      }
+    },
+    "exchangeRates": {
+      "title": "Exchange Rates",
+      "description": "Set up and manage currency exchange rates",
+      "pageDescription": "Manage currency exchange rates for multi-currency transactions",
+      "addRate": "Add Rate",
+      "editRate": "Edit Rate",
+      "deleteRate": "Delete Rate",
+      "searchPlaceholder": "Search by currency...",
+      "fields": {
+        "fromCurrency": "From Currency",
+        "toCurrency": "To Currency",
+        "rateType": "Rate Type",
+        "rate": "Rate",
+        "exchangeRate": "Exchange Rate",
+        "effectiveDate": "Effective Date",
+        "from": "From",
+        "to": "To",
+        "type": "Type",
+        "actions": "Actions",
+        "selectCurrency": "Select currency",
+        "rateDescription": "How many units of \"To Currency\" equal 1 unit of \"From Currency\"",
+        "effectiveDateDescription": "Date when this rate becomes effective"
+      },
+      "rateTypes": {
+        "formal": "Formal",
+        "blackMarket": "Black Market"
+      },
+      "dialogs": {
+        "add": "Add Exchange Rate",
+        "edit": "Edit Exchange Rate",
+        "addDescription": "Fill in the exchange rate details below.",
+        "editDescription": "Update the exchange rate details below.",
+        "deleteTitle": "Are you sure?",
+        "deleteDescription": "This will delete the exchange rate. This action cannot be undone."
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "update": "Update",
+        "create": "Create"
+      },
+      "messages": {
+        "rateCreated": "Exchange rate created",
+        "rateCreatedDescription": "The exchange rate has been created successfully.",
+        "createError": "Failed to create exchange rate",
+        "rateUpdated": "Exchange rate updated",
+        "rateUpdatedDescription": "The exchange rate has been updated successfully.",
+        "updateError": "Failed to update exchange rate",
+        "rateDeleted": "Exchange rate deleted",
+        "rateDeletedDescription": "The exchange rate has been deleted successfully.",
+        "deleteError": "Failed to delete exchange rate"
+      }
+    },
+    "subscription": {
+      "title": "Subscription & Billing",
+      "description": "Manage your subscription plan and billing information",
+      "currentPlan": "Current Plan",
+      "yourActivePlan": "Your active subscription plan",
+      "upgrade": "Upgrade Plan",
+      "upgradeToPremium": "Upgrade to Premium",
+      "manageSubscription": "Manage Subscription",
+      "manageBilling": "Manage Billing",
+      "availablePlans": "Available Plans",
+      "currentPlanButton": "Current Plan",
+      "freePlan": "Free Plan",
+      "recommended": "Recommended",
+      "current": "Current",
+      "plans": {
+        "freemium": "Freemium",
+        "freemiumPlan": "Freemium Plan",
+        "premium": "Premium",
+        "premiumPlan": "Premium Plan"
+      },
+      "pricing": {
+        "free": "Free",
+        "perMonth": "per month",
+        "month": "month"
+      },
+      "features": {
+        "upToItems": "Up to {count} items",
+        "upTo50Items": "Up to 50 items",
+        "oneUser": "1 user",
+        "transactionsPerMonth": "{count} transactions/month",
+        "25TransactionsPerMonth": "25 transactions/month",
+        "basicFeatures": "Basic features",
+        "communitySupport": "Community support",
+        "unlimitedItems": "Unlimited items",
+        "unlimitedUsers": "Unlimited users",
+        "unlimitedTransactions": "Unlimited transactions",
+        "pdfExport": "PDF export",
+        "prioritySupport": "Priority support",
+        "advancedReports": "Advanced reports",
+        "apiAccess": "API access",
+        "accountingModule": "Accounting module",
+        "hrModule": "HR module"
+      },
+      "usage": {
+        "title": "Usage",
+        "description": "Your current usage and limits",
+        "items": "Items",
+        "users": "Users",
+        "monthlyTransactions": "Monthly Transactions",
+        "unlimited": "Unlimited"
+      },
+      "limits": {
+        "items": "Items",
+        "users": "Users",
+        "transactions": "Monthly Transactions",
+        "modules": "Modules"
+      },
+      "billing": {
+        "title": "Billing History",
+        "description": "Your payment and invoice history",
+        "nextBillingDate": "Next Billing Date",
+        "nextBilling": "Next billing",
+        "amount": "Amount",
+        "paymentMethod": "Payment Method",
+        "invoices": "Invoices",
+        "noHistory": "No billing history yet",
+        "paid": "Paid",
+        "pending": "Pending"
+      },
+      "status": {
+        "active": "Active",
+        "trialing": "Trialing",
+        "canceled": "Canceled",
+        "pastDue": "Past Due"
+      },
+      "alerts": {
+        "pastDueTitle": "Payment Past Due",
+        "pastDueDescription": "Your subscription payment is past due. Please update your payment method to continue using all features.",
+        "updatePaymentMethod": "Update Payment Method",
+        "canceledTitle": "Subscription Canceled",
+        "canceledDescription": "Your subscription will end on {date}. You can resume your subscription at any time.",
+        "subscriptionEndsAt": "Your subscription will end at the end of the current period"
+      },
+      "cancel": {
+        "title": "Cancel Subscription",
+        "description": "Cancel your subscription. You will still have access until the end of your current billing period.",
+        "button": "Cancel Subscription",
+        "confirmTitle": "Are you sure?",
+        "confirmDescription": "Your subscription will be canceled at the end of the current billing period. You will lose access to Premium features when your subscription ends.",
+        "keepSubscription": "Keep Subscription",
+        "yesCancel": "Yes, Cancel"
+      },
+      "resume": {
+        "button": "Resume Subscription",
+        "resuming": "Resuming..."
+      }
+    },
+    "auditLogs": {
+      "title": "Audit Logs",
+      "description": "View system activity and changes",
+      "pageDescription": "View and filter system audit trail",
+      "filters": "Filters",
+      "export": "Export",
+      "activeFilters": "Active Filters",
+      "clearAll": "Clear All",
+      "viewDetails": "View Details",
+      "noLogsFound": "No audit logs found",
+      "filterDialog": {
+        "title": "Filter Audit Logs",
+        "description": "Apply filters to narrow down the audit logs",
+        "action": "Action",
+        "allActions": "All actions",
+        "entityType": "Entity Type",
+        "allEntities": "All entities",
+        "fromDate": "From Date",
+        "toDate": "To Date",
+        "applyFilters": "Apply Filters"
+      },
+      "detailsDialog": {
+        "title": "Audit Log Details",
+        "description": "Full details of the audit log entry",
+        "timestamp": "Timestamp",
+        "user": "User",
+        "action": "Action",
+        "entityType": "Entity Type",
+        "entityId": "Entity ID",
+        "ipAddress": "IP Address",
+        "oldValues": "Old Values",
+        "newValues": "New Values",
+        "userAgent": "User Agent",
+        "system": "System"
+      },
+      "fields": {
+        "user": "User",
+        "action": "Action",
+        "entityType": "Entity Type",
+        "entityId": "Entity ID",
+        "timestamp": "Timestamp",
+        "ipAddress": "IP Address",
+        "changes": "Changes"
+      },
+      "actions": {
+        "create": "Created",
+        "update": "Updated",
+        "delete": "Deleted",
+        "login": "Logged In",
+        "logout": "Logged Out",
+        "finalize": "Finalize",
+        "cancel": "Cancel"
+      },
+      "entities": {
+        "item": "Item",
+        "invoice": "Invoice",
+        "party": "Party",
+        "payment": "Payment",
+        "warehouse": "Warehouse",
+        "expense": "Expense",
+        "user": "User"
+      },
+      "messages": {
+        "filtersApplied": "Filters applied",
+        "filtersAppliedDescription": "Audit logs have been filtered.",
+        "filtersCleared": "Filters cleared",
+        "filtersClearedDescription": "All filters have been removed.",
+        "exportStarted": "Export started",
+        "exportStartedDescription": "Audit logs are being exported..."
+      }
+    }
+  }
+}

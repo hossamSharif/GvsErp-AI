@@ -1,0 +1,142 @@
+{
+  "hr": {
+    "title": "Human Resources",
+    "description": "Manage employees, attendance, and payroll",
+    "employees": {
+      "title": "Employees",
+      "addEmployee": "Add Employee",
+      "editEmployee": "Edit Employee",
+      "viewEmployee": "View Employee",
+      "deleteEmployee": "Delete Employee",
+      "exportData": "Export Data",
+      "fields": {
+        "employeeNumber": "Employee Number",
+        "fullName": "Full Name",
+        "department": "Department",
+        "position": "Position",
+        "hireDate": "Hire Date",
+        "salary": "Salary",
+        "salaryCurrency": "Currency",
+        "isActive": "Active",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      },
+      "stats": {
+        "totalEmployees": "Total Employees",
+        "active": "Active",
+        "departments": "Departments",
+        "newThisMonth": "New This Month"
+      }
+    },
+    "attendance": {
+      "title": "Attendance",
+      "markAttendance": "Mark Attendance",
+      "viewAttendance": "View Attendance",
+      "fields": {
+        "employee": "Employee",
+        "date": "Date",
+        "checkIn": "Check In",
+        "checkOut": "Check Out",
+        "status": "Status",
+        "notes": "Notes",
+        "workHours": "Work Hours"
+      },
+      "statuses": {
+        "present": "Present",
+        "absent": "Absent",
+        "leave": "On Leave",
+        "holiday": "Holiday"
+      },
+      "summary": {
+        "totalDays": "Total Days",
+        "presentDays": "Present",
+        "absentDays": "Absent",
+        "leaveDays": "Leave",
+        "lateCount": "Late Arrivals"
+      }
+    },
+    "leave": {
+      "title": "Leave Management",
+      "newRequest": "New Leave Request",
+      "approveRequest": "Approve",
+      "rejectRequest": "Reject",
+      "fields": {
+        "employee": "Employee",
+        "leaveType": "Leave Type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "daysCount": "Days",
+        "reason": "Reason",
+        "status": "Status",
+        "approvedBy": "Approved By"
+      },
+      "types": {
+        "vacation": "Vacation",
+        "sick": "Sick Leave",
+        "personal": "Personal",
+        "maternity": "Maternity",
+        "paternity": "Paternity",
+        "unpaid": "Unpaid Leave"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "stats": {
+        "pendingRequests": "Pending Requests",
+        "approvedThisMonth": "Approved This Month",
+        "rejectedThisMonth": "Rejected This Month",
+        "totalDaysRequested": "Total Days Requested"
+      },
+      "dialogs": {
+        "approve": {
+          "title": "Approve Leave Request",
+          "description": "Are you sure you want to approve this leave request?",
+          "notes": "Notes (Optional)"
+        },
+        "reject": {
+          "title": "Reject Leave Request",
+          "description": "Are you sure you want to reject this leave request? Please provide a reason.",
+          "reason": "Rejection Reason (Required)"
+        }
+      }
+    },
+    "payroll": {
+      "title": "Payroll",
+      "newRun": "New Payroll Run",
+      "viewRun": "View Payroll Run",
+      "processPayroll": "Process Payroll",
+      "fields": {
+        "periodStart": "Period Start",
+        "periodEnd": "Period End",
+        "status": "Status",
+        "totalGross": "Total Gross",
+        "totalDeductions": "Total Deductions",
+        "totalNet": "Total Net",
+        "employee": "Employee",
+        "grossSalary": "Gross Salary",
+        "deductions": "Deductions",
+        "netSalary": "Net Salary",
+        "daysWorked": "Days Worked",
+        "notes": "Notes"
+      },
+      "statuses": {
+        "draft": "Draft",
+        "processing": "Processing",
+        "completed": "Completed"
+      },
+      "summary": {
+        "totalEmployees": "Total Employees",
+        "employeesIncluded": "employees included",
+        "addEmployee": "Add Employee"
+      },
+      "autosave": {
+        "saving": "Saving...",
+        "saved": "Saved",
+        "lastSaved": "Last saved"
+      }
+    }
+  }
+}

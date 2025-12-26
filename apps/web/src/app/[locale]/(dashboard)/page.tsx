@@ -6,6 +6,7 @@
  * Main dashboard with overview widgets and quick actions.
  */
 
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/stores/language-store';
 import { cn } from '@/lib/utils';
@@ -13,47 +14,52 @@ import { cn } from '@/lib/utils';
 export default function DashboardPage() {
   const { user } = useAuth();
   const { isRtl } = useDirection();
+  const t = useTranslations('dashboard');
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">
-          Welcome back, {user?.full_name?.split(' ')[0] || 'User'}
+          {t('welcome')}, {user?.full_name?.split(' ')[0] || 'User'}
         </h1>
         <p className="text-muted-foreground">
-          Here&apos;s what&apos;s happening with your business today.
+          {t('subtitle')}
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Revenue"
+          title={t('stats.totalRevenue')}
           value="$0.00"
           change="+0%"
           changeType="positive"
+          changeText={t('fromLastMonth')}
           icon={<DollarIcon className="w-5 h-5" />}
         />
         <StatsCard
-          title="Invoices"
+          title={t('stats.invoices')}
           value="0"
           change="+0"
           changeType="neutral"
+          changeText={t('fromLastMonth')}
           icon={<FileTextIcon className="w-5 h-5" />}
         />
         <StatsCard
-          title="Products"
+          title={t('stats.products')}
           value="0"
           change="+0"
           changeType="neutral"
+          changeText={t('fromLastMonth')}
           icon={<BoxIcon className="w-5 h-5" />}
         />
         <StatsCard
-          title="Customers"
+          title={t('stats.customers')}
           value="0"
           change="+0"
           changeType="neutral"
+          changeText={t('fromLastMonth')}
           icon={<UsersIcon className="w-5 h-5" />}
         />
       </div>
@@ -62,36 +68,36 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Activity */}
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('recentActivity')}</h2>
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <ActivityIcon className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-sm">No recent activity</p>
-            <p className="text-xs">Your recent transactions will appear here</p>
+            <p className="text-sm">{t('noRecentActivity')}</p>
+            <p className="text-xs">{t('recentTransactions')}</p>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
-              label="New Invoice"
+              label={t('actions.newInvoice')}
               href="/invoices/new"
             />
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
-              label="Add Product"
+              label={t('actions.addProduct')}
               href="/items/new"
             />
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
-              label="Add Customer"
-              href="/parties/new"
+              label={t('actions.addCustomer')}
+              href="/customers/new"
             />
             <QuickActionButton
               icon={<ChartIcon className="w-5 h-5" />}
-              label="View Reports"
+              label={t('actions.viewReports')}
               href="/reports"
             />
           </div>
@@ -102,28 +108,28 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Top Products */}
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Top Products</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('topProducts')}</h2>
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <BoxIcon className="w-10 h-10 mb-2 opacity-50" />
-            <p className="text-sm">No products yet</p>
+            <p className="text-sm">{t('noProducts')}</p>
           </div>
         </div>
 
         {/* Recent Invoices */}
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Invoices</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('recentInvoices')}</h2>
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <FileTextIcon className="w-10 h-10 mb-2 opacity-50" />
-            <p className="text-sm">No invoices yet</p>
+            <p className="text-sm">{t('noInvoices')}</p>
           </div>
         </div>
 
         {/* Low Stock Alerts */}
         <div className="bg-card rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Low Stock Alerts</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('lowStockAlerts')}</h2>
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <AlertIcon className="w-10 h-10 mb-2 opacity-50" />
-            <p className="text-sm">No alerts</p>
+            <p className="text-sm">{t('noAlerts')}</p>
           </div>
         </div>
       </div>
@@ -137,10 +143,11 @@ interface StatsCardProps {
   value: string;
   change: string;
   changeType: 'positive' | 'negative' | 'neutral';
+  changeText: string;
   icon: React.ReactNode;
 }
 
-function StatsCard({ title, value, change, changeType, icon }: StatsCardProps) {
+function StatsCard({ title, value, change, changeType, changeText, icon }: StatsCardProps) {
   return (
     <div className="bg-card rounded-lg border p-6">
       <div className="flex items-center justify-between mb-4">
@@ -157,7 +164,7 @@ function StatsCard({ title, value, change, changeType, icon }: StatsCardProps) {
             changeType === 'neutral' && 'text-muted-foreground'
           )}
         >
-          {change} from last month
+          {change} {changeText}
         </p>
       </div>
     </div>

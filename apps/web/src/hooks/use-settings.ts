@@ -12,7 +12,7 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
+import type { TenantSettings, UpdateTenantSettingsInput } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

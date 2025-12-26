@@ -37,9 +37,22 @@ import payrollRoutes from './routes/payroll.routes';
 import aiConversationsRoutes from './routes/ai-conversations.routes';
 import aiTasksRoutes from './routes/ai-tasks.routes';
 import aiDocumentsRoutes from './routes/ai-documents.routes';
+import { createAIAdminRoutes } from './routes/ai-admin.routes';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@erp-saas/database';
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Initialize Supabase client for admin routes
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set');
+}
+
+const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
 // Request ID middleware
 app.use((req, _res, next) => {
@@ -131,6 +144,7 @@ app.use('/api/v1/payroll', payrollRoutes);
 app.use('/api/v1/ai/conversations', aiConversationsRoutes);
 app.use('/api/v1/ai/tasks', aiTasksRoutes);
 app.use('/api/v1/ai', aiDocumentsRoutes);
+app.use('/api/v1/ai/admin', createAIAdminRoutes(supabaseAdmin));
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);

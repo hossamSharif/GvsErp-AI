@@ -60,7 +60,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
-import type { InvoiceStatus } from '@erp/shared';
+import type { InvoiceStatus } from '@erp-saas/shared';
 
 // =============================================================================
 // CONSTANTS

@@ -1,0 +1,95 @@
+{
+  "pos": {
+    "title": "نقاط البيع",
+    "description": "إدارة نقاط البيع والأجهزة الطرفية",
+    "loadingLocations": "جاري تحميل نقاط البيع...",
+    "addPOSLocation": "إضافة نقطة بيع",
+    "createPOSLocation": "إنشاء نقطة بيع",
+    "openTerminal": "فتح الجهاز الطرفي",
+    "delete": "حذف",
+    "locations": {
+      "title": "نقاط البيع",
+      "description": "عرض وإدارة جميع نقاط البيع",
+      "totalLocations": "إجمالي النقاط",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "noPOSLocations": "لا توجد نقاط بيع بعد",
+      "noPOSLocationsDesc": "أنشئ نقطة البيع الأولى للبدء في معالجة المبيعات",
+      "addLocation": "إضافة نقطة",
+      "editLocation": "تعديل نقطة البيع",
+      "viewLocation": "عرض نقطة البيع",
+      "deleteLocation": "حذف نقطة البيع",
+      "fields": {
+        "name": "الاسم",
+        "warehouse": "المستودع",
+        "status": "الحالة",
+        "created": "تاريخ الإنشاء",
+        "actions": "الإجراءات",
+        "isActive": "نشط",
+        "settings": "الإعدادات"
+      },
+      "messages": {
+        "deleteSuccess": "تم حذف نقطة البيع بنجاح",
+        "deleteError": "فشل في حذف نقطة البيع"
+      },
+      "deleteDialog": {
+        "title": "هل أنت متأكد؟",
+        "description": "سيتم إلغاء تفعيل نقطة البيع. يمكنك إعادة تفعيلها لاحقاً إذا لزم الأمر.",
+        "cancel": "إلغاء",
+        "delete": "حذف"
+      }
+    },
+    "terminal": {
+      "title": "شاشة نقطة البيع",
+      "quickSale": "بيع سريع",
+      "newTransaction": "معاملة جديدة",
+      "customer": "العميل",
+      "items": "الأصناف",
+      "addItem": "إضافة صنف",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "discount": "الخصم",
+      "subtotal": "المجموع الفرعي",
+      "tax": "الضريبة",
+      "total": "الإجمالي",
+      "payment": "الدفع",
+      "cash": "نقدي",
+      "card": "بطاقة",
+      "change": "الباقي",
+      "printReceipt": "طباعة الإيصال",
+      "completeTransaction": "إتمام",
+      "cancelTransaction": "إلغاء"
+    },
+    "receipt": {
+      "title": "الإيصال",
+      "receiptNumber": "رقم الإيصال",
+      "date": "التاريخ",
+      "cashier": "أمين الصندوق",
+      "items": "الأصناف",
+      "thankYou": "شكراً لتعاملكم معنا!",
+      "returnPolicy": "سياسة الإرجاع"
+    },
+    "discounts": {
+      "title": "الخصومات والعروض",
+      "addDiscount": "إضافة خصم",
+      "fields": {
+        "name": "اسم العرض",
+        "type": "النوع",
+        "value": "القيمة",
+        "startDate": "تاريخ البدء",
+        "endDate": "تاريخ الانتهاء",
+        "isActive": "نشط"
+      },
+      "types": {
+        "percentage": "نسبة مئوية",
+        "fixed": "مبلغ ثابت"
+      }
+    },
+    "loyalty": {
+      "title": "برنامج الولاء",
+      "points": "النقاط",
+      "rewards": "المكافآت",
+      "redeemPoints": "استبدال النقاط"
+    }
+  }
+}

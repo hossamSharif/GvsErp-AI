@@ -7,6 +7,7 @@
  */
 
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -26,8 +27,8 @@ import {
 } from 'lucide-react';
 
 interface SettingsSection {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ReactNode;
   href: string;
   badge?: string;
@@ -37,44 +38,45 @@ export default function SettingsPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
 
   const sections: SettingsSection[] = [
     {
-      title: 'General Settings',
-      description: 'Configure language, theme, and display preferences',
+      titleKey: 'general.title',
+      descriptionKey: 'general.description',
       icon: <SettingsIcon className="h-6 w-6" />,
       href: `/${locale}/settings/general`,
     },
     {
-      title: 'Users',
-      description: 'Manage user accounts and permissions',
+      titleKey: 'users.title',
+      descriptionKey: 'users.description',
       icon: <Users className="h-6 w-6" />,
       href: `/${locale}/settings/users`,
     },
     {
-      title: 'Roles & Permissions',
-      description: 'Configure roles and access control',
+      titleKey: 'roles.title',
+      descriptionKey: 'roles.description',
       icon: <Shield className="h-6 w-6" />,
       href: `/${locale}/settings/roles`,
     },
     {
-      title: 'Currencies',
-      description: 'Manage currencies and default settings',
+      titleKey: 'currencies.title',
+      descriptionKey: 'currencies.description',
       icon: <DollarSign className="h-6 w-6" />,
       href: `/${locale}/settings/currencies`,
     },
     {
-      title: 'Exchange Rates',
-      description: 'Set up and manage currency exchange rates',
+      titleKey: 'exchangeRates.title',
+      descriptionKey: 'exchangeRates.description',
       icon: <TrendingUp className="h-6 w-6" />,
       href: `/${locale}/settings/exchange-rates`,
     },
     {
-      title: 'Subscription & Billing',
-      description: 'View your plan and manage billing',
+      titleKey: 'subscription.title',
+      descriptionKey: 'subscription.description',
       icon: <CreditCard className="h-6 w-6" />,
       href: `/${locale}/settings/subscription`,
-      badge: 'Coming Soon',
     },
   ];
 
@@ -86,9 +88,9 @@ export default function SettingsPage() {
     <div className="flex h-full flex-col space-y-6 p-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground">
-          Manage your system configuration and preferences
+          {t('description')}
         </p>
       </div>
 
@@ -107,10 +109,10 @@ export default function SettingsPage() {
                     {section.icon}
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{section.title}</CardTitle>
+                    <CardTitle className="text-lg">{t(section.titleKey)}</CardTitle>
                     {section.badge && (
                       <span className="mt-1 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-                        {section.badge}
+                        {tCommon(section.badge)}
                       </span>
                     )}
                   </div>
@@ -118,7 +120,7 @@ export default function SettingsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <CardDescription>{section.description}</CardDescription>
+              <CardDescription>{t(section.descriptionKey)}</CardDescription>
             </CardContent>
           </Card>
         ))}

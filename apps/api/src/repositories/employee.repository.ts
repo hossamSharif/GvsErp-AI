@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 
 type EmployeeRow = Database['public']['Tables']['employees']['Row'];

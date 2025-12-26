@@ -10,7 +10,7 @@ import {
   createCategorySchema,
   updateCategorySchema,
   categoryQuerySchema,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';

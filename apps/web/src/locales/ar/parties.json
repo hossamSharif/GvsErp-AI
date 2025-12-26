@@ -1,0 +1,133 @@
+{
+  "parties": {
+    "title": "الأطراف",
+    "description": "إدارة العملاء والموردين",
+    "customers": "العملاء",
+    "suppliers": "الموردين",
+    "customersDescription": "إدارة علاقات العملاء والمستحقات",
+    "suppliersDescription": "إدارة علاقات الموردين والمدفوعات",
+    "addCustomer": "إضافة عميل",
+    "addSupplier": "إضافة مورد",
+    "editParty": "تعديل",
+    "viewParty": "عرض التفاصيل",
+    "deleteParty": "حذف",
+    "fields": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "address": "العنوان",
+      "taxNumber": "الرقم الضريبي",
+      "balance": "الرصيد",
+      "type": "النوع",
+      "isActive": "نشط"
+    },
+    "balance": {
+      "credit": "دائن",
+      "debit": "مدين",
+      "zero": "متسوي"
+    },
+    "transactions": {
+      "title": "سجل المعاملات",
+      "date": "التاريخ",
+      "type": "النوع",
+      "amount": "المبلغ",
+      "balance": "الرصيد"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "messages": {
+      "customerDeleted": "تم حذف العميل",
+      "customerDeletedSuccess": "تم حذف العميل بنجاح.",
+      "supplierDeleted": "تم حذف المورد",
+      "supplierDeletedSuccess": "تم حذف المورد بنجاح.",
+      "deleteError": "فشل الحذف",
+      "deleteCustomerError": "فشل في حذف العميل",
+      "deleteSupplierError": "فشل في حذف المورد"
+    }
+  },
+  "payments": {
+    "title": "المدفوعات",
+    "description": "تتبع جميع المدفوعات المقبوضة والمدفوعة",
+    "addPayment": "تسجيل دفعة",
+    "viewPayment": "عرض الدفعة",
+    "viewDetails": "عرض التفاصيل",
+    "exportReport": "تصدير التقرير",
+    "allPayments": "جميع المدفوعات",
+    "receivedOnly": "المقبوضات فقط",
+    "madeOnly": "المدفوعات فقط",
+    "searchPlaceholder": "بحث بالمرجع أو الملاحظات...",
+    "deleteSuccess": "تم حذف الدفعة وتحديث الأرصدة.",
+    "deleteError": "فشل حذف الدفعة",
+    "deleteConfirmTitle": "هل أنت متأكد؟",
+    "deleteConfirmMessage": "سيتم حذف الدفعة ذات المرجع \"{reference}\" وعكس تغيير الرصيد. لا يمكن التراجع عن هذا الإجراء.",
+    "recordSuccess": "تم تسجيل الدفعة",
+    "recordSuccessDesc": "تم تسجيل دفعة بمبلغ {amount} دولار.",
+    "recordError": "فشل تسجيل الدفعة",
+    "newPageDesc": "تسجيل دفعة مقبوضة من عميل أو مدفوعة لمورد",
+    "fields": {
+      "party": "العميل/المورد",
+      "type": "النوع",
+      "amount": "المبلغ",
+      "currency": "العملة",
+      "exchangeRate": "سعر الصرف",
+      "paymentMethod": "طريقة الدفع",
+      "reference": "المرجع",
+      "invoice": "الفاتورة",
+      "notes": "ملاحظات",
+      "date": "التاريخ"
+    },
+    "types": {
+      "received": "مقبوض",
+      "made": "مدفوع"
+    },
+    "methods": {
+      "cash": "نقدي",
+      "bank": "تحويل بنكي",
+      "check": "شيك",
+      "card": "بطاقة"
+    },
+    "form": {
+      "receivedTitle": "دفعة مقبوضة",
+      "madeTitle": "دفعة مدفوعة",
+      "receivedDesc": "تسجيل دفعة من عميل",
+      "madeDesc": "تسجيل دفعة لمورد",
+      "customer": "العميل",
+      "supplier": "المورد",
+      "selectParty": "اختر {type}",
+      "balance": "الرصيد",
+      "rateToUSD": "سعر الصرف مقابل الدولار",
+      "paymentDate": "تاريخ الدفع",
+      "selectMethod": "اختر الطريقة",
+      "referenceNumber": "رقم المرجع",
+      "referencePlaceholder": "رقم الشيك، معرف المعاملة، إلخ.",
+      "referenceDesc": "مرجع اختياري لهذه الدفعة",
+      "notesPlaceholder": "ملاحظات إضافية حول هذه الدفعة",
+      "recording": "جاري التسجيل..."
+    },
+    "report": {
+      "title": "تقرير المدفوعات",
+      "description": "إنشاء وتنزيل تقارير المدفوعات بصيغة PDF.",
+      "options": "خيارات التقرير",
+      "optionsDesc": "تكوين المرشحات والخيارات للتقرير.",
+      "allTypes": "جميع الأنواع",
+      "allParties": "جميع الأطراف",
+      "dateFrom": "من تاريخ",
+      "dateTo": "إلى تاريخ",
+      "generating": "جاري الإنشاء...",
+      "preview": "معاينة التقرير",
+      "downloadPDF": "تنزيل PDF",
+      "previewTitle": "معاينة",
+      "previewDesc": "معاينة التقرير قبل التنزيل.",
+      "loadError": "فشل تحميل بيانات التقرير",
+      "tryAgain": "حاول مرة أخرى",
+      "generatingPreview": "جاري إنشاء معاينة PDF...",
+      "clickToPreview": "انقر على \"معاينة التقرير\" لرؤية التقرير",
+      "previewError": "فشل إنشاء المعاينة",
+      "downloadSuccess": "تم تنزيل التقرير",
+      "downloadSuccessDesc": "تم تنزيل تقرير PDF بنجاح.",
+      "downloadError": "فشل إنشاء التقرير"
+    }
+  }
+}

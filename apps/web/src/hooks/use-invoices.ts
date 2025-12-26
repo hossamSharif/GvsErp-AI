@@ -25,7 +25,7 @@ import type {
   ReturnInvoiceResult,
   SalesReportResponse,
   SalesReportParams,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

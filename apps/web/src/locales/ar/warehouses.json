@@ -1,0 +1,103 @@
+{
+  "warehouses": {
+    "title": "المستودعات",
+    "description": "إدارة أماكن التخزين والمخزون",
+    "addWarehouse": "إضافة مستودع",
+    "editWarehouse": "تعديل المستودع",
+    "viewWarehouse": "عرض المستودع",
+    "deleteWarehouse": "حذف المستودع",
+    "report": "التقرير",
+    "settings": "الإعدادات",
+    "transfers": "التحويلات",
+    "totalWarehouses": "إجمالي المستودعات",
+    "lowStockAlerts": "تنبيهات المخزون المنخفض",
+    "critical": "حرج",
+    "totalItems": "إجمالي الأصناف",
+    "totalValue": "إجمالي القيمة",
+    "searchPlaceholder": "البحث في المستودعات...",
+    "warehousesList": "قائمة المستودعات",
+    "warehousesListDescription": "عرض وإدارة أماكن التخزين",
+    "errorLoading": "خطأ في تحميل المستودعات",
+    "noResultsFound": "لم يتم العثور على مستودعات مطابقة للبحث",
+    "noWarehouses": "لا توجد مستودعات بعد. أنشئ أول مستودع للبدء.",
+    "name": "الاسم",
+    "address": "العنوان",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "view": "عرض",
+    "edit": "تعديل",
+    "deactivate": "إلغاء التفعيل",
+    "previous": "السابق",
+    "next": "التالي",
+    "showing": "عرض {from} إلى {to} من {total}",
+    "confirmDeactivate": "هل أنت متأكد من إلغاء تفعيل هذا المستودع؟",
+    "createTitle": "إنشاء مستودع",
+    "createDescription": "إضافة مستودع جديد لإدارة المخزون",
+    "create": "إنشاء",
+    "cancel": "إلغاء",
+    "fields": {
+      "name": "اسم المستودع",
+      "address": "العنوان",
+      "isActive": "نشط",
+      "currentValue": "القيمة الحالية"
+    },
+    "inventory": {
+      "title": "المخزون",
+      "item": "الصنف",
+      "quantity": "الكمية",
+      "reserved": "محجوز",
+      "available": "متاح",
+      "lowStockThreshold": "حد التنبيه",
+      "value": "القيمة",
+      "lowStock": "مخزون منخفض",
+      "noItems": "لا توجد أصناف في هذا المستودع",
+      "setThreshold": "تعيين الحد",
+      "updateThreshold": "تحديث الحد"
+    },
+    "transfersList": {
+      "title": "تحويلات المخزون",
+      "newTransfer": "تحويل جديد",
+      "newTransferDescription": "إنشاء تحويل مخزون جديد بين المستودعات",
+      "transferDetails": "تفاصيل التحويل",
+      "transferDetailsDescription": "حدد المستودعات والأصناف لهذا التحويل",
+      "fromWarehouse": "من مستودع",
+      "toWarehouse": "إلى مستودع",
+      "status": "الحالة",
+      "complete": "إتمام التحويل",
+      "cancel": "إلغاء التحويل",
+      "items": "الأصناف",
+      "date": "التاريخ",
+      "noTransfers": "لم يتم العثور على تحويلات",
+      "statuses": {
+        "pending": "قيد الانتظار",
+        "in_transit": "قيد النقل",
+        "completed": "مكتمل",
+        "canceled": "ملغي"
+      }
+    },
+    "detail": {
+      "backToList": "العودة للمستودعات",
+      "warehouseDetails": "تفاصيل المستودع",
+      "inventoryValue": "قيمة المخزون",
+      "itemCount": "عدد الأصناف",
+      "lowStockItems": "أصناف منخفضة المخزون"
+    },
+    "settingsPage": {
+      "title": "إعدادات المخزون المنخفض",
+      "description": "تكوين حدود التنبيه للأصناف",
+      "bulkUpdate": "تحديث مجمع",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "reportPage": {
+      "title": "تقرير المخزون",
+      "description": "عرض المخزون في جميع المستودعات",
+      "exportCsv": "تصدير CSV",
+      "exportPdf": "تصدير PDF",
+      "filterByWarehouse": "تصفية حسب المستودع",
+      "allWarehouses": "جميع المستودعات",
+      "lowStockOnly": "المخزون المنخفض فقط"
+    }
+  }
+}

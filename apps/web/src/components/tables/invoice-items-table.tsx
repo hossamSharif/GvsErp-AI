@@ -37,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { DraftInvoiceItem } from '@erp/shared';
+import type { DraftInvoiceItem } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

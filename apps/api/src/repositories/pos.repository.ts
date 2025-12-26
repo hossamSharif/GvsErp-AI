@@ -3,6 +3,8 @@
  * Phase 7: User Story 5 - Manage Point of Sale Locations
  */
 
+import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository } from './base.repository';
 import type {
   POSLocation,
@@ -11,7 +13,24 @@ import type {
   UpdatePOSLocationRequest,
 } from '@repo/shared';
 
-export class POSLocationRepository extends BaseRepository {
+type POSLocationRow = Database['public']['Tables']['pos_locations']['Row'];
+type POSLocationInsert = Database['public']['Tables']['pos_locations']['Insert'];
+type POSLocationUpdate = Database['public']['Tables']['pos_locations']['Update'];
+
+export class POSLocationRepository extends BaseRepository<
+  'pos_locations',
+  POSLocationRow,
+  POSLocationInsert,
+  POSLocationUpdate
+> {
+  constructor(supabase: SupabaseClient<Database>) {
+    super(supabase, 'pos_locations');
+  }
+
+  protected hasIsActiveColumn(): boolean {
+    return true;
+  }
+
   /**
    * Get all POS locations for a tenant
    */

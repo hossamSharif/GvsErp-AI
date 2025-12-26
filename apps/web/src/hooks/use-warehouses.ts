@@ -27,7 +27,7 @@ import type {
   UpdateTransferInput,
   LowStockAlert,
   LowStockSummary,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

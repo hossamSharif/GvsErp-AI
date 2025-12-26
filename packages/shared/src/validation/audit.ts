@@ -109,10 +109,4 @@ export const auditLogSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type CreateAuditLogInput = z.infer<typeof createAuditLogSchema>;
-export type AuditLogQueryParams = z.infer<typeof auditLogQuerySchema>;
-export type AuditLog = z.infer<typeof auditLogSchema>;
+// Type exports are in types/audit.ts to avoid duplicate exports

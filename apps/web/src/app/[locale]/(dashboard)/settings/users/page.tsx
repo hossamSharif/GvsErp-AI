@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useUsers, useDeleteUser, useCreateUser, useUpdateUser } from '@/hooks/use-users';
 import { useRoles } from '@/hooks/use-roles';
@@ -65,7 +66,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { User, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, CreateUserInput, UpdateUserInput } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -107,6 +108,8 @@ export default function UsersPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.users');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<UserQueryParams>({
@@ -132,16 +135,16 @@ export default function UsersPage() {
   const createMutation = useCreateUser({
     onSuccess: () => {
       toast({
-        title: 'User created',
-        description: 'The user has been created successfully.',
+        title: t('messages.userCreated'),
+        description: t('messages.userCreatedDescription'),
       });
       setDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create user',
+        title: tc('error'),
+        description: error.message || t('messages.createError'),
         variant: 'destructive',
       });
     },
@@ -150,8 +153,8 @@ export default function UsersPage() {
   const updateMutation = useUpdateUser({
     onSuccess: () => {
       toast({
-        title: 'User updated',
-        description: 'The user has been updated successfully.',
+        title: t('messages.userUpdated'),
+        description: t('messages.userUpdatedDescription'),
       });
       setDialogOpen(false);
       setEditingUser(null);
@@ -159,8 +162,8 @@ export default function UsersPage() {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update user',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -169,16 +172,16 @@ export default function UsersPage() {
   const deleteMutation = useDeleteUser({
     onSuccess: () => {
       toast({
-        title: 'User deleted',
-        description: 'The user has been deleted successfully.',
+        title: t('messages.userDeleted'),
+        description: t('messages.userDeletedDescription'),
       });
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete user',
+        title: tc('error'),
+        description: error.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     },
@@ -304,7 +307,7 @@ export default function UsersPage() {
     () => [
       {
         accessorKey: 'full_name',
-        header: 'Name',
+        header: t('fields.name'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.full_name || 'N/A'}</span>
@@ -314,23 +317,23 @@ export default function UsersPage() {
       },
       {
         accessorKey: 'role',
-        header: 'Role',
+        header: t('fields.role'),
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original.role?.name || 'No Role'}</Badge>
+          <Badge variant="outline">{row.original.role?.name || t('dialogs.noRole')}</Badge>
         ),
       },
       {
         accessorKey: 'is_active',
-        header: 'Status',
+        header: t('fields.status'),
         cell: ({ row }) => (
           <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
-            {row.original.is_active ? 'Active' : 'Inactive'}
+            {row.original.is_active ? t('status.active') : t('status.inactive')}
           </Badge>
         ),
       },
       {
         accessorKey: 'preferences',
-        header: 'Language',
+        header: t('fields.language'),
         cell: ({ row }) => (
           <span className="capitalize">
             {row.original.preferences?.language || 'en'}
@@ -339,7 +342,7 @@ export default function UsersPage() {
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('fields.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -349,21 +352,21 @@ export default function UsersPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('fields.actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleEditUser(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleToggleActive(row.original)}>
                 {row.original.is_active ? (
                   <>
                     <UserX className="mr-2 h-4 w-4" />
-                    Deactivate
+                    {t('actions.deactivate')}
                   </>
                 ) : (
                   <>
                     <UserCheck className="mr-2 h-4 w-4" />
-                    Activate
+                    {t('actions.activate')}
                   </>
                 )}
               </DropdownMenuItem>
@@ -373,14 +376,14 @@ export default function UsersPage() {
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleEditUser, handleToggleActive, handleDeleteUser]
+    [t, handleEditUser, handleToggleActive, handleDeleteUser]
   );
 
   return (
@@ -396,13 +399,13 @@ export default function UsersPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-            <p className="text-muted-foreground">Manage user accounts and permissions</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('pageDescription')}</p>
           </div>
         </div>
         <Button onClick={handleAddUser}>
           <Plus className="mr-2 h-4 w-4" />
-          Add User
+          {t('addUser')}
         </Button>
       </div>
 
@@ -416,7 +419,7 @@ export default function UsersPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search users..."
+        searchPlaceholder={t('searchPlaceholder')}
         isLoading={isLoading}
       />
 
@@ -424,11 +427,11 @@ export default function UsersPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit User' : 'Add User'}</DialogTitle>
+            <DialogTitle>{editingUser ? t('dialogs.edit') : t('dialogs.add')}</DialogTitle>
             <DialogDescription>
               {editingUser
-                ? 'Update the user details below.'
-                : 'Fill in the user details below.'}
+                ? t('dialogs.editDescription')
+                : t('dialogs.addDescription')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -438,7 +441,7 @@ export default function UsersPage() {
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{t('fields.fullName')}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
@@ -452,7 +455,7 @@ export default function UsersPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('fields.email')}</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="user@example.com" {...field} />
                     </FormControl>
@@ -467,12 +470,12 @@ export default function UsersPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('fields.password')}</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="********" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Minimum 8 characters
+                        {t('fields.passwordDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -485,11 +488,11 @@ export default function UsersPage() {
                 name="role_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>{t('fields.role')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
+                          <SelectValue placeholder={t('fields.selectRole')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -510,7 +513,7 @@ export default function UsersPage() {
                 name="preferences.language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Language</FormLabel>
+                    <FormLabel>{t('fields.language')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -534,8 +537,8 @@ export default function UsersPage() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
-                        <FormLabel>Active</FormLabel>
-                        <FormDescription>User can access the system</FormDescription>
+                        <FormLabel>{t('fields.isActive')}</FormLabel>
+                        <FormDescription>{t('fields.activeDescription')}</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -551,7 +554,7 @@ export default function UsersPage() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -560,7 +563,7 @@ export default function UsersPage() {
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {editingUser ? 'Update' : 'Create'}
+                  {editingUser ? t('actions.update') : t('actions.create')}
                 </Button>
               </DialogFooter>
             </form>
@@ -572,19 +575,18 @@ export default function UsersPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the user "{userToDelete?.full_name || userToDelete?.email}".
-              This action cannot be undone.
+              {t('dialogs.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t('actions.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

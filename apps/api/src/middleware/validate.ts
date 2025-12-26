@@ -94,3 +94,8 @@ function formatZodErrors(
     code: err.code,
   }));
 }
+
+/**
+ * Alias for validate (for backwards compatibility)
+ */
+export const validateRequest = validate;

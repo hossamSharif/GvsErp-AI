@@ -5,9 +5,11 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { PartyRepository } from '../repositories/party.repository';
+import { AccountRepository } from '../repositories/account.repository';
+import { AccountingService } from './accounting.service';
 import type {
   Payment,
   PaymentWithParty,
@@ -20,7 +22,7 @@ import type {
   PaymentReportResponse,
   PaymentReportEntry,
   PaymentReportSummary,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -43,6 +45,8 @@ export class PaymentError extends Error {
 export class PaymentService {
   private readonly paymentRepository: PaymentRepository;
   private readonly partyRepository: PartyRepository;
+  private readonly accountRepository: AccountRepository;
+  private readonly accountingService: AccountingService;
   private readonly tenantId: string;
   private readonly supabase: SupabaseClient<Database>;
 
@@ -53,6 +57,8 @@ export class PaymentService {
     this.supabase = supabase;
     this.paymentRepository = new PaymentRepository(supabase);
     this.partyRepository = new PartyRepository(supabase);
+    this.accountRepository = new AccountRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
   }
 
@@ -115,7 +121,6 @@ export class PaymentService {
     const reference = input.reference || await this.generatePaymentReference(input.type);
 
     const paymentData = {
-      tenant_id: this.tenantId,
       party_id: input.partyId,
       type: input.type,
       amount: input.amount,
@@ -129,7 +134,10 @@ export class PaymentService {
       created_by: userId || null,
     };
 
-    const payment = await this.paymentRepository.create(paymentData);
+    const payment = await this.paymentRepository.create(this.tenantId, paymentData);
+
+    // Generate journal entry if accounting module is active
+    await this.generateJournalEntryForPayment(payment.id, input.type, input.amount, userId);
 
     // Get payment with relations
     const paymentWithRelations = await this.paymentRepository.findByIdWithRelations(
@@ -142,6 +150,79 @@ export class PaymentService {
     }
 
     return paymentWithRelations;
+  }
+
+  /**
+   * Generate journal entry for payment
+   */
+  private async generateJournalEntryForPayment(
+    paymentId: string,
+    type: PaymentType,
+    amount: number,
+    userId?: string
+  ): Promise<void> {
+    try {
+      // Check if accounting module is activated
+      const status = await this.accountingService.getActivationStatus(this.tenantId);
+      if (!status.is_activated) {
+        return; // Accounting not active, skip journal entry
+      }
+
+      // Get default accounts by code
+      const defaultAccounts = await this.getDefaultAccounts();
+      if (!defaultAccounts) {
+        console.warn('Default accounts not configured, skipping journal entry');
+        return;
+      }
+
+      await this.accountingService.generateJournalEntryFromPayment(
+        this.tenantId,
+        userId || 'system',
+        paymentId,
+        {
+          amount,
+          type,
+        },
+        {
+          cash_account_id: defaultAccounts.cash,
+          accounts_receivable_id: defaultAccounts.accountsReceivable,
+          accounts_payable_id: defaultAccounts.accountsPayable,
+        }
+      );
+    } catch (error) {
+      // Log error but don't fail the payment creation
+      console.error('Failed to generate journal entry for payment:', error);
+    }
+  }
+
+  /**
+   * Get default account IDs by standard codes
+   */
+  private async getDefaultAccounts(): Promise<{
+    cash?: string;
+    accountsReceivable?: string;
+    accountsPayable?: string;
+  } | null> {
+    const accountCodes = ['1110', '1120', '2110'];
+    const accounts: Record<string, string> = {};
+
+    for (const code of accountCodes) {
+      const account = await this.accountRepository.findByCode(this.tenantId, code);
+      if (account) {
+        accounts[code] = account.id;
+      }
+    }
+
+    // Return null if no accounts found (accounting not set up)
+    if (Object.keys(accounts).length === 0) {
+      return null;
+    }
+
+    return {
+      cash: accounts['1110'],
+      accountsReceivable: accounts['1120'],
+      accountsPayable: accounts['2110'],
+    };
   }
 
   /**
@@ -212,7 +293,7 @@ export class PaymentService {
     };
 
     const result = await this.getPayments(queryParams);
-    const payments = result.items;
+    const payments = result.data;
 
     // Build report entries
     const entries: PaymentReportEntry[] = payments.map((payment) => ({

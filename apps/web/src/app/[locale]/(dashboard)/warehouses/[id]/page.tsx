@@ -47,7 +47,7 @@ import {
   useLowStockAlerts,
   useUpdateLowStockThreshold,
 } from '@/hooks/use-warehouses';
-import type { WarehouseInventoryEntry, InventoryQueryParams } from '@erp/shared';
+import type { WarehouseInventoryEntry, InventoryQueryParams } from '@erp-saas/shared';
 
 export default function WarehouseDetailPage() {
   const t = useTranslations('warehouses');

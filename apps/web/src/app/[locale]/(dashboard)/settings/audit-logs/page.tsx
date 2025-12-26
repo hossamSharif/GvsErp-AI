@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useAuditLogs } from '@/hooks/use-audit-logs';
 import { DataTable } from '@/components/tables/data-table';
@@ -52,7 +53,7 @@ import type {
   AuditLogQueryParams,
   AuditAction,
   AuditEntityType,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import {
   MoreHorizontal,
   Eye,
@@ -84,6 +85,8 @@ export default function AuditLogsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.auditLogs');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<AuditLogQueryParams>({
@@ -117,20 +120,20 @@ export default function AuditLogsPage() {
     setQueryParams((prev) => ({ ...prev, page: 1 }));
     setFiltersPanelOpen(false);
     toast({
-      title: 'Filters applied',
-      description: 'Audit logs have been filtered.',
+      title: t('messages.filtersApplied'),
+      description: t('messages.filtersAppliedDescription'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const handleClearFilters = useCallback(() => {
     setFilters({});
     setQueryParams({ page: 1, limit: 50 });
     setFiltersPanelOpen(false);
     toast({
-      title: 'Filters cleared',
-      description: 'All filters have been removed.',
+      title: t('messages.filtersCleared'),
+      description: t('messages.filtersClearedDescription'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const handleViewDetails = useCallback((log: AuditLog) => {
     setSelectedLog(log);
@@ -139,18 +142,18 @@ export default function AuditLogsPage() {
 
   const handleExport = useCallback(() => {
     toast({
-      title: 'Export started',
-      description: 'Audit logs are being exported...',
+      title: t('messages.exportStarted'),
+      description: t('messages.exportStartedDescription'),
     });
     // TODO: Implement export functionality
-  }, [toast]);
+  }, [toast, t]);
 
   // Table columns
   const columns = useMemo<ColumnDef<AuditLog>[]>(
     () => [
       {
         accessorKey: 'createdAt',
-        header: 'Timestamp',
+        header: t('columns.timestamp'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">
@@ -164,11 +167,11 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'userName',
-        header: 'User',
+        header: t('columns.user'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">
-              {row.original.userName || 'System'}
+              {row.original.userName || t('system')}
             </span>
             {row.original.userEmail && (
               <span className="text-xs text-muted-foreground">
@@ -180,7 +183,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'action',
-        header: 'Action',
+        header: t('columns.action'),
         cell: ({ row }) => (
           <Badge className={actionColors[row.original.action]}>
             {row.original.action.toUpperCase()}
@@ -189,7 +192,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'entityType',
-        header: 'Entity Type',
+        header: t('columns.entityType'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">
             {row.original.entityType}
@@ -198,7 +201,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'entityId',
-        header: 'Entity ID',
+        header: t('columns.entityId'),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-muted-foreground">
             {row.original.entityId
@@ -209,7 +212,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'ipAddress',
-        header: 'IP Address',
+        header: t('columns.ipAddress'),
         cell: ({ row }) => (
           <span className="font-mono text-xs">
             {row.original.ipAddress || 'N/A'}
@@ -229,14 +232,14 @@ export default function AuditLogsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t('actions.viewDetails')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleViewDetails]
+    [handleViewDetails, t]
   );
 
   return (
@@ -244,9 +247,9 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Audit Logs</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            View and filter system audit trail
+            {t('pageDescription')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -255,11 +258,11 @@ export default function AuditLogsPage() {
             onClick={() => setFiltersPanelOpen(true)}
           >
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            {t('buttons.filters')}
           </Button>
           <Button variant="outline" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t('buttons.export')}
           </Button>
         </div>
       </div>
@@ -269,35 +272,35 @@ export default function AuditLogsPage() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Active Filters</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('activeFilters.title')}</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClearFilters}
               >
-                Clear All
+                {t('activeFilters.clearAll')}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {filters.action && (
               <Badge variant="secondary">
-                Action: {filters.action}
+                {t('activeFilters.action')}: {filters.action}
               </Badge>
             )}
             {filters.entityType && (
               <Badge variant="secondary">
-                Entity: {filters.entityType}
+                {t('activeFilters.entity')}: {filters.entityType}
               </Badge>
             )}
             {filters.dateFrom && (
               <Badge variant="secondary">
-                From: {format(new Date(filters.dateFrom), 'MMM dd, yyyy')}
+                {t('activeFilters.from')}: {format(new Date(filters.dateFrom), 'MMM dd, yyyy')}
               </Badge>
             )}
             {filters.dateTo && (
               <Badge variant="secondary">
-                To: {format(new Date(filters.dateTo), 'MMM dd, yyyy')}
+                {t('activeFilters.to')}: {format(new Date(filters.dateTo), 'MMM dd, yyyy')}
               </Badge>
             )}
           </CardContent>
@@ -313,7 +316,7 @@ export default function AuditLogsPage() {
             pageCount={data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 0}
             onPageChange={handlePageChange}
             isLoading={isLoading}
-            emptyMessage="No audit logs found"
+            emptyMessage={t('emptyMessage')}
           />
         </CardContent>
       </Card>
@@ -322,15 +325,15 @@ export default function AuditLogsPage() {
       <Dialog open={filtersPanelOpen} onOpenChange={setFiltersPanelOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Filter Audit Logs</DialogTitle>
+            <DialogTitle>{t('filtersDialog.title')}</DialogTitle>
             <DialogDescription>
-              Apply filters to narrow down the audit logs
+              {t('filtersDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Action Filter */}
             <div className="space-y-2">
-              <Label htmlFor="action">Action</Label>
+              <Label htmlFor="action">{t('filtersDialog.action')}</Label>
               <Select
                 value={filters.action || ''}
                 onValueChange={(value) =>
@@ -341,24 +344,24 @@ export default function AuditLogsPage() {
                 }
               >
                 <SelectTrigger id="action">
-                  <SelectValue placeholder="All actions" />
+                  <SelectValue placeholder={t('filtersDialog.allActions')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All actions</SelectItem>
-                  <SelectItem value="create">Create</SelectItem>
-                  <SelectItem value="update">Update</SelectItem>
-                  <SelectItem value="delete">Delete</SelectItem>
-                  <SelectItem value="login">Login</SelectItem>
-                  <SelectItem value="logout">Logout</SelectItem>
-                  <SelectItem value="finalize">Finalize</SelectItem>
-                  <SelectItem value="cancel">Cancel</SelectItem>
+                  <SelectItem value="">{t('filtersDialog.allActions')}</SelectItem>
+                  <SelectItem value="create">{t('actions.create')}</SelectItem>
+                  <SelectItem value="update">{t('actions.update')}</SelectItem>
+                  <SelectItem value="delete">{t('actions.delete')}</SelectItem>
+                  <SelectItem value="login">{t('actions.login')}</SelectItem>
+                  <SelectItem value="logout">{t('actions.logout')}</SelectItem>
+                  <SelectItem value="finalize">{t('actions.finalize')}</SelectItem>
+                  <SelectItem value="cancel">{t('actions.cancel')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Entity Type Filter */}
             <div className="space-y-2">
-              <Label htmlFor="entityType">Entity Type</Label>
+              <Label htmlFor="entityType">{t('filtersDialog.entityType')}</Label>
               <Select
                 value={filters.entityType || ''}
                 onValueChange={(value) =>
@@ -369,17 +372,17 @@ export default function AuditLogsPage() {
                 }
               >
                 <SelectTrigger id="entityType">
-                  <SelectValue placeholder="All entities" />
+                  <SelectValue placeholder={t('filtersDialog.allEntities')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All entities</SelectItem>
-                  <SelectItem value="item">Item</SelectItem>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
-                  <SelectItem value="payment">Payment</SelectItem>
-                  <SelectItem value="warehouse">Warehouse</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="">{t('filtersDialog.allEntities')}</SelectItem>
+                  <SelectItem value="item">{t('entityTypes.item')}</SelectItem>
+                  <SelectItem value="invoice">{t('entityTypes.invoice')}</SelectItem>
+                  <SelectItem value="party">{t('entityTypes.party')}</SelectItem>
+                  <SelectItem value="payment">{t('entityTypes.payment')}</SelectItem>
+                  <SelectItem value="warehouse">{t('entityTypes.warehouse')}</SelectItem>
+                  <SelectItem value="expense">{t('entityTypes.expense')}</SelectItem>
+                  <SelectItem value="user">{t('entityTypes.user')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -387,7 +390,7 @@ export default function AuditLogsPage() {
             {/* Date Range Filters */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dateFrom">From Date</Label>
+                <Label htmlFor="dateFrom">{t('filtersDialog.fromDate')}</Label>
                 <Input
                   id="dateFrom"
                   type="date"
@@ -401,7 +404,7 @@ export default function AuditLogsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dateTo">To Date</Label>
+                <Label htmlFor="dateTo">{t('filtersDialog.toDate')}</Label>
                 <Input
                   id="dateTo"
                   type="date"
@@ -421,9 +424,9 @@ export default function AuditLogsPage() {
               variant="outline"
               onClick={() => setFiltersPanelOpen(false)}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
-            <Button onClick={handleApplyFilters}>Apply Filters</Button>
+            <Button onClick={handleApplyFilters}>{t('filtersDialog.applyFilters')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -432,9 +435,9 @@ export default function AuditLogsPage() {
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle>Audit Log Details</DialogTitle>
+            <DialogTitle>{t('detailsDialog.title')}</DialogTitle>
             <DialogDescription>
-              Full details of the audit log entry
+              {t('detailsDialog.description')}
             </DialogDescription>
           </DialogHeader>
           {selectedLog && (
@@ -443,7 +446,7 @@ export default function AuditLogsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    Timestamp
+                    {t('detailsDialog.timestamp')}
                   </Label>
                   <p className="font-medium">
                     {format(
@@ -453,9 +456,9 @@ export default function AuditLogsPage() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">User</Label>
+                  <Label className="text-xs text-muted-foreground">{t('detailsDialog.user')}</Label>
                   <p className="font-medium">
-                    {selectedLog.userName || 'System'}
+                    {selectedLog.userName || t('system')}
                   </p>
                   {selectedLog.userEmail && (
                     <p className="text-sm text-muted-foreground">
@@ -465,7 +468,7 @@ export default function AuditLogsPage() {
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    Action
+                    {t('detailsDialog.action')}
                   </Label>
                   <p>
                     <Badge className={actionColors[selectedLog.action]}>
@@ -475,13 +478,13 @@ export default function AuditLogsPage() {
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    Entity Type
+                    {t('detailsDialog.entityType')}
                   </Label>
                   <p className="font-mono">{selectedLog.entityType}</p>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    Entity ID
+                    {t('detailsDialog.entityId')}
                   </Label>
                   <p className="font-mono text-xs">
                     {selectedLog.entityId || 'N/A'}
@@ -489,7 +492,7 @@ export default function AuditLogsPage() {
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    IP Address
+                    {t('detailsDialog.ipAddress')}
                   </Label>
                   <p className="font-mono">{selectedLog.ipAddress || 'N/A'}</p>
                 </div>
@@ -498,7 +501,7 @@ export default function AuditLogsPage() {
               {/* Old Values */}
               {selectedLog.oldValues && (
                 <div>
-                  <Label className="text-sm font-semibold">Old Values</Label>
+                  <Label className="text-sm font-semibold">{t('detailsDialog.oldValues')}</Label>
                   <pre className="mt-2 rounded-md bg-muted p-4 text-xs overflow-auto max-h-48">
                     {JSON.stringify(selectedLog.oldValues, null, 2)}
                   </pre>
@@ -508,7 +511,7 @@ export default function AuditLogsPage() {
               {/* New Values */}
               {selectedLog.newValues && (
                 <div>
-                  <Label className="text-sm font-semibold">New Values</Label>
+                  <Label className="text-sm font-semibold">{t('detailsDialog.newValues')}</Label>
                   <pre className="mt-2 rounded-md bg-muted p-4 text-xs overflow-auto max-h-48">
                     {JSON.stringify(selectedLog.newValues, null, 2)}
                   </pre>
@@ -519,7 +522,7 @@ export default function AuditLogsPage() {
               {selectedLog.userAgent && (
                 <div>
                   <Label className="text-xs text-muted-foreground">
-                    User Agent
+                    {t('detailsDialog.userAgent')}
                   </Label>
                   <p className="text-xs font-mono">{selectedLog.userAgent}</p>
                 </div>

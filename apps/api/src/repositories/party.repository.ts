@@ -5,14 +5,14 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 import type {
   Party,
   PartyWithSummary,
   PartyType,
   PartyBalanceSummary,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type PartyRow = Database['public']['Tables']['parties']['Row'];
 type PartyInsert = Database['public']['Tables']['parties']['Insert'];

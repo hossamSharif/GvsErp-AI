@@ -1,0 +1,142 @@
+{
+  "hr": {
+    "title": "الموارد البشرية",
+    "description": "إدارة الموظفين والحضور والرواتب",
+    "employees": {
+      "title": "الموظفين",
+      "addEmployee": "إضافة موظف",
+      "editEmployee": "تعديل الموظف",
+      "viewEmployee": "عرض الموظف",
+      "deleteEmployee": "حذف الموظف",
+      "exportData": "تصدير البيانات",
+      "fields": {
+        "employeeNumber": "رقم الموظف",
+        "fullName": "الاسم الكامل",
+        "department": "القسم",
+        "position": "المنصب",
+        "hireDate": "تاريخ التوظيف",
+        "salary": "الراتب",
+        "salaryCurrency": "العملة",
+        "isActive": "نشط",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "address": "العنوان"
+      },
+      "stats": {
+        "totalEmployees": "إجمالي الموظفين",
+        "active": "نشط",
+        "departments": "الأقسام",
+        "newThisMonth": "جديد هذا الشهر"
+      }
+    },
+    "attendance": {
+      "title": "الحضور",
+      "markAttendance": "تسجيل الحضور",
+      "viewAttendance": "عرض الحضور",
+      "fields": {
+        "employee": "الموظف",
+        "date": "التاريخ",
+        "checkIn": "تسجيل الدخول",
+        "checkOut": "تسجيل الخروج",
+        "status": "الحالة",
+        "notes": "ملاحظات",
+        "workHours": "ساعات العمل"
+      },
+      "statuses": {
+        "present": "حاضر",
+        "absent": "غائب",
+        "leave": "إجازة",
+        "holiday": "عطلة"
+      },
+      "summary": {
+        "totalDays": "إجمالي الأيام",
+        "presentDays": "أيام الحضور",
+        "absentDays": "أيام الغياب",
+        "leaveDays": "أيام الإجازة",
+        "lateCount": "مرات التأخير"
+      }
+    },
+    "leave": {
+      "title": "إدارة الإجازات",
+      "newRequest": "طلب إجازة جديد",
+      "approveRequest": "موافقة",
+      "rejectRequest": "رفض",
+      "fields": {
+        "employee": "الموظف",
+        "leaveType": "نوع الإجازة",
+        "startDate": "تاريخ البدء",
+        "endDate": "تاريخ الانتهاء",
+        "daysCount": "الأيام",
+        "reason": "السبب",
+        "status": "الحالة",
+        "approvedBy": "تمت الموافقة بواسطة"
+      },
+      "types": {
+        "vacation": "إجازة سنوية",
+        "sick": "إجازة مرضية",
+        "personal": "إجازة شخصية",
+        "maternity": "إجازة أمومة",
+        "paternity": "إجازة أبوة",
+        "unpaid": "إجازة بدون راتب"
+      },
+      "statuses": {
+        "pending": "قيد الانتظار",
+        "approved": "موافق عليها",
+        "rejected": "مرفوضة"
+      },
+      "stats": {
+        "pendingRequests": "الطلبات المعلقة",
+        "approvedThisMonth": "موافق عليها هذا الشهر",
+        "rejectedThisMonth": "مرفوضة هذا الشهر",
+        "totalDaysRequested": "إجمالي الأيام المطلوبة"
+      },
+      "dialogs": {
+        "approve": {
+          "title": "الموافقة على طلب الإجازة",
+          "description": "هل أنت متأكد من الموافقة على طلب الإجازة؟",
+          "notes": "ملاحظات (اختياري)"
+        },
+        "reject": {
+          "title": "رفض طلب الإجازة",
+          "description": "هل أنت متأكد من رفض طلب الإجازة؟ يرجى توضيح السبب.",
+          "reason": "سبب الرفض (مطلوب)"
+        }
+      }
+    },
+    "payroll": {
+      "title": "الرواتب",
+      "newRun": "دورة رواتب جديدة",
+      "viewRun": "عرض دورة الرواتب",
+      "processPayroll": "معالجة الرواتب",
+      "fields": {
+        "periodStart": "بداية الفترة",
+        "periodEnd": "نهاية الفترة",
+        "status": "الحالة",
+        "totalGross": "إجمالي الراتب الأساسي",
+        "totalDeductions": "إجمالي الاستقطاعات",
+        "totalNet": "إجمالي الصافي",
+        "employee": "الموظف",
+        "grossSalary": "الراتب الأساسي",
+        "deductions": "الاستقطاعات",
+        "netSalary": "الراتب الصافي",
+        "daysWorked": "أيام العمل",
+        "notes": "ملاحظات"
+      },
+      "statuses": {
+        "draft": "مسودة",
+        "processing": "قيد المعالجة",
+        "completed": "مكتمل"
+      },
+      "summary": {
+        "totalEmployees": "إجمالي الموظفين",
+        "employeesIncluded": "موظف مضاف",
+        "addEmployee": "إضافة موظف"
+      },
+      "autosave": {
+        "saving": "جاري الحفظ...",
+        "saved": "تم الحفظ",
+        "lastSaved": "آخر حفظ"
+      }
+    }
+  }
+}

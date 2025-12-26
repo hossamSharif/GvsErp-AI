@@ -9,6 +9,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
 
 // PDF Styles
@@ -22,6 +23,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: '2pt solid #000',
     paddingBottom: 15,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   companyName: {
     fontSize: 20,
@@ -147,6 +153,7 @@ interface SalarySlipProps {
     currency: string;
   };
   companyName?: string;
+  companyLogo?: string;
 }
 
 export function SalarySlip({
@@ -154,6 +161,7 @@ export function SalarySlip({
   payrollRun,
   payrollItem,
   companyName = 'Company Name',
+  companyLogo,
 }: SalarySlipProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -172,6 +180,7 @@ export function SalarySlip({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.companyName}>{companyName}</Text>
           <Text style={styles.title}>SALARY SLIP</Text>
           <Text style={{ textAlign: 'center', fontSize: 10, marginTop: 5 }}>

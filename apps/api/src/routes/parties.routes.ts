@@ -12,7 +12,7 @@ import {
   partyQuerySchema,
   customerBalanceReportParamsSchema,
   partyStatementParamsSchema,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -48,6 +48,61 @@ function handlePartyError(error: unknown, res: Response, next: NextFunction): vo
 }
 
 // =============================================================================
+// REPORT ENDPOINTS (must be before /:id to avoid matching "reports" as UUID)
+// =============================================================================
+
+/**
+ * GET /parties/summary/balances
+ * Get balance summary for all parties
+ */
+router.get(
+  '/summary/balances',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getPartyService(req);
+      const partyType = req.query.type as 'customer' | 'supplier' | undefined;
+      const summary = await service.getBalanceSummary(partyType);
+
+      res.json({
+        success: true,
+        data: summary,
+      });
+    } catch (error) {
+      handlePartyError(error, res, next);
+    }
+  }
+);
+
+/**
+ * GET /parties/reports/customer-balances
+ * Get customer balance report
+ */
+router.get(
+  '/reports/customer-balances',
+  validateRequest({ query: customerBalanceReportParamsSchema }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getPartyService(req);
+      const params = req.query as unknown as {
+        hasBalance?: boolean;
+        minBalance?: number;
+        maxBalance?: number;
+        includeInactive?: boolean;
+      };
+
+      const report = await service.getCustomerBalanceReport(params);
+
+      res.json({
+        success: true,
+        data: report,
+      });
+    } catch (error) {
+      handlePartyError(error, res, next);
+    }
+  }
+);
+
+// =============================================================================
 // PARTY CRUD ENDPOINTS
 // =============================================================================
 
@@ -76,12 +131,12 @@ router.get(
 
       res.json({
         success: true,
-        data: result.items,
+        data: result.data,
         meta: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          hasMore: result.hasMore,
+          total: result.meta.total,
+          page: result.meta.page,
+          limit: result.meta.limit,
+          hasMore: result.meta.page < result.meta.total_pages,
         },
       });
     } catch (error) {
@@ -222,28 +277,6 @@ router.post(
   }
 );
 
-/**
- * GET /parties/balance-summary
- * Get balance summary for all parties
- */
-router.get(
-  '/summary/balances',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const partyType = req.query.type as 'customer' | 'supplier' | undefined;
-      const summary = await service.getBalanceSummary(partyType);
-
-      res.json({
-        success: true,
-        data: summary,
-      });
-    } catch (error) {
-      handlePartyError(error, res, next);
-    }
-  }
-);
-
 // =============================================================================
 // STATEMENT ENDPOINT
 // =============================================================================
@@ -269,39 +302,6 @@ router.get(
       res.json({
         success: true,
         data: statement,
-      });
-    } catch (error) {
-      handlePartyError(error, res, next);
-    }
-  }
-);
-
-// =============================================================================
-// REPORT ENDPOINTS
-// =============================================================================
-
-/**
- * GET /parties/reports/customer-balances
- * Get customer balance report
- */
-router.get(
-  '/reports/customer-balances',
-  validateRequest({ query: customerBalanceReportParamsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const params = req.query as unknown as {
-        hasBalance?: boolean;
-        minBalance?: number;
-        maxBalance?: number;
-        includeInactive?: boolean;
-      };
-
-      const report = await service.getCustomerBalanceReport(params);
-
-      res.json({
-        success: true,
-        data: report,
       });
     } catch (error) {
       handlePartyError(error, res, next);

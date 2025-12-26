@@ -180,14 +180,14 @@
 
 ### Implementation for User Story 5
 
-- [ ] T077 [US5] Enhance system prompts in apps/api/src/lib/ai-models/system-prompts.ts with detailed role-specific instructions
-- [ ] T078 [US5] Implement role switching logic in apps/api/src/services/ai-conversation.service.ts with conversation context update
-- [ ] T079 [US5] Add role-specific data access patterns in apps/api/src/lib/data-access-layer.ts (e.g., marketing focuses on sales trends)
-- [ ] T080 [US5] Enhance role selector UI in apps/web/src/components/ai/role-selector.tsx with role descriptions and icons
-- [ ] T081 [US5] Add role-specific welcome messages in apps/web/src/components/ai/chat-interface.tsx
-- [ ] T082 [US5] Implement role persistence across sessions in apps/web/src/stores/ai-panel-store.ts
+- [X] T077 [US5] Enhance system prompts in apps/api/src/lib/ai-models/system-prompts.ts with detailed role-specific instructions
+- [X] T078 [US5] Implement role switching logic in apps/api/src/services/ai-conversation.service.ts with conversation context update
+- [X] T079 [US5] Add role-specific data access patterns in apps/api/src/lib/data-access-layer.ts (e.g., marketing focuses on sales trends)
+- [X] T080 [US5] Enhance role selector UI in apps/web/src/components/ai/role-selector.tsx with role descriptions and icons
+- [X] T081 [US5] Add role-specific welcome messages in apps/web/src/components/ai/chat-interface.tsx
+- [X] T082 [US5] Implement role persistence across sessions in apps/web/src/stores/ai-panel-store.ts
 
-**Checkpoint**: User Story 5 complete - Users can use specialized consultant roles
+**Checkpoint**: User Story 5 complete - Users can use specialized consultant roles ✅
 
 ---
 
@@ -195,14 +195,16 @@
 
 **Purpose**: SaaS admin features for monitoring and managing AI usage across all tenants
 
-- [ ] T083 Implement admin usage statistics service in apps/api/src/services/ai-admin.service.ts (getAggregateUsage, getTenantUsage, disableTenantAI)
-- [ ] T084 Implement admin configuration service in apps/api/src/services/ai-admin.service.ts (getConfigurations, upsertConfiguration)
-- [ ] T085 Create admin routes in apps/api/src/routes/ai-admin.routes.ts (GET /api/ai/admin/usage, GET /api/ai/admin/configurations, POST /api/ai/admin/configurations, POST /api/ai/admin/tenants/:id/disable)
-- [ ] T086 Add admin permission checks to admin routes in apps/api/src/routes/ai-admin.routes.ts
-- [ ] T087 Register admin routes in apps/api/src/index.ts
-- [ ] T088 [P] Create admin dashboard page in apps/web/src/app/[locale]/(dashboard)/settings/ai-admin/page.tsx
-- [ ] T089 [P] Create usage dashboard component in apps/web/src/components/admin/ai-usage-dashboard.tsx with charts and filters
-- [ ] T090 Create TanStack Query hooks in apps/web/src/hooks/use-ai-admin.ts (useAdminUsage, useAdminConfigs)
+- [X] T083 Implement admin usage statistics service in apps/api/src/services/ai-admin.service.ts (getAggregateUsage, getTenantUsage, disableTenantAI)
+- [X] T084 Implement admin configuration service in apps/api/src/services/ai-admin.service.ts (getConfigurations, upsertConfiguration)
+- [X] T085 Create admin routes in apps/api/src/routes/ai-admin.routes.ts (GET /api/ai/admin/usage, GET /api/ai/admin/configurations, POST /api/ai/admin/configurations, POST /api/ai/admin/tenants/:id/disable)
+- [X] T086 Add admin permission checks to admin routes in apps/api/src/routes/ai-admin.routes.ts
+- [X] T087 Register admin routes in apps/api/src/index.ts
+- [X] T088 [P] Create admin dashboard page in apps/web/src/app/[locale]/(dashboard)/settings/ai-admin/page.tsx
+- [X] T089 [P] Create usage dashboard component in apps/web/src/components/admin/ai-usage-dashboard.tsx with charts and filters
+- [X] T090 Create TanStack Query hooks in apps/web/src/hooks/use-ai-admin.ts (useAdminUsage, useAdminConfigs)
+
+**Checkpoint**: Phase 8 complete - Admin dashboard and controls implemented ✅
 
 ---
 

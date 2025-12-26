@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRoles, useDeleteRole, useCreateRole, useUpdateRole } from '@/hooks/use-roles';
 import { DataTable } from '@/components/tables/data-table';
@@ -58,8 +59,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { Role, CreateRoleInput, UpdateRoleInput } from '@erp/shared';
-import { PERMISSIONS } from '@erp/shared';
+import type { Role, CreateRoleInput, UpdateRoleInput } from '@erp-saas/shared';
+import { PERMISSIONS } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -161,6 +162,8 @@ export default function RolesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.roles');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<RoleQueryParams>({
@@ -183,16 +186,16 @@ export default function RolesPage() {
   const createMutation = useCreateRole({
     onSuccess: () => {
       toast({
-        title: 'Role created',
-        description: 'The role has been created successfully.',
+        title: t('messages.roleCreated'),
+        description: t('messages.roleCreatedDescription'),
       });
       setDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create role',
+        title: tc('error'),
+        description: error.message || t('messages.createError'),
         variant: 'destructive',
       });
     },
@@ -201,8 +204,8 @@ export default function RolesPage() {
   const updateMutation = useUpdateRole({
     onSuccess: () => {
       toast({
-        title: 'Role updated',
-        description: 'The role has been updated successfully.',
+        title: t('messages.roleUpdated'),
+        description: t('messages.roleUpdatedDescription'),
       });
       setDialogOpen(false);
       setEditingRole(null);
@@ -210,8 +213,8 @@ export default function RolesPage() {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update role',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -220,16 +223,16 @@ export default function RolesPage() {
   const deleteMutation = useDeleteRole({
     onSuccess: () => {
       toast({
-        title: 'Role deleted',
-        description: 'The role has been deleted successfully.',
+        title: t('messages.roleDeleted'),
+        description: t('messages.roleDeletedDescription'),
       });
       setDeleteDialogOpen(false);
       setRoleToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete role',
+        title: tc('error'),
+        description: error.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     },
@@ -321,14 +324,14 @@ export default function RolesPage() {
     () => [
       {
         accessorKey: 'name',
-        header: 'Role Name',
+        header: t('fields.roleName'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{row.original.name}</span>
             {row.original.is_system && (
               <Badge variant="secondary" className="ml-2">
-                System
+                {t('badges.system')}
               </Badge>
             )}
           </div>
@@ -336,16 +339,18 @@ export default function RolesPage() {
       },
       {
         accessorKey: 'permissions',
-        header: 'Permissions',
+        header: t('fields.permissions'),
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
-            <Badge variant="outline">{row.original.permissions.length} permissions</Badge>
+            <Badge variant="outline">
+              {t('badges.permissionsCount', { count: row.original.permissions.length })}
+            </Badge>
           </div>
         ),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('fields.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -355,10 +360,10 @@ export default function RolesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('fields.actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleEditRole(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
               {!row.original.is_system && (
                 <>
@@ -368,7 +373,7 @@ export default function RolesPage() {
                     className="text-red-600"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    {t('actions.delete')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -377,7 +382,7 @@ export default function RolesPage() {
         ),
       },
     ],
-    [handleEditRole, handleDeleteRole]
+    [t, handleEditRole, handleDeleteRole]
   );
 
   return (
@@ -393,15 +398,15 @@ export default function RolesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Roles & Permissions</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
             <p className="text-muted-foreground">
-              Configure roles and access control for users
+              {t('pageDescription')}
             </p>
           </div>
         </div>
         <Button onClick={handleAddRole}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Role
+          {t('addRole')}
         </Button>
       </div>
 
@@ -415,7 +420,7 @@ export default function RolesPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search roles..."
+        searchPlaceholder={t('searchPlaceholder')}
         isLoading={isLoading}
       />
 
@@ -423,11 +428,11 @@ export default function RolesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingRole ? 'Edit Role' : 'Add Role'}</DialogTitle>
+            <DialogTitle>{editingRole ? t('dialogs.edit') : t('dialogs.add')}</DialogTitle>
             <DialogDescription>
               {editingRole
-                ? 'Update the role details and permissions below.'
-                : 'Fill in the role details and select permissions below.'}
+                ? t('dialogs.editDescription')
+                : t('dialogs.addDescription')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -437,7 +442,7 @@ export default function RolesPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role Name</FormLabel>
+                    <FormLabel>{t('fields.roleName')}</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., Sales Manager" {...field} />
                     </FormControl>
@@ -452,9 +457,9 @@ export default function RolesPage() {
                 render={() => (
                   <FormItem>
                     <div className="mb-4">
-                      <FormLabel className="text-base">Permissions</FormLabel>
+                      <FormLabel className="text-base">{t('fields.permissions')}</FormLabel>
                       <FormDescription>
-                        Select the permissions for this role
+                        {t('permissions.selectPermissions')}
                       </FormDescription>
                     </div>
                     <ScrollArea className="h-[400px] rounded-md border p-4">
@@ -510,7 +515,7 @@ export default function RolesPage() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -519,7 +524,7 @@ export default function RolesPage() {
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {editingRole ? 'Update' : 'Create'}
+                  {editingRole ? t('actions.update') : t('actions.create')}
                 </Button>
               </DialogFooter>
             </form>
@@ -531,19 +536,18 @@ export default function RolesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the role "{roleToDelete?.name}". This action cannot be undone.
-              Users with this role will lose their permissions.
+              {t('dialogs.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t('actions.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

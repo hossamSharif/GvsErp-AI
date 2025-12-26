@@ -4,25 +4,16 @@
  */
 
 import { z } from 'zod';
+import { sortDirectionSchema } from './items';
 
 // =============================================================================
 // COMMON SCHEMAS
 // =============================================================================
 
 /**
- * UUID validation schema
- */
-export const uuidSchema = z.string().uuid('Invalid UUID format');
-
-/**
  * Transfer status validation
  */
 export const transferStatusSchema = z.enum(['pending', 'in_transit', 'completed', 'canceled']);
-
-/**
- * Sort direction validation
- */
-export const sortDirectionSchema = z.enum(['asc', 'desc']).default('asc');
 
 // =============================================================================
 // WAREHOUSE SCHEMAS
@@ -251,22 +242,4 @@ export const lowStockAlertQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type CreateWarehouseInput = z.infer<typeof createWarehouseSchema>;
-export type UpdateWarehouseInput = z.infer<typeof updateWarehouseSchema>;
-export type WarehouseQueryParams = z.infer<typeof warehouseQuerySchema>;
-
-export type UpdateInventoryThresholdInput = z.infer<typeof updateInventoryThresholdSchema>;
-export type BulkUpdateInventoryThresholdInput = z.infer<typeof bulkUpdateInventoryThresholdSchema>;
-export type InventoryQueryParams = z.infer<typeof inventoryQuerySchema>;
-
-export type CreateTransferItemInput = z.infer<typeof createTransferItemSchema>;
-export type CreateTransferInput = z.infer<typeof createTransferSchema>;
-export type UpdateTransferInput = z.infer<typeof updateTransferSchema>;
-export type TransferQueryParams = z.infer<typeof transferQuerySchema>;
-
-export type InventoryReportParams = z.infer<typeof inventoryReportParamsSchema>;
-export type LowStockAlertQueryParams = z.infer<typeof lowStockAlertQuerySchema>;
+// Type exports are in types/warehouse.ts to avoid duplicate exports

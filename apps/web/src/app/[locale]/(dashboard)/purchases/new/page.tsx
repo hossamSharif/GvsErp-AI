@@ -6,47 +6,86 @@
  * Create a new purchase order with autosave support.
  */
 
-import React, { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useCallback, useMemo } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
-import type { InvoiceWithRelations } from '@erp/shared';
-
-// Mock data - in a real app, these would come from API hooks
-const MOCK_WAREHOUSES = [
-  { id: 'wh-1', name: 'Main Warehouse' },
-  { id: 'wh-2', name: 'Branch Store' },
-];
-
-const MOCK_PARTIES = [
-  { id: 'p-4', name: 'Supplier Corp', type: 'supplier' as const, balance: 200.00, email: 'supplier@example.com', phone: '+1234567893' },
-  { id: 'p-5', name: 'Wholesale Inc', type: 'supplier' as const, balance: -100.00, email: 'wholesale@example.com', phone: '+1234567894' },
-  { id: 'p-6', name: 'Global Goods', type: 'supplier' as const, balance: 1000.00, email: 'global@example.com', phone: '+1234567895' },
-];
-
-const MOCK_ITEMS = [
-  { id: 'item-1', name: 'Product A', sku: 'SKU-001', unitPrice: 20.00, taxRate: 10 },
-  { id: 'item-2', name: 'Product B', sku: 'SKU-002', unitPrice: 40.00, taxRate: 10 },
-  { id: 'item-3', name: 'Product C', sku: 'SKU-003', unitPrice: 60.00, taxRate: 5 },
-  { id: 'item-4', name: 'Raw Material X', sku: 'RAW-001', unitPrice: 15.00, taxRate: 0 },
-];
+import { useActiveWarehouses } from '@/hooks/use-warehouses';
+import { useParties } from '@/hooks/use-parties';
+import { useItems } from '@/hooks/use-items';
+import type { InvoiceWithRelations } from '@erp-saas/shared';
 
 export default function NewPurchasePage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+
+  // Fetch real data from API
+  const { data: warehousesData, isLoading: warehousesLoading } = useActiveWarehouses();
+  const { data: partiesData, isLoading: partiesLoading } = useParties({ type: 'supplier', limit: 100 });
+  const { data: itemsData, isLoading: itemsLoading } = useItems({ isActive: true, includePrices: true, limit: 100 });
+
+  // Transform data for the form
+  const warehouses = useMemo(() => {
+    return warehousesData?.data?.map(w => ({
+      id: w.id,
+      name: w.name,
+    })) || [];
+  }, [warehousesData]);
+
+  const parties = useMemo(() => {
+    return partiesData?.data?.map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      balance: p.balance || 0,
+      email: p.email || undefined,
+      phone: p.phone || undefined,
+    })) || [];
+  }, [partiesData]);
+
+  const items = useMemo(() => {
+    return itemsData?.data?.map(i => {
+      // Find cost price from prices array (when includePrices: true)
+      let unitPrice = 0;
+      if ('prices' in i && Array.isArray(i.prices)) {
+        const costPrice = i.prices.find(p => p.priceTier === 'cost');
+        unitPrice = costPrice?.price || 0;
+      }
+
+      return {
+        id: i.id,
+        name: i.name,
+        sku: i.sku || null,
+        unitPrice,
+        taxRate: i.taxRate || 0,
+      };
+    }) || [];
+  }, [itemsData]);
 
   const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
     // Navigate to the invoice details page
-    router.push(`/purchases/${invoice.id}`);
-  }, [router]);
+    router.push(`/${locale}/purchases/${invoice.id}`);
+  }, [router, locale]);
+
+  const isLoading = warehousesLoading || partiesLoading || itemsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/purchases">
+          <Link href={`/${locale}/purchases`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -61,10 +100,10 @@ export default function NewPurchasePage() {
       {/* Invoice Form */}
       <InvoiceForm
         type="purchase"
-        warehouses={MOCK_WAREHOUSES}
-        parties={MOCK_PARTIES}
-        items={MOCK_ITEMS}
-        defaultWarehouseId={MOCK_WAREHOUSES[0]?.id}
+        warehouses={warehouses}
+        parties={parties}
+        items={items}
+        defaultWarehouseId={warehouses[0]?.id}
         onSaved={handleSaved}
       />
     </div>

@@ -9,8 +9,8 @@ import type {
   JournalEntry,
   CreateJournalEntryInput,
   UpdateJournalEntryInput,
-} from '@erp/shared';
-import { apiClient } from '@/lib/api-client';
+} from '@erp-saas/shared';
+import { api } from '@/lib/api-client';
 
 // Query keys
 export const journalEntryKeys = {
@@ -47,7 +47,7 @@ export function useJournalEntries(filters?: JournalEntryFilters) {
       if (filters?.page) queryParams.append('page', String(filters.page));
       if (filters?.limit) queryParams.append('limit', String(filters.limit));
 
-      const response = await apiClient.get<{ data: JournalEntry[]; meta: any }>(
+      const response = await api.get<{ data: JournalEntry[]; meta: any }>(
         `/journal-entries?${queryParams.toString()}`
       );
       return response;
@@ -62,7 +62,7 @@ export function useJournalEntry(id: string) {
   return useQuery({
     queryKey: journalEntryKeys.detail(id),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: JournalEntry }>(
+      const response = await api.get<{ data: JournalEntry }>(
         `/journal-entries/${id}`
       );
       return response.data;
@@ -79,7 +79,7 @@ export function useCreateJournalEntry() {
 
   return useMutation({
     mutationFn: async (data: CreateJournalEntryInput) => {
-      const response = await apiClient.post<{ data: JournalEntry }>(
+      const response = await api.post<{ data: JournalEntry }>(
         '/journal-entries',
         data
       );
@@ -105,7 +105,7 @@ export function useUpdateJournalEntry() {
       id: string;
       data: UpdateJournalEntryInput;
     }) => {
-      const response = await apiClient.put<{ data: JournalEntry }>(
+      const response = await api.put<{ data: JournalEntry }>(
         `/journal-entries/${id}`,
         data
       );
@@ -126,7 +126,7 @@ export function usePostJournalEntry() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.post<{ data: JournalEntry }>(
+      const response = await api.post<{ data: JournalEntry }>(
         `/journal-entries/${id}/post`
       );
       return response.data;
@@ -146,7 +146,7 @@ export function useDeleteJournalEntry() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/journal-entries/${id}`);
+      await api.delete(`/journal-entries/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: journalEntryKeys.lists() });

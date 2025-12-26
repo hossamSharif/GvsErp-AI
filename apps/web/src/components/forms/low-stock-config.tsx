@@ -55,7 +55,7 @@ import {
   useWarehouseInventory,
   useUpdateLowStockThreshold,
 } from '@/hooks/use-warehouses';
-import type { Warehouse, WarehouseInventoryEntry } from '@erp/shared';
+import type { Warehouse, WarehouseInventoryEntry } from '@erp-saas/shared';
 
 // Bulk update schema
 const bulkUpdateSchema = z.object({

@@ -289,6 +289,7 @@ export const itemQuerySchema = z.object({
   search: z.string().max(255).optional(),
   categoryId: z.string().uuid('Invalid category ID').optional(),
   isActive: z.coerce.boolean().optional(),
+  includePrices: z.coerce.boolean().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sortBy: itemSortFieldSchema,
@@ -337,23 +338,4 @@ export const itemReportParamsSchema = z.object({
   currency: currencySchema,
 });
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
-export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
-export type CategoryQueryParams = z.infer<typeof categoryQuerySchema>;
-
-export type CreateItemPriceInput = z.infer<typeof createItemPriceSchema>;
-export type UpdateItemPriceInput = z.infer<typeof updateItemPriceSchema>;
-
-export type CreateItemPackagingInput = z.infer<typeof createItemPackagingSchema>;
-export type UpdateItemPackagingInput = z.infer<typeof updateItemPackagingSchema>;
-
-export type CreateItemInput = z.infer<typeof createItemSchema>;
-export type UpdateItemInput = z.infer<typeof updateItemSchema>;
-export type ItemQueryParams = z.infer<typeof itemQuerySchema>;
-
-export type BulkPriceUpdateInput = z.infer<typeof bulkPriceUpdateSchema>;
-export type ItemReportParams = z.infer<typeof itemReportParamsSchema>;
+// Type exports are in types/items.ts to avoid duplicate exports

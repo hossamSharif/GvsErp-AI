@@ -426,4 +426,192 @@ export class DataAccessLayer {
 
     return summaryParts.join('\n');
   }
+
+  /**
+   * Get marketing-focused data (sales trends, customer insights, product performance)
+   * Optimized for marketing consultant role
+   * Requires: sales:read, parties:read, inventory:read permissions
+   */
+  async getMarketingData(
+    context: UserContext,
+    periodDays: number = 30
+  ): Promise<any> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - periodDays);
+
+    const data: any = {};
+
+    // Top customers by revenue (if permitted)
+    if (this.hasPermission(context, 'sales:read') && this.hasPermission(context, 'parties:read')) {
+      const { data: topCustomers } = await this.supabase
+        .from('invoices')
+        .select('party_id, total')
+        .eq('tenant_id', context.tenantId)
+        .eq('type', 'sale')
+        .eq('status', 'final')
+        .gte('finalized_at', startDate.toISOString())
+        .order('total', { ascending: false })
+        .limit(10);
+
+      data.topCustomers = topCustomers;
+    }
+
+    // Best selling items (if permitted)
+    if (this.hasPermission(context, 'sales:read') && this.hasPermission(context, 'inventory:read')) {
+      // This would require a join with invoice_items table
+      // Simplified version for now
+      data.salesTrend = await this.getSalesSummary(
+        context,
+        startDate.toISOString(),
+        new Date().toISOString()
+      );
+    }
+
+    return this.sanitizeData(data);
+  }
+
+  /**
+   * Get financial analyst data (KPIs, ratios, profitability)
+   * Optimized for financial analyst role
+   * Requires: accounting:read, sales:read, purchases:read permissions
+   */
+  async getFinancialData(
+    context: UserContext,
+    periodDays: number = 30
+  ): Promise<any> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - periodDays);
+
+    const data: any = {};
+
+    // Revenue and expenses
+    if (this.hasPermission(context, 'sales:read')) {
+      data.revenue = await this.getSalesSummary(
+        context,
+        startDate.toISOString(),
+        new Date().toISOString()
+      );
+    }
+
+    if (this.hasPermission(context, 'purchases:read')) {
+      const { data: purchases } = await this.supabase
+        .from('invoices')
+        .select('total')
+        .eq('tenant_id', context.tenantId)
+        .eq('type', 'purchase')
+        .eq('status', 'final')
+        .gte('finalized_at', startDate.toISOString());
+
+      const totalExpenses = (purchases || []).reduce(
+        (sum, inv) => sum + (inv.total || 0),
+        0
+      );
+
+      data.expenses = {
+        totalExpenses,
+        totalInvoices: purchases?.length || 0,
+      };
+    }
+
+    // Account balances
+    if (this.hasPermission(context, 'accounting:read')) {
+      const { data: accounts } = await this.supabase
+        .from('accounts')
+        .select('account_type, balance')
+        .eq('tenant_id', context.tenantId)
+        .eq('is_active', true);
+
+      data.accountBalances = accounts;
+    }
+
+    return this.sanitizeData(data);
+  }
+
+  /**
+   * Get customer service data (orders, pending items, customer issues)
+   * Optimized for customer service role
+   * Requires: sales:read, parties:read, inventory:read permissions
+   */
+  async getCustomerServiceData(
+    context: UserContext,
+    limit: number = 20
+  ): Promise<any> {
+    const data: any = {};
+
+    // Recent orders
+    if (this.hasPermission(context, 'sales:read')) {
+      const { data: recentOrders } = await this.supabase
+        .from('invoices')
+        .select('id, invoice_number, party_id, total, status, created_at')
+        .eq('tenant_id', context.tenantId)
+        .eq('type', 'sale')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      data.recentOrders = recentOrders;
+    }
+
+    // Customer information
+    if (this.hasPermission(context, 'parties:read')) {
+      data.customers = await this.getCustomers(context, limit);
+    }
+
+    // Stock availability
+    if (this.hasPermission(context, 'inventory:read')) {
+      data.inventory = await this.getInventoryItems(context, limit);
+    }
+
+    return this.sanitizeData(data);
+  }
+
+  /**
+   * Get legal compliance data (audit trails, tax records, documentation)
+   * Optimized for legal consultant role
+   * Requires: accounting:read, sales:read, purchases:read permissions
+   */
+  async getLegalComplianceData(
+    context: UserContext,
+    limit: number = 20
+  ): Promise<any> {
+    const data: any = {};
+
+    // Recent transactions for audit trail
+    if (this.hasPermission(context, 'sales:read')) {
+      const { data: salesInvoices } = await this.supabase
+        .from('invoices')
+        .select('id, invoice_number, type, total, tax_amount, status, finalized_at')
+        .eq('tenant_id', context.tenantId)
+        .eq('type', 'sale')
+        .order('finalized_at', { ascending: false })
+        .limit(limit);
+
+      data.recentSales = salesInvoices;
+    }
+
+    if (this.hasPermission(context, 'purchases:read')) {
+      const { data: purchaseInvoices } = await this.supabase
+        .from('invoices')
+        .select('id, invoice_number, type, total, tax_amount, status, finalized_at')
+        .eq('tenant_id', context.tenantId)
+        .eq('type', 'purchase')
+        .order('finalized_at', { ascending: false })
+        .limit(limit);
+
+      data.recentPurchases = purchaseInvoices;
+    }
+
+    // Accounting records for compliance
+    if (this.hasPermission(context, 'accounting:read')) {
+      const { data: journalEntries } = await this.supabase
+        .from('journal_entries')
+        .select('id, entry_number, entry_date, description, total_debit, total_credit')
+        .eq('tenant_id', context.tenantId)
+        .order('entry_date', { ascending: false })
+        .limit(limit);
+
+      data.recentJournalEntries = journalEntries;
+    }
+
+    return this.sanitizeData(data);
+  }
 }

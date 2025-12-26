@@ -6,7 +6,8 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
+import { AppError } from './error';
 
 // Extend Express Request type
 declare global {
@@ -73,30 +74,28 @@ export function verifyTenantAccess(paramName: string = 'tenantId') {
 }
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
  * Get tenant context helper for creating service instances
+ * Uses service role key to bypass RLS since tenant isolation is enforced by the API layer
  */
 export function getTenantContext(req: Request): {
   supabase: SupabaseClient<Database>;
   tenantId: string;
   userId: string;
 } {
-  if (!req.user || !req.user.tenant_id) {
-    throw new Error('Tenant context not available');
+  if (!req.user) {
+    throw AppError.unauthorized('Authentication required');
   }
 
-  if (!req.accessToken) {
-    throw new Error('Access token not available');
+  if (!req.user.tenant_id) {
+    throw AppError.forbidden('User is not associated with a tenant. Please contact support.');
   }
 
-  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${req.accessToken}`,
-      },
-    },
+  // Use service role to bypass RLS - tenant isolation is enforced by API layer
+  // via tenantId parameter passed to all repository methods
+  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

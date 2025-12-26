@@ -4,7 +4,7 @@
  * Typed HTTP client with authentication and error handling.
  */
 
-import type { ApiError, ApiResponse, ApiListResponse, PaginationParams } from '@erp/shared';
+import type { ApiError, ApiResponse, ApiListResponse, PaginationParams } from '@erp-saas/shared';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -30,29 +30,60 @@ class ApiClientError extends Error {
   }
 }
 
-async function getAccessToken(): Promise<string | null> {
-  // Get token from Supabase session
-  if (typeof window !== 'undefined') {
+// Cached supabase client for the browser
+let browserSupabase: ReturnType<typeof import('@supabase/ssr').createBrowserClient> | null = null;
+
+async function getSupabaseClient() {
+  if (typeof window === 'undefined') return null;
+
+  if (!browserSupabase) {
     const { createBrowserClient } = await import('@supabase/ssr');
-    const supabase = createBrowserClient(
+    browserSupabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ?? null;
   }
+  return browserSupabase;
+}
+
+async function getAccessToken(): Promise<string | null> {
+  // Get token from Supabase session
+  const supabase = await getSupabaseClient();
+  if (!supabase) return null;
+
+  // First try to get existing session
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    // Check if token is expired or about to expire (within 60 seconds)
+    const expiresAt = session.expires_at;
+    const now = Math.floor(Date.now() / 1000);
+
+    if (expiresAt && expiresAt - now < 60) {
+      // Token is expired or about to expire, try to refresh
+      console.log('Token expiring soon, attempting refresh...');
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      if (refreshData.session?.access_token) {
+        return refreshData.session.access_token;
+      }
+    }
+
+    return session.access_token;
+  }
+
   return null;
 }
 
 async function request<T>(
   method: HttpMethod,
   endpoint: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
+  retryCount: number = 0
 ): Promise<T> {
   const { params, body, headers = {} } = options;
 
   // Build URL with query params
-  const url = new URL(\`\${API_BASE_URL}\${endpoint}\`);
+  const url = new URL(`${API_BASE_URL}${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -71,7 +102,9 @@ async function request<T>(
   };
 
   if (accessToken) {
-    requestHeaders['Authorization'] = \`Bearer \${accessToken}\`;
+    requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+  } else {
+    console.warn('No access token available for API request to:', endpoint);
   }
 
   // Make request
@@ -90,9 +123,23 @@ async function request<T>(
     } catch {
       error = {
         code: 'INTERNAL_ERROR',
-        message: \`HTTP \${response.status}: \${response.statusText}\`,
+        message: `HTTP ${response.status}: ${response.statusText}`,
       };
     }
+
+    // If 401 and we haven't retried yet, try refreshing the token
+    if (response.status === 401 && retryCount === 0) {
+      console.log('Got 401, attempting token refresh and retry...');
+      const supabase = await getSupabaseClient();
+      if (supabase) {
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (refreshData.session?.access_token) {
+          // Retry the request with the new token
+          return request<T>(method, endpoint, options, retryCount + 1);
+        }
+      }
+    }
+
     throw new ApiClientError(error, response.status);
   }
 

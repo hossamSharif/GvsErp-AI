@@ -9,6 +9,7 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
 
 // PDF Styles
@@ -20,6 +21,11 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   title: {
     fontSize: 24,
@@ -147,12 +153,14 @@ interface PayrollReportProps {
   };
   items: PayrollItem[];
   companyName?: string;
+  companyLogo?: string;
 }
 
 export function PayrollReport({
   payrollRun,
   items,
   companyName = 'Company Name',
+  companyLogo,
 }: PayrollReportProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -171,6 +179,7 @@ export function PayrollReport({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>Payroll Summary Report</Text>
           <Text style={styles.subtitle}>{companyName}</Text>
           <Text style={styles.subtitle}>

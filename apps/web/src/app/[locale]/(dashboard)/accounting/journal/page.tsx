@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useJournalEntries, usePostJournalEntry, useDeleteJournalEntry } from '@/hooks/use-journal-entries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,6 +34,8 @@ import { format } from 'date-fns';
 export default function JournalEntriesPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('accounting.journal');
+  const tc = useTranslations('common');
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
@@ -43,40 +46,40 @@ export default function JournalEntriesPage() {
   const deleteMutation = useDeleteJournalEntry();
 
   const handlePost = async (id: string) => {
-    if (!confirm('Are you sure you want to post this journal entry? This action cannot be undone.')) {
+    if (!confirm(t('postConfirm'))) {
       return;
     }
 
     try {
       await postMutation.mutateAsync(id);
       toast({
-        title: 'Success',
-        description: 'Journal entry posted successfully',
+        title: tc('success'),
+        description: t('messages.postSuccess'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to post journal entry',
+        title: tc('error'),
+        description: error.response?.data?.error?.message || t('messages.postError'),
         variant: 'destructive',
       });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this journal entry?')) {
+    if (!confirm(t('deleteConfirm'))) {
       return;
     }
 
     try {
       await deleteMutation.mutateAsync(id);
       toast({
-        title: 'Success',
-        description: 'Journal entry deleted successfully',
+        title: tc('success'),
+        description: t('messages.deleteSuccess'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete journal entry',
+        title: tc('error'),
+        description: error.response?.data?.error?.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     }
@@ -86,14 +89,14 @@ export default function JournalEntriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Journal Entries</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your accounting journal entries
+            {t('description')}
           </p>
         </div>
         <Button onClick={() => router.push('/accounting/journal/new')}>
           <Plus className="mr-2 h-4 w-4" />
-          New Journal Entry
+          {t('newJournalEntry')}
         </Button>
       </div>
 
@@ -107,12 +110,12 @@ export default function JournalEntriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Entry Number</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('fields.entryNumber')}</TableHead>
+                  <TableHead>{t('fields.date')}</TableHead>
+                  <TableHead>{t('fields.description')}</TableHead>
+                  <TableHead>{t('fields.source')}</TableHead>
+                  <TableHead>{t('fields.status')}</TableHead>
+                  <TableHead className="text-right">{t('fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -131,10 +134,10 @@ export default function JournalEntriesPage() {
                     <TableCell>
                       {entry.is_posted ? (
                         <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                          Posted
+                          {t('status.posted')}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">Draft</Badge>
+                        <Badge variant="secondary">{t('status.draft')}</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -151,18 +154,18 @@ export default function JournalEntriesPage() {
                                 onClick={() => router.push(`/accounting/journal/${entry.id}`)}
                               >
                                 <Edit2 className="mr-2 h-4 w-4" />
-                                Edit
+                                {t('edit')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handlePost(entry.id)}>
                                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                                Post Entry
+                                {t('postEntry')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDelete(entry.id)}
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                {t('delete')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -170,7 +173,7 @@ export default function JournalEntriesPage() {
                             <DropdownMenuItem
                               onClick={() => router.push(`/accounting/journal/${entry.id}`)}
                             >
-                              View Details
+                              {t('viewDetails')}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -182,7 +185,7 @@ export default function JournalEntriesPage() {
             </Table>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No journal entries found. Click "New Journal Entry" to create one.
+              {t('noEntriesFound')}
             </div>
           )}
         </CardContent>

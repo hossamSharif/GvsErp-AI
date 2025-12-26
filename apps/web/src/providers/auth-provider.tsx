@@ -11,11 +11,12 @@ import {
   useContext,
   useEffect,
   useState,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import type { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
-import type { CurrentUser } from '@erp/shared';
+import type { CurrentUser } from '@erp-saas/shared';
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,7 @@ interface AuthContextType {
   currentUser: CurrentUser | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, tenantName: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -40,10 +42,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createBrowserClient(
+  // Create a stable supabase client instance
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  ), []);
 
   useEffect(() => {
     // Get initial session
@@ -82,13 +85,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
   const fetchCurrentUser = async (accessToken: string) => {
     try {
-      const response = await fetch('/api/v1/auth/me', {
+      const response = await fetch(`${apiUrl}/auth/me`, {
         headers: {
-          Authorization: \`Bearer \${accessToken}\`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -117,6 +122,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signUp = async (
     email: string,
     password: string,
@@ -126,7 +153,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     try {
       // Call our API to create tenant and user
-      const response = await fetch('/api/v1/auth/register', {
+      const response = await fetch(`${apiUrl}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,6 +205,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         currentUser,
         isLoading,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
         refreshSession,

@@ -9,13 +9,13 @@
  */
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import type {
   TrialBalance,
   IncomeStatement,
   BalanceSheet,
   GeneralLedgerReport,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 const styles = StyleSheet.create({
   page: {
@@ -27,6 +27,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: 2,
     paddingBottom: 10,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   title: {
     fontSize: 18,
@@ -78,11 +83,12 @@ const styles = StyleSheet.create({
 });
 
 // Trial Balance PDF
-export function TrialBalancePDF({ data, companyName }: { data: TrialBalance; companyName: string }) {
+export function TrialBalancePDF({ data, companyName, companyLogo }: { data: TrialBalance; companyName: string; companyLogo?: string }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{companyName}</Text>
           <Text style={styles.subtitle}>Trial Balance</Text>
           <Text style={styles.subtitle}>As of {data.as_of_date}</Text>
@@ -126,14 +132,17 @@ export function TrialBalancePDF({ data, companyName }: { data: TrialBalance; com
 export function IncomeStatementPDF({
   data,
   companyName,
+  companyLogo,
 }: {
   data: IncomeStatement;
   companyName: string;
+  companyLogo?: string;
 }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{companyName}</Text>
           <Text style={styles.subtitle}>Income Statement</Text>
           <Text style={styles.subtitle}>
@@ -187,14 +196,17 @@ export function IncomeStatementPDF({
 export function BalanceSheetPDF({
   data,
   companyName,
+  companyLogo,
 }: {
   data: BalanceSheet;
   companyName: string;
+  companyLogo?: string;
 }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{companyName}</Text>
           <Text style={styles.subtitle}>Balance Sheet</Text>
           <Text style={styles.subtitle}>As of {data.as_of_date}</Text>
@@ -264,14 +276,17 @@ export function BalanceSheetPDF({
 export function GeneralLedgerPDF({
   data,
   companyName,
+  companyLogo,
 }: {
   data: GeneralLedgerReport;
   companyName: string;
+  companyLogo?: string;
 }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{companyName}</Text>
           <Text style={styles.subtitle}>General Ledger</Text>
           <Text style={styles.subtitle}>

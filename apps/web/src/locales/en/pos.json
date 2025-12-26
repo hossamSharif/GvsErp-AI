@@ -1,0 +1,95 @@
+{
+  "pos": {
+    "title": "POS Locations",
+    "description": "Manage point of sale locations and terminals",
+    "loadingLocations": "Loading POS locations...",
+    "addPOSLocation": "Add POS Location",
+    "createPOSLocation": "Create POS Location",
+    "openTerminal": "Open Terminal",
+    "delete": "Delete",
+    "locations": {
+      "title": "POS Locations",
+      "description": "View and manage all point of sale locations",
+      "totalLocations": "Total Locations",
+      "active": "Active",
+      "inactive": "Inactive",
+      "noPOSLocations": "No POS locations yet",
+      "noPOSLocationsDesc": "Create your first POS location to start processing sales",
+      "addLocation": "Add Location",
+      "editLocation": "Edit Location",
+      "viewLocation": "View Location",
+      "deleteLocation": "Delete Location",
+      "fields": {
+        "name": "Name",
+        "warehouse": "Warehouse",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions",
+        "isActive": "Active",
+        "settings": "Settings"
+      },
+      "messages": {
+        "deleteSuccess": "POS location deleted successfully",
+        "deleteError": "Failed to delete POS location"
+      },
+      "deleteDialog": {
+        "title": "Are you sure?",
+        "description": "This will deactivate the POS location. You can reactivate it later if needed.",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      }
+    },
+    "terminal": {
+      "title": "POS Terminal",
+      "quickSale": "Quick Sale",
+      "newTransaction": "New Transaction",
+      "customer": "Customer",
+      "items": "Items",
+      "addItem": "Add Item",
+      "quantity": "Quantity",
+      "price": "Price",
+      "discount": "Discount",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "total": "Total",
+      "payment": "Payment",
+      "cash": "Cash",
+      "card": "Card",
+      "change": "Change",
+      "printReceipt": "Print Receipt",
+      "completeTransaction": "Complete",
+      "cancelTransaction": "Cancel"
+    },
+    "receipt": {
+      "title": "Receipt",
+      "receiptNumber": "Receipt #",
+      "date": "Date",
+      "cashier": "Cashier",
+      "items": "Items",
+      "thankYou": "Thank you for your business!",
+      "returnPolicy": "Return Policy"
+    },
+    "discounts": {
+      "title": "Discounts & Promotions",
+      "addDiscount": "Add Discount",
+      "fields": {
+        "name": "Promotion Name",
+        "type": "Type",
+        "value": "Value",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "isActive": "Active"
+      },
+      "types": {
+        "percentage": "Percentage",
+        "fixed": "Fixed Amount"
+      }
+    },
+    "loyalty": {
+      "title": "Loyalty Program",
+      "points": "Points",
+      "rewards": "Rewards",
+      "redeemPoints": "Redeem Points"
+    }
+  }
+}

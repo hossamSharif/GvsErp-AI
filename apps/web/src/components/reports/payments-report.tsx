@@ -13,8 +13,9 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
-import type { PaymentWithParty } from '@erp/shared';
+import type { PaymentWithParty } from '@erp-saas/shared';
 
 // =============================================================================
 // STYLES
@@ -28,6 +29,11 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   title: {
     fontSize: 20,
@@ -161,6 +167,8 @@ interface PaymentsReportProps {
   title?: string;
   /** Company/tenant name */
   companyName?: string;
+  /** Company logo URL */
+  companyLogo?: string;
   /** Payments data */
   payments: PaymentWithParty[];
   /** Currency symbol */
@@ -220,6 +228,7 @@ function formatPaymentMethod(method: string | null): string {
 export function PaymentsReportDocument({
   title = 'Payments Report',
   companyName = 'Company Name',
+  companyLogo,
   payments,
   currencySymbol = '$',
   filterDescription,
@@ -246,6 +255,7 @@ export function PaymentsReportDocument({
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {companyLogo && <Image src={companyLogo} style={styles.logo} />}
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{companyName}</Text>
           {filterDescription && (

@@ -11,8 +11,8 @@ import type {
   BalanceSheet,
   GeneralLedgerReport,
   AccountingActivationInput,
-} from '@erp/shared';
-import { apiClient } from '@/lib/api-client';
+} from '@erp-saas/shared';
+import { api } from '@/lib/api-client';
 
 // Query keys
 export const accountingKeys = {
@@ -36,7 +36,7 @@ export function useAccountingStatus() {
   return useQuery({
     queryKey: accountingKeys.status(),
     queryFn: async () => {
-      const response = await apiClient.get<{
+      const response = await api.get<{
         data: { is_activated: boolean; account_count: number };
       }>('/accounting/status');
       return response.data;
@@ -52,7 +52,7 @@ export function useActivateAccounting() {
 
   return useMutation({
     mutationFn: async (data: AccountingActivationInput) => {
-      const response = await apiClient.post<{
+      const response = await api.post<{
         data: { accounts_created: number; accounts: any[] };
       }>('/accounting/activate', data);
       return response.data;
@@ -71,7 +71,7 @@ export function useAccountingSummary() {
   return useQuery({
     queryKey: accountingKeys.summary(),
     queryFn: async () => {
-      const response = await apiClient.get<{
+      const response = await api.get<{
         data: {
           current_month_revenue: number;
           current_month_expenses: number;
@@ -94,7 +94,7 @@ export function useTrialBalance(asOfDate: string) {
   return useQuery({
     queryKey: accountingKeys.trialBalance(asOfDate),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: TrialBalance }>(
+      const response = await api.get<{ data: TrialBalance }>(
         `/accounting/trial-balance?as_of_date=${asOfDate}`
       );
       return response.data;
@@ -110,7 +110,7 @@ export function useIncomeStatement(startDate: string, endDate: string) {
   return useQuery({
     queryKey: accountingKeys.incomeStatement(startDate, endDate),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: IncomeStatement }>(
+      const response = await api.get<{ data: IncomeStatement }>(
         `/accounting/income-statement?start_date=${startDate}&end_date=${endDate}`
       );
       return response.data;
@@ -126,7 +126,7 @@ export function useBalanceSheet(asOfDate: string) {
   return useQuery({
     queryKey: accountingKeys.balanceSheet(asOfDate),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: BalanceSheet }>(
+      const response = await api.get<{ data: BalanceSheet }>(
         `/accounting/balance-sheet?as_of_date=${asOfDate}`
       );
       return response.data;
@@ -146,7 +146,7 @@ export function useGeneralLedger(
   return useQuery({
     queryKey: accountingKeys.generalLedger(accountId, startDate, endDate),
     queryFn: async () => {
-      const response = await apiClient.get<{ data: GeneralLedgerReport }>(
+      const response = await api.get<{ data: GeneralLedgerReport }>(
         `/accounting/general-ledger?account_id=${accountId}&start_date=${startDate}&end_date=${endDate}`
       );
       return response.data;

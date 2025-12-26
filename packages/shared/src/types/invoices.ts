@@ -3,7 +3,7 @@
  * @module types/invoices
  */
 
-import type { Item, ItemWithCategory } from './items';
+import type { SortDirection } from './items';
 
 // =============================================================================
 // BASE TYPES
@@ -246,10 +246,7 @@ export type InvoiceSortField =
   | 'total'
   | 'status';
 
-/**
- * Sort direction
- */
-export type SortDirection = 'asc' | 'desc';
+// SortDirection is imported from './items'
 
 /**
  * Query parameters for fetching invoices

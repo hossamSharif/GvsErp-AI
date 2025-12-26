@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 import type {
   Item,
@@ -15,7 +15,7 @@ import type {
   ItemPackaging,
   ItemQueryParams,
   BulkPriceUpdateResult,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type ItemRow = Database['public']['Tables']['items']['Row'];
 type ItemInsert = Database['public']['Tables']['items']['Insert'];
@@ -33,6 +33,7 @@ type ItemPackagingInsert = Database['public']['Tables']['item_packagings']['Inse
 interface ItemQueryOptions extends QueryOptions {
   search?: string;
   categoryId?: string;
+  includePrices?: boolean;
 }
 
 /**
@@ -50,7 +51,7 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
   /**
    * Find all items with search and filters
    */
-  async findAllWithFilters(options: ItemQueryOptions): Promise<QueryResult<ItemWithCategory>> {
+  async findAllWithFilters(options: ItemQueryOptions): Promise<QueryResult<ItemWithCategory | ItemWithRelations>> {
     const {
       tenantId,
       page = 1,
@@ -60,16 +61,26 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       includeInactive = false,
       search,
       categoryId,
+      includePrices = false,
     } = options;
 
     const offset = (page - 1) * limit;
 
-    let query = this.supabase
-      .from('items')
-      .select(`
+    // Determine select clause based on includePrices
+    const selectClause = includePrices
+      ? `
+        *,
+        category:categories(*),
+        prices:item_prices(*)
+      `
+      : `
         *,
         category:categories(*)
-      `, { count: 'exact' })
+      `;
+
+    let query = this.supabase
+      .from('items')
+      .select(selectClause, { count: 'exact' })
       .eq('tenant_id', tenantId);
 
     // Apply filters
@@ -100,7 +111,16 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       throw error;
     }
 
-    const items = (data || []).map(this.mapItemWithCategory);
+    // Map based on whether prices are included
+    const items = (data || []).map((item) => {
+      if (includePrices) {
+        return this.mapItemWithRelations({
+          ...item,
+          packagings: [], // Not included in list query
+        });
+      }
+      return this.mapItemWithCategory(item);
+    });
 
     return {
       data: items,

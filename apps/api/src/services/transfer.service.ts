@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { TransferRepository } from '../repositories/transfer.repository';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { WarehouseRepository } from '../repositories/warehouse.repository';
@@ -16,7 +16,7 @@ import type {
   TransferQueryParams,
   CreateTransferInput,
   UpdateTransferInput,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 import { QueryResult } from '../repositories/base.repository';
 
 /**

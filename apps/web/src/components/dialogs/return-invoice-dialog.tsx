@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCreateReturn } from '@/hooks/use-invoices';
-import type { InvoiceWithRelations, ReturnInvoiceInput } from '@erp/shared';
+import type { InvoiceWithRelations, ReturnInvoiceInput } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

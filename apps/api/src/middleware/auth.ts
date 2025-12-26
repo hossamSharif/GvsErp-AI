@@ -6,7 +6,8 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
-import type { Permission, JWTClaims } from '@erp/shared';
+import type { Permission, JWTClaims } from '@erp-saas/shared';
+import type { Database } from '@erp-saas/database';
 
 // Extend Express Request type
 declare global {
@@ -26,6 +27,19 @@ declare global {
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+/**
+ * Service client for admin operations (bypasses RLS)
+ */
+function getServiceClient() {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
 
 /**
  * Verify JWT token and extract user claims
@@ -48,21 +62,11 @@ export async function authMiddleware(
 
     const token = authHeader.substring(7);
 
-    // Create Supabase client to verify token
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // Use service client to validate token and bypass RLS for user lookup
+    const serviceClient = getServiceClient();
 
-    // Get user from token
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    // Get user from token using service client
+    const { data: { user }, error } = await serviceClient.auth.getUser(token);
 
     if (error || !user) {
       res.status(401).json({
@@ -75,12 +79,66 @@ export async function authMiddleware(
     // Extract custom claims from user metadata
     const claims = user.user_metadata as Partial<JWTClaims>;
 
+    // Initialize from JWT claims
+    let tenantId = claims.tenant_id || '';
+    let role = claims.role || '';
+    let permissions = (claims.permissions || []) as Permission[];
+
+    // ALWAYS look up from users table to ensure we have the latest data
+    // This bypasses RLS since we use service_role key
+    const { data: userData, error: userError } = await serviceClient
+      .from('users')
+      .select('tenant_id, is_active, role:roles(name, permissions)')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.error('User lookup error:', userError);
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'User profile not found. Please contact support.',
+      });
+      return;
+    }
+
+    if (!userData) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'User profile not found. Please complete registration.',
+      });
+      return;
+    }
+
+    if (!userData.is_active) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'Account is deactivated. Please contact support.',
+      });
+      return;
+    }
+
+    if (!userData.tenant_id) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'User is not associated with an organization. Please contact support.',
+      });
+      return;
+    }
+
+    // Use data from users table (authoritative source)
+    tenantId = userData.tenant_id;
+    if (userData.role) {
+      const roleData = userData.role as { name: string; permissions: Permission[] };
+      role = roleData.name || role;
+      permissions = roleData.permissions || permissions;
+    }
+
     req.user = {
       id: user.id,
       email: user.email!,
-      tenant_id: claims.tenant_id || '',
-      role: claims.role || '',
-      permissions: (claims.permissions || []) as Permission[],
+      tenant_id: tenantId,
+      role: role,
+      permissions: permissions,
     };
     req.accessToken = token;
 

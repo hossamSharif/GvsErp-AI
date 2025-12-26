@@ -1,0 +1,187 @@
+{
+  "accounting": {
+    "title": "المحاسبة",
+    "description": "الإدارة المالية والتقارير",
+    "activation": {
+      "title": "تفعيل وحدة المحاسبة",
+      "description": "إعداد دليل الحسابات والتفضيلات المحاسبية",
+      "wizard": {
+        "step1": "اختيار قالب الصناعة",
+        "step2": "تكوين السنة المالية",
+        "step3": "تعيين الأرصدة الافتتاحية",
+        "step4": "المراجعة والتفعيل"
+      }
+    },
+    "accounts": {
+      "title": "دليل الحسابات",
+      "addAccount": "إضافة حساب",
+      "editAccount": "تعديل الحساب",
+      "createAccount": "إنشاء حساب",
+      "viewAccount": "عرض الحساب",
+      "deleteAccount": "حذف الحساب",
+      "updateAccountInfo": "تحديث معلومات الحساب",
+      "addNewAccountDesc": "إضافة حساب جديد إلى دليل الحسابات",
+      "update": "تحديث",
+      "create": "إنشاء",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا الحساب؟",
+      "fields": {
+        "code": "رمز الحساب",
+        "name": "اسم الحساب",
+        "type": "نوع الحساب",
+        "parent": "الحساب الرئيسي",
+        "balance": "الرصيد",
+        "isActive": "نشط"
+      },
+      "types": {
+        "asset": "أصل",
+        "liability": "التزام",
+        "equity": "حقوق ملكية",
+        "revenue": "إيراد",
+        "expense": "مصروف"
+      },
+      "messages": {
+        "accountUpdated": "تم تحديث الحساب بنجاح",
+        "accountCreated": "تم إنشاء الحساب بنجاح",
+        "accountDeleted": "تم حذف الحساب بنجاح",
+        "saveError": "فشل في حفظ الحساب",
+        "deleteError": "فشل في حذف الحساب"
+      }
+    },
+    "journal": {
+      "title": "قيود اليومية",
+      "description": "إدارة قيود اليومية المحاسبية",
+      "newEntry": "قيد جديد",
+      "newJournalEntry": "قيد يومية جديد",
+      "editEntry": "تعديل القيد",
+      "viewEntry": "عرض القيد",
+      "postEntry": "ترحيل القيد",
+      "viewDetails": "عرض التفاصيل",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "noEntriesFound": "لم يتم العثور على قيود يومية. انقر على \"قيد يومية جديد\" لإنشاء واحد.",
+      "postConfirm": "هل أنت متأكد من ترحيل هذا القيد؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا القيد؟",
+      "createTitle": "قيد يومية جديد",
+      "createDescription": "إنشاء قيد يومية محاسبي جديد",
+      "fields": {
+        "entryNumber": "رقم القيد",
+        "entryDate": "تاريخ القيد",
+        "date": "التاريخ",
+        "description": "الوصف",
+        "sourceType": "نوع المصدر",
+        "source": "المصدر",
+        "isPosted": "مرحل",
+        "account": "الحساب",
+        "debit": "مدين",
+        "credit": "دائن",
+        "totalDebits": "إجمالي المدين",
+        "totalCredits": "إجمالي الدائن",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "posted": "مرحل",
+        "draft": "مسودة"
+      },
+      "sources": {
+        "manual": "يدوي",
+        "sale": "بيع",
+        "purchase": "شراء",
+        "payment": "دفع",
+        "payroll": "رواتب"
+      },
+      "messages": {
+        "postSuccess": "تم ترحيل القيد بنجاح",
+        "postError": "فشل في ترحيل القيد",
+        "deleteSuccess": "تم حذف القيد بنجاح",
+        "deleteError": "فشل في حذف القيد",
+        "createSuccess": "تم إنشاء القيد بنجاح",
+        "createError": "فشل في إنشاء القيد"
+      },
+      "validation": {
+        "balanced": "القيد متوازن",
+        "unbalanced": "يجب أن يتساوى المدين مع الدائن"
+      }
+    },
+    "ledger": {
+      "title": "دفتر الأستاذ العام",
+      "description": "عرض سجل المعاملات لحساب معين",
+      "viewTransactions": "عرض المعاملات",
+      "selectPlaceholder": "اختر الحساب",
+      "beginningBalance": "الرصيد الافتتاحي",
+      "endingBalance": "الرصيد الختامي",
+      "exportPdf": "تصدير PDF",
+      "generateReport": "إنشاء التقرير",
+      "selectAccount": "اختر حساباً لعرض دفتر الأستاذ الخاص به",
+      "fields": {
+        "account": "الحساب",
+        "date": "التاريخ",
+        "entryNumber": "رقم القيد",
+        "description": "الوصف",
+        "debit": "مدين",
+        "credit": "دائن",
+        "balance": "الرصيد",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ النهاية"
+      }
+    },
+    "trialBalance": {
+      "title": "ميزان المراجعة",
+      "description": "عرض أرصدة الحسابات كما في تاريخ محدد",
+      "asOfDate": "كما في تاريخ",
+      "generateReport": "إنشاء التقرير",
+      "exportPdf": "تصدير PDF",
+      "fields": {
+        "account": "الحساب",
+        "accountCode": "رمز الحساب",
+        "accountName": "اسم الحساب",
+        "type": "النوع",
+        "debit": "مدين",
+        "credit": "دائن"
+      },
+      "totals": {
+        "totalDebits": "إجمالي المدين",
+        "totalCredits": "إجمالي الدائن",
+        "difference": "الفرق",
+        "totalsLabel": "الإجماليات:"
+      }
+    },
+    "reports": {
+      "incomeStatement": {
+        "title": "قائمة الدخل",
+        "description": "قائمة الأرباح والخسائر لفترة محددة",
+        "revenue": "الإيرادات",
+        "expenses": "المصروفات",
+        "netIncome": "صافي الربح",
+        "netLoss": "صافي الخسارة",
+        "totalRevenue": "إجمالي الإيرادات",
+        "totalExpenses": "إجمالي المصروفات",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ النهاية",
+        "generateReport": "إنشاء التقرير",
+        "exportPdf": "تصدير PDF"
+      },
+      "balanceSheet": {
+        "title": "الميزانية العمومية",
+        "description": "الأصول والالتزامات وحقوق الملكية كما في تاريخ محدد",
+        "assets": "الأصول",
+        "liabilities": "الالتزامات",
+        "equity": "حقوق الملكية",
+        "totalAssets": "إجمالي الأصول",
+        "totalLiabilities": "إجمالي الالتزامات",
+        "totalEquity": "إجمالي حقوق الملكية",
+        "totalLiabilitiesEquity": "إجمالي الالتزامات وحقوق الملكية",
+        "asOfDate": "كما في تاريخ",
+        "generateReport": "إنشاء التقرير",
+        "exportPdf": "تصدير PDF"
+      },
+      "cashFlow": {
+        "title": "قائمة التدفقات النقدية",
+        "operating": "الأنشطة التشغيلية",
+        "investing": "الأنشطة الاستثمارية",
+        "financing": "الأنشطة التمويلية",
+        "netCashFlow": "صافي التدفق النقدي"
+      }
+    }
+  }
+}

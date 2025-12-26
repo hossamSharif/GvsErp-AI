@@ -15,10 +15,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { TransferForm } from '@/components/forms/transfer-form';
 import { useCreateTransfer } from '@/hooks/use-warehouses';
-import type { CreateTransferInput } from '@erp/shared';
+import type { CreateTransferInput } from '@erp-saas/shared';
 
 export default function NewTransferPage() {
-  const t = useTranslations('transfers');
+  const t = useTranslations('warehouses.transfersList');
   const router = useRouter();
   const searchParams = useSearchParams();
   const createMutation = useCreateTransfer();

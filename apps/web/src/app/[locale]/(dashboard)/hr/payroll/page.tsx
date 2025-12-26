@@ -7,7 +7,8 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Download, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,31 +48,33 @@ const usePayrollRuns = () => {
   };
 };
 
-const getStatusBadge = (status: string) => {
-  const variants: Record<string, any> = {
-    draft: { variant: 'secondary', label: 'Draft' },
-    processing: { variant: 'default', label: 'Processing' },
-    completed: { variant: 'default', label: 'Completed' },
+const getStatusVariant = (status: string) => {
+  const variants: Record<string, string> = {
+    draft: 'secondary',
+    processing: 'default',
+    completed: 'default',
   };
-
-  const config = variants[status] || variants.draft;
-  return <Badge variant={config.variant}>{config.label}</Badge>;
+  return variants[status] || 'secondary';
 };
 
 export default function PayrollPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+  const t = useTranslations('hr');
+  const tc = useTranslations('common');
   const { data, isLoading } = usePayrollRuns();
 
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'period_start',
-      header: 'Period',
+      header: t('payroll.fields.periodStart'),
       cell: ({ row }) => {
-        const start = new Date(row.original.period_start).toLocaleDateString('en-US', {
+        const start = new Date(row.original.period_start).toLocaleDateString(locale, {
           month: 'short',
           year: 'numeric',
         });
-        const end = new Date(row.original.period_end).toLocaleDateString('en-US', {
+        const end = new Date(row.original.period_end).toLocaleDateString(locale, {
           day: 'numeric',
         });
         return `${start} - ${end}`;
@@ -79,39 +82,43 @@ export default function PayrollPage() {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      header: t('payroll.fields.status'),
+      cell: ({ row }) => (
+        <Badge variant={getStatusVariant(row.original.status) as any}>
+          {t(`payroll.statuses.${row.original.status}`)}
+        </Badge>
+      ),
     },
     {
       accessorKey: 'total_gross',
-      header: 'Gross Pay',
-      cell: ({ row }) => `$${row.original.total_gross.toLocaleString()}`,
+      header: t('payroll.fields.totalGross'),
+      cell: ({ row }) => `$${row.original.total_gross.toLocaleString(locale)}`,
     },
     {
       accessorKey: 'total_deductions',
-      header: 'Deductions',
-      cell: ({ row }) => `$${row.original.total_deductions.toLocaleString()}`,
+      header: t('payroll.fields.totalDeductions'),
+      cell: ({ row }) => `$${row.original.total_deductions.toLocaleString(locale)}`,
     },
     {
       accessorKey: 'total_net',
-      header: 'Net Pay',
+      header: t('payroll.fields.totalNet'),
       cell: ({ row }) => (
         <span className="font-semibold">
-          ${row.original.total_net.toLocaleString()}
+          ${row.original.total_net.toLocaleString(locale)}
         </span>
       ),
     },
     {
       accessorKey: 'created_at',
-      header: 'Created',
-      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
+      header: tc('actions'),
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(locale),
     },
     {
       id: 'actions',
       cell: ({ row }) => (
         <div className="flex gap-2">
           <Button variant="ghost" size="sm">
-            View
+            {t('payroll.viewRun')}
           </Button>
           {row.original.status === 'completed' && (
             <Button variant="ghost" size="sm">
@@ -130,19 +137,19 @@ export default function PayrollPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payroll</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('payroll.title')}</h1>
           <p className="text-muted-foreground">
-            Process and manage employee payroll
+            {t('description')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+            <Download className="me-2 h-4 w-4" />
+            {tc('export')}
           </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New Payroll Run
+          <Button onClick={() => router.push(`/${locale}/hr/payroll/new`)}>
+            <Plus className="me-2 h-4 w-4" />
+            {t('payroll.newRun')}
           </Button>
         </div>
       </div>
@@ -151,43 +158,43 @@ export default function PayrollPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Last Payroll (Jan 2025)</CardDescription>
+            <CardDescription>{t('payroll.fields.totalNet')}</CardDescription>
             <CardTitle className="text-2xl flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              ${latestPayroll?.total_net.toLocaleString() || 0}
+              ${latestPayroll?.total_net.toLocaleString(locale) || 0}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Net pay distributed
+              {t('payroll.fields.netSalary')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Gross Pay</CardDescription>
+            <CardDescription>{t('payroll.fields.totalGross')}</CardDescription>
             <CardTitle className="text-2xl">
-              ${latestPayroll?.total_gross.toLocaleString() || 0}
+              ${latestPayroll?.total_gross.toLocaleString(locale) || 0}
             </CardTitle>
           </CardHeader>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Deductions</CardDescription>
+            <CardDescription>{t('payroll.fields.totalDeductions')}</CardDescription>
             <CardTitle className="text-2xl text-red-600">
-              ${latestPayroll?.total_deductions.toLocaleString() || 0}
+              ${latestPayroll?.total_deductions.toLocaleString(locale) || 0}
             </CardTitle>
           </CardHeader>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>YTD Total</CardDescription>
+            <CardDescription>{t('payroll.summary.totalEmployees')}</CardDescription>
             <CardTitle className="text-2xl flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              ${data?.data?.reduce((sum, p) => sum + p.total_net, 0).toLocaleString() || 0}
+              ${data?.data?.reduce((sum, p) => sum + p.total_net, 0).toLocaleString(locale) || 0}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -196,8 +203,8 @@ export default function PayrollPage() {
       {/* Payroll Runs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Payroll History</CardTitle>
-          <CardDescription>View and manage past payroll runs</CardDescription>
+          <CardTitle>{t('payroll.title')}</CardTitle>
+          <CardDescription>{t('payroll.viewRun')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -211,17 +218,16 @@ export default function PayrollPage() {
       {/* Quick Guide */}
       <Card>
         <CardHeader>
-          <CardTitle>Payroll Process</CardTitle>
-          <CardDescription>Steps to process payroll</CardDescription>
+          <CardTitle>{t('payroll.processPayroll')}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <ol className="space-y-2 list-decimal list-inside">
-            <li>Create a new payroll run for the period</li>
-            <li>Review employee attendance and work hours</li>
-            <li>Calculate gross pay, deductions, and net pay</li>
-            <li>Review the payroll summary</li>
-            <li>Process and post to accounting</li>
-            <li>Generate salary slips for employees</li>
+          <ol className="space-y-2 list-decimal list-inside rtl:list-inside">
+            <li>{t('payroll.newRun')}</li>
+            <li>{t('attendance.viewAttendance')}</li>
+            <li>{t('payroll.fields.grossSalary')}, {t('payroll.fields.deductions')}, {t('payroll.fields.netSalary')}</li>
+            <li>{t('payroll.viewRun')}</li>
+            <li>{t('payroll.processPayroll')}</li>
           </ol>
         </CardContent>
       </Card>

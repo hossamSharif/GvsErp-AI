@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import type { DraftInvoice, DraftInvoiceItem, InvoiceType } from '@erp/shared';
+import type { DraftInvoice, DraftInvoiceItem, InvoiceType } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES
@@ -19,6 +19,8 @@ interface DraftStoreState {
   drafts: Record<string, DraftInvoice>;
   /** Current active draft ID */
   activeDraftId: string | null;
+  /** Whether the store has been hydrated from localStorage */
+  hasHydrated: boolean;
 }
 
 interface DraftStoreActions {
@@ -95,6 +97,7 @@ export const useDraftStore = create<DraftStore>()(
       // State
       drafts: {},
       activeDraftId: null,
+      hasHydrated: false,
 
       // Actions
       createDraft: (type, warehouseId) => {
@@ -304,6 +307,18 @@ export const useDraftStore = create<DraftStore>()(
     }
   )
 );
+
+// Set hasHydrated when persist finishes rehydrating
+// This runs after the store is created, so useDraftStore is available
+if (typeof window !== 'undefined') {
+  useDraftStore.persist.onFinishHydration(() => {
+    useDraftStore.setState({ hasHydrated: true });
+  });
+  // Handle case where hydration already finished (e.g., no data in localStorage)
+  if (useDraftStore.persist.hasHydrated()) {
+    useDraftStore.setState({ hasHydrated: true });
+  }
+}
 
 // =============================================================================
 // SELECTORS

@@ -7,7 +7,8 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Search, Filter, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,8 +73,12 @@ const useDepartments = () => {
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+  const t = useTranslations('hr');
+  const tc = useTranslations('common');
   const [search, setSearch] = useState('');
-  const [department, setDepartment] = useState('');
+  const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('active');
 
   const { data, isLoading } = useEmployees();
@@ -82,10 +87,10 @@ export default function EmployeesPage() {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'employee_number',
-      header: 'Employee #',
+      header: t('employees.fields.employeeNumber'),
       cell: ({ row }) => (
         <Link
-          href={`/hr/employees/${row.original.id}`}
+          href={`/${locale}/hr/employees/${row.original.id}`}
           className="font-medium text-blue-600 hover:underline"
         >
           {row.original.employee_number}
@@ -94,40 +99,40 @@ export default function EmployeesPage() {
     },
     {
       accessorKey: 'full_name',
-      header: 'Name',
+      header: t('employees.fields.fullName'),
     },
     {
       accessorKey: 'department',
-      header: 'Department',
+      header: t('employees.fields.department'),
       cell: ({ row }) => row.original.department || '-',
     },
     {
       accessorKey: 'position',
-      header: 'Position',
+      header: t('employees.fields.position'),
       cell: ({ row }) => row.original.position || '-',
     },
     {
       accessorKey: 'hire_date',
-      header: 'Hire Date',
+      header: t('employees.fields.hireDate'),
       cell: ({ row }) => {
         if (!row.original.hire_date) return '-';
-        return new Date(row.original.hire_date).toLocaleDateString();
+        return new Date(row.original.hire_date).toLocaleDateString(locale);
       },
     },
     {
       accessorKey: 'salary',
-      header: 'Salary',
+      header: t('employees.fields.salary'),
       cell: ({ row }) => {
         if (!row.original.salary) return '-';
-        return `${row.original.salary_currency} ${row.original.salary.toLocaleString()}`;
+        return `${row.original.salary_currency} ${row.original.salary.toLocaleString(locale)}`;
       },
     },
     {
       accessorKey: 'is_active',
-      header: 'Status',
+      header: tc('status'),
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
-          {row.original.is_active ? 'Active' : 'Inactive'}
+          {row.original.is_active ? tc('active') : tc('inactive')}
         </Badge>
       ),
     },
@@ -138,24 +143,26 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('employees.title')}</h1>
           <p className="text-muted-foreground">
-            Manage your workforce and employee information
+            {t('description')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Import
+            <Upload className="me-2 h-4 w-4" />
+            {tc('import')}
           </Button>
           <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+            <Download className="me-2 h-4 w-4" />
+            {tc('export')}
           </Button>
-          <Button onClick={() => router.push('/hr/employees/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
+          <Link href={`/${locale}/hr/employees/new`}>
+            <Button>
+              <Plus className="me-2 h-4 w-4" />
+              {t('employees.addEmployee')}
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -163,13 +170,13 @@ export default function EmployeesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Employees</CardDescription>
+            <CardDescription>{t('employees.stats.totalEmployees')}</CardDescription>
             <CardTitle className="text-3xl">{data?.meta?.total || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active</CardDescription>
+            <CardDescription>{t('employees.stats.active')}</CardDescription>
             <CardTitle className="text-3xl">
               {data?.data?.filter((e) => e.is_active).length || 0}
             </CardTitle>
@@ -177,13 +184,13 @@ export default function EmployeesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Departments</CardDescription>
+            <CardDescription>{t('employees.stats.departments')}</CardDescription>
             <CardTitle className="text-3xl">{departments?.length || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>New This Month</CardDescription>
+            <CardDescription>{t('employees.stats.newThisMonth')}</CardDescription>
             <CardTitle className="text-3xl">0</CardTitle>
           </CardHeader>
         </Card>
@@ -192,28 +199,28 @@ export default function EmployeesPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{tc('filters')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search employees..."
+                  placeholder={tc('searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-8"
+                  className="ps-8"
                 />
               </div>
             </div>
 
             <Select value={department} onValueChange={setDepartment}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Departments" />
+                <SelectValue placeholder={tc('allDepartments')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">{tc('allDepartments')}</SelectItem>
                 {departments?.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
@@ -227,9 +234,9 @@ export default function EmployeesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="all">{tc('allStatus')}</SelectItem>
+                <SelectItem value="active">{tc('active')}</SelectItem>
+                <SelectItem value="inactive">{tc('inactive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

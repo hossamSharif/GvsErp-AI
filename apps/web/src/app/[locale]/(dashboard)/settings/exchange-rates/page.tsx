@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useExchangeRates, useDeleteExchangeRate, useCreateExchangeRate, useUpdateExchangeRate } from '@/hooks/use-exchange-rates';
 import { useCurrencies } from '@/hooks/use-currencies';
@@ -64,7 +65,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { ExchangeRate, CreateExchangeRateInput, UpdateExchangeRateInput, RateType } from '@erp/shared';
+import type { ExchangeRate, CreateExchangeRateInput, UpdateExchangeRateInput, RateType } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -102,6 +103,8 @@ export default function ExchangeRatesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.exchangeRates');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<ExchangeRateQueryParams>({
@@ -127,16 +130,16 @@ export default function ExchangeRatesPage() {
   const createMutation = useCreateExchangeRate({
     onSuccess: () => {
       toast({
-        title: 'Exchange rate created',
-        description: 'The exchange rate has been created successfully.',
+        title: t('messages.rateCreated'),
+        description: t('messages.rateCreatedDescription'),
       });
       setDialogOpen(false);
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create exchange rate',
+        title: tc('error'),
+        description: error.message || t('messages.createError'),
         variant: 'destructive',
       });
     },
@@ -145,8 +148,8 @@ export default function ExchangeRatesPage() {
   const updateMutation = useUpdateExchangeRate({
     onSuccess: () => {
       toast({
-        title: 'Exchange rate updated',
-        description: 'The exchange rate has been updated successfully.',
+        title: t('messages.rateUpdated'),
+        description: t('messages.rateUpdatedDescription'),
       });
       setDialogOpen(false);
       setEditingRate(null);
@@ -154,8 +157,8 @@ export default function ExchangeRatesPage() {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update exchange rate',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -164,16 +167,16 @@ export default function ExchangeRatesPage() {
   const deleteMutation = useDeleteExchangeRate({
     onSuccess: () => {
       toast({
-        title: 'Exchange rate deleted',
-        description: 'The exchange rate has been deleted successfully.',
+        title: t('messages.rateDeleted'),
+        description: t('messages.rateDeletedDescription'),
       });
       setDeleteDialogOpen(false);
       setRateToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete exchange rate',
+        title: tc('error'),
+        description: error.message || t('messages.deleteError'),
         variant: 'destructive',
       });
     },
@@ -280,21 +283,21 @@ export default function ExchangeRatesPage() {
     () => [
       {
         accessorKey: 'from_currency',
-        header: 'From',
+        header: t('fields.from'),
         cell: ({ row }) => (
           <span className="font-mono font-medium">{row.original.from_currency}</span>
         ),
       },
       {
         accessorKey: 'to_currency',
-        header: 'To',
+        header: t('fields.to'),
         cell: ({ row }) => (
           <span className="font-mono font-medium">{row.original.to_currency}</span>
         ),
       },
       {
         accessorKey: 'rate',
-        header: 'Rate',
+        header: t('fields.rate'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -304,23 +307,23 @@ export default function ExchangeRatesPage() {
       },
       {
         accessorKey: 'rate_type',
-        header: 'Type',
+        header: t('fields.type'),
         cell: ({ row }) => (
           <Badge variant={row.original.rate_type === 'formal' ? 'default' : 'secondary'}>
-            {row.original.rate_type === 'formal' ? 'Formal' : 'Black Market'}
+            {row.original.rate_type === 'formal' ? t('rateTypes.formal') : t('rateTypes.blackMarket')}
           </Badge>
         ),
       },
       {
         accessorKey: 'effective_date',
-        header: 'Effective Date',
+        header: t('fields.effectiveDate'),
         cell: ({ row }) => (
           <span>{format(new Date(row.original.effective_date), 'MMM dd, yyyy')}</span>
         ),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('fields.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -330,10 +333,10 @@ export default function ExchangeRatesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('fields.actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleEditRate(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -341,14 +344,14 @@ export default function ExchangeRatesPage() {
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleEditRate, handleDeleteRate]
+    [t, handleEditRate, handleDeleteRate]
   );
 
   return (
@@ -364,15 +367,15 @@ export default function ExchangeRatesPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Exchange Rates</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
             <p className="text-muted-foreground">
-              Manage currency exchange rates for multi-currency transactions
+              {t('pageDescription')}
             </p>
           </div>
         </div>
         <Button onClick={handleAddRate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Rate
+          {t('addRate')}
         </Button>
       </div>
 
@@ -386,7 +389,7 @@ export default function ExchangeRatesPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search by currency..."
+        searchPlaceholder={t('searchPlaceholder')}
         isLoading={isLoading}
       />
 
@@ -394,11 +397,11 @@ export default function ExchangeRatesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingRate ? 'Edit Exchange Rate' : 'Add Exchange Rate'}</DialogTitle>
+            <DialogTitle>{editingRate ? t('dialogs.edit') : t('dialogs.add')}</DialogTitle>
             <DialogDescription>
               {editingRate
-                ? 'Update the exchange rate details below.'
-                : 'Fill in the exchange rate details below.'}
+                ? t('dialogs.editDescription')
+                : t('dialogs.addDescription')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -408,11 +411,11 @@ export default function ExchangeRatesPage() {
                 name="from_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>From Currency</FormLabel>
+                    <FormLabel>{t('fields.fromCurrency')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t('fields.selectCurrency')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -433,11 +436,11 @@ export default function ExchangeRatesPage() {
                 name="to_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>To Currency</FormLabel>
+                    <FormLabel>{t('fields.toCurrency')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t('fields.selectCurrency')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -458,7 +461,7 @@ export default function ExchangeRatesPage() {
                 name="rate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exchange Rate</FormLabel>
+                    <FormLabel>{t('fields.exchangeRate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -468,7 +471,7 @@ export default function ExchangeRatesPage() {
                       />
                     </FormControl>
                     <FormDescription>
-                      How many units of "To Currency" equal 1 unit of "From Currency"
+                      {t('fields.rateDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -480,7 +483,7 @@ export default function ExchangeRatesPage() {
                 name="rate_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rate Type</FormLabel>
+                    <FormLabel>{t('fields.rateType')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -488,8 +491,8 @@ export default function ExchangeRatesPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="formal">Formal</SelectItem>
-                        <SelectItem value="black_market">Black Market</SelectItem>
+                        <SelectItem value="formal">{t('rateTypes.formal')}</SelectItem>
+                        <SelectItem value="black_market">{t('rateTypes.blackMarket')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -502,12 +505,12 @@ export default function ExchangeRatesPage() {
                 name="effective_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Effective Date</FormLabel>
+                    <FormLabel>{t('fields.effectiveDate')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Date when this rate becomes effective
+                      {t('fields.effectiveDateDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -520,7 +523,7 @@ export default function ExchangeRatesPage() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -529,7 +532,7 @@ export default function ExchangeRatesPage() {
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {editingRate ? 'Update' : 'Create'}
+                  {editingRate ? t('actions.update') : t('actions.create')}
                 </Button>
               </DialogFooter>
             </form>
@@ -541,19 +544,18 @@ export default function ExchangeRatesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the exchange rate from {rateToDelete?.from_currency} to{' '}
-              {rateToDelete?.to_currency}. This action cannot be undone.
+              {t('dialogs.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t('actions.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

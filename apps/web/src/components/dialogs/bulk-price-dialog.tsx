@@ -43,7 +43,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useBulkUpdatePrices } from '@/hooks/use-items';
 import { useToast } from '@/components/ui/use-toast';
-import type { ItemWithCategory, BulkPriceUpdateResult } from '@erp/shared';
+import type { ItemWithCategory, BulkPriceUpdateResult } from '@erp-saas/shared';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 // =============================================================================

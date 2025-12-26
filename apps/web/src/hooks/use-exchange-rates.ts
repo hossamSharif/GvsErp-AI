@@ -12,7 +12,7 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import type { ExchangeRate, CreateExchangeRateInput, UpdateExchangeRateInput, RateType } from '@erp/shared';
+import type { ExchangeRate, CreateExchangeRateInput, UpdateExchangeRateInput, RateType } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES

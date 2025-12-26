@@ -1,0 +1,103 @@
+{
+  "warehouses": {
+    "title": "Warehouses",
+    "description": "Manage storage locations and inventory",
+    "addWarehouse": "Add Warehouse",
+    "editWarehouse": "Edit Warehouse",
+    "viewWarehouse": "View Warehouse",
+    "deleteWarehouse": "Delete Warehouse",
+    "report": "Report",
+    "settings": "Settings",
+    "transfers": "Transfers",
+    "totalWarehouses": "Total Warehouses",
+    "lowStockAlerts": "Low Stock Alerts",
+    "critical": "critical",
+    "totalItems": "Total Items",
+    "totalValue": "Total Value",
+    "searchPlaceholder": "Search warehouses...",
+    "warehousesList": "Warehouses List",
+    "warehousesListDescription": "View and manage your storage locations",
+    "errorLoading": "Error loading warehouses",
+    "noResultsFound": "No warehouses found matching your search",
+    "noWarehouses": "No warehouses yet. Create your first warehouse to get started.",
+    "name": "Name",
+    "address": "Address",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "view": "View",
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing {from} to {to} of {total}",
+    "confirmDeactivate": "Are you sure you want to deactivate this warehouse?",
+    "createTitle": "Create Warehouse",
+    "createDescription": "Add a new warehouse to manage inventory",
+    "create": "Create",
+    "cancel": "Cancel",
+    "fields": {
+      "name": "Warehouse Name",
+      "address": "Address",
+      "isActive": "Active",
+      "currentValue": "Current Value"
+    },
+    "inventory": {
+      "title": "Inventory",
+      "item": "Item",
+      "quantity": "Quantity",
+      "reserved": "Reserved",
+      "available": "Available",
+      "lowStockThreshold": "Low Stock Threshold",
+      "value": "Value",
+      "lowStock": "Low Stock",
+      "noItems": "No inventory items in this warehouse",
+      "setThreshold": "Set Threshold",
+      "updateThreshold": "Update Threshold"
+    },
+    "transfersList": {
+      "title": "Stock Transfers",
+      "newTransfer": "New Transfer",
+      "newTransferDescription": "Create a new stock transfer between warehouses",
+      "transferDetails": "Transfer Details",
+      "transferDetailsDescription": "Specify the warehouses and items for this transfer",
+      "fromWarehouse": "From Warehouse",
+      "toWarehouse": "To Warehouse",
+      "status": "Status",
+      "complete": "Complete Transfer",
+      "cancel": "Cancel Transfer",
+      "items": "Items",
+      "date": "Date",
+      "noTransfers": "No transfers found",
+      "statuses": {
+        "pending": "Pending",
+        "in_transit": "In Transit",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      }
+    },
+    "detail": {
+      "backToList": "Back to Warehouses",
+      "warehouseDetails": "Warehouse Details",
+      "inventoryValue": "Inventory Value",
+      "itemCount": "Item Count",
+      "lowStockItems": "Low Stock Items"
+    },
+    "settingsPage": {
+      "title": "Low Stock Settings",
+      "description": "Configure low stock thresholds for items",
+      "bulkUpdate": "Bulk Update",
+      "saveChanges": "Save Changes"
+    },
+    "reportPage": {
+      "title": "Inventory Report",
+      "description": "View inventory across all warehouses",
+      "exportCsv": "Export CSV",
+      "exportPdf": "Export PDF",
+      "filterByWarehouse": "Filter by Warehouse",
+      "allWarehouses": "All Warehouses",
+      "lowStockOnly": "Low Stock Only"
+    }
+  }
+}

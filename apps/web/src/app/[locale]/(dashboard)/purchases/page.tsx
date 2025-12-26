@@ -8,7 +8,8 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   Search,
@@ -52,17 +53,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInvoices, usePrefetchInvoice } from '@/hooks/use-invoices';
-import type { InvoiceStatus, InvoiceQueryParams } from '@erp/shared';
+import type { InvoiceStatus, InvoiceQueryParams } from '@erp-saas/shared';
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', icon: Clock, variant: 'secondary' },
-  final: { label: 'Finalized', icon: CheckCircle, variant: 'default' },
-  returned: { label: 'Returned', icon: RotateCcw, variant: 'outline' },
-  canceled: { label: 'Canceled', icon: XCircle, variant: 'destructive' },
+const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  draft: { icon: Clock, variant: 'secondary' },
+  final: { icon: CheckCircle, variant: 'default' },
+  returned: { icon: RotateCcw, variant: 'outline' },
+  canceled: { icon: XCircle, variant: 'destructive' },
 };
 
 // =============================================================================
@@ -71,6 +72,9 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementT
 
 export default function PurchasesListPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+  const t = useTranslations('purchases');
   const prefetchInvoice = usePrefetchInvoice();
 
   // Filter state
@@ -97,7 +101,7 @@ export default function PurchasesListPage() {
 
   // Handle row click
   const handleRowClick = (invoiceId: string) => {
-    router.push(`/purchases/${invoiceId}`);
+    router.push(`/${locale}/purchases/${invoiceId}`);
   };
 
   // Handle row hover (prefetch)
@@ -110,15 +114,15 @@ export default function PurchasesListPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Purchase Orders</h1>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your purchase orders and supplier invoices
+            {t('description')}
           </p>
         </div>
         <Button asChild>
-          <Link href="/purchases/new">
+          <Link href={`/${locale}/purchases/new`}>
             <Plus className="h-4 w-4 mr-2" />
-            New Purchase
+            {t('newPurchase')}
           </Link>
         </Button>
       </div>
@@ -127,13 +131,13 @@ export default function PurchasesListPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Purchases</CardDescription>
+            <CardDescription>{t('stats.totalPurchases')}</CardDescription>
             <CardTitle className="text-2xl">{meta?.total || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Drafts</CardDescription>
+            <CardDescription>{t('stats.drafts')}</CardDescription>
             <CardTitle className="text-2xl text-amber-600">
               {invoices.filter(i => i.status === 'draft').length}
             </CardTitle>
@@ -141,7 +145,7 @@ export default function PurchasesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Finalized</CardDescription>
+            <CardDescription>{t('stats.finalized')}</CardDescription>
             <CardTitle className="text-2xl text-green-600">
               {invoices.filter(i => i.status === 'final').length}
             </CardTitle>
@@ -149,7 +153,7 @@ export default function PurchasesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>This Month</CardDescription>
+            <CardDescription>{t('stats.thisMonth')}</CardDescription>
             <CardTitle className="text-2xl">
               {invoices
                 .filter(i => i.status === 'final')
@@ -163,15 +167,15 @@ export default function PurchasesListPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground rtl:left-auto rtl:right-3" />
           <Input
-            placeholder="Search by invoice number..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="pl-9"
+            className="pl-9 rtl:pl-3 rtl:pr-9"
           />
         </div>
         <Select
@@ -182,15 +186,15 @@ export default function PurchasesListPage() {
           }}
         >
           <SelectTrigger className="w-[180px]">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
+            <Filter className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+            <SelectValue placeholder={t('filterByStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="final">Finalized</SelectItem>
-            <SelectItem value="returned">Returned</SelectItem>
-            <SelectItem value="canceled">Canceled</SelectItem>
+            <SelectItem value="all">{t('status.all')}</SelectItem>
+            <SelectItem value="draft">{t('status.draft')}</SelectItem>
+            <SelectItem value="final">{t('status.finalized')}</SelectItem>
+            <SelectItem value="returned">{t('status.returned')}</SelectItem>
+            <SelectItem value="canceled">{t('status.canceled')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -201,11 +205,11 @@ export default function PurchasesListPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{t('table.invoiceNumber')}</TableHead>
+                <TableHead>{t('table.supplier')}</TableHead>
+                <TableHead>{t('table.date')}</TableHead>
+                <TableHead>{t('table.status')}</TableHead>
+                <TableHead className="text-right rtl:text-left">{t('table.total')}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -213,13 +217,13 @@ export default function PurchasesListPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center">
-                    Loading...
+                    {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-destructive">
-                    Error loading invoices
+                    {t('errorLoading')}
                   </TableCell>
                 </TableRow>
               ) : invoices.length === 0 ? (
@@ -227,16 +231,16 @@ export default function PurchasesListPage() {
                   <TableCell colSpan={6} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <FileText className="h-8 w-8" />
-                      <p>No purchase orders found</p>
+                      <p>{t('noPurchases')}</p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href="/purchases/new">Create your first purchase</Link>
+                        <Link href={`/${locale}/purchases/new`}>{t('createFirst')}</Link>
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 invoices.map((invoice) => {
-                  const statusConfig = STATUS_CONFIG[invoice.status];
+                  const statusConfig = STATUS_ICONS[invoice.status];
                   const StatusIcon = statusConfig.icon;
 
                   return (
@@ -251,16 +255,16 @@ export default function PurchasesListPage() {
                       </TableCell>
                       <TableCell>
                         {invoice.party?.name || (
-                          <span className="text-muted-foreground">No supplier</span>
+                          <span className="text-muted-foreground">{t('noSupplier')}</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(invoice.createdAt).toLocaleDateString()}
+                        {new Date(invoice.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US')}
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusConfig.variant} className="gap-1">
                           <StatusIcon className="h-3 w-3" />
-                          {statusConfig.label}
+                          {t(`status.${invoice.status === 'final' ? 'finalized' : invoice.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
@@ -277,27 +281,27 @@ export default function PurchasesListPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('actions.title')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/purchases/${invoice.id}`}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
+                              <Link href={`/${locale}/purchases/${invoice.id}`}>
+                                <Eye className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                                {t('actions.viewDetails')}
                               </Link>
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/purchases/${invoice.id}/edit`}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
+                                <Link href={`/${locale}/purchases/${invoice.id}/edit`}>
+                                  <Edit className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                                  {t('actions.edit')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
                             {invoice.status === 'final' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/purchases/${invoice.id}?return=true`}>
-                                  <Undo2 className="h-4 w-4 mr-2" />
-                                  Create Return
+                                <Link href={`/${locale}/purchases/${invoice.id}?return=true`}>
+                                  <Undo2 className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                                  {t('actions.createReturn')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
@@ -317,7 +321,7 @@ export default function PurchasesListPage() {
       {meta && meta.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, meta.total)} of {meta.total} invoices
+            {t('pagination.showing', { from: ((page - 1) * 20) + 1, to: Math.min(page * 20, meta.total), total: meta.total })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -326,7 +330,7 @@ export default function PurchasesListPage() {
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >
-              Previous
+              {t('pagination.previous')}
             </Button>
             <Button
               variant="outline"
@@ -334,7 +338,7 @@ export default function PurchasesListPage() {
               disabled={page >= meta.total_pages}
               onClick={() => setPage(p => p + 1)}
             >
-              Next
+              {t('pagination.next')}
             </Button>
           </div>
         </div>

@@ -5,9 +5,9 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
-import type { Account, AccountType } from '@erp/shared';
+import type { Account, AccountType } from '@erp-saas/shared';
 
 type AccountRow = Database['public']['Tables']['accounts']['Row'];
 type AccountInsert = Database['public']['Tables']['accounts']['Insert'];

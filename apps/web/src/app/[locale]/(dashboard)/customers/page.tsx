@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useParties, useDeleteParty } from '@/hooks/use-parties';
 import { DataTable } from '@/components/tables/data-table';
@@ -37,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import type { Party, PartyQueryParams } from '@erp/shared';
+import type { Party, PartyQueryParams } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -54,6 +55,8 @@ export default function CustomersPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
+  const tc = useTranslations('common');
 
   // Query state
   const [queryParams, setQueryParams] = useState<PartyQueryParams>({
@@ -75,16 +78,16 @@ export default function CustomersPage() {
   const deleteMutation = useDeleteParty({
     onSuccess: () => {
       toast({
-        title: 'Customer deleted',
-        description: 'The customer has been deleted successfully.',
+        title: t('messages.customerDeleted'),
+        description: t('messages.customerDeletedSuccess'),
       });
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete customer',
+        title: tc('error'),
+        description: error.message || t('messages.deleteCustomerError'),
         variant: 'destructive',
       });
     },
@@ -162,7 +165,7 @@ export default function CustomersPage() {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('fields.name'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.name}</span>
@@ -174,12 +177,12 @@ export default function CustomersPage() {
       },
       {
         accessorKey: 'phone',
-        header: 'Phone',
+        header: t('fields.phone'),
         cell: ({ row }) => row.original.phone || '-',
       },
       {
         accessorKey: 'balance',
-        header: 'Balance',
+        header: t('fields.balance'),
         cell: ({ row }) => {
           const balance = row.original.balance;
           return (
@@ -197,21 +200,21 @@ export default function CustomersPage() {
       },
       {
         accessorKey: 'taxNumber',
-        header: 'Tax Number',
+        header: t('fields.taxNumber'),
         cell: ({ row }) => row.original.taxNumber || '-',
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: tc('status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? t('status.active') : t('status.inactive')}
           </Badge>
         ),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: tc('actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -247,7 +250,7 @@ export default function CustomersPage() {
         ),
       },
     ],
-    [handleViewCustomer, handleEditCustomer, handleRecordPayment, handleDeleteCustomer, formatCurrency]
+    [handleViewCustomer, handleEditCustomer, handleRecordPayment, handleDeleteCustomer, formatCurrency, t, tc]
   );
 
   return (

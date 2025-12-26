@@ -8,7 +8,7 @@
 
 import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
-import type { SalesReportEntry, SalesReportSummary, InvoiceStatus } from '@erp/shared';
+import type { SalesReportEntry, SalesReportSummary, InvoiceStatus } from '@erp-saas/shared';
 
 // =============================================================================
 // TYPES
@@ -21,6 +21,7 @@ interface SalesReportProps {
   dateTo?: string;
   generatedAt: string;
   companyName?: string;
+  companyLogo?: string;
   className?: string;
 }
 
@@ -48,6 +49,7 @@ export const SalesReport = forwardRef<HTMLDivElement, SalesReportProps>(
       dateTo,
       generatedAt,
       companyName = 'Your Company',
+      companyLogo,
       className,
     },
     ref
@@ -76,7 +78,11 @@ export const SalesReport = forwardRef<HTMLDivElement, SalesReportProps>(
         <div className="border-b-2 border-black pb-4 mb-6">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold">{companyName}</h1>
+              {companyLogo ? (
+                <img src={companyLogo} alt={companyName} className="h-12 mb-2 object-contain" />
+              ) : (
+                <h1 className="text-2xl font-bold">{companyName}</h1>
+              )}
               <p className="text-gray-600">Sales Report</p>
             </div>
             <div className="text-right text-sm">

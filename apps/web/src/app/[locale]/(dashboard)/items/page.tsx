@@ -12,11 +12,29 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
-import { useItems, useDeleteItem, itemKeys } from '@/hooks/use-items';
+import { useItems, useDeleteItem, useBulkUpdatePrices, itemKeys } from '@/hooks/use-items';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +55,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import type { ItemWithCategory, ItemQueryParams } from '@erp/shared';
+import type { ItemWithCategory, ItemQueryParams, BulkPriceUpdateInput } from '@erp-saas/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -47,13 +65,34 @@ import {
   Download,
   Filter,
   DollarSign,
+  Loader2,
 } from 'lucide-react';
+
+// Price tiers available for update
+const PRICE_TIERS = [
+  { value: 'retail', label: 'Retail Price' },
+  { value: 'wholesale', label: 'Wholesale Price' },
+  { value: 'distributor', label: 'Distributor Price' },
+];
+
+// Currencies
+const CURRENCIES = [
+  { value: 'USD', label: 'USD ($)' },
+  { value: 'EUR', label: 'EUR' },
+  { value: 'GBP', label: 'GBP' },
+  { value: 'EGP', label: 'EGP' },
+  { value: 'SAR', label: 'SAR' },
+  { value: 'AED', label: 'AED' },
+];
 
 export default function ItemsPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('items');
+  const tc = useTranslations('common');
+  const tt = useTranslations('table');
 
   // Query state
   const [queryParams, setQueryParams] = useState<ItemQueryParams>({
@@ -68,6 +107,15 @@ export default function ItemsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
 
+  // Bulk price update state
+  const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
+  const [bulkPriceForm, setBulkPriceForm] = useState({
+    adjustmentType: 'percentage' as 'percentage' | 'fixed',
+    adjustmentValue: '',
+    priceTier: 'retail',
+    currency: 'USD',
+  });
+
   // Fetch items
   const { data, isLoading, error } = useItems(queryParams);
 
@@ -75,16 +123,41 @@ export default function ItemsPage() {
   const deleteMutation = useDeleteItem({
     onSuccess: () => {
       toast({
-        title: 'Item deleted',
-        description: 'The item has been deleted successfully.',
+        title: t('messages.itemDeleted'),
+        description: t('messages.itemDeletedSuccess'),
       });
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete item',
+        title: tc('error'),
+        description: error.message || t('messages.deleteError'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Bulk price update mutation
+  const bulkPriceMutation = useBulkUpdatePrices({
+    onSuccess: (response) => {
+      toast({
+        title: t('messages.pricesUpdated'),
+        description: t('messages.pricesUpdatedSuccess', { count: response.data.updatedCount }),
+      });
+      setBulkPriceDialogOpen(false);
+      setSelectedItems([]);
+      setBulkPriceForm({
+        adjustmentType: 'percentage',
+        adjustmentValue: '',
+        priceTier: 'retail',
+        currency: 'USD',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: tc('error'),
+        description: error.message || t('messages.pricesUpdateError'),
         variant: 'destructive',
       });
     },
@@ -139,12 +212,30 @@ export default function ItemsPage() {
   }, [itemToDelete, deleteMutation]);
 
   const handleBulkPriceUpdate = useCallback(() => {
-    // TODO: Open bulk price update dialog
-    toast({
-      title: 'Bulk Price Update',
-      description: `Update prices for ${selectedItems.length} selected items`,
-    });
-  }, [selectedItems, toast]);
+    setBulkPriceDialogOpen(true);
+  }, []);
+
+  const submitBulkPriceUpdate = useCallback(() => {
+    const value = parseFloat(bulkPriceForm.adjustmentValue);
+    if (isNaN(value)) {
+      toast({
+        title: t('messages.invalidValue'),
+        description: t('messages.invalidValueDesc'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const input: BulkPriceUpdateInput = {
+      itemIds: selectedItems.map((item) => item.id),
+      adjustmentType: bulkPriceForm.adjustmentType,
+      adjustmentValue: value,
+      priceTier: bulkPriceForm.priceTier,
+      currency: bulkPriceForm.currency,
+    };
+
+    bulkPriceMutation.mutate(input);
+  }, [selectedItems, bulkPriceForm, bulkPriceMutation, toast]);
 
   const handleExportPdf = useCallback(() => {
     router.push(`/${locale}/items/report`);
@@ -155,7 +246,7 @@ export default function ItemsPage() {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('fields.name'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.name}</span>
@@ -170,7 +261,7 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'sku',
-        header: 'SKU',
+        header: t('fields.sku'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.sku || '-'}</span>
         ),
@@ -178,7 +269,7 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'barcode',
-        header: 'Barcode',
+        header: t('fields.barcode'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.barcode || '-'}</span>
         ),
@@ -186,36 +277,36 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'brand',
-        header: 'Brand',
+        header: t('fields.brand'),
         cell: ({ row }) => row.original.brand || '-',
         size: 120,
       },
       {
         accessorKey: 'category',
-        header: 'Category',
+        header: t('fields.category'),
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original.category?.name || 'Uncategorized'}</Badge>
+          <Badge variant="outline">{row.original.category?.name || t('uncategorized')}</Badge>
         ),
         size: 150,
       },
       {
         accessorKey: 'unitOfMeasure',
-        header: 'Unit',
+        header: t('fields.unitOfMeasure'),
         cell: ({ row }) => row.original.unitOfMeasure,
         size: 80,
       },
       {
         accessorKey: 'taxRate',
-        header: 'Tax %',
+        header: t('fields.taxRate'),
         cell: ({ row }) => `${row.original.taxRate}%`,
         size: 80,
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('fields.status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? t('status.active') : t('status.inactive')}
           </Badge>
         ),
         size: 100,
@@ -227,20 +318,20 @@ export default function ItemsPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{tc('actions')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View
+                {t('viewItem')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleEditItem(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {tc('edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -248,7 +339,7 @@ export default function ItemsPage() {
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {tc('delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -258,7 +349,7 @@ export default function ItemsPage() {
         enableHiding: false,
       },
     ],
-    [handleViewItem, handleEditItem, handleDeleteItem]
+    [handleViewItem, handleEditItem, handleDeleteItem, t, tc]
   );
 
   // Error state
@@ -276,25 +367,25 @@ export default function ItemsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Items</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your inventory items, categories, and pricing.
+            {t('description')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {selectedItems.length > 0 && (
             <Button variant="outline" onClick={handleBulkPriceUpdate}>
               <DollarSign className="mr-2 h-4 w-4" />
-              Update Prices ({selectedItems.length})
+              {t('bulkPriceUpdate')} ({selectedItems.length})
             </Button>
           )}
           <Button variant="outline" onClick={handleExportPdf}>
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {tc('export')}
           </Button>
           <Button onClick={handleAddItem}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Item
+            {t('addItem')}
           </Button>
         </div>
       </div>
@@ -309,8 +400,16 @@ export default function ItemsPage() {
         showSearch
         showColumnToggle
         showPagination
-        searchPlaceholder="Search items..."
-        emptyMessage="No items found. Create your first item to get started."
+        searchPlaceholder={t('searchPlaceholder')}
+        emptyMessage={t('noItemsFound')}
+        labels={{
+          columns: tt('columns'),
+          loading: tt('loading'),
+          rowsPerPage: tt('rowsPerPage'),
+          page: tt('page'),
+          of: tt('of'),
+          rowsSelected: tt('rowsSelected'),
+        }}
         onSelectionChange={setSelectedItems}
         pagination={
           data?.meta
@@ -352,6 +451,124 @@ export default function ItemsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Price Update Dialog */}
+      <Dialog open={bulkPriceDialogOpen} onOpenChange={setBulkPriceDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Bulk Price Update</DialogTitle>
+            <DialogDescription>
+              Update prices for {selectedItems.length} selected item(s). The adjustment
+              will be applied to all selected items.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Adjustment Type */}
+            <div className="grid gap-2">
+              <Label htmlFor="adjustmentType">Adjustment Type</Label>
+              <Select
+                value={bulkPriceForm.adjustmentType}
+                onValueChange={(value: 'percentage' | 'fixed') =>
+                  setBulkPriceForm((prev) => ({ ...prev, adjustmentType: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                  <SelectItem value="fixed">Fixed Amount</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Adjustment Value */}
+            <div className="grid gap-2">
+              <Label htmlFor="adjustmentValue">
+                {bulkPriceForm.adjustmentType === 'percentage'
+                  ? 'Percentage (e.g., 10 for +10%, -5 for -5%)'
+                  : 'Amount (e.g., 5 for +$5, -3 for -$3)'}
+              </Label>
+              <Input
+                id="adjustmentValue"
+                type="number"
+                step="0.01"
+                placeholder={bulkPriceForm.adjustmentType === 'percentage' ? '10' : '5.00'}
+                value={bulkPriceForm.adjustmentValue}
+                onChange={(e) =>
+                  setBulkPriceForm((prev) => ({ ...prev, adjustmentValue: e.target.value }))
+                }
+              />
+            </div>
+
+            {/* Price Tier */}
+            <div className="grid gap-2">
+              <Label htmlFor="priceTier">Price Tier</Label>
+              <Select
+                value={bulkPriceForm.priceTier}
+                onValueChange={(value) =>
+                  setBulkPriceForm((prev) => ({ ...prev, priceTier: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRICE_TIERS.map((tier) => (
+                    <SelectItem key={tier.value} value={tier.value}>
+                      {tier.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Currency */}
+            <div className="grid gap-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select
+                value={bulkPriceForm.currency}
+                onValueChange={(value) =>
+                  setBulkPriceForm((prev) => ({ ...prev, currency: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((currency) => (
+                    <SelectItem key={currency.value} value={currency.value}>
+                      {currency.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkPriceDialogOpen(false)}
+              disabled={bulkPriceMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={submitBulkPriceUpdate}
+              disabled={bulkPriceMutation.isPending || !bulkPriceForm.adjustmentValue}
+            >
+              {bulkPriceMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Prices'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

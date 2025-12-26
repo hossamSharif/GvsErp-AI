@@ -15,6 +15,13 @@
     "placeholder": "Ask me anything about your business...",
     "hint": "Press Enter to send, Shift+Enter for new line"
   },
+  "roleWelcome": {
+    "general": "Hello! I'm your General Business Assistant. I can help you with any aspect of your business - sales, inventory, accounting, HR, and more. What would you like to know?",
+    "marketing": "Welcome! I'm your Marketing Consultant. I specialize in analyzing sales trends, customer behavior, and growth opportunities. Ready to discover insights that can boost your revenue?",
+    "legal": "Greetings! I'm your Legal Compliance Advisor. I can help with compliance checks, documentation standards, and audit trails. Note: I don't provide legal advice - please consult a licensed attorney for legal matters. How can I assist with compliance today?",
+    "customer_service": "Hi there! I'm your Customer Service Assistant. I'm here to help you quickly find order status, customer information, and inventory availability. What customer inquiry can I help with?",
+    "financial_analyst": "Hello! I'm your Financial Analyst. I specialize in KPIs, profitability analysis, cash flow insights, and financial forecasting. Let's dive into the numbers - what would you like to analyze?"
+  },
   "roles": {
     "label": "Assistant Mode",
     "general": "General Assistant",

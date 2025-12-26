@@ -68,6 +68,16 @@ import {
 // TYPES
 // =============================================================================
 
+/** Labels for DataTable internationalization */
+interface DataTableLabels {
+  columns?: string;
+  loading?: string;
+  rowsPerPage?: string;
+  page?: string;
+  of?: string;
+  rowsSelected?: string;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -93,6 +103,8 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   /** No data message */
   emptyMessage?: string;
+  /** Labels for i18n */
+  labels?: DataTableLabels;
   /** Callback when row selection changes */
   onSelectionChange?: (selectedRows: TData[]) => void;
   /** External pagination state */
@@ -148,6 +160,15 @@ export function getSelectionColumn<TData>(): ColumnDef<TData> {
 // DATA TABLE COMPONENT
 // =============================================================================
 
+const defaultLabels: DataTableLabels = {
+  columns: 'Columns',
+  loading: 'Loading...',
+  rowsPerPage: 'Rows per page',
+  page: 'Page',
+  of: 'of',
+  rowsSelected: 'row(s) selected',
+};
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -162,6 +183,7 @@ export function DataTable<TData, TValue>({
   pageSizeOptions = [10, 20, 50, 100],
   isLoading = false,
   emptyMessage = 'No results found.',
+  labels: customLabels,
   onSelectionChange,
   pagination,
   onPaginationChange,
@@ -169,6 +191,8 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   className,
 }: DataTableProps<TData, TValue>) {
+  // Merge custom labels with defaults
+  const labels = { ...defaultLabels, ...customLabels };
   // State
   const [sorting, setSorting] = React.useState<SortingState>(externalSorting || []);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -271,7 +295,7 @@ export function DataTable<TData, TValue>({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="ml-auto">
                 <Settings2 className="mr-2 h-4 w-4" />
-                Columns
+                {labels.columns}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[200px]">
@@ -358,7 +382,7 @@ export function DataTable<TData, TValue>({
                   >
                     <div className="flex items-center justify-center">
                       <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      <span className="ml-2">Loading...</span>
+                      <span className="ml-2">{labels.loading}</span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -404,8 +428,8 @@ export function DataTable<TData, TValue>({
           <div className="flex-1 text-sm text-muted-foreground">
             {selectable && (
               <>
-                {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                {table.getFilteredRowModel().rows.length} row(s) selected.
+                {table.getFilteredSelectedRowModel().rows.length} {labels.of}{' '}
+                {table.getFilteredRowModel().rows.length} {labels.rowsSelected}.
               </>
             )}
           </div>
@@ -413,7 +437,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center gap-6 lg:gap-8">
             {/* Page size selector */}
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">Rows per page</p>
+              <p className="text-sm font-medium">{labels.rowsPerPage}</p>
               <Select
                 value={String(pagination?.limit || table.getState().pagination.pageSize)}
                 onValueChange={(value) => {
@@ -438,8 +462,8 @@ export function DataTable<TData, TValue>({
             </div>
 
             {/* Page info */}
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {pagination ? pagination.page : table.getState().pagination.pageIndex + 1} of{' '}
+            <div className="flex w-[120px] items-center justify-center text-sm font-medium">
+              {labels.page} {pagination ? pagination.page : table.getState().pagination.pageIndex + 1} {labels.of}{' '}
               {pagination ? pagination.totalPages : table.getPageCount()}
             </div>
 

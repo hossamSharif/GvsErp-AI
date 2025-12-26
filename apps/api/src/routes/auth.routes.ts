@@ -6,9 +6,9 @@
 
 import { Router } from 'express';
 import { createClient } from '@supabase/supabase-js';
-import { loginSchema, registerSchema } from '@erp/shared';
+import { loginSchema, registerSchema } from '@erp-saas/shared';
 import { validateBody, asyncHandler, AppError, authRateLimiter } from '../middleware';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 
 const router = Router();
 
@@ -109,19 +109,7 @@ router.post(
       throw AppError.conflict('Email already registered');
     }
 
-    // Create Supabase auth user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-
-    if (authError) {
-      console.error('Auth user creation error:', authError);
-      throw AppError.internal('Failed to create user');
-    }
-
-    // Create tenant
+    // Create tenant FIRST (so we have tenant_id for user creation)
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .insert({
@@ -131,8 +119,6 @@ router.post(
       .single();
 
     if (tenantError) {
-      // Rollback: delete auth user
-      await supabase.auth.admin.deleteUser(authData.user.id);
       console.error('Tenant creation error:', tenantError);
       throw AppError.internal('Failed to create organization');
     }
@@ -140,12 +126,32 @@ router.post(
     // Get admin role for tenant (created by trigger)
     const { data: adminRole } = await supabase
       .from('roles')
-      .select('id')
+      .select('id, permissions')
       .eq('tenant_id', tenant.id)
       .eq('name', 'admin')
       .single();
 
-    // Create user record
+    // Create Supabase auth user WITH user_metadata already set
+    // This ensures the JWT has tenant_id from the start
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        tenant_id: tenant.id,
+        role: 'admin',
+        permissions: adminRole?.permissions || ['*'],
+      },
+    });
+
+    if (authError) {
+      // Rollback: delete tenant
+      await supabase.from('tenants').delete().eq('id', tenant.id);
+      console.error('Auth user creation error:', authError);
+      throw AppError.internal('Failed to create user');
+    }
+
+    // Create user record in users table
     const { data: user, error: userError } = await supabase
       .from('users')
       .insert({
@@ -164,22 +170,13 @@ router.post(
 
     if (userError) {
       // Rollback
-      await supabase.from('tenants').delete().eq('id', tenant.id);
       await supabase.auth.admin.deleteUser(authData.user.id);
+      await supabase.from('tenants').delete().eq('id', tenant.id);
       console.error('User creation error:', userError);
       throw AppError.internal('Failed to create user profile');
     }
 
-    // Update auth user metadata with tenant_id
-    await supabase.auth.admin.updateUserById(authData.user.id, {
-      user_metadata: {
-        tenant_id: tenant.id,
-        role: 'admin',
-        permissions: ['*'],
-      },
-    });
-
-    // Sign in the new user
+    // Sign in the new user - JWT will already have tenant_id in user_metadata
     const { data: session, error: sessionError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -294,6 +291,114 @@ router.get(
     if (userError || !userData) {
       throw AppError.notFound('User profile not found');
     }
+
+    res.json({
+      data: {
+        id: userData.id,
+        email: userData.email,
+        full_name: userData.full_name,
+        role: userData.role,
+        preferences: userData.preferences,
+        tenant: userData.tenant,
+      },
+    });
+  })
+);
+
+/**
+ * POST /auth/onboard
+ * Complete onboarding for OAuth users
+ */
+router.post(
+  '/onboard',
+  asyncHandler(async (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw AppError.unauthorized('Authorization required');
+    }
+
+    const token = authHeader.substring(7);
+    const { tenant_name } = req.body;
+
+    if (!tenant_name) {
+      throw AppError.badRequest('Organization name is required');
+    }
+
+    const supabase = getServiceClient();
+
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      throw AppError.unauthorized('Invalid token');
+    }
+
+    // Check if user already has a tenant
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (existingUser?.tenant_id) {
+      throw AppError.conflict('User already has an organization');
+    }
+
+    // Create tenant
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .insert({
+        name: tenant_name,
+      })
+      .select()
+      .single();
+
+    if (tenantError) {
+      console.error('Tenant creation error:', tenantError);
+      throw AppError.internal('Failed to create organization');
+    }
+
+    // Get admin role for tenant (created by trigger)
+    const { data: adminRole } = await supabase
+      .from('roles')
+      .select('id, permissions')
+      .eq('tenant_id', tenant.id)
+      .eq('name', 'admin')
+      .single();
+
+    // Update or create user record
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        tenant_id: tenant.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        role_id: adminRole?.id || null,
+      })
+      .select(`
+        *,
+        role:roles(*),
+        tenant:tenants(*)
+      `)
+      .single();
+
+    if (userError) {
+      // Rollback: delete tenant
+      await supabase.from('tenants').delete().eq('id', tenant.id);
+      console.error('User creation error:', userError);
+      throw AppError.internal('Failed to create user profile');
+    }
+
+    // Update user metadata in auth.users
+    await supabase.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        tenant_id: tenant.id,
+        role: 'admin',
+        permissions: adminRole?.permissions || ['*'],
+      },
+    });
 
     res.json({
       data: {

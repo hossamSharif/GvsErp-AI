@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryResult } from './base.repository';
 import type {
   Inventory,
@@ -13,7 +13,7 @@ import type {
   WarehouseInventoryEntry,
   InventoryQueryParams,
   LowStockAlert,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type InventoryRow = Database['public']['Tables']['inventory']['Row'];
 type InventoryInsert = Database['public']['Tables']['inventory']['Insert'];
@@ -138,7 +138,7 @@ export class InventoryRepository extends BaseRepository<
 
     const offset = (page - 1) * limit;
 
-    // Build query with joins
+    // Build query with joins - item_prices is joined through items
     let query = this.supabase
       .from(this.tableName)
       .select(`
@@ -149,11 +149,11 @@ export class InventoryRepository extends BaseRepository<
           sku,
           barcode,
           unit_of_measure,
-          is_active
-        ),
-        item_prices (
-          price,
-          price_tier
+          is_active,
+          item_prices (
+            price,
+            price_tier
+          )
         )
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
@@ -182,7 +182,8 @@ export class InventoryRepository extends BaseRepository<
       const quantity = Number(row.quantity);
       const reservedQuantity = Number(row.reserved_quantity) || 0;
       const threshold = row.low_stock_threshold ? Number(row.low_stock_threshold) : null;
-      const costPrice = row.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
+      // Access item_prices through items (the correct join path)
+      const costPrice = row.items?.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
 
       return {
         id: row.id,
@@ -404,9 +405,11 @@ export class InventoryRepository extends BaseRepository<
       .select(`
         quantity,
         item_id,
-        item_prices (
-          price,
-          price_tier
+        items (
+          item_prices (
+            price,
+            price_tier
+          )
         )
       `)
       .eq('tenant_id', tenantId)
@@ -418,7 +421,7 @@ export class InventoryRepository extends BaseRepository<
     }
 
     return (data || []).reduce((total: number, row: any) => {
-      const costPrice = row.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
+      const costPrice = row.items?.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
       return total + Number(row.quantity) * Number(costPrice);
     }, 0);
   }

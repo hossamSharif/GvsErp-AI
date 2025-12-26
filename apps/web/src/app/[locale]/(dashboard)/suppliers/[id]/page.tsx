@@ -28,7 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/tables/data-table';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import type { PartyTransaction } from '@erp/shared';
+import type { PartyTransaction } from '@erp-saas/shared';
 import {
   ArrowLeft,
   Mail,

@@ -12,6 +12,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useTenantSettings, useUpdateTenantSettings } from '@/hooks/use-settings';
 import { useCurrencies } from '@/hooks/use-currencies';
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
+import type { TenantSettings, UpdateTenantSettingsInput } from '@erp-saas/shared';
 import { Save, Loader2, ArrowLeft } from 'lucide-react';
+import { LogoUpload } from '@/components/forms/logo-upload';
 
 // Form schema
 const settingsFormSchema = z.object({
@@ -59,6 +61,7 @@ const settingsFormSchema = z.object({
   company_phone: z.string().max(50).optional().or(z.literal('')),
   company_address: z.string().max(500).optional().or(z.literal('')),
   tax_number: z.string().max(50).optional().or(z.literal('')),
+  logo_url: z.string().url().optional().or(z.literal('')).nullable(),
   accounting_module_enabled: z.boolean().optional(),
   hr_module_enabled: z.boolean().optional(),
   fiscal_year_start: z.string().optional().or(z.literal('')),
@@ -73,6 +76,8 @@ export default function GeneralSettingsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('settings.general');
+  const tc = useTranslations('common');
 
   // Fetch settings
   const { data: settingsData, isLoading } = useTenantSettings();
@@ -84,14 +89,14 @@ export default function GeneralSettingsPage() {
   const updateMutation = useUpdateTenantSettings({
     onSuccess: () => {
       toast({
-        title: 'Settings updated',
-        description: 'Your settings have been updated successfully.',
+        title: tc('success'),
+        description: t('messages.settingsUpdatedDescription'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update settings',
+        title: tc('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     },
@@ -109,6 +114,7 @@ export default function GeneralSettingsPage() {
       company_phone: settingsData?.data?.company_phone || '',
       company_address: settingsData?.data?.company_address || '',
       tax_number: settingsData?.data?.tax_number || '',
+      logo_url: settingsData?.data?.logo_url || '',
       accounting_module_enabled: settingsData?.data?.accounting_module_enabled || false,
       hr_module_enabled: settingsData?.data?.hr_module_enabled || false,
       fiscal_year_start: settingsData?.data?.fiscal_year_start || '',
@@ -128,6 +134,7 @@ export default function GeneralSettingsPage() {
         company_phone: data.company_phone || undefined,
         company_address: data.company_address || undefined,
         tax_number: data.tax_number || undefined,
+        logo_url: data.logo_url || undefined,
         accounting_module_enabled: data.accounting_module_enabled,
         hr_module_enabled: data.hr_module_enabled,
         fiscal_year_start: data.fiscal_year_start || undefined,
@@ -159,9 +166,9 @@ export default function GeneralSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">General Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Configure language, theme, and company information
+            {t('pageDescription')}
           </p>
         </div>
       </div>
@@ -171,9 +178,9 @@ export default function GeneralSettingsPage() {
           {/* Preferences */}
           <Card>
             <CardHeader>
-              <CardTitle>Preferences</CardTitle>
+              <CardTitle>{t('sections.preferences')}</CardTitle>
               <CardDescription>
-                Default language and theme settings for your organization
+                {t('sections.preferencesDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -182,7 +189,7 @@ export default function GeneralSettingsPage() {
                 name="default_language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Default Language</FormLabel>
+                    <FormLabel>{t('fields.defaultLanguage')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -190,12 +197,12 @@ export default function GeneralSettingsPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="ar">Arabic</SelectItem>
+                        <SelectItem value="en">{t('languages.en')}</SelectItem>
+                        <SelectItem value="ar">{t('languages.ar')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Default language for new users and system messages
+                      {t('fields.defaultLanguageDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -207,7 +214,7 @@ export default function GeneralSettingsPage() {
                 name="default_theme"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Default Theme</FormLabel>
+                    <FormLabel>{t('fields.defaultTheme')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -215,11 +222,11 @@ export default function GeneralSettingsPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="light">{t('themes.light')}</SelectItem>
+                        <SelectItem value="dark">{t('themes.dark')}</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription>Default theme for new users</FormDescription>
+                    <FormDescription>{t('fields.defaultThemeDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -230,11 +237,11 @@ export default function GeneralSettingsPage() {
                 name="default_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Default Currency</FormLabel>
+                    <FormLabel>{t('fields.defaultCurrency')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t('fields.selectCurrency')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -246,7 +253,7 @@ export default function GeneralSettingsPage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Default currency for transactions and reports
+                      {t('fields.defaultCurrencyDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -258,7 +265,7 @@ export default function GeneralSettingsPage() {
                 name="date_format"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date Format</FormLabel>
+                    <FormLabel>{t('dateFormat')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -271,7 +278,7 @@ export default function GeneralSettingsPage() {
                         <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription>How dates are displayed</FormDescription>
+                    <FormDescription>{t('fields.dateFormatDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -282,18 +289,40 @@ export default function GeneralSettingsPage() {
           {/* Company Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Company Information</CardTitle>
+              <CardTitle>{t('sections.companyInfo')}</CardTitle>
               <CardDescription>
-                Your company details for invoices and reports
+                {t('sections.companyInfoDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Company Logo */}
+              <FormField
+                control={form.control}
+                name="logo_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('companyLogo')}</FormLabel>
+                    <FormDescription>
+                      {t('companyLogoDescription')}
+                    </FormDescription>
+                    <FormControl>
+                      <LogoUpload
+                        value={field.value || null}
+                        onChange={(url) => field.onChange(url || '')}
+                        disabled={updateMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="company_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Name</FormLabel>
+                    <FormLabel>{t('fields.companyName')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Acme Inc." {...field} />
                     </FormControl>
@@ -307,7 +336,7 @@ export default function GeneralSettingsPage() {
                 name="company_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Email</FormLabel>
+                    <FormLabel>{t('fields.companyEmail')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -325,7 +354,7 @@ export default function GeneralSettingsPage() {
                 name="company_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Phone</FormLabel>
+                    <FormLabel>{t('fields.companyPhone')}</FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
@@ -343,7 +372,7 @@ export default function GeneralSettingsPage() {
                 name="company_address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Address</FormLabel>
+                    <FormLabel>{t('fields.companyAddress')}</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="123 Business St, City, Country"
@@ -361,12 +390,12 @@ export default function GeneralSettingsPage() {
                 name="tax_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tax Number / VAT ID</FormLabel>
+                    <FormLabel>{t('fields.taxNumber')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Tax identification number" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Your company's tax registration number
+                      {t('fields.taxNumberDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -378,8 +407,8 @@ export default function GeneralSettingsPage() {
           {/* Business Preferences */}
           <Card>
             <CardHeader>
-              <CardTitle>Business Preferences</CardTitle>
-              <CardDescription>Configure fiscal year and timezone</CardDescription>
+              <CardTitle>{t('sections.businessPreferences')}</CardTitle>
+              <CardDescription>{t('sections.businessPreferencesDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -387,12 +416,12 @@ export default function GeneralSettingsPage() {
                 name="fiscal_year_start"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fiscal Year Start</FormLabel>
+                    <FormLabel>{t('fields.fiscalYearStart')}</FormLabel>
                     <FormControl>
                       <Input placeholder="01-01 (MM-DD)" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Month and day when your fiscal year starts (e.g., 01-01 for January 1st)
+                      {t('fields.fiscalYearStartDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -404,12 +433,12 @@ export default function GeneralSettingsPage() {
                 name="time_zone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time Zone</FormLabel>
+                    <FormLabel>{t('timeZone')}</FormLabel>
                     <FormControl>
                       <Input placeholder="America/New_York" {...field} />
                     </FormControl>
                     <FormDescription>
-                      IANA timezone identifier (e.g., America/New_York, Europe/London)
+                      {t('fields.timeZoneDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -421,9 +450,9 @@ export default function GeneralSettingsPage() {
           {/* Module Activation */}
           <Card>
             <CardHeader>
-              <CardTitle>Module Activation</CardTitle>
+              <CardTitle>{t('sections.moduleActivation')}</CardTitle>
               <CardDescription>
-                Enable or disable optional modules for your organization
+                {t('sections.moduleActivationDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -433,9 +462,9 @@ export default function GeneralSettingsPage() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Accounting Module</FormLabel>
+                      <FormLabel className="text-base">{t('fields.accountingModule')}</FormLabel>
                       <FormDescription>
-                        Enable advanced accounting features and chart of accounts
+                        {t('fields.accountingModuleDescription')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -451,9 +480,9 @@ export default function GeneralSettingsPage() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">HR Module</FormLabel>
+                      <FormLabel className="text-base">{t('fields.hrModule')}</FormLabel>
                       <FormDescription>
-                        Enable human resources management and payroll features
+                        {t('fields.hrModuleDescription')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -472,18 +501,18 @@ export default function GeneralSettingsPage() {
               variant="outline"
               onClick={() => router.push(`/${locale}/settings`)}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
               {updateMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t('actions.saving')}
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Save Settings
+                  {t('actions.saveSettings')}
                 </>
               )}
             </Button>

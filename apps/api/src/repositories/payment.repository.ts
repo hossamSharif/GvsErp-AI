@@ -5,7 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 import type {
   Payment,
@@ -13,7 +13,7 @@ import type {
   PaymentWithRelations,
   PaymentType,
   PartyType,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
 type PaymentInsert = Database['public']['Tables']['payments']['Insert'];

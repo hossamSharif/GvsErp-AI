@@ -5,13 +5,13 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database } from '@erp-saas/database';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { WarehouseRepository } from '../repositories/warehouse.repository';
 import type {
   LowStockAlert,
   LowStockSummary,
-} from '@erp/shared';
+} from '@erp-saas/shared';
 
 /**
  * Alert severity levels

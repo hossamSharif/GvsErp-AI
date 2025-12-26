@@ -3,7 +3,9 @@
  * Phase 7: User Story 5 - Manage Point of Sale Locations
  */
 
-import { Router } from 'express';
+import { Router, Request } from 'express';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@erp-saas/database';
 import { POSService } from '../services/pos.service';
 import { validate } from '../middleware/validate';
 import {
@@ -11,10 +13,25 @@ import {
   updatePOSLocationSchema,
   posLocationIdParamSchema,
   quickSaleRequestSchema,
-} from '@repo/shared';
+} from '@erp-saas/shared';
 
 const router = Router();
-const posService = new POSService();
+
+/**
+ * Get Supabase client for the current request
+ */
+const getSupabaseClient = (req: Request) => {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+};
 
 /**
  * GET /pos
@@ -25,6 +42,8 @@ router.get('/', async (req, res, next) => {
     const tenantId = req.user!.tenant_id;
     const activeOnly = req.query.active === 'true';
 
+    const supabase = getSupabaseClient(req);
+    const posService = new POSService(supabase);
     const locations = await posService.getAllLocations(tenantId, activeOnly);
 
     res.json({
@@ -49,6 +68,8 @@ router.get(
       const tenantId = req.user!.tenant_id;
       const { id } = req.params;
 
+      const supabase = getSupabaseClient(req);
+      const posService = new POSService(supabase);
       const location = await posService.getLocationById(id, tenantId);
 
       if (!location) {
@@ -80,6 +101,8 @@ router.post(
       const tenantId = req.user!.tenant_id;
       const locationData = req.body;
 
+      const supabase = getSupabaseClient(req);
+      const posService = new POSService(supabase);
       const newLocation = await posService.createLocation(tenantId, locationData);
 
       res.status(201).json({
@@ -107,6 +130,8 @@ router.put(
       const { id } = req.params;
       const updateData = req.body;
 
+      const supabase = getSupabaseClient(req);
+      const posService = new POSService(supabase);
       const updatedLocation = await posService.updateLocation(id, tenantId, updateData);
 
       res.json({
@@ -132,6 +157,8 @@ router.delete(
       const tenantId = req.user!.tenant_id;
       const { id } = req.params;
 
+      const supabase = getSupabaseClient(req);
+      const posService = new POSService(supabase);
       await posService.deleteLocation(id, tenantId);
 
       res.json({
@@ -159,6 +186,8 @@ router.post(
       const { id } = req.params;
       const saleData = req.body;
 
+      const supabase = getSupabaseClient(req);
+      const posService = new POSService(supabase);
       const result = await posService.processQuickSale(id, tenantId, userId, saleData);
 
       res.status(201).json({
@@ -181,6 +210,8 @@ router.get('/warehouse/:warehouseId', async (req, res, next) => {
     const tenantId = req.user!.tenant_id;
     const { warehouseId } = req.params;
 
+    const supabase = getSupabaseClient(req);
+    const posService = new POSService(supabase);
     const locations = await posService.getLocationsByWarehouse(warehouseId, tenantId);
 
     res.json({
