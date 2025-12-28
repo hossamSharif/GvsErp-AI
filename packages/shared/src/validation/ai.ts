@@ -262,9 +262,9 @@ export const getUsageStatsSchema = z.object({
 // =============================================================================
 
 /**
- * Schema for listing audit logs
+ * Schema for listing AI audit logs
  */
-export const listAuditLogsSchema = z.object({
+export const listAIAuditLogsSchema = z.object({
   userId: z.string().uuid('Invalid user ID').optional(),
   conversationId: z.string().uuid('Invalid conversation ID').optional(),
   action: z.string().max(100).optional(),
@@ -275,9 +275,9 @@ export const listAuditLogsSchema = z.object({
 });
 
 /**
- * Schema for creating audit log
+ * Schema for creating AI audit log
  */
-export const createAuditLogSchema = z.object({
+export const createAIAuditLogSchema = z.object({
   conversationId: z.string().uuid('Invalid conversation ID').optional(),
   action: z.string().min(1, 'Action cannot be empty').max(200),
   prompt: z.string().max(100000).optional(),
@@ -371,8 +371,8 @@ export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>;
 export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
 export type ListTasksInput = z.infer<typeof listTasksSchema>;
 export type GetUsageStatsInput = z.infer<typeof getUsageStatsSchema>;
-export type ListAuditLogsInput = z.infer<typeof listAuditLogsSchema>;
-export type CreateAuditLogInput = z.infer<typeof createAuditLogSchema>;
+export type ListAIAuditLogsInput = z.infer<typeof listAIAuditLogsSchema>;
+export type CreateAIAuditLogInput = z.infer<typeof createAIAuditLogSchema>;
 export type UpsertConfigurationInput = z.infer<typeof upsertConfigurationSchema>;
 export type AdminUsageStatsInput = z.infer<typeof adminUsageStatsSchema>;
 export type DisableTenantAIInput = z.infer<typeof disableTenantAISchema>;

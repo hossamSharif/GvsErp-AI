@@ -68,6 +68,41 @@ export function AIPanel() {
     }
   }, [isOpen, currentConversationId, conversations]);
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K to toggle AI panel
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (isOpen) {
+          closePanel();
+        } else {
+          useAIPanelStore.getState().openPanel();
+        }
+      }
+
+      // Escape to close panel when open
+      if (e.key === 'Escape' && isOpen) {
+        closePanel();
+      }
+
+      // Cmd/Ctrl + E to toggle expand when panel is open
+      if ((e.metaKey || e.ctrlKey) && e.key === 'e' && isOpen) {
+        e.preventDefault();
+        toggleExpand();
+      }
+
+      // Cmd/Ctrl + N to create new conversation when panel is open
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n' && isOpen) {
+        e.preventDefault();
+        handleNewConversation();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, closePanel, toggleExpand]);
+
   const handleNewConversation = async () => {
     const result = await createConversation.mutateAsync({
       title: t('newConversation'),
@@ -200,8 +235,12 @@ export function AIPanel() {
                   ))}
 
                   {conversations.length === 0 && !createConversation.isPending && (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                      {t('noConversations')}
+                    <div className="text-center py-12 px-4">
+                      <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
+                      <h4 className="text-sm font-medium mb-1">{t('noConversations')}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {t('startNewConversation')}
+                      </p>
                     </div>
                   )}
                 </div>

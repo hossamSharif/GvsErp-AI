@@ -10,7 +10,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, AlertCircle, Paperclip, File, CheckCircle, XCircle } from 'lucide-react';
+import { Send, Bot, User, Loader2, AlertCircle, Paperclip, File, CheckCircle, XCircle, Download } from 'lucide-react';
 import { useMessages, useSendMessage } from '@/hooks/use-ai-conversation';
 import { useAIPanelStore } from '@/stores/ai-panel-store';
 import { useTasks, useApproveTask, useRejectTask, useExecuteTask } from '@/hooks/use-ai-tasks';
@@ -155,10 +155,52 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     }
   };
 
+  const handleExportConversation = () => {
+    // Create markdown export
+    const markdown = messages
+      .map((msg) => {
+        const speaker = msg.role === 'user' ? 'User' : 'AI Assistant';
+        const timestamp = new Date(msg.createdAt).toLocaleString();
+        return `## ${speaker} - ${timestamp}\n\n${msg.content}\n`;
+      })
+      .join('\n---\n\n');
+
+    const fullMarkdown = `# Conversation Export\n\nExported on: ${new Date().toLocaleString()}\nTotal messages: ${messages.length}\n\n---\n\n${markdown}`;
+
+    // Create and download file
+    const blob = new Blob([fullMarkdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `conversation-${conversationId}-${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex-1 flex flex-col h-full p-4">
+        <ScrollArea className="flex-1">
+          <div className="space-y-4">
+            {/* Loading skeleton for messages */}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-3">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+        <div className="p-4 border-t space-y-3">
+          <div className="h-[60px] bg-muted animate-pulse rounded" />
+        </div>
       </div>
     );
   }
@@ -270,6 +312,20 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
       {/* Input Area */}
       <div className="p-4 border-t space-y-3">
+        {/* Export button */}
+        {messages.length > 0 && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleExportConversation}
+              className="text-xs"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              {t('export')}
+            </Button>
+          </div>
+        )}
         {/* Document Upload Section */}
         {showDocumentUpload && (
           <div className="border rounded-lg p-4 bg-muted/50">

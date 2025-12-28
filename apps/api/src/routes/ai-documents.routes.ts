@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { authenticateToken } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
 import { AIDocumentService } from '../services/ai-document.service';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@erp-saas/database';
@@ -43,7 +43,7 @@ const upload = multer({
  */
 router.post(
   '/documents',
-  authenticateToken,
+  requireAuth,
   upload.single('file'),
   async (req: Request, res: Response) => {
     try {
@@ -123,7 +123,7 @@ router.post(
  */
 router.get(
   '/documents/:documentId',
-  authenticateToken,
+  requireAuth,
   async (req: Request, res: Response) => {
     try {
       const { documentId } = req.params;
@@ -169,7 +169,7 @@ router.get(
  */
 router.get(
   '/documents',
-  authenticateToken,
+  requireAuth,
   async (req: Request, res: Response) => {
     try {
       const { conversation_id } = req.query;
@@ -206,7 +206,7 @@ router.get(
  */
 router.delete(
   '/documents/:documentId',
-  authenticateToken,
+  requireAuth,
   async (req: Request, res: Response) => {
     try {
       const { documentId } = req.params;

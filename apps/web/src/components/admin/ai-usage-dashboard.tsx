@@ -10,7 +10,7 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAdminUsage } from '@/hooks/use-ai-admin';
-import { MessageSquare, FileText, CheckSquare, Users, Building2, TrendingUp } from 'lucide-react';
+import { MessageSquare, FileText, CheckSquare, Users, Building2, TrendingUp, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AIUsageDashboard() {
@@ -104,6 +104,9 @@ export function AIUsageDashboard() {
     },
   ];
 
+  // Calculate estimated costs
+  const estimatedCost = usage.totalCostEstimate || 0;
+
   return (
     <div className="space-y-6">
       {/* Date Range Selector */}
@@ -178,6 +181,49 @@ export function AIUsageDashboard() {
           );
         })}
       </div>
+
+      {/* Cost Tracking */}
+      <Card className="border-green-200 bg-green-50 dark:bg-green-950">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            Estimated AI Costs
+          </CardTitle>
+          <CardDescription>
+            Based on provider pricing for the selected period
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-400">
+              ${estimatedCost.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total estimated cost for {usage.totalQuestions} questions and {usage.totalDocuments} documents
+            </p>
+          </div>
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Cost per Question</span>
+              <span className="font-medium">
+                ${usage.totalQuestions > 0 ? (estimatedCost / usage.totalQuestions).toFixed(4) : '0.0000'}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Cost per User</span>
+              <span className="font-medium">
+                ${usage.uniqueUsers > 0 ? (estimatedCost / usage.uniqueUsers).toFixed(2) : '0.00'}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Cost per Tenant</span>
+              <span className="font-medium">
+                ${usage.uniqueTenants > 0 ? (estimatedCost / usage.uniqueTenants).toFixed(2) : '0.00'}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Averages */}
       <Card>

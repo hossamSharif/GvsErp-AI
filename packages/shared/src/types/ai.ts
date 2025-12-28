@@ -229,9 +229,9 @@ export interface UsageLimits {
 // =============================================================================
 
 /**
- * Core Audit Log entity
+ * AI-specific Audit Log entity
  */
-export interface AuditLog {
+export interface AIAuditLog {
   id: string;
   tenantId: string;
   userId: string;
@@ -247,9 +247,9 @@ export interface AuditLog {
 }
 
 /**
- * Audit log with user details
+ * AI audit log with user details
  */
-export interface AuditLogWithUser extends AuditLog {
+export interface AIAuditLogWithUser extends AIAuditLog {
   user: {
     id: string;
     fullName: string | null;
@@ -417,7 +417,7 @@ export interface GetUsageStatsResponse {
 /**
  * List audit logs query params
  */
-export interface ListAuditLogsParams {
+export interface ListAIAuditLogsParams {
   userId?: string;
   conversationId?: string;
   action?: string;
@@ -428,10 +428,10 @@ export interface ListAuditLogsParams {
 }
 
 /**
- * List audit logs response
+ * List AI audit logs response
  */
-export interface ListAuditLogsResponse {
-  logs: AuditLogWithUser[];
+export interface ListAIAuditLogsResponse {
+  logs: AIAuditLogWithUser[];
   total: number;
   limit: number;
   offset: number;

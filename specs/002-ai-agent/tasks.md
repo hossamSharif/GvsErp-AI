@@ -251,12 +251,12 @@
 
 **Purpose**: Final improvements and validation
 
-- [ ] T109 [P] Optimize database queries with proper indexes in packages/database/migrations/013_ai_agent_schema.sql
-- [ ] T110 [P] Add loading skeletons in apps/web/src/components/ai/chat-interface.tsx
-- [ ] T111 [P] Add empty states in apps/web/src/components/ai/ai-panel.tsx (no conversations, no messages)
-- [ ] T112 Add keyboard shortcuts for AI panel toggle in apps/web/src/components/ai/ai-panel.tsx
-- [ ] T113 Implement conversation export functionality in apps/web/src/components/ai/chat-interface.tsx
-- [ ] T114 Add cost tracking dashboard for SaaS admin in apps/web/src/components/admin/ai-usage-dashboard.tsx
+- [X] T109 [P] Optimize database queries with proper indexes in packages/database/migrations/013_ai_agent_schema.sql
+- [X] T110 [P] Add loading skeletons in apps/web/src/components/ai/chat-interface.tsx
+- [X] T111 [P] Add empty states in apps/web/src/components/ai/ai-panel.tsx (no conversations, no messages)
+- [X] T112 Add keyboard shortcuts for AI panel toggle in apps/web/src/components/ai/ai-panel.tsx
+- [X] T113 Implement conversation export functionality in apps/web/src/components/ai/chat-interface.tsx
+- [X] T114 Add cost tracking dashboard for SaaS admin in apps/web/src/components/admin/ai-usage-dashboard.tsx
 - [ ] T115 Run quickstart.md validation (test all 5 user stories, verify limits, test multi-language, test security)
 - [ ] T116 Performance testing (verify 100 concurrent conversations target)
 - [ ] T117 Verify all acceptance scenarios from spec.md
