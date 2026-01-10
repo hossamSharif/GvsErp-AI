@@ -9,6 +9,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   Search,
@@ -58,11 +59,18 @@ import type { InvoiceStatus, InvoiceQueryParams } from '@erp-saas/shared';
 // CONSTANTS
 // =============================================================================
 
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', icon: Clock, variant: 'secondary' },
-  final: { label: 'Finalized', icon: CheckCircle, variant: 'default' },
-  returned: { label: 'Returned', icon: RotateCcw, variant: 'outline' },
-  canceled: { label: 'Canceled', icon: XCircle, variant: 'destructive' },
+const STATUS_ICONS: Record<InvoiceStatus, React.ElementType> = {
+  draft: Clock,
+  final: CheckCircle,
+  returned: RotateCcw,
+  canceled: XCircle,
+};
+
+const STATUS_VARIANTS: Record<InvoiceStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  draft: 'secondary',
+  final: 'default',
+  returned: 'outline',
+  canceled: 'destructive',
 };
 
 // =============================================================================
@@ -74,6 +82,8 @@ export default function SalesListPage() {
   const params = useParams();
   const locale = params.locale as string;
   const prefetchInvoice = usePrefetchInvoice();
+  const t = useTranslations('sales');
+  const tCommon = useTranslations('common');
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,15 +122,15 @@ export default function SalesListPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Sales Invoices</h1>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your sales invoices
+            {t('description')}
           </p>
         </div>
         <Button asChild>
           <Link href={`/${locale}/sales/new`}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Sale
+            <Plus className="h-4 w-4 me-2" />
+            {t('newSale')}
           </Link>
         </Button>
       </div>
@@ -129,13 +139,13 @@ export default function SalesListPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Sales</CardDescription>
+            <CardDescription>{t('stats.totalSales')}</CardDescription>
             <CardTitle className="text-2xl">{meta?.total || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Drafts</CardDescription>
+            <CardDescription>{t('stats.drafts')}</CardDescription>
             <CardTitle className="text-2xl text-amber-600">
               {invoices.filter(i => i.status === 'draft').length}
             </CardTitle>
@@ -143,7 +153,7 @@ export default function SalesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Finalized</CardDescription>
+            <CardDescription>{t('stats.finalized')}</CardDescription>
             <CardTitle className="text-2xl text-green-600">
               {invoices.filter(i => i.status === 'final').length}
             </CardTitle>
@@ -151,7 +161,7 @@ export default function SalesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>This Month</CardDescription>
+            <CardDescription>{t('stats.thisMonth')}</CardDescription>
             <CardTitle className="text-2xl">
               {invoices
                 .filter(i => i.status === 'final')
@@ -165,15 +175,15 @@ export default function SalesListPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by invoice number..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
         <Select
@@ -184,15 +194,15 @@ export default function SalesListPage() {
           }}
         >
           <SelectTrigger className="w-[180px]">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
+            <Filter className="h-4 w-4 me-2" />
+            <SelectValue placeholder={t('filterByStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="final">Finalized</SelectItem>
-            <SelectItem value="returned">Returned</SelectItem>
-            <SelectItem value="canceled">Canceled</SelectItem>
+            <SelectItem value="all">{t('status.all')}</SelectItem>
+            <SelectItem value="draft">{t('status.draft')}</SelectItem>
+            <SelectItem value="final">{t('status.finalized')}</SelectItem>
+            <SelectItem value="returned">{t('status.returned')}</SelectItem>
+            <SelectItem value="canceled">{t('status.canceled')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -203,11 +213,11 @@ export default function SalesListPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{t('table.invoiceNumber')}</TableHead>
+                <TableHead>{t('table.customer')}</TableHead>
+                <TableHead>{t('table.date')}</TableHead>
+                <TableHead>{t('table.status')}</TableHead>
+                <TableHead className="text-end">{t('table.total')}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -215,13 +225,13 @@ export default function SalesListPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center">
-                    Loading...
+                    {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-destructive">
-                    Error loading invoices
+                    {t('errorLoading')}
                   </TableCell>
                 </TableRow>
               ) : invoices.length === 0 ? (
@@ -229,17 +239,17 @@ export default function SalesListPage() {
                   <TableCell colSpan={6} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <FileText className="h-8 w-8" />
-                      <p>No sales invoices found</p>
+                      <p>{t('noSales')}</p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/${locale}/sales/new`}>Create your first sale</Link>
+                        <Link href={`/${locale}/sales/new`}>{t('createFirst')}</Link>
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 invoices.map((invoice) => {
-                  const statusConfig = STATUS_CONFIG[invoice.status];
-                  const StatusIcon = statusConfig.icon;
+                  const StatusIcon = STATUS_ICONS[invoice.status];
+                  const statusVariant = STATUS_VARIANTS[invoice.status];
 
                   return (
                     <TableRow
@@ -253,19 +263,19 @@ export default function SalesListPage() {
                       </TableCell>
                       <TableCell>
                         {invoice.party?.name || (
-                          <span className="text-muted-foreground">Walk-in</span>
+                          <span className="text-muted-foreground">{t('walkIn')}</span>
                         )}
                       </TableCell>
                       <TableCell>
                         {new Date(invoice.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={statusConfig.variant} className="gap-1">
+                        <Badge variant={statusVariant} className="gap-1">
                           <StatusIcon className="h-3 w-3" />
-                          {statusConfig.label}
+                          {t(`status.${invoice.status === 'final' ? 'finalized' : invoice.status}`)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-end font-medium">
                         {invoice.total.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -279,27 +289,27 @@ export default function SalesListPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('actions.title')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                               <Link href={`/${locale}/sales/${invoice.id}`}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
+                                <Eye className="h-4 w-4 me-2" />
+                                {t('actions.viewDetails')}
                               </Link>
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/sales/${invoice.id}/edit`}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
+                                  <Edit className="h-4 w-4 me-2" />
+                                  {t('actions.edit')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
                             {invoice.status === 'final' && (
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/sales/${invoice.id}?return=true`}>
-                                  <Undo2 className="h-4 w-4 mr-2" />
-                                  Create Return
+                                  <Undo2 className="h-4 w-4 me-2" />
+                                  {t('actions.createReturn')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
@@ -319,7 +329,11 @@ export default function SalesListPage() {
       {meta && meta.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, meta.total)} of {meta.total} invoices
+            {t('pagination.showing', {
+              from: ((page - 1) * 20) + 1,
+              to: Math.min(page * 20, meta.total),
+              total: meta.total
+            })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -328,7 +342,7 @@ export default function SalesListPage() {
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >
-              Previous
+              {t('pagination.previous')}
             </Button>
             <Button
               variant="outline"
@@ -336,7 +350,7 @@ export default function SalesListPage() {
               disabled={page >= meta.total_pages}
               onClick={() => setPage(p => p + 1)}
             >
-              Next
+              {t('pagination.next')}
             </Button>
           </div>
         </div>

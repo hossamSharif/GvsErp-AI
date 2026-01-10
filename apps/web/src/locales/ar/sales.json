@@ -1,0 +1,45 @@
+{
+  "sales": {
+    "title": "فواتير المبيعات",
+    "description": "إدارة فواتير المبيعات",
+    "newSale": "فاتورة بيع جديدة",
+    "searchPlaceholder": "البحث برقم الفاتورة...",
+    "filterByStatus": "تصفية حسب الحالة",
+    "loading": "جاري التحميل...",
+    "errorLoading": "خطأ في تحميل الفواتير",
+    "noSales": "لم يتم العثور على فواتير مبيعات",
+    "createFirst": "إنشاء أول فاتورة بيع",
+    "walkIn": "عميل عابر",
+    "stats": {
+      "totalSales": "إجمالي المبيعات",
+      "drafts": "المسودات",
+      "finalized": "المؤكدة",
+      "thisMonth": "هذا الشهر"
+    },
+    "status": {
+      "all": "جميع الحالات",
+      "draft": "مسودة",
+      "finalized": "مؤكد",
+      "returned": "مرتجع",
+      "canceled": "ملغي"
+    },
+    "table": {
+      "invoiceNumber": "رقم الفاتورة",
+      "customer": "العميل",
+      "date": "التاريخ",
+      "status": "الحالة",
+      "total": "الإجمالي"
+    },
+    "actions": {
+      "title": "الإجراءات",
+      "viewDetails": "عرض التفاصيل",
+      "edit": "تعديل",
+      "createReturn": "إنشاء مرتجع"
+    },
+    "pagination": {
+      "showing": "عرض {from} إلى {to} من {total} فاتورة",
+      "previous": "السابق",
+      "next": "التالي"
+    }
+  }
+}
