@@ -38,6 +38,7 @@ import aiConversationsRoutes from './routes/ai-conversations.routes';
 import aiTasksRoutes from './routes/ai-tasks.routes';
 import aiDocumentsRoutes from './routes/ai-documents.routes';
 import { createAIAdminRoutes } from './routes/ai-admin.routes';
+import dataHealthRoutes from './routes/data-health.routes';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@erp-saas/database';
 
@@ -149,6 +150,7 @@ app.use('/api/v1/ai/conversations', aiConversationsRoutes);
 app.use('/api/v1/ai/tasks', aiTasksRoutes);
 app.use('/api/v1/ai', aiDocumentsRoutes);
 app.use('/api/v1/ai/admin', createAIAdminRoutes(supabaseAdmin));
+app.use('/api/v1/data-health', dataHealthRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);

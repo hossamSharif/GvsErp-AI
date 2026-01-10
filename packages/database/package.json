@@ -23,7 +23,10 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
     "clean": "rm -rf dist",
-    "generate-types": "ts-node scripts/generate-types.ts"
+    "generate-types": "ts-node scripts/generate-types.ts",
+    "seed:dev": "ts-node scripts/seed-data.ts dev",
+    "seed:demo": "ts-node scripts/seed-data.ts demo",
+    "seed:test": "ts-node scripts/seed-data.ts test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
