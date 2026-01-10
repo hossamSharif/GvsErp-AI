@@ -29,14 +29,14 @@ export default function NewPurchasePage() {
 
   // Transform data for the form
   const warehouses = useMemo(() => {
-    return warehousesData?.data?.map(w => ({
+    return warehousesData?.data?.filter(w => w && w.id).map(w => ({
       id: w.id,
       name: w.name,
     })) || [];
   }, [warehousesData]);
 
   const parties = useMemo(() => {
-    return partiesData?.data?.map(p => ({
+    return partiesData?.data?.filter(p => p && p.id).map(p => ({
       id: p.id,
       name: p.name,
       type: p.type,
@@ -47,7 +47,7 @@ export default function NewPurchasePage() {
   }, [partiesData]);
 
   const items = useMemo(() => {
-    return itemsData?.data?.map(i => {
+    return itemsData?.data?.filter(i => i && i.id).map(i => {
       // Find cost price from prices array (when includePrices: true)
       let unitPrice = 0;
       if ('prices' in i && Array.isArray(i.prices)) {
