@@ -6,11 +6,13 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../middleware/auth';
+import { getTenantContext } from '../middleware/tenant';
 import { AIDocumentService } from '../services/ai-document.service';
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@erp-saas/database';
 
 const router = Router();
+
+// Apply authentication to all routes
+router.use(requireAuth);
 
 // Configure multer for memory storage
 const upload = multer({
@@ -54,16 +56,9 @@ router.post(
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      const user = (req as any).user;
-      const tenantId = user.tenant_id;
-      const userId = user.user_id;
+      const { supabase, tenantId, userId } = getTenantContext(req);
 
       // Get user's subscription tier
-      const supabase = createClient<Database>(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('subscription_tier')
@@ -127,12 +122,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { documentId } = req.params;
-      const user = (req as any).user;
-
-      const supabase = createClient<Database>(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const { supabase, tenantId, userId } = getTenantContext(req);
 
       const documentService = new AIDocumentService(supabase);
 
@@ -144,8 +134,8 @@ router.get(
 
       // Verify user has access to this document
       if (
-        document.tenant_id !== user.tenant_id ||
-        document.user_id !== user.user_id
+        document.tenant_id !== tenantId ||
+        document.user_id !== userId
       ) {
         return res
           .status(403)
@@ -178,10 +168,7 @@ router.get(
         return res.status(400).json({ error: 'conversation_id is required' });
       }
 
-      const supabase = createClient<Database>(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const { supabase } = getTenantContext(req);
 
       const documentService = new AIDocumentService(supabase);
 
@@ -210,12 +197,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { documentId } = req.params;
-      const user = (req as any).user;
-
-      const supabase = createClient<Database>(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const { supabase, tenantId, userId } = getTenantContext(req);
 
       const documentService = new AIDocumentService(supabase);
 
@@ -228,15 +210,15 @@ router.delete(
 
       // Verify user has access to this document
       if (
-        document.tenant_id !== user.tenant_id ||
-        document.user_id !== user.user_id
+        document.tenant_id !== tenantId ||
+        document.user_id !== userId
       ) {
         return res
           .status(403)
           .json({ error: 'Access denied to this document' });
       }
 
-      await documentService.delete(user.tenant_id, documentId);
+      await documentService.delete(tenantId, documentId);
 
       return res.status(204).send();
     } catch (error) {

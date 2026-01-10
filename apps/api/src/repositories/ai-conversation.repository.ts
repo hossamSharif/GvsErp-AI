@@ -45,6 +45,25 @@ export class AIConversationRepository extends BaseRepository<
   }
 
   /**
+   * Create a new conversation
+   */
+  async createConversation(
+    data: Omit<ConversationInsert, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>
+  ): Promise<Conversation> {
+    const { data: created, error } = await this.supabase
+      .from('ai_conversations')
+      .insert(data)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return created as Conversation;
+  }
+
+  /**
    * Find all conversations with optional filters
    */
   async findAllWithFilters(

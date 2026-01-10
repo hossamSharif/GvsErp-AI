@@ -8,6 +8,9 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Plus, Download, Filter, Search } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useDirection } from '@/stores/language-store';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -29,6 +32,8 @@ export default function ExpensesPage() {
   const params = useParams();
   const locale = params.locale as string || 'en';
   const { toast } = useToast();
+  const t = useTranslations('expenses');
+  const { isRtl } = useDirection();
 
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
@@ -56,20 +61,20 @@ export default function ExpensesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this expense?')) {
+    if (!confirm(t('confirmDelete'))) {
       return;
     }
 
     try {
       await deleteExpenseMutation.mutateAsync(id);
       toast({
-        title: 'Success',
-        description: 'Expense deleted successfully',
+        title: t('success'),
+        description: t('deleteSuccess'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete expense',
+        title: t('error'),
+        description: error.message || t('deleteError'),
         variant: 'destructive',
       });
     }
@@ -78,7 +83,7 @@ export default function ExpensesPage() {
   const columns: ColumnDef<ExpenseWithDetails>[] = [
     {
       accessorKey: 'expense_date',
-      header: 'Date',
+      header: t('columns.date'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('expense_date'));
         return date.toLocaleDateString();
@@ -86,7 +91,7 @@ export default function ExpensesPage() {
     },
     {
       accessorKey: 'description',
-      header: 'Description',
+      header: t('columns.description'),
       cell: ({ row }) => {
         const description = row.getValue('description') as string | null;
         return description || '-';
@@ -94,15 +99,15 @@ export default function ExpensesPage() {
     },
     {
       accessorKey: 'category',
-      header: 'Category',
+      header: t('columns.category'),
       cell: ({ row }) => {
         const expense = row.original;
-        return expense.category?.name || 'Uncategorized';
+        return expense.category?.name || t('uncategorized');
       },
     },
     {
       accessorKey: 'amount',
-      header: 'Amount',
+      header: t('columns.amount'),
       cell: ({ row }) => {
         const expense = row.original;
         const amount = Number(expense.amount);
@@ -112,10 +117,10 @@ export default function ExpensesPage() {
     },
     {
       accessorKey: 'created_by_name',
-      header: 'Created By',
+      header: t('columns.createdBy'),
       cell: ({ row }) => {
         const createdBy = row.getValue('created_by_name') as string | null;
-        return createdBy || 'Unknown';
+        return createdBy || t('unknown');
       },
     },
     {
@@ -129,7 +134,7 @@ export default function ExpensesPage() {
               size="sm"
               onClick={() => router.push(`/${locale}/expenses/${expense.id}`)}
             >
-              Edit
+              {t('actions.edit')}
             </Button>
             <Button
               variant="ghost"
@@ -137,7 +142,7 @@ export default function ExpensesPage() {
               onClick={() => handleDelete(expense.id)}
               disabled={deleteExpenseMutation.isPending}
             >
-              Delete
+              {t('actions.delete')}
             </Button>
           </div>
         );
@@ -150,10 +155,10 @@ export default function ExpensesPage() {
       <div className="p-8">
         <Card>
           <CardHeader>
-            <CardTitle>Error</CardTitle>
+            <CardTitle>{t('error')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-destructive">Failed to load expenses. Please try again.</p>
+            <p className="text-destructive">{t('loadError')}</p>
           </CardContent>
         </Card>
       </div>
@@ -165,20 +170,20 @@ export default function ExpensesPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Expenses</h1>
-          <p className="text-muted-foreground">Track and manage business expenses</p>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => router.push(`/${locale}/expenses/categories`)}
           >
-            <Filter className="mr-2 h-4 w-4" />
-            Manage Categories
+            <Filter className="me-2 h-4 w-4" />
+            {t('manageCategories')}
           </Button>
           <Button onClick={() => router.push(`/${locale}/expenses/new`)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Expense
+            <Plus className="me-2 h-4 w-4" />
+            {t('newExpense')}
           </Button>
         </div>
       </div>
@@ -189,12 +194,15 @@ export default function ExpensesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className={cn(
+                "absolute top-3 h-4 w-4 text-muted-foreground",
+                isRtl ? "right-3" : "left-3"
+              )} />
               <Input
-                placeholder="Search expenses..."
+                placeholder={t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9"
+                className={cn(isRtl ? "pr-9" : "pl-9")}
               />
             </div>
 
@@ -204,10 +212,10 @@ export default function ExpensesPage() {
               onValueChange={handleCategoryFilter}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder={t('allCategories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">{t('allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -218,8 +226,8 @@ export default function ExpensesPage() {
 
             {/* Export Button */}
             <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export Report
+              <Download className="me-2 h-4 w-4" />
+              {t('exportReport')}
             </Button>
           </div>
         </CardContent>

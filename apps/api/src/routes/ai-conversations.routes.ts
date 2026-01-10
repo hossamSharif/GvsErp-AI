@@ -11,6 +11,8 @@ import {
   sendMessageSchema,
 } from '@erp-saas/shared/validation';
 import { validateRequest } from '../middleware/validate';
+import { requireAuth } from '../middleware/auth';
+import { getTenantContext } from '../middleware/tenant';
 import { AIConversationService } from '../services/ai-conversation.service';
 import { AIAgentService } from '../services/ai-agent.service';
 import { AIUsageService } from '../services/ai-usage.service';
@@ -18,20 +20,23 @@ import { checkAIUsageLimit } from '../middleware/ai-rate-limit';
 
 const router = Router();
 
+// Apply authentication to all routes
+router.use(requireAuth);
+
 /**
  * GET /api/ai/conversations
  * List conversations for current user
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { supabase, user, tenant } = req as any;
+    const { supabase, tenantId, userId } = getTenantContext(req);
     const { status, role, page, limit, include_deleted } = req.query;
 
     const service = new AIConversationService(supabase);
 
     const result = await service.listConversations({
-      tenantId: tenant.id,
-      userId: user.id,
+      tenantId,
+      userId,
       status: status as any,
       consultantRole: role as any,
       page: page ? parseInt(page as string) : 1,
@@ -55,12 +60,12 @@ router.post(
   validateRequest(createConversationSchema),
   async (req: Request, res: Response) => {
     try {
-      const { supabase, user, tenant } = req as any;
+      const { supabase, tenantId, userId } = getTenantContext(req);
       const service = new AIConversationService(supabase);
 
       const conversation = await service.createConversation(
-        tenant.id,
-        user.id,
+        tenantId,
+        userId,
         req.body
       );
 
@@ -78,11 +83,11 @@ router.post(
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { supabase, tenant } = req as any;
+    const { supabase, tenantId } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
     const conversation = await service.getConversationWithStats(
-      tenant.id,
+      tenantId,
       req.params.id
     );
 
@@ -106,11 +111,11 @@ router.patch(
   validateRequest(updateConversationSchema),
   async (req: Request, res: Response) => {
     try {
-      const { supabase, tenant } = req as any;
+      const { supabase, tenantId } = getTenantContext(req);
       const service = new AIConversationService(supabase);
 
       const conversation = await service.updateConversation(
-        tenant.id,
+        tenantId,
         req.params.id,
         req.body
       );
@@ -129,10 +134,10 @@ router.patch(
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { supabase, tenant } = req as any;
+    const { supabase, tenantId } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
-    await service.deleteConversation(tenant.id, req.params.id);
+    await service.deleteConversation(tenantId, req.params.id);
 
     res.status(204).send();
   } catch (error: any) {
@@ -147,10 +152,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
  */
 router.post('/:id/archive', async (req: Request, res: Response) => {
   try {
-    const { supabase, tenant } = req as any;
+    const { supabase, tenantId } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
-    const conversation = await service.archiveConversation(tenant.id, req.params.id);
+    const conversation = await service.archiveConversation(tenantId, req.params.id);
 
     res.json(conversation);
   } catch (error: any) {
@@ -165,10 +170,10 @@ router.post('/:id/archive', async (req: Request, res: Response) => {
  */
 router.post('/:id/restore', async (req: Request, res: Response) => {
   try {
-    const { supabase, tenant } = req as any;
+    const { supabase, tenantId } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
-    const conversation = await service.restoreConversation(tenant.id, req.params.id);
+    const conversation = await service.restoreConversation(tenantId, req.params.id);
 
     res.json(conversation);
   } catch (error: any) {
@@ -183,7 +188,7 @@ router.post('/:id/restore', async (req: Request, res: Response) => {
  */
 router.get('/:id/messages', async (req: Request, res: Response) => {
   try {
-    const { supabase } = req as any;
+    const { supabase } = getTenantContext(req);
     const { limit, before } = req.query;
     const service = new AIConversationService(supabase);
 
@@ -210,13 +215,14 @@ router.post(
   validateRequest(sendMessageSchema),
   async (req: Request, res: Response) => {
     try {
-      const { supabase, user, tenant } = req as any;
+      const { supabase, tenantId, userId } = getTenantContext(req);
       const conversationId = req.params.id;
+      const user = req.user!;
 
       // Get conversation to get consultant role
       const conversationService = new AIConversationService(supabase);
       const conversation = await conversationService.getConversation(
-        tenant.id,
+        tenantId,
         conversationId
       );
 
@@ -226,13 +232,13 @@ router.post(
 
       // Prepare user context
       const userContext = {
-        tenantId: tenant.id,
-        userId: user.id,
-        userName: user.full_name || user.email,
-        tenantName: tenant.name,
+        tenantId,
+        userId,
+        userName: user.email,
+        tenantName: tenantId, // We don't have tenant name in req.user, using ID
         permissions: user.permissions || [],
         locale: req.headers['accept-language']?.split(',')[0] || 'en',
-        baseCurrency: tenant.base_currency || 'USD',
+        baseCurrency: 'USD', // Default currency
       };
 
       // Process message with streaming
@@ -249,7 +255,7 @@ router.post(
       const messages = await conversationService.getMessages(conversationId, 2);
       if (messages.length === 2) {
         // First user + assistant message
-        await conversationService.autoGenerateTitle(tenant.id, conversationId);
+        await conversationService.autoGenerateTitle(tenantId, conversationId);
       }
 
       // Set up SSE headers
@@ -302,7 +308,7 @@ router.post(
  */
 router.get('/:id/documents', async (req: Request, res: Response) => {
   try {
-    const { supabase } = req as any;
+    const { supabase } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
     const documents = await service.getDocuments(req.params.id);
@@ -320,7 +326,7 @@ router.get('/:id/documents', async (req: Request, res: Response) => {
  */
 router.get('/:id/tasks', async (req: Request, res: Response) => {
   try {
-    const { supabase } = req as any;
+    const { supabase } = getTenantContext(req);
     const service = new AIConversationService(supabase);
 
     const tasks = await service.getTasks(req.params.id);
@@ -338,12 +344,12 @@ router.get('/:id/tasks', async (req: Request, res: Response) => {
  */
 router.get('/usage/stats', async (req: Request, res: Response) => {
   try {
-    const { supabase, user } = req as any;
+    const { supabase, userId } = getTenantContext(req);
     const { period } = req.query;
 
     const service = new AIUsageService(supabase);
 
-    const stats = await service.getUserUsageWithLimits(user.id);
+    const stats = await service.getUserUsageWithLimits(userId);
 
     res.json(stats);
   } catch (error: any) {
@@ -358,12 +364,12 @@ router.get('/usage/stats', async (req: Request, res: Response) => {
  */
 router.get('/usage/check/:actionType', async (req: Request, res: Response) => {
   try {
-    const { supabase, user } = req as any;
+    const { supabase, userId } = getTenantContext(req);
     const actionType = req.params.actionType as any;
 
     const service = new AIUsageService(supabase);
 
-    const result = await service.checkUsageLimit(user.id, actionType);
+    const result = await service.checkUsageLimit(userId, actionType);
 
     res.json(result);
   } catch (error: any) {
@@ -378,11 +384,11 @@ router.get('/usage/check/:actionType', async (req: Request, res: Response) => {
  */
 router.get('/usage/upgrade-recommendation', async (req: Request, res: Response) => {
   try {
-    const { supabase, user } = req as any;
+    const { supabase, userId } = getTenantContext(req);
 
     const service = new AIUsageService(supabase);
 
-    const recommendation = await service.shouldRecommendUpgrade(user.id);
+    const recommendation = await service.shouldRecommendUpgrade(userId);
 
     res.json(recommendation);
   } catch (error: any) {

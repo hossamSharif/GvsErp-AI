@@ -15,8 +15,8 @@ export default function HomePage() {
 
     // Redirect based on auth status
     if (user || session) {
-      // Authenticated - go to dashboard (items page as default)
-      router.replace(`/${locale}/items`);
+      // Authenticated - go to dashboard
+      router.replace(`/${locale}/dashboard`);
     } else {
       // Not authenticated - go to login
       router.replace(`/${locale}/login`);

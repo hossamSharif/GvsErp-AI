@@ -14,7 +14,7 @@ import type {
   ListTasksResponse,
   ApprovalStatus,
 } from '@erp-saas/shared';
-import { apiClient } from '@/lib/api-client';
+import { api as apiClient } from '@/lib/api-client';
 
 /**
  * Query key factory for AI tasks

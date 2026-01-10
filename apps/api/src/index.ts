@@ -76,6 +76,8 @@ const allowedOrigins = [
   'http://localhost:3003',
   'http://localhost:3004',
   'http://localhost:3005',
+  'http://localhost:3006',
+  'http://localhost:3007',
   'http://localhost:3100',
   process.env.CORS_ORIGIN,
 ].filter(Boolean) as string[];
@@ -88,7 +90,9 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      callback(null, false);
+      // Properly reject disallowed origins with error
+      console.warn(`CORS: Blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   })

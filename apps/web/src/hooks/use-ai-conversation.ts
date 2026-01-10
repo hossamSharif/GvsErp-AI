@@ -4,7 +4,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
+import { api as apiClient } from '@/lib/api-client';
 import type {
   Conversation,
   ConversationWithStats,
@@ -29,7 +29,7 @@ async function fetchConversations(params: {
   page?: number;
   limit?: number;
 }): Promise<QueryResult<ConversationWithStats>> {
-  const { data } = await apiClient.get('/ai/conversations', { params });
+  const { data } = await apiClient.get('/ai/conversations', params);
   return data;
 }
 
@@ -53,7 +53,7 @@ async function fetchMessages(
 ): Promise<{ data: Message[] }> {
   const { data } = await apiClient.get(
     `/ai/conversations/${conversationId}/messages`,
-    { params: { limit, before } }
+    { limit, before }
   );
   return data;
 }

@@ -4,44 +4,32 @@
  */
 
 import { Router, type Request, type Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@erp-saas/database';
 import { updateTaskStatusSchema } from '@erp-saas/shared/validation';
 import { AITaskService } from '../services/ai-task.service';
-import { authMiddleware } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
+import { getTenantContext } from '../middleware/tenant';
 import { validateRequest } from '../middleware/validate';
 import type { UserContext, ListTasksParams, ApprovalStatus, TaskType } from '@erp-saas/shared';
 
 const router = Router();
 
+// Apply authentication to all routes
+router.use(requireAuth);
+
 /**
  * Get user context from request
  */
 function getUserContext(req: Request): UserContext {
-  const user = (req as any).user;
-  if (!user || !user.id || !user.tenantId) {
+  const user = req.user!;
+  if (!user || !user.id || !user.tenant_id) {
     throw new Error('User context not found');
   }
   return {
     userId: user.id,
-    tenantId: user.tenantId,
+    tenantId: user.tenant_id,
     permissions: user.permissions || [],
-    locale: user.locale || 'en',
+    locale: 'en',
   };
-}
-
-/**
- * Create Supabase client from request
- */
-function getSupabaseClient(req: Request) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase configuration missing');
-  }
-
-  return createClient<Database>(supabaseUrl, supabaseKey);
 }
 
 /**
@@ -50,11 +38,10 @@ function getSupabaseClient(req: Request) {
  */
 router.get(
   '/',
-  authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const userContext = getUserContext(req);
-      const supabase = getSupabaseClient(req);
+      const { supabase } = getTenantContext(req);
       const taskService = new AITaskService(supabase);
 
       // Parse query parameters
@@ -84,12 +71,11 @@ router.get(
  */
 router.get(
   '/:id',
-  authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
       const userContext = getUserContext(req);
-      const supabase = getSupabaseClient(req);
+      const { supabase } = getTenantContext(req);
       const taskService = new AITaskService(supabase);
 
       const task = await taskService.get(userContext, id);
@@ -128,14 +114,13 @@ router.get(
  */
 router.patch(
   '/:id',
-  authMiddleware,
   validateRequest(updateTaskStatusSchema),
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
       const { approvalStatus } = req.body;
       const userContext = getUserContext(req);
-      const supabase = getSupabaseClient(req);
+      const { supabase } = getTenantContext(req);
       const taskService = new AITaskService(supabase);
 
       const updatedTask = await taskService.updateStatus({
@@ -186,12 +171,11 @@ router.patch(
  */
 router.post(
   '/:id/execute',
-  authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
       const userContext = getUserContext(req);
-      const supabase = getSupabaseClient(req);
+      const { supabase } = getTenantContext(req);
       const taskService = new AITaskService(supabase);
 
       const result = await taskService.execute({
@@ -241,13 +225,12 @@ router.post(
  */
 router.post(
   '/:id/mark-executed',
-  authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
       const { resultId } = req.body;
       const userContext = getUserContext(req);
-      const supabase = getSupabaseClient(req);
+      const { supabase } = getTenantContext(req);
       const taskService = new AITaskService(supabase);
 
       if (!resultId) {
