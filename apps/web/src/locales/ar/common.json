@@ -85,5 +85,72 @@
     "page": "صفحة",
     "of": "من",
     "rowsSelected": "صف محدد"
+  },
+  "ai": {
+    "panel": {
+      "title": "المساعد الذكي",
+      "welcome": "مرحبًا بك في المساعد الذكي",
+      "getStarted": "ابدأ محادثة للحصول على رؤى حول عملك",
+      "startConversation": "بدء محادثة",
+      "newConversation": "محادثة جديدة",
+      "conversations": "المحادثات",
+      "noConversations": "لا توجد محادثات بعد",
+      "expand": "توسيع",
+      "collapse": "طي",
+      "close": "إغلاق"
+    },
+    "roles": {
+      "label": "دور المستشار",
+      "general": "مساعد عام",
+      "general_help": "دعم متوازن في جميع مجالات الأعمال",
+      "general_desc": "دعم متوازن في جميع مجالات الأعمال",
+      "marketing": "مستشار تسويق",
+      "marketing_help": "رؤى العملاء والاتجاهات وتحسين الإيرادات",
+      "marketing_desc": "رؤى العملاء والاتجاهات وتحسين الإيرادات",
+      "legal": "مستشار قانوني",
+      "legal_help": "الامتثال وإدارة المخاطر والمعايير المحاسبية",
+      "legal_desc": "الامتثال وإدارة المخاطر والمعايير المحاسبية",
+      "customer_service": "خدمة العملاء",
+      "customer_service_help": "تتبع الطلبات ومعلومات الحساب وحل المشكلات",
+      "customer_service_desc": "تتبع الطلبات ومعلومات الحساب وحل المشكلات",
+      "financial_analyst": "محلل مالي",
+      "financial_analyst_help": "الربحية والتدفق النقدي وتحليل مؤشرات الأداء",
+      "financial_analyst_desc": "الربحية والتدفق النقدي وتحليل مؤشرات الأداء"
+    },
+    "messages": {
+      "placeholder": "اسألني أي شيء عن عملك...",
+      "send": "إرسال",
+      "sending": "جاري الإرسال...",
+      "error": "فشل إرسال الرسالة",
+      "retry": "إعادة المحاولة",
+      "export": "تصدير المحادثة"
+    },
+    "documents": {
+      "upload": "رفع مستند",
+      "processing": "جاري المعالجة...",
+      "completed": "مكتمل",
+      "failed": "فشل",
+      "dropzone": "اسحب الملفات هنا أو انقر للتصفح",
+      "maxSize": "الحد الأقصى لحجم الملف: 10 ميجابايت",
+      "supportedTypes": "المدعوم: PDF، PNG، JPG"
+    },
+    "tasks": {
+      "pending": "في انتظار الموافقة",
+      "approved": "تمت الموافقة",
+      "rejected": "مرفوض",
+      "executed": "تم التنفيذ",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "execute": "تنفيذ",
+      "viewTransaction": "عرض المعاملة"
+    },
+    "usage": {
+      "questions": "الأسئلة",
+      "documents": "المستندات",
+      "tasks": "المهام",
+      "remaining": "متبقي",
+      "unlimited": "غير محدود",
+      "upgrade": "الترقية إلى Premium"
+    }
   }
 }

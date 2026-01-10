@@ -339,13 +339,13 @@ export default function InvoicesPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Total Sales</CardDescription>
+                <CardDescription>{t('stats.totalSales')}</CardDescription>
                 <CardTitle className="text-2xl">{salesMeta?.total || 0}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Drafts</CardDescription>
+                <CardDescription>{t('stats.drafts')}</CardDescription>
                 <CardTitle className="text-2xl text-amber-600">
                   {salesInvoices.filter((i) => i.status === 'draft').length}
                 </CardTitle>
@@ -353,7 +353,7 @@ export default function InvoicesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Finalized</CardDescription>
+                <CardDescription>{t('stats.finalized')}</CardDescription>
                 <CardTitle className="text-2xl text-green-600">
                   {salesInvoices.filter((i) => i.status === 'final').length}
                 </CardTitle>
@@ -361,7 +361,7 @@ export default function InvoicesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>This Page Total</CardDescription>
+                <CardDescription>{t('stats.thisPageTotal')}</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(
                     salesInvoices
@@ -378,7 +378,7 @@ export default function InvoicesPage() {
             <div className="relative flex-1">
               <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by invoice number..."
+                placeholder={t('filters.searchPlaceholder')}
                 value={salesSearch}
                 onChange={(e) => {
                   setSalesSearch(e.target.value);
@@ -396,10 +396,10 @@ export default function InvoicesPage() {
             >
               <SelectTrigger className="w-[180px]">
                 <Filter className="h-4 w-4 me-2" />
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('filters.filterPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">{t('filters.allStatuses')}</SelectItem>
                 <SelectItem value="draft">{t('status.draft')}</SelectItem>
                 <SelectItem value="final">{t('status.final')}</SelectItem>
                 <SelectItem value="returned">{t('status.returned')}</SelectItem>
@@ -415,8 +415,7 @@ export default function InvoicesPage() {
           {salesMeta && salesMeta.total_pages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {(salesPage - 1) * 20 + 1} to{' '}
-                {Math.min(salesPage * 20, salesMeta.total)} of {salesMeta.total} invoices
+                {t('filters.showingText', { from: (salesPage - 1) * 20 + 1, to: Math.min(salesPage * 20, salesMeta.total), total: salesMeta.total })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -446,13 +445,13 @@ export default function InvoicesPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Total Purchases</CardDescription>
+                <CardDescription>{t('stats.totalPurchases')}</CardDescription>
                 <CardTitle className="text-2xl">{purchasesMeta?.total || 0}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Drafts</CardDescription>
+                <CardDescription>{t('stats.drafts')}</CardDescription>
                 <CardTitle className="text-2xl text-amber-600">
                   {purchasesInvoices.filter((i) => i.status === 'draft').length}
                 </CardTitle>
@@ -460,7 +459,7 @@ export default function InvoicesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Finalized</CardDescription>
+                <CardDescription>{t('stats.finalized')}</CardDescription>
                 <CardTitle className="text-2xl text-green-600">
                   {purchasesInvoices.filter((i) => i.status === 'final').length}
                 </CardTitle>
@@ -468,7 +467,7 @@ export default function InvoicesPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>This Page Total</CardDescription>
+                <CardDescription>{t('stats.thisPageTotal')}</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(
                     purchasesInvoices
@@ -485,7 +484,7 @@ export default function InvoicesPage() {
             <div className="relative flex-1">
               <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by invoice number..."
+                placeholder={t('filters.searchPlaceholder')}
                 value={purchasesSearch}
                 onChange={(e) => {
                   setPurchasesSearch(e.target.value);
@@ -503,10 +502,10 @@ export default function InvoicesPage() {
             >
               <SelectTrigger className="w-[180px]">
                 <Filter className="h-4 w-4 me-2" />
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('filters.filterPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">{t('filters.allStatuses')}</SelectItem>
                 <SelectItem value="draft">{t('status.draft')}</SelectItem>
                 <SelectItem value="final">{t('status.final')}</SelectItem>
                 <SelectItem value="returned">{t('status.returned')}</SelectItem>
@@ -522,9 +521,7 @@ export default function InvoicesPage() {
           {purchasesMeta && purchasesMeta.total_pages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {(purchasesPage - 1) * 20 + 1} to{' '}
-                {Math.min(purchasesPage * 20, purchasesMeta.total)} of {purchasesMeta.total}{' '}
-                invoices
+                {t('filters.showingText', { from: (purchasesPage - 1) * 20 + 1, to: Math.min(purchasesPage * 20, purchasesMeta.total), total: purchasesMeta.total })}
               </p>
               <div className="flex gap-2">
                 <Button

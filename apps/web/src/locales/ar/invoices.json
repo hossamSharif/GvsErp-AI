@@ -15,6 +15,19 @@
     "finalizeInvoice": "اعتماد الفاتورة",
     "returnInvoice": "مرتجع فاتورة",
     "createReturn": "إنشاء مرتجع",
+    "stats": {
+      "totalSales": "إجمالي المبيعات",
+      "totalPurchases": "إجمالي المشتريات",
+      "drafts": "المسودات",
+      "finalized": "المعتمدة",
+      "thisPageTotal": "إجمالي هذه الصفحة"
+    },
+    "filters": {
+      "searchPlaceholder": "البحث برقم الفاتورة...",
+      "filterPlaceholder": "تصفية حسب الحالة",
+      "allStatuses": "جميع الحالات",
+      "showingText": "عرض {from} إلى {to} من {total} فاتورة"
+    },
     "fields": {
       "invoiceNumber": "رقم الفاتورة",
       "type": "النوع",

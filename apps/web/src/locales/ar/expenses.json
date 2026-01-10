@@ -1,34 +1,30 @@
 {
   "expenses": {
     "title": "المصروفات",
-    "description": "تتبع وإدارة مصروفات الأعمال",
-    "addExpense": "إضافة مصروف",
-    "editExpense": "تعديل المصروف",
-    "viewExpense": "عرض المصروف",
-    "deleteExpense": "حذف المصروف",
-    "fields": {
+    "subtitle": "تتبع وإدارة مصروفات الأعمال",
+    "newExpense": "مصروف جديد",
+    "manageCategories": "إدارة الفئات",
+    "exportReport": "تصدير التقرير",
+    "searchPlaceholder": "البحث في المصروفات...",
+    "allCategories": "كل الفئات",
+    "uncategorized": "غير مصنف",
+    "unknown": "غير معروف",
+    "confirmDelete": "هل أنت متأكد من حذف هذا المصروف؟",
+    "deleteSuccess": "تم حذف المصروف بنجاح",
+    "deleteError": "فشل حذف المصروف",
+    "loadError": "فشل تحميل المصروفات. يرجى المحاولة مرة أخرى.",
+    "error": "خطأ",
+    "success": "نجاح",
+    "columns": {
+      "date": "التاريخ",
+      "description": "الوصف",
       "category": "الفئة",
       "amount": "المبلغ",
-      "currency": "العملة",
-      "exchangeRate": "سعر الصرف",
-      "description": "الوصف",
-      "expenseDate": "تاريخ المصروف",
-      "createdBy": "أنشئ بواسطة",
-      "receipt": "الإيصال"
+      "createdBy": "أنشأ بواسطة"
     },
-    "categories": {
-      "title": "فئات المصروفات",
-      "addCategory": "إضافة فئة",
-      "editCategory": "تعديل الفئة",
-      "deleteCategory": "حذف الفئة",
-      "name": "اسم الفئة",
-      "parent": "الفئة الأساسية"
-    },
-    "summary": {
-      "totalExpenses": "إجمالي المصروفات",
-      "thisMonth": "هذا الشهر",
-      "thisYear": "هذا العام",
-      "byCategory": "حسب الفئة"
+    "actions": {
+      "edit": "تعديل",
+      "delete": "حذف"
     }
   }
 }

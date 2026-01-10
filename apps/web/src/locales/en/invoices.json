@@ -15,6 +15,19 @@
     "finalizeInvoice": "Finalize Invoice",
     "returnInvoice": "Return Invoice",
     "createReturn": "Create Return",
+    "stats": {
+      "totalSales": "Total Sales",
+      "totalPurchases": "Total Purchases",
+      "drafts": "Drafts",
+      "finalized": "Finalized",
+      "thisPageTotal": "This Page Total"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by invoice number...",
+      "filterPlaceholder": "Filter by status",
+      "allStatuses": "All Statuses",
+      "showingText": "Showing {from} to {to} of {total} invoices"
+    },
     "fields": {
       "invoiceNumber": "Invoice Number",
       "type": "Type",

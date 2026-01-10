@@ -85,5 +85,72 @@
     "page": "Page",
     "of": "of",
     "rowsSelected": "row(s) selected"
+  },
+  "ai": {
+    "panel": {
+      "title": "AI Assistant",
+      "welcome": "Welcome to AI Assistant",
+      "getStarted": "Start a conversation to get insights about your business",
+      "startConversation": "Start Conversation",
+      "newConversation": "New Conversation",
+      "conversations": "Conversations",
+      "noConversations": "No conversations yet",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "close": "Close"
+    },
+    "roles": {
+      "label": "Consultant Role",
+      "general": "General Assistant",
+      "general_help": "Balanced support across all business areas",
+      "general_desc": "Balanced support across all business areas",
+      "marketing": "Marketing Consultant",
+      "marketing_help": "Customer insights, trends, and revenue optimization",
+      "marketing_desc": "Customer insights, trends, and revenue optimization",
+      "legal": "Legal Consultant",
+      "legal_help": "Compliance, risk management, and accounting standards",
+      "legal_desc": "Compliance, risk management, and accounting standards",
+      "customer_service": "Customer Service",
+      "customer_service_help": "Order tracking, account info, and issue resolution",
+      "customer_service_desc": "Order tracking, account info, and issue resolution",
+      "financial_analyst": "Financial Analyst",
+      "financial_analyst_help": "Profitability, cash flow, and KPI analysis",
+      "financial_analyst_desc": "Profitability, cash flow, and KPI analysis"
+    },
+    "messages": {
+      "placeholder": "Ask me anything about your business...",
+      "send": "Send",
+      "sending": "Sending...",
+      "error": "Failed to send message",
+      "retry": "Retry",
+      "export": "Export Conversation"
+    },
+    "documents": {
+      "upload": "Upload Document",
+      "processing": "Processing...",
+      "completed": "Completed",
+      "failed": "Failed",
+      "dropzone": "Drop files here or click to browse",
+      "maxSize": "Max file size: 10MB",
+      "supportedTypes": "Supported: PDF, PNG, JPG"
+    },
+    "tasks": {
+      "pending": "Pending Approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "executed": "Executed",
+      "approve": "Approve",
+      "reject": "Reject",
+      "execute": "Execute",
+      "viewTransaction": "View Transaction"
+    },
+    "usage": {
+      "questions": "Questions",
+      "documents": "Documents",
+      "tasks": "Tasks",
+      "remaining": "remaining",
+      "unlimited": "Unlimited",
+      "upgrade": "Upgrade to Premium"
+    }
   }
 }

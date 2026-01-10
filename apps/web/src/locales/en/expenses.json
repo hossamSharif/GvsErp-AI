@@ -1,34 +1,30 @@
 {
   "expenses": {
     "title": "Expenses",
-    "description": "Track and manage business expenses",
-    "addExpense": "Add Expense",
-    "editExpense": "Edit Expense",
-    "viewExpense": "View Expense",
-    "deleteExpense": "Delete Expense",
-    "fields": {
+    "subtitle": "Track and manage business expenses",
+    "newExpense": "New Expense",
+    "manageCategories": "Manage Categories",
+    "exportReport": "Export Report",
+    "searchPlaceholder": "Search expenses...",
+    "allCategories": "All Categories",
+    "uncategorized": "Uncategorized",
+    "unknown": "Unknown",
+    "confirmDelete": "Are you sure you want to delete this expense?",
+    "deleteSuccess": "Expense deleted successfully",
+    "deleteError": "Failed to delete expense",
+    "loadError": "Failed to load expenses. Please try again.",
+    "error": "Error",
+    "success": "Success",
+    "columns": {
+      "date": "Date",
+      "description": "Description",
       "category": "Category",
       "amount": "Amount",
-      "currency": "Currency",
-      "exchangeRate": "Exchange Rate",
-      "description": "Description",
-      "expenseDate": "Expense Date",
-      "createdBy": "Created By",
-      "receipt": "Receipt"
+      "createdBy": "Created By"
     },
-    "categories": {
-      "title": "Expense Categories",
-      "addCategory": "Add Category",
-      "editCategory": "Edit Category",
-      "deleteCategory": "Delete Category",
-      "name": "Category Name",
-      "parent": "Parent Category"
-    },
-    "summary": {
-      "totalExpenses": "Total Expenses",
-      "thisMonth": "This Month",
-      "thisYear": "This Year",
-      "byCategory": "By Category"
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
     }
   }
 }
