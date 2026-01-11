@@ -6,6 +6,7 @@
  */
 
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExpenseForm } from '@/components/forms/expense-form';
 import { useCreateExpense } from '@/hooks/use-expenses';
@@ -19,6 +20,7 @@ export default function NewExpensePage() {
   const params = useParams();
   const locale = params.locale as string || 'en';
   const { toast } = useToast();
+  const t = useTranslations('expenses');
   const createExpenseMutation = useCreateExpense();
 
   const handleSubmit = async (data: CreateExpenseRequest) => {
@@ -26,15 +28,15 @@ export default function NewExpensePage() {
       await createExpenseMutation.mutateAsync(data);
 
       toast({
-        title: 'Success',
-        description: 'Expense created successfully',
+        title: t('success'),
+        description: t('messages.createSuccess'),
       });
 
       router.push(`/${locale}/expenses`);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create expense',
+        title: t('error'),
+        description: error.message || t('messages.createError'),
         variant: 'destructive',
       });
     }
@@ -48,15 +50,15 @@ export default function NewExpensePage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">New Expense</h1>
-          <p className="text-muted-foreground">Create a new business expense</p>
+          <h1 className="text-3xl font-bold">{t('newPage.title')}</h1>
+          <p className="text-muted-foreground">{t('newPage.subtitle')}</p>
         </div>
       </div>
 
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Expense Details</CardTitle>
+          <CardTitle>{t('newPage.cardTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ExpenseForm

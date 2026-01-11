@@ -8,6 +8,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -50,6 +51,7 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProps) {
+  const t = useTranslations('expenses');
   const { data: categoriesData, isLoading: categoriesLoading } =
     useExpenseCategories();
 
@@ -80,7 +82,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="expense_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Expense Date *</FormLabel>
+              <FormLabel>{t('form.expenseDate')} *</FormLabel>
               <FormControl>
                 <Input type="date" {...field} max={new Date().toISOString().split('T')[0]} />
               </FormControl>
@@ -95,7 +97,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Amount *</FormLabel>
+              <FormLabel>{t('form.amount')} *</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -116,7 +118,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="currency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Currency</FormLabel>
+              <FormLabel>{t('form.currency')}</FormLabel>
               <FormControl>
                 <Input
                   type="text"
@@ -126,7 +128,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
                   value={field.value || 'USD'}
                 />
               </FormControl>
-              <FormDescription>3-letter currency code (e.g., USD, EUR)</FormDescription>
+              <FormDescription>{t('form.currencyHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -138,7 +140,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="exchange_rate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Exchange Rate</FormLabel>
+              <FormLabel>{t('form.exchangeRate')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -150,7 +152,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
                 />
               </FormControl>
               <FormDescription>
-                Exchange rate to base currency (default: 1.0)
+                {t('form.exchangeRateHint')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -163,7 +165,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="category_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>{t('form.category')}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value || undefined}
@@ -171,11 +173,11 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category (optional)" />
+                    <SelectValue placeholder={t('form.selectCategory')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">No Category</SelectItem>
+                  <SelectItem value="none">{t('form.noCategory')}</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -194,10 +196,10 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Enter expense description (optional)"
+                  placeholder={t('form.descriptionPlaceholder')}
                   className="resize-none"
                   rows={4}
                   {...field}
@@ -205,7 +207,7 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
                 />
               </FormControl>
               <FormDescription>
-                Optional notes about this expense
+                {t('form.descriptionHint')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -215,8 +217,8 @@ export function ExpenseForm({ expense, onSubmit, isSubmitting }: ExpenseFormProp
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {expense ? 'Update Expense' : 'Create Expense'}
+            {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            {expense ? t('form.updateExpense') : t('form.createExpense')}
           </Button>
         </div>
       </form>

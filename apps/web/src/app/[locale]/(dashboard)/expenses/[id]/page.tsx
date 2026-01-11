@@ -6,6 +6,7 @@
  */
 
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExpenseForm } from '@/components/forms/expense-form';
 import { useExpense, useUpdateExpense } from '@/hooks/use-expenses';
@@ -20,6 +21,7 @@ export default function ExpenseEditPage() {
   const locale = params.locale as string || 'en';
   const expenseId = params.id as string;
   const { toast } = useToast();
+  const t = useTranslations('expenses');
 
   const { data: expenseResponse, isLoading, error } = useExpense(expenseId);
   const expense = expenseResponse?.data || expenseResponse;
@@ -30,15 +32,15 @@ export default function ExpenseEditPage() {
       await updateExpenseMutation.mutateAsync({ id: expenseId, data });
 
       toast({
-        title: 'Success',
-        description: 'Expense updated successfully',
+        title: t('success'),
+        description: t('messages.updateSuccess'),
       });
 
       router.push(`/${locale}/expenses`);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update expense',
+        title: t('error'),
+        description: error.message || t('messages.updateError'),
         variant: 'destructive',
       });
     }
@@ -57,17 +59,17 @@ export default function ExpenseEditPage() {
       <div className="space-y-6 p-8">
         <Card>
           <CardHeader>
-            <CardTitle>Error</CardTitle>
+            <CardTitle>{t('error')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-destructive">Expense not found or failed to load.</p>
+            <p className="text-destructive">{t('editPage.notFound')}</p>
             <Button
               variant="outline"
               className="mt-4"
               onClick={() => router.push(`/${locale}/expenses`)}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Expenses
+              <ArrowLeft className="me-2 h-4 w-4" />
+              {t('editPage.backToExpenses')}
             </Button>
           </CardContent>
         </Card>
@@ -83,15 +85,15 @@ export default function ExpenseEditPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Edit Expense</h1>
-          <p className="text-muted-foreground">Update expense details</p>
+          <h1 className="text-3xl font-bold">{t('editPage.title')}</h1>
+          <p className="text-muted-foreground">{t('editPage.subtitle')}</p>
         </div>
       </div>
 
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Expense Details</CardTitle>
+          <CardTitle>{t('editPage.cardTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ExpenseForm

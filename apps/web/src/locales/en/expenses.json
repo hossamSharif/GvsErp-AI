@@ -25,6 +25,64 @@
     "actions": {
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "newPage": {
+      "title": "New Expense",
+      "subtitle": "Create a new business expense",
+      "cardTitle": "Expense Details"
+    },
+    "editPage": {
+      "title": "Edit Expense",
+      "subtitle": "Update expense details",
+      "cardTitle": "Expense Details",
+      "notFound": "Expense not found or failed to load.",
+      "backToExpenses": "Back to Expenses"
+    },
+    "form": {
+      "expenseDate": "Expense Date",
+      "amount": "Amount",
+      "currency": "Currency",
+      "currencyHint": "3-letter currency code (e.g., USD, EUR)",
+      "exchangeRate": "Exchange Rate",
+      "exchangeRateHint": "Exchange rate to base currency (default: 1.0)",
+      "category": "Category",
+      "selectCategory": "Select a category (optional)",
+      "noCategory": "No Category",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter expense description (optional)",
+      "descriptionHint": "Optional notes about this expense",
+      "createExpense": "Create Expense",
+      "updateExpense": "Update Expense"
+    },
+    "categories": {
+      "title": "Expense Categories",
+      "subtitle": "Manage categories for organizing expenses",
+      "newCategory": "New Category",
+      "categoriesCount": "Categories",
+      "loadingCategories": "Loading categories...",
+      "noCategories": "No categories yet. Create your first category to get started.",
+      "createdAt": "Created",
+      "createDialogTitle": "Create New Category",
+      "editDialogTitle": "Edit Category",
+      "categoryName": "Category Name",
+      "categoryNamePlaceholder": "Enter category name",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "confirmDeleteCategory": "Are you sure you want to delete this category?",
+      "categoryCreated": "Category created successfully",
+      "categoryUpdated": "Category updated successfully",
+      "categoryDeleted": "Category deleted successfully",
+      "categoryNameRequired": "Category name is required",
+      "createError": "Failed to create category",
+      "updateError": "Failed to update category",
+      "deleteError": "Failed to delete category"
+    },
+    "messages": {
+      "createSuccess": "Expense created successfully",
+      "createError": "Failed to create expense",
+      "updateSuccess": "Expense updated successfully",
+      "updateError": "Failed to update expense"
     }
   }
 }

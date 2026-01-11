@@ -25,6 +25,64 @@
     "actions": {
       "edit": "تعديل",
       "delete": "حذف"
+    },
+    "newPage": {
+      "title": "مصروف جديد",
+      "subtitle": "إنشاء مصروف أعمال جديد",
+      "cardTitle": "تفاصيل المصروف"
+    },
+    "editPage": {
+      "title": "تعديل المصروف",
+      "subtitle": "تحديث تفاصيل المصروف",
+      "cardTitle": "تفاصيل المصروف",
+      "notFound": "المصروف غير موجود أو فشل تحميله.",
+      "backToExpenses": "العودة للمصروفات"
+    },
+    "form": {
+      "expenseDate": "تاريخ المصروف",
+      "amount": "المبلغ",
+      "currency": "العملة",
+      "currencyHint": "رمز العملة المكون من 3 أحرف (مثل: USD، EUR)",
+      "exchangeRate": "سعر الصرف",
+      "exchangeRateHint": "سعر الصرف إلى العملة الأساسية (الافتراضي: 1.0)",
+      "category": "الفئة",
+      "selectCategory": "اختر فئة (اختياري)",
+      "noCategory": "بدون فئة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "أدخل وصف المصروف (اختياري)",
+      "descriptionHint": "ملاحظات اختيارية حول هذا المصروف",
+      "createExpense": "إنشاء المصروف",
+      "updateExpense": "تحديث المصروف"
+    },
+    "categories": {
+      "title": "فئات المصروفات",
+      "subtitle": "إدارة الفئات لتنظيم المصروفات",
+      "newCategory": "فئة جديدة",
+      "categoriesCount": "الفئات",
+      "loadingCategories": "جاري تحميل الفئات...",
+      "noCategories": "لا توجد فئات بعد. أنشئ أول فئة للبدء.",
+      "createdAt": "تم الإنشاء",
+      "createDialogTitle": "إنشاء فئة جديدة",
+      "editDialogTitle": "تعديل الفئة",
+      "categoryName": "اسم الفئة",
+      "categoryNamePlaceholder": "أدخل اسم الفئة",
+      "create": "إنشاء",
+      "update": "تحديث",
+      "cancel": "إلغاء",
+      "confirmDeleteCategory": "هل أنت متأكد من حذف هذه الفئة؟",
+      "categoryCreated": "تم إنشاء الفئة بنجاح",
+      "categoryUpdated": "تم تحديث الفئة بنجاح",
+      "categoryDeleted": "تم حذف الفئة بنجاح",
+      "categoryNameRequired": "اسم الفئة مطلوب",
+      "createError": "فشل إنشاء الفئة",
+      "updateError": "فشل تحديث الفئة",
+      "deleteError": "فشل حذف الفئة"
+    },
+    "messages": {
+      "createSuccess": "تم إنشاء المصروف بنجاح",
+      "createError": "فشل إنشاء المصروف",
+      "updateSuccess": "تم تحديث المصروف بنجاح",
+      "updateError": "فشل تحديث المصروف"
     }
   }
 }

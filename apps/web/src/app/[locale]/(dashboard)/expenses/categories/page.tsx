@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,7 @@ import {
 export default function ExpenseCategoriesPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('expenses');
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -52,8 +54,8 @@ export default function ExpenseCategoriesPage() {
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
       toast({
-        title: 'Error',
-        description: 'Category name is required',
+        title: t('error'),
+        description: t('categories.categoryNameRequired'),
         variant: 'destructive',
       });
       return;
@@ -67,16 +69,16 @@ export default function ExpenseCategoriesPage() {
       await createCategoryMutation.mutateAsync(data);
 
       toast({
-        title: 'Success',
-        description: 'Category created successfully',
+        title: t('success'),
+        description: t('categories.categoryCreated'),
       });
 
       setNewCategoryName('');
       setIsCreateDialogOpen(false);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create category',
+        title: t('error'),
+        description: error.message || t('categories.createError'),
         variant: 'destructive',
       });
     }
@@ -85,8 +87,8 @@ export default function ExpenseCategoriesPage() {
   const handleEditCategory = async () => {
     if (!editingCategory || !editCategoryName.trim()) {
       toast({
-        title: 'Error',
-        description: 'Category name is required',
+        title: t('error'),
+        description: t('categories.categoryNameRequired'),
         variant: 'destructive',
       });
       return;
@@ -103,8 +105,8 @@ export default function ExpenseCategoriesPage() {
       });
 
       toast({
-        title: 'Success',
-        description: 'Category updated successfully',
+        title: t('success'),
+        description: t('categories.categoryUpdated'),
       });
 
       setEditingCategory(null);
@@ -112,15 +114,15 @@ export default function ExpenseCategoriesPage() {
       setIsEditDialogOpen(false);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update category',
+        title: t('error'),
+        description: error.message || t('categories.updateError'),
         variant: 'destructive',
       });
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) {
+    if (!confirm(t('categories.confirmDeleteCategory'))) {
       return;
     }
 
@@ -128,13 +130,13 @@ export default function ExpenseCategoriesPage() {
       await deleteCategoryMutation.mutateAsync(id);
 
       toast({
-        title: 'Success',
-        description: 'Category deleted successfully',
+        title: t('success'),
+        description: t('categories.categoryDeleted'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete category',
+        title: t('error'),
+        description: error.message || t('categories.deleteError'),
         variant: 'destructive',
       });
     }
@@ -155,9 +157,9 @@ export default function ExpenseCategoriesPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Expense Categories</h1>
+            <h1 className="text-3xl font-bold">{t('categories.title')}</h1>
             <p className="text-muted-foreground">
-              Manage categories for organizing expenses
+              {t('categories.subtitle')}
             </p>
           </div>
         </div>
@@ -166,22 +168,22 @@ export default function ExpenseCategoriesPage() {
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Category
+              <Plus className="me-2 h-4 w-4" />
+              {t('categories.newCategory')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Category</DialogTitle>
+              <DialogTitle>{t('categories.createDialogTitle')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div>
-                <Label htmlFor="category-name">Category Name</Label>
+                <Label htmlFor="category-name">{t('categories.categoryName')}</Label>
                 <Input
                   id="category-name"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Enter category name"
+                  placeholder={t('categories.categoryNamePlaceholder')}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleCreateCategory();
@@ -197,13 +199,13 @@ export default function ExpenseCategoriesPage() {
                     setIsCreateDialogOpen(false);
                   }}
                 >
-                  Cancel
+                  {t('categories.cancel')}
                 </Button>
                 <Button
                   onClick={handleCreateCategory}
                   disabled={createCategoryMutation.isPending}
                 >
-                  Create
+                  {t('categories.create')}
                 </Button>
               </div>
             </div>
@@ -215,16 +217,16 @@ export default function ExpenseCategoriesPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>{t('categories.editDialogTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label htmlFor="edit-category-name">Category Name</Label>
+              <Label htmlFor="edit-category-name">{t('categories.categoryName')}</Label>
               <Input
                 id="edit-category-name"
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
-                placeholder="Enter category name"
+                placeholder={t('categories.categoryNamePlaceholder')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleEditCategory();
@@ -241,13 +243,13 @@ export default function ExpenseCategoriesPage() {
                   setIsEditDialogOpen(false);
                 }}
               >
-                Cancel
+                {t('categories.cancel')}
               </Button>
               <Button
                 onClick={handleEditCategory}
                 disabled={updateCategoryMutation.isPending}
               >
-                Update
+                {t('categories.update')}
               </Button>
             </div>
           </div>
@@ -257,16 +259,16 @@ export default function ExpenseCategoriesPage() {
       {/* Categories List */}
       <Card>
         <CardHeader>
-          <CardTitle>Categories ({categories.length})</CardTitle>
+          <CardTitle>{t('categories.categoriesCount')} ({categories.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground text-center py-8">
-              Loading categories...
+              {t('categories.loadingCategories')}
             </p>
           ) : categories.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              No categories yet. Create your first category to get started.
+              {t('categories.noCategories')}
             </p>
           ) : (
             <div className="space-y-2">
@@ -278,7 +280,7 @@ export default function ExpenseCategoriesPage() {
                   <div>
                     <h3 className="font-medium">{category.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Created {new Date(category.created_at).toLocaleDateString()}
+                      {t('categories.createdAt')} {new Date(category.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex gap-2">
