@@ -185,6 +185,22 @@
       "filterByWarehouse": "تصفية حسب المستودع",
       "allWarehouses": "جميع المستودعات",
       "lowStockOnly": "المخزون المنخفض فقط"
-    }
+    },
+    "inventoryReport": "تقرير المخزون",
+    "inventoryReportDescription": "إنشاء وعرض تقارير المخزون مع خيارات متعددة",
+    "reportFilters": "فلاتر التقرير",
+    "reportFiltersDescription": "اختر الفلاتر لتخصيص التقرير",
+    "warehouse": "المستودع",
+    "allWarehouses": "جميع المستودعات",
+    "category": "الفئة",
+    "allCategories": "جميع الفئات",
+    "groupBy": "تجميع حسب",
+    "noGrouping": "بدون تجميع",
+    "byWarehouse": "حسب المستودع",
+    "byCategory": "حسب الفئة",
+    "includeZeroStock": "تضمين المخزون الصفري",
+    "generateReport": "إنشاء التقرير",
+    "reportPreview": "معاينة التقرير",
+    "generatedAt": "تم الإنشاء في"
   }
 }

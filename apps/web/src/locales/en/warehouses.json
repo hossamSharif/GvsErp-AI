@@ -185,6 +185,22 @@
       "filterByWarehouse": "Filter by Warehouse",
       "allWarehouses": "All Warehouses",
       "lowStockOnly": "Low Stock Only"
-    }
+    },
+    "inventoryReport": "Inventory Report",
+    "inventoryReportDescription": "Generate and view inventory reports with various options",
+    "reportFilters": "Report Filters",
+    "reportFiltersDescription": "Select filters to customize the report",
+    "warehouse": "Warehouse",
+    "allWarehouses": "All Warehouses",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "groupBy": "Group By",
+    "noGrouping": "No Grouping",
+    "byWarehouse": "By Warehouse",
+    "byCategory": "By Category",
+    "includeZeroStock": "Include Zero Stock",
+    "generateReport": "Generate Report",
+    "reportPreview": "Report Preview",
+    "generatedAt": "Generated at"
   }
 }
