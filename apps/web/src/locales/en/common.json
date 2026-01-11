@@ -76,7 +76,11 @@
     "allStatus": "All Status",
     "allDepartments": "All Departments",
     "searchPlaceholder": "Search...",
-    "error": "Error"
+    "error": "Error",
+    "invoice": "Invoice",
+    "payment": "Payment",
+    "reference": "Reference",
+    "description": "Description"
   },
   "table": {
     "columns": "Columns",

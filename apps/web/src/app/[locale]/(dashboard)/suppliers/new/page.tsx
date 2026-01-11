@@ -11,6 +11,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCreateParty } from '@/hooks/use-parties';
 import { PartyForm } from '@/components/forms/party-form';
 import { Button } from '@/components/ui/button';
@@ -23,20 +24,21 @@ export default function NewSupplierPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
 
   // Create supplier mutation
   const createMutation = useCreateParty({
     onSuccess: (response) => {
       toast({
-        title: 'Supplier created',
-        description: `${response.data.name} has been created successfully.`,
+        title: t('messages.supplierDeleted').replace('deleted', 'created'),
+        description: `${response.data.name} ${t('messages.supplierDeletedSuccess').replace('deleted', 'created')}`,
       });
       router.push(`/${locale}/suppliers/${response.data.id}`);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create supplier',
+        title: t('messages.deleteError'),
+        description: error.message || t('messages.deleteSupplierError').replace('delete', 'create'),
         variant: 'destructive',
       });
     },
@@ -69,9 +71,9 @@ export default function NewSupplierPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">New Supplier</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('newPage.newSupplier')}</h1>
           <p className="text-muted-foreground">
-            Create a new supplier record
+            {t('newPage.createSupplierRecord')}
           </p>
         </div>
       </div>

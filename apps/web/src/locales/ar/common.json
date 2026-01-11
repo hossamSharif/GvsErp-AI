@@ -76,7 +76,11 @@
     "allStatus": "كل الحالات",
     "allDepartments": "كل الأقسام",
     "searchPlaceholder": "بحث...",
-    "error": "خطأ"
+    "error": "خطأ",
+    "invoice": "فاتورة",
+    "payment": "دفعة",
+    "reference": "المرجع",
+    "description": "الوصف"
   },
   "table": {
     "columns": "الأعمدة",

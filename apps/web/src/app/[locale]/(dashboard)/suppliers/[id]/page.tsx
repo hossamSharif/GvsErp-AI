@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useParty, usePartyStatement, useRecalculateBalance } from '@/hooks/use-parties';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,8 @@ export default function SupplierDetailPage() {
   const locale = params.locale as string;
   const supplierId = params.id as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
+  const tCommon = useTranslations('common');
 
   // Date range for statement (last 3 months by default)
   const [dateRange] = useState({
@@ -76,14 +79,14 @@ export default function SupplierDetailPage() {
   const recalculateMutation = useRecalculateBalance({
     onSuccess: (response) => {
       toast({
-        title: 'Balance recalculated',
-        description: `New balance: $${response.data.balance.toFixed(2)}`,
+        title: t('detail.balanceRecalculated'),
+        description: t('detail.newBalance', { balance: response.data.balance.toFixed(2) }),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to recalculate balance',
+        title: tCommon('error'),
+        description: error.message || t('detail.recalculateError'),
         variant: 'destructive',
       });
     },
@@ -128,33 +131,33 @@ export default function SupplierDetailPage() {
     () => [
       {
         accessorKey: 'date',
-        header: 'Date',
+        header: t('transactions.date'),
         cell: ({ row }) => formatDate(row.original.date),
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('transactions.type'),
         cell: ({ row }) => (
           <Badge variant={row.original.type === 'invoice' ? 'default' : 'secondary'}>
-            {row.original.type}
+            {row.original.type === 'invoice' ? tCommon('invoice') : tCommon('payment')}
           </Badge>
         ),
       },
       {
         accessorKey: 'reference',
-        header: 'Reference',
+        header: tCommon('reference'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.reference}</span>
         ),
       },
       {
         accessorKey: 'description',
-        header: 'Description',
+        header: tCommon('description'),
         cell: ({ row }) => row.original.description || '-',
       },
       {
         accessorKey: 'debit',
-        header: 'Debit',
+        header: t('balance.debit'),
         cell: ({ row }) => (
           <span className={cn('font-medium', row.original.debit > 0 && 'text-red-600')}>
             {row.original.debit > 0 ? formatCurrency(row.original.debit) : '-'}
@@ -163,7 +166,7 @@ export default function SupplierDetailPage() {
       },
       {
         accessorKey: 'credit',
-        header: 'Credit',
+        header: t('balance.credit'),
         cell: ({ row }) => (
           <span className={cn('font-medium', row.original.credit > 0 && 'text-green-600')}>
             {row.original.credit > 0 ? formatCurrency(row.original.credit) : '-'}
@@ -172,7 +175,7 @@ export default function SupplierDetailPage() {
       },
       {
         accessorKey: 'balance',
-        header: 'Balance',
+        header: t('fields.balance'),
         cell: ({ row }) => (
           <span className={cn('font-medium', {
             'text-red-600': row.original.balance > 0,
@@ -183,7 +186,7 @@ export default function SupplierDetailPage() {
         ),
       },
     ],
-    [formatCurrency, formatDate]
+    [formatCurrency, formatDate, t, tCommon]
   );
 
   // Loading state
@@ -212,9 +215,9 @@ export default function SupplierDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4 p-8">
         <p className="text-destructive">
-          {supplierError?.message || 'Supplier not found'}
+          {supplierError?.message || t('detail.supplierNotFound')}
         </p>
-        <Button onClick={handleBack}>Back to Suppliers</Button>
+        <Button onClick={handleBack}>{t('detail.backToSuppliers')}</Button>
       </div>
     );
   }
@@ -233,17 +236,17 @@ export default function SupplierDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{supplier.name}</h1>
-            <p className="text-muted-foreground">Supplier details and transaction history</p>
+            <p className="text-muted-foreground">{t('detail.pageDescription', { party: t('suppliers') })}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleEdit}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
+            <Pencil className="me-2 h-4 w-4" />
+            {t('detail.edit')}
           </Button>
           <Button onClick={handleMakePayment}>
-            <DollarSign className="mr-2 h-4 w-4" />
-            Make Payment
+            <DollarSign className="me-2 h-4 w-4" />
+            {t('makePayment')}
           </Button>
         </div>
       </div>
@@ -253,7 +256,7 @@ export default function SupplierDetailPage() {
         {/* Supplier Info Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>{t('detail.contactInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {supplier.email && (
@@ -277,14 +280,14 @@ export default function SupplierDetailPage() {
             {supplier.taxNumber && (
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Tax: {supplier.taxNumber}</span>
+                <span className="text-sm">{t('fields.taxNumber')}: {supplier.taxNumber}</span>
               </div>
             )}
             <Separator />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
+              <span className="text-sm text-muted-foreground">{tCommon('status')}</span>
               <Badge variant={supplier.isActive ? 'default' : 'secondary'}>
-                {supplier.isActive ? 'Active' : 'Inactive'}
+                {supplier.isActive ? tCommon('active') : tCommon('inactive')}
               </Badge>
             </div>
           </CardContent>
@@ -293,8 +296,8 @@ export default function SupplierDetailPage() {
         {/* Balance Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Current Balance</CardTitle>
-            <CardDescription>Outstanding payable</CardDescription>
+            <CardTitle>{t('detail.currentBalance')}</CardTitle>
+            <CardDescription>{t('detail.outstandingPayable')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
@@ -314,7 +317,7 @@ export default function SupplierDetailPage() {
                   {formatCurrency(Math.abs(balance))}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {balance > 0 ? 'We Owe' : balance < 0 ? 'Overpaid' : 'Settled'}
+                  {balance > 0 ? t('detail.weOwe') : balance < 0 ? t('detail.overpaid') : t('detail.settled')}
                 </p>
               </div>
             </div>
@@ -325,8 +328,8 @@ export default function SupplierDetailPage() {
               disabled={recalculateMutation.isPending}
               className="w-full"
             >
-              <RefreshCw className={cn('mr-2 h-4 w-4', recalculateMutation.isPending && 'animate-spin')} />
-              Recalculate Balance
+              <RefreshCw className={cn('me-2 h-4 w-4', recalculateMutation.isPending && 'animate-spin')} />
+              {t('detail.recalculateBalance')}
             </Button>
           </CardContent>
         </Card>
@@ -334,27 +337,27 @@ export default function SupplierDetailPage() {
         {/* Summary Stats Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Summary</CardTitle>
-            <CardDescription>Transaction totals</CardDescription>
+            <CardTitle>{t('detail.summary')}</CardTitle>
+            <CardDescription>{t('detail.transactionTotals')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {statement && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Invoiced</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.totalInvoiced')}</span>
                   <span className="font-medium">{formatCurrency(statement.totalDebits)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Paid</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.totalPaid')}</span>
                   <span className="font-medium">{formatCurrency(statement.totalCredits)}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Transactions</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.transactions')}</span>
                   <Badge variant="outline">{statement.transactions.length}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Period</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.period')}</span>
                   <span className="text-xs text-muted-foreground">
                     {formatDate(statement.dateFrom)} - {formatDate(statement.dateTo)}
                   </span>
@@ -368,9 +371,9 @@ export default function SupplierDetailPage() {
       {/* Transaction History */}
       <Card>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <CardTitle>{t('detail.transactionHistory')}</CardTitle>
           <CardDescription>
-            All invoices and payments for the selected period
+            {t('detail.transactionHistoryDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -394,7 +397,7 @@ export default function SupplierDetailPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No transactions found for this period</p>
+              <p className="text-muted-foreground">{t('detail.noTransactions')}</p>
             </div>
           )}
         </CardContent>
@@ -404,7 +407,7 @@ export default function SupplierDetailPage() {
       {supplier.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>{t('payments.fields.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">

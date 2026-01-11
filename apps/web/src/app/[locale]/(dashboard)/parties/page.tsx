@@ -293,7 +293,7 @@ export default function PartiesPage() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handlePayment(row.original)}>
                 <DollarSign className="me-2 h-4 w-4" />
-                {row.original.type === 'customer' ? 'Record Payment' : 'Make Payment'}
+                {row.original.type === 'customer' ? t('recordPayment') : t('makePayment')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -321,8 +321,8 @@ export default function PartiesPage() {
           </h1>
           <p className="text-muted-foreground">
             {activeTab === 'customer'
-              ? 'Manage your customer relationships and receivables'
-              : 'Manage your supplier relationships and payables'}
+              ? t('customersDescription')
+              : t('suppliersDescription')}
           </p>
         </div>
         <div className="flex items-center gap-2">

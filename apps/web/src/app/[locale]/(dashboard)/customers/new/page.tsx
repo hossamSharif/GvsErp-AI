@@ -11,6 +11,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCreateParty } from '@/hooks/use-parties';
 import { PartyForm } from '@/components/forms/party-form';
 import { Button } from '@/components/ui/button';
@@ -23,20 +24,21 @@ export default function NewCustomerPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
 
   // Create customer mutation
   const createMutation = useCreateParty({
     onSuccess: (response) => {
       toast({
-        title: 'Customer created',
-        description: `${response.data.name} has been created successfully.`,
+        title: t('messages.customerDeleted').replace('deleted', 'created'),
+        description: `${response.data.name} ${t('messages.customerDeletedSuccess').replace('deleted', 'created')}`,
       });
       router.push(`/${locale}/customers/${response.data.id}`);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create customer',
+        title: t('messages.deleteError'),
+        description: error.message || t('messages.deleteCustomerError').replace('delete', 'create'),
         variant: 'destructive',
       });
     },
@@ -69,9 +71,9 @@ export default function NewCustomerPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">New Customer</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('newPage.newCustomer')}</h1>
           <p className="text-muted-foreground">
-            Create a new customer record
+            {t('newPage.createCustomerRecord')}
           </p>
         </div>
       </div>
