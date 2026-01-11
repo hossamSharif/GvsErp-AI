@@ -7,14 +7,18 @@
  */
 
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/stores/language-store';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { isRtl } = useDirection();
   const t = useTranslations('dashboard');
+  const params = useParams();
+  const locale = params.locale as string;
 
   return (
     <div className="space-y-6">
@@ -83,22 +87,22 @@ export default function DashboardPage() {
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
               label={t('actions.newInvoice')}
-              href="/invoices/new"
+              href={`/${locale}/invoices`}
             />
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
               label={t('actions.addProduct')}
-              href="/items/new"
+              href={`/${locale}/items/new`}
             />
             <QuickActionButton
               icon={<PlusIcon className="w-5 h-5" />}
               label={t('actions.addCustomer')}
-              href="/customers/new"
+              href={`/${locale}/parties`}
             />
             <QuickActionButton
               icon={<ChartIcon className="w-5 h-5" />}
               label={t('actions.viewReports')}
-              href="/reports"
+              href={`/${locale}/reports`}
             />
           </div>
         </div>
@@ -180,10 +184,10 @@ interface QuickActionButtonProps {
 
 function QuickActionButton({ icon, label, href }: QuickActionButtonProps) {
   return (
-    <button className="flex items-center gap-3 p-3 rounded-md border hover:bg-muted transition-colors text-start">
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-md border hover:bg-muted transition-colors text-start">
       <span className="p-2 bg-primary/10 text-primary rounded-md">{icon}</span>
       <span className="text-sm font-medium">{label}</span>
-    </button>
+    </Link>
   );
 }
 
