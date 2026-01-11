@@ -153,7 +153,7 @@ export default function AuditLogsPage() {
     () => [
       {
         accessorKey: 'createdAt',
-        header: t('columns.timestamp'),
+        header: t('fields.timestamp'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">
@@ -167,11 +167,11 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'userName',
-        header: t('columns.user'),
+        header: t('fields.user'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">
-              {row.original.userName || t('system')}
+              {row.original.userName || t('detailsDialog.system')}
             </span>
             {row.original.userEmail && (
               <span className="text-xs text-muted-foreground">
@@ -183,7 +183,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'action',
-        header: t('columns.action'),
+        header: t('fields.action'),
         cell: ({ row }) => (
           <Badge className={actionColors[row.original.action]}>
             {row.original.action.toUpperCase()}
@@ -192,7 +192,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'entityType',
-        header: t('columns.entityType'),
+        header: t('fields.entityType'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">
             {row.original.entityType}
@@ -201,7 +201,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'entityId',
-        header: t('columns.entityId'),
+        header: t('fields.entityId'),
         cell: ({ row }) => (
           <span className="font-mono text-xs text-muted-foreground">
             {row.original.entityId
@@ -212,7 +212,7 @@ export default function AuditLogsPage() {
       },
       {
         accessorKey: 'ipAddress',
-        header: t('columns.ipAddress'),
+        header: t('fields.ipAddress'),
         cell: ({ row }) => (
           <span className="font-mono text-xs">
             {row.original.ipAddress || 'N/A'}
@@ -232,7 +232,7 @@ export default function AuditLogsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleViewDetails(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                {t('actions.viewDetails')}
+                {t('viewDetails')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -258,11 +258,11 @@ export default function AuditLogsPage() {
             onClick={() => setFiltersPanelOpen(true)}
           >
             <Filter className="mr-2 h-4 w-4" />
-            {t('buttons.filters')}
+            {t('filters')}
           </Button>
           <Button variant="outline" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
-            {t('buttons.export')}
+            {t('export')}
           </Button>
         </div>
       </div>
@@ -272,35 +272,35 @@ export default function AuditLogsPage() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">{t('activeFilters.title')}</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('activeFilters')}</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClearFilters}
               >
-                {t('activeFilters.clearAll')}
+                {t('clearAll')}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {filters.action && (
               <Badge variant="secondary">
-                {t('activeFilters.action')}: {filters.action}
+                {t('filterDialog.action')}: {filters.action}
               </Badge>
             )}
             {filters.entityType && (
               <Badge variant="secondary">
-                {t('activeFilters.entity')}: {filters.entityType}
+                {t('filterDialog.entityType')}: {filters.entityType}
               </Badge>
             )}
             {filters.dateFrom && (
               <Badge variant="secondary">
-                {t('activeFilters.from')}: {format(new Date(filters.dateFrom), 'MMM dd, yyyy')}
+                {t('filterDialog.fromDate')}: {format(new Date(filters.dateFrom), 'MMM dd, yyyy')}
               </Badge>
             )}
             {filters.dateTo && (
               <Badge variant="secondary">
-                {t('activeFilters.to')}: {format(new Date(filters.dateTo), 'MMM dd, yyyy')}
+                {t('filterDialog.toDate')}: {format(new Date(filters.dateTo), 'MMM dd, yyyy')}
               </Badge>
             )}
           </CardContent>
@@ -316,7 +316,7 @@ export default function AuditLogsPage() {
             pageCount={data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 0}
             onPageChange={handlePageChange}
             isLoading={isLoading}
-            emptyMessage={t('emptyMessage')}
+            emptyMessage={t('noLogsFound')}
           />
         </CardContent>
       </Card>
@@ -325,15 +325,15 @@ export default function AuditLogsPage() {
       <Dialog open={filtersPanelOpen} onOpenChange={setFiltersPanelOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{t('filtersDialog.title')}</DialogTitle>
+            <DialogTitle>{t('filterDialog.title')}</DialogTitle>
             <DialogDescription>
-              {t('filtersDialog.description')}
+              {t('filterDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Action Filter */}
             <div className="space-y-2">
-              <Label htmlFor="action">{t('filtersDialog.action')}</Label>
+              <Label htmlFor="action">{t('filterDialog.action')}</Label>
               <Select
                 value={filters.action || ''}
                 onValueChange={(value) =>
@@ -344,10 +344,10 @@ export default function AuditLogsPage() {
                 }
               >
                 <SelectTrigger id="action">
-                  <SelectValue placeholder={t('filtersDialog.allActions')} />
+                  <SelectValue placeholder={t('filterDialog.allActions')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filtersDialog.allActions')}</SelectItem>
+                  <SelectItem value="">{t('filterDialog.allActions')}</SelectItem>
                   <SelectItem value="create">{t('actions.create')}</SelectItem>
                   <SelectItem value="update">{t('actions.update')}</SelectItem>
                   <SelectItem value="delete">{t('actions.delete')}</SelectItem>
@@ -361,7 +361,7 @@ export default function AuditLogsPage() {
 
             {/* Entity Type Filter */}
             <div className="space-y-2">
-              <Label htmlFor="entityType">{t('filtersDialog.entityType')}</Label>
+              <Label htmlFor="entityType">{t('filterDialog.entityType')}</Label>
               <Select
                 value={filters.entityType || ''}
                 onValueChange={(value) =>
@@ -372,17 +372,17 @@ export default function AuditLogsPage() {
                 }
               >
                 <SelectTrigger id="entityType">
-                  <SelectValue placeholder={t('filtersDialog.allEntities')} />
+                  <SelectValue placeholder={t('filterDialog.allEntities')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('filtersDialog.allEntities')}</SelectItem>
-                  <SelectItem value="item">{t('entityTypes.item')}</SelectItem>
-                  <SelectItem value="invoice">{t('entityTypes.invoice')}</SelectItem>
-                  <SelectItem value="party">{t('entityTypes.party')}</SelectItem>
-                  <SelectItem value="payment">{t('entityTypes.payment')}</SelectItem>
-                  <SelectItem value="warehouse">{t('entityTypes.warehouse')}</SelectItem>
-                  <SelectItem value="expense">{t('entityTypes.expense')}</SelectItem>
-                  <SelectItem value="user">{t('entityTypes.user')}</SelectItem>
+                  <SelectItem value="">{t('filterDialog.allEntities')}</SelectItem>
+                  <SelectItem value="item">{t('entities.item')}</SelectItem>
+                  <SelectItem value="invoice">{t('entities.invoice')}</SelectItem>
+                  <SelectItem value="party">{t('entities.party')}</SelectItem>
+                  <SelectItem value="payment">{t('entities.payment')}</SelectItem>
+                  <SelectItem value="warehouse">{t('entities.warehouse')}</SelectItem>
+                  <SelectItem value="expense">{t('entities.expense')}</SelectItem>
+                  <SelectItem value="user">{t('entities.user')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -390,7 +390,7 @@ export default function AuditLogsPage() {
             {/* Date Range Filters */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dateFrom">{t('filtersDialog.fromDate')}</Label>
+                <Label htmlFor="dateFrom">{t('filterDialog.fromDate')}</Label>
                 <Input
                   id="dateFrom"
                   type="date"
@@ -404,7 +404,7 @@ export default function AuditLogsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="dateTo">{t('filtersDialog.toDate')}</Label>
+                <Label htmlFor="dateTo">{t('filterDialog.toDate')}</Label>
                 <Input
                   id="dateTo"
                   type="date"
@@ -426,7 +426,7 @@ export default function AuditLogsPage() {
             >
               {tc('cancel')}
             </Button>
-            <Button onClick={handleApplyFilters}>{t('filtersDialog.applyFilters')}</Button>
+            <Button onClick={handleApplyFilters}>{t('filterDialog.applyFilters')}</Button>
           </div>
         </DialogContent>
       </Dialog>
