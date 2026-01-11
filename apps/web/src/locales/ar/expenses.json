@@ -15,6 +15,7 @@
     "loadError": "فشل تحميل المصروفات. يرجى المحاولة مرة أخرى.",
     "error": "خطأ",
     "success": "نجاح",
+    "noResults": "لا توجد نتائج.",
     "columns": {
       "date": "التاريخ",
       "description": "الوصف",
@@ -25,6 +26,44 @@
     "actions": {
       "edit": "تعديل",
       "delete": "حذف"
+    },
+    "table": {
+      "columns": "الأعمدة",
+      "loading": "جاري التحميل...",
+      "rowsPerPage": "صفوف لكل صفحة",
+      "page": "صفحة",
+      "of": "من",
+      "rowsSelected": "صف(وف) محدد"
+    },
+    "report": {
+      "title": "تقرير المصروفات",
+      "description": "إنشاء وتحميل تقارير المصروفات كملف PDF",
+      "options": "خيارات التقرير",
+      "optionsDesc": "حدد الفلاتر لإنشاء تقريرك",
+      "allCategories": "كل الفئات",
+      "dateFrom": "من تاريخ",
+      "dateTo": "إلى تاريخ",
+      "preview": "معاينة",
+      "downloadPDF": "تحميل PDF",
+      "generating": "جاري الإنشاء...",
+      "previewTitle": "معاينة التقرير",
+      "previewDesc": "معاينة التقرير قبل التحميل",
+      "loadError": "فشل تحميل البيانات",
+      "tryAgain": "حاول مرة أخرى",
+      "generatingPreview": "جاري إنشاء المعاينة...",
+      "clickToPreview": "انقر على معاينة لإنشاء التقرير",
+      "previewError": "فشل إنشاء المعاينة",
+      "downloadSuccess": "تم التحميل بنجاح",
+      "downloadSuccessDesc": "تم تحميل التقرير بنجاح",
+      "downloadError": "فشل تحميل التقرير",
+      "expenseDetails": "تفاصيل المصروفات",
+      "summary": "الملخص",
+      "totalExpenses": "إجمالي المصروفات",
+      "byCategory": "حسب الفئة",
+      "totalAmount": "المبلغ الإجمالي",
+      "period": "الفترة",
+      "generated": "تم الإنشاء",
+      "pageOf": "صفحة {page} من {total}"
     },
     "newPage": {
       "title": "مصروف جديد",

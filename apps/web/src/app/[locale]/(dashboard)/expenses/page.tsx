@@ -225,7 +225,10 @@ export default function ExpensesPage() {
             </Select>
 
             {/* Export Button */}
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/${locale}/expenses/report`)}
+            >
               <Download className="me-2 h-4 w-4" />
               {t('exportReport')}
             </Button>
@@ -240,13 +243,23 @@ export default function ExpensesPage() {
             columns={columns}
             data={data?.data || []}
             isLoading={isLoading}
+            showSearch={false}
+            emptyMessage={t('noResults')}
+            labels={{
+              columns: t('table.columns'),
+              loading: t('table.loading'),
+              rowsPerPage: t('table.rowsPerPage'),
+              page: t('table.page'),
+              of: t('table.of'),
+              rowsSelected: t('table.rowsSelected'),
+            }}
             pagination={{
               page,
               limit,
               total: data?.pagination.total || 0,
-              total_pages: data?.pagination.total_pages || 0,
+              totalPages: data?.pagination.total_pages || 0,
             }}
-            onPageChange={setPage}
+            onPaginationChange={(newPage, newLimit) => setPage(newPage)}
           />
         </CardContent>
       </Card>

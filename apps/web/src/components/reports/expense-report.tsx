@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Image,
   Font,
+  pdf,
 } from '@react-pdf/renderer';
 import { ExpenseWithDetails } from '@erp-saas/shared/types/expenses';
 
@@ -262,4 +263,37 @@ export function ExpenseReport({
       </Page>
     </Document>
   );
+}
+
+// =============================================================================
+// DOWNLOAD FUNCTIONS
+// =============================================================================
+
+/**
+ * Generate PDF blob for expenses report
+ */
+export async function generateExpensesReportBlob(
+  props: ExpenseReportProps
+): Promise<Blob> {
+  const doc = <ExpenseReport {...props} />;
+  const blob = await pdf(doc).toBlob();
+  return blob;
+}
+
+/**
+ * Download expenses report as PDF
+ */
+export async function downloadExpensesReport(
+  props: ExpenseReportProps,
+  filename: string = 'expense-report.pdf'
+): Promise<void> {
+  const blob = await generateExpensesReportBlob(props);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

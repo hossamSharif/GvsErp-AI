@@ -16,7 +16,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -164,14 +163,14 @@ export default function ExpenseCategoriesPage() {
           </div>
         </div>
 
+        {/* Create Category Button */}
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="me-2 h-4 w-4" />
+          {t('categories.newCategory')}
+        </Button>
+
         {/* Create Category Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="me-2 h-4 w-4" />
-              {t('categories.newCategory')}
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t('categories.createDialogTitle')}</DialogTitle>

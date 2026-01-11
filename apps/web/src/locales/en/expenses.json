@@ -15,6 +15,7 @@
     "loadError": "Failed to load expenses. Please try again.",
     "error": "Error",
     "success": "Success",
+    "noResults": "No results found.",
     "columns": {
       "date": "Date",
       "description": "Description",
@@ -25,6 +26,44 @@
     "actions": {
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "table": {
+      "columns": "Columns",
+      "loading": "Loading...",
+      "rowsPerPage": "Rows per page",
+      "page": "Page",
+      "of": "of",
+      "rowsSelected": "row(s) selected"
+    },
+    "report": {
+      "title": "Expense Report",
+      "description": "Generate and download expense reports as PDF",
+      "options": "Report Options",
+      "optionsDesc": "Select filters to generate your report",
+      "allCategories": "All Categories",
+      "dateFrom": "Date From",
+      "dateTo": "Date To",
+      "preview": "Preview",
+      "downloadPDF": "Download PDF",
+      "generating": "Generating...",
+      "previewTitle": "Report Preview",
+      "previewDesc": "Preview the report before downloading",
+      "loadError": "Failed to load data",
+      "tryAgain": "Try Again",
+      "generatingPreview": "Generating preview...",
+      "clickToPreview": "Click Preview to generate the report",
+      "previewError": "Failed to generate preview",
+      "downloadSuccess": "Download Successful",
+      "downloadSuccessDesc": "Report downloaded successfully",
+      "downloadError": "Failed to download report",
+      "expenseDetails": "Expense Details",
+      "summary": "Summary",
+      "totalExpenses": "Total Expenses",
+      "byCategory": "By Category",
+      "totalAmount": "Total Amount",
+      "period": "Period",
+      "generated": "Generated",
+      "pageOf": "Page {page} of {total}"
     },
     "newPage": {
       "title": "New Expense",
