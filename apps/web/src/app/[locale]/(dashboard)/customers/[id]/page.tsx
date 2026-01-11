@@ -407,7 +407,7 @@ export default function CustomerDetailPage() {
       {customer.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('payments.fields.notes')}</CardTitle>
+            <CardTitle>{t('form.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">

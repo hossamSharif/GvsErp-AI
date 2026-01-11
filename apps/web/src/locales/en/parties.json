@@ -58,6 +58,7 @@
       "optionalContactInfo": "Optional contact and tax information",
       "emailDescription": "Contact email for invoices and communications",
       "taxDescription": "VAT, GST, or tax registration number",
+      "notes": "Notes",
       "notesDescription": "Internal notes (not visible to {party})",
       "addressPlaceholder": "Street address, city, country",
       "taxPlaceholder": "Tax identification number",

@@ -274,7 +274,7 @@ export function PartyForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('payments.fields.notes')}</FormLabel>
+                  <FormLabel>{t('form.notes')}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={t('form.notesPlaceholder')}
