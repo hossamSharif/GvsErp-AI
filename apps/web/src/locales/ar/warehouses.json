@@ -35,6 +35,13 @@
     "confirmDeactivate": "هل أنت متأكد من إلغاء تفعيل هذا المستودع؟",
     "createTitle": "إنشاء مستودع",
     "createDescription": "إضافة مستودع جديد لإدارة المخزون",
+    "createWarehouse": "إنشاء مستودع",
+    "createWarehouseDescription": "إضافة مستودع جديد لإدارة المخزون",
+    "warehouseNamePlaceholder": "أدخل اسم المستودع",
+    "addressPlaceholder": "أدخل عنوان المستودع",
+    "addressDescription": "العنوان الفعلي أو الموقع للمستودع",
+    "activeDescription": "هل المستودع نشط ومتاح للاستخدام؟",
+    "creating": "جاري الإنشاء...",
     "create": "إنشاء",
     "cancel": "إلغاء",
     "fields": {

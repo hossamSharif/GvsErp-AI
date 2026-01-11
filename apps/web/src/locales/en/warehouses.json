@@ -35,6 +35,13 @@
     "confirmDeactivate": "Are you sure you want to deactivate this warehouse?",
     "createTitle": "Create Warehouse",
     "createDescription": "Add a new warehouse to manage inventory",
+    "createWarehouse": "Create Warehouse",
+    "createWarehouseDescription": "Add a new warehouse to manage inventory",
+    "warehouseNamePlaceholder": "Enter warehouse name",
+    "addressPlaceholder": "Enter warehouse address",
+    "addressDescription": "Physical address or location of the warehouse",
+    "activeDescription": "Is the warehouse active and available for use?",
+    "creating": "Creating...",
     "create": "Create",
     "cancel": "Cancel",
     "fields": {
