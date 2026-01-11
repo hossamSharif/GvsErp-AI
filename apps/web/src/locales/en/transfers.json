@@ -1,0 +1,22 @@
+{
+  "transfers": {
+    "fromWarehouse": "From Warehouse",
+    "toWarehouse": "To Warehouse",
+    "selectSourceWarehouse": "Select source warehouse",
+    "selectDestinationWarehouse": "Select destination warehouse",
+    "fromWarehouseDescription": "The warehouse from which stock will be transferred",
+    "toWarehouseDescription": "The warehouse to which stock will be transferred",
+    "itemsToTransfer": "Items to Transfer",
+    "addItem": "Add Item",
+    "noItemsAdded": "No items added yet. Click 'Add Item' to start.",
+    "item": "Item",
+    "quantity": "Quantity",
+    "selectItem": "Select an item",
+    "searchItems": "Search items...",
+    "notes": "Notes",
+    "notesPlaceholder": "Enter any additional notes about this transfer...",
+    "notesDescription": "Optional notes about this transfer",
+    "createTransfer": "Create Transfer",
+    "creating": "Creating..."
+  }
+}

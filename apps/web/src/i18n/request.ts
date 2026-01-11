@@ -30,6 +30,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     dashboard,
     purchases,
     sales,
+    transfers,
   ] = await Promise.all([
     import(`../locales/${locale}/common.json`),
     import(`../locales/${locale}/items.json`),
@@ -45,6 +46,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`../locales/${locale}/dashboard.json`),
     import(`../locales/${locale}/purchases.json`),
     import(`../locales/${locale}/sales.json`),
+    import(`../locales/${locale}/transfers.json`),
   ]);
 
   return {
@@ -64,6 +66,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       ...dashboard.default,
       ...purchases.default,
       ...sales.default,
+      ...transfers.default,
     },
   };
 });

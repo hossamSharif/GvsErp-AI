@@ -1,0 +1,22 @@
+{
+  "transfers": {
+    "fromWarehouse": "من مستودع",
+    "toWarehouse": "إلى مستودع",
+    "selectSourceWarehouse": "اختر مستودع المصدر",
+    "selectDestinationWarehouse": "اختر مستودع الوجهة",
+    "fromWarehouseDescription": "المستودع الذي سيتم نقل المخزون منه",
+    "toWarehouseDescription": "المستودع الذي سيتم نقل المخزون إليه",
+    "itemsToTransfer": "الأصناف للتحويل",
+    "addItem": "إضافة صنف",
+    "noItemsAdded": "لم تتم إضافة أي أصناف بعد. انقر على 'إضافة صنف' للبدء.",
+    "item": "الصنف",
+    "quantity": "الكمية",
+    "selectItem": "اختر صنفاً",
+    "searchItems": "البحث في الأصناف...",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "أدخل أي ملاحظات إضافية حول هذا التحويل...",
+    "notesDescription": "ملاحظات اختيارية حول هذا التحويل",
+    "createTransfer": "إنشاء التحويل",
+    "creating": "جاري الإنشاء..."
+  }
+}
