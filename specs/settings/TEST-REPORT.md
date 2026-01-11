@@ -163,7 +163,7 @@
 | **Error Message** | `invalid input syntax for type uuid: "{\"tenant_id\":\"...\",\"code\":\"USD\",...}"` |
 | **File** | `apps/api/src/routes/currencies.routes.ts` |
 | **Solution** | Changed `repository.create({ tenant_id: tenantId, ...currencyData })` to `repository.create(tenantId, currencyData)` |
-| **Commit** | (pending) |
+| **Commit** | `da9821d` |
 
 ## Backend Issues (Not Fixed)
 
@@ -212,6 +212,7 @@
 |--------|---------|
 | `9696d04` | fix(settings): Fix PERMISSIONS import error in roles page |
 | `da583dd` | fix(i18n): Fix translation keys in audit logs page |
+| `da9821d` | fix(api): Fix currencies API create method signature |
 
 ## Recommendations
 
