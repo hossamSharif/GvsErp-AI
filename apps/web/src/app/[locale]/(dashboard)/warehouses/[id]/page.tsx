@@ -215,7 +215,7 @@ export default function WarehouseDetailPage() {
       {/* Tabs */}
       <Tabs defaultValue="inventory" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="inventory">{t('inventory')}</TabsTrigger>
+          <TabsTrigger value="inventory">{t('inventoryTab')}</TabsTrigger>
           <TabsTrigger value="alerts">
             {t('alerts')}
             {alerts.length > 0 && (
