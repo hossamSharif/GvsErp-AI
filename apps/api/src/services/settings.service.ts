@@ -56,7 +56,7 @@ export class SettingsService {
       throw new SettingsError('Tenant not found', 'TENANT_NOT_FOUND', 404);
     }
 
-    return (data.settings as TenantSettings) || {};
+    return (data.settings as unknown as TenantSettings) || {};
   }
 
   /**
@@ -83,7 +83,7 @@ export class SettingsService {
     // Update in database
     const { data, error } = await this.supabase
       .from('tenants')
-      .update({ settings: updatedSettings })
+      .update({ settings: updatedSettings as any })
       .eq('id', this.tenantId)
       .select('settings')
       .single();
@@ -96,7 +96,7 @@ export class SettingsService {
       throw new SettingsError('Tenant not found', 'TENANT_NOT_FOUND', 404);
     }
 
-    return (data.settings as TenantSettings) || {};
+    return (data.settings as unknown as TenantSettings) || {};
   }
 
   /**
@@ -107,6 +107,8 @@ export class SettingsService {
       default_language: 'en',
       default_theme: 'light',
       default_currency: 'USD',
+      modules: { stock: true, accounting: false, hr: false },
+      limits: { max_items: 100, max_users: 5, max_transactions_per_month: 1000 },
       accounting_module_enabled: false,
       hr_module_enabled: false,
       fiscal_year_start: '01-01',
@@ -119,7 +121,7 @@ export class SettingsService {
 
     const { data, error } = await this.supabase
       .from('tenants')
-      .update({ settings: defaultSettings })
+      .update({ settings: defaultSettings as any })
       .eq('id', this.tenantId)
       .select('settings')
       .single();
@@ -132,7 +134,7 @@ export class SettingsService {
       throw new SettingsError('Tenant not found', 'TENANT_NOT_FOUND', 404);
     }
 
-    return (data.settings as TenantSettings) || {};
+    return (data.settings as unknown as TenantSettings) || {};
   }
 
   /**

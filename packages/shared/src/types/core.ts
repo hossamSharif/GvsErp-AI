@@ -31,6 +31,23 @@ export interface TenantSettings {
     max_users: number;
     max_transactions_per_month: number;
   };
+  // Company information
+  company_name?: string;
+  company_email?: string;
+  company_phone?: string;
+  company_address?: string;
+  tax_number?: string;
+  logo_url?: string;
+  // Module toggles (flat flags used by settings service)
+  accounting_module_enabled?: boolean;
+  hr_module_enabled?: boolean;
+  // Formatting & fiscal settings
+  fiscal_year_start?: string;
+  date_format?: string;
+  number_format?: {
+    decimal_separator: string;
+    thousands_separator: string;
+  };
 }
 
 export interface Tenant {
