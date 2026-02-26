@@ -10,10 +10,8 @@ import type {
   AuditLog,
   AuditLogRow,
   AuditLogQueryParams,
-  CreateAuditLogInput,
   AuditAction,
   AuditEntityType,
-  AuditContext,
 } from '@erp/shared';
 
 /**
@@ -227,7 +225,7 @@ export class AuditService {
       throw new AuditError('Failed to fetch audit logs', 'FETCH_FAILED', 500);
     }
 
-    const items = (data || []).map((row: AuditLogRow) => this.mapAuditLog(row));
+    const items = ((data || []) as AuditLogRow[]).map((row) => this.mapAuditLog(row));
 
     return {
       items,

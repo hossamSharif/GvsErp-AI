@@ -700,6 +700,107 @@ export interface Database {
         };
         Returns: boolean;
       };
+      log_audit: {
+        Args: {
+          p_tenant_id: string;
+          p_user_id: string;
+          p_action: string;
+          p_entity_type: string;
+          p_entity_id: string | null;
+          p_old_values: Json | null;
+          p_new_values: Json | null;
+          p_ip_address: string | null;
+          p_user_agent: string | null;
+        };
+        Returns: string;
+      };
+      count_audit_logs: {
+        Args: {
+          p_tenant_id: string;
+          p_user_id: string | null;
+          p_entity_type: string | null;
+          p_entity_id: string | null;
+          p_action: string | null;
+          p_date_from: string | null;
+          p_date_to: string | null;
+        };
+        Returns: number;
+      };
+      get_audit_logs: {
+        Args: {
+          p_tenant_id: string;
+          p_user_id: string | null;
+          p_entity_type: string | null;
+          p_entity_id: string | null;
+          p_action: string | null;
+          p_date_from: string | null;
+          p_date_to: string | null;
+          p_limit: number;
+          p_offset: number;
+        };
+        Returns: {
+          id: string;
+          tenant_id: string;
+          user_id: string;
+          user_email: string | null;
+          user_name: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          old_values: Json | null;
+          new_values: Json | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          created_at: string;
+        }[];
+      };
+      generate_invoice_number: {
+        Args: {
+          p_tenant_id: string;
+          p_type: string;
+        };
+        Returns: string;
+      };
+      generate_payment_reference: {
+        Args: {
+          p_tenant_id: string;
+          p_type: string;
+        };
+        Returns: string;
+      };
+      get_category_descendants: {
+        Args: {
+          p_tenant_id: string;
+          p_parent_id: string;
+        };
+        Returns: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          parent_id: string | null;
+          created_at: string;
+        }[];
+      };
+      recalculate_party_balance: {
+        Args: {
+          p_party_id: string;
+        };
+        Returns: number;
+      };
+      get_party_balance_summary: {
+        Args: {
+          p_tenant_id: string;
+          p_party_type: string | null;
+        };
+        Returns: {
+          party_id: string;
+          party_name: string;
+          party_type: string;
+          balance: number;
+          total_invoiced: number;
+          total_paid: number;
+        }[];
+      };
     };
     Enums: {
       subscription_plan: 'freemium' | 'premium';
