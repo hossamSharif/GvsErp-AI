@@ -19,6 +19,10 @@ interface ValidationOptions {
 /**
  * Validate request data against Zod schemas
  */
+export function validateRequest(schemas: ValidationOptions) {
+  return validate(schemas);
+}
+
 export function validate(schemas: ValidationOptions) {
   return async (
     req: Request,
