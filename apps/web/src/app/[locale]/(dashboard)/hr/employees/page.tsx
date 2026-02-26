@@ -6,9 +6,9 @@
  * Displays all employees with filtering, search, and management actions.
  */
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Plus, Search, Filter, Download, Upload } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Plus, Search, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,61 +23,29 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
-
-// Mock data - replace with actual API hook
-const useEmployees = () => {
-  return {
-    data: {
-      data: [
-        {
-          id: '1',
-          employee_number: 'EMP-0001',
-          full_name: 'John Doe',
-          department: 'IT',
-          position: 'Software Engineer',
-          hire_date: '2024-01-15',
-          salary: 5000,
-          salary_currency: 'USD',
-          is_active: true,
-        },
-        {
-          id: '2',
-          employee_number: 'EMP-0002',
-          full_name: 'Jane Smith',
-          department: 'HR',
-          position: 'HR Manager',
-          hire_date: '2023-06-01',
-          salary: 6000,
-          salary_currency: 'USD',
-          is_active: true,
-        },
-      ],
-      meta: {
-        total: 2,
-        page: 1,
-        limit: 50,
-        total_pages: 1,
-      },
-    },
-    isLoading: false,
-  };
-};
-
-const useDepartments = () => {
-  return {
-    data: ['IT', 'HR', 'Sales', 'Finance'],
-    isLoading: false,
-  };
-};
+import { useEmployees } from '@/hooks/use-employees';
 
 export default function EmployeesPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
   const [status, setStatus] = useState('active');
 
-  const { data, isLoading } = useEmployees();
-  const { data: departments } = useDepartments();
+  const { data, isLoading } = useEmployees({
+    search: search || undefined,
+    department: department || undefined,
+    isActive: status === 'all' ? undefined : status === 'active',
+    page: 1,
+    limit: 50,
+  });
+
+  const departments = useMemo(() => {
+    if (!data?.data) return [];
+    const depts = new Set(data.data.map((e) => e.department).filter(Boolean));
+    return Array.from(depts) as string[];
+  }, [data?.data]);
 
   const columns: ColumnDef<any>[] = [
     {
@@ -85,7 +53,7 @@ export default function EmployeesPage() {
       header: 'Employee #',
       cell: ({ row }) => (
         <Link
-          href={`/hr/employees/${row.original.id}`}
+          href={`/${locale}/hr/employees/${row.original.id}`}
           className="font-medium text-blue-600 hover:underline"
         >
           {row.original.employee_number}
@@ -152,7 +120,7 @@ export default function EmployeesPage() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button onClick={() => router.push('/hr/employees/new')}>
+          <Button onClick={() => router.push(`/${locale}/hr/employees/new`)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Employee
           </Button>
