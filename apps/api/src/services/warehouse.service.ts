@@ -111,7 +111,7 @@ export class WarehouseService {
    */
   async deactivateWarehouse(id: string): Promise<Warehouse> {
     // Check if warehouse exists
-    const warehouse = await this.getWarehouse(id);
+    await this.getWarehouse(id);
 
     // Check if warehouse has inventory
     const hasInventory = await this.warehouseRepo.hasInventory(this.tenantId, id);
@@ -292,7 +292,7 @@ export class WarehouseService {
   ): Promise<{ entries: InventoryReportEntry[]; summary: InventoryReportSummary }> {
     const {
       warehouseId,
-      categoryId,
+      categoryId: _categoryId,
       lowStockOnly = false,
       includeZeroQuantity = false,
     } = params;

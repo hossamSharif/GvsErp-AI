@@ -31,10 +31,8 @@ export class AttendanceService {
   private readonly attendanceRepository: AttendanceRepository;
   private readonly employeeRepository: EmployeeRepository;
   private readonly tenantId: string;
-  private readonly supabase: SupabaseClient<Database>;
 
   constructor(supabase: SupabaseClient<Database>, tenantId: string) {
-    this.supabase = supabase;
     this.attendanceRepository = new AttendanceRepository(supabase);
     this.employeeRepository = new EmployeeRepository(supabase);
     this.tenantId = tenantId;
@@ -235,7 +233,7 @@ export class AttendanceService {
       notes?: string;
     }
   ) {
-    const existing = await this.getAttendanceRecord(id);
+    await this.getAttendanceRecord(id);
 
     const updated = await this.attendanceRepository.update(this.tenantId, id, input);
 

@@ -6,7 +6,6 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { PayrollService, PayrollError } from '../services/payroll.service';
-import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 

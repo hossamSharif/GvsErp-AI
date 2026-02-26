@@ -18,12 +18,8 @@ import { POSLocationRepository } from '../repositories/pos.repository';
 
 export class POSService {
   private posRepository: POSLocationRepository;
-  private supabase: SupabaseClient<Database>;
-  private tenantId: string;
 
-  constructor(supabase: SupabaseClient<Database>, tenantId: string) {
-    this.supabase = supabase;
-    this.tenantId = tenantId;
+  constructor(supabase: SupabaseClient<Database>, _tenantId: string) {
     this.posRepository = new POSLocationRepository(supabase);
   }
 

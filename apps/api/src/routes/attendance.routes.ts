@@ -6,7 +6,6 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AttendanceService, AttendanceError } from '../services/attendance.service';
-import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 

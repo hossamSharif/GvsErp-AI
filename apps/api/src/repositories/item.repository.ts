@@ -13,7 +13,6 @@ import type {
   ItemWithRelations,
   ItemPrice,
   ItemPackaging,
-  ItemQueryParams,
   BulkPriceUpdateResult,
 } from '@erp/shared';
 

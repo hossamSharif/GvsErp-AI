@@ -9,7 +9,6 @@ import type { Database } from '@erp/database';
 import { BaseRepository, QueryResult } from './base.repository';
 import type {
   Inventory,
-  InventoryWithDetails,
   WarehouseInventoryEntry,
   InventoryQueryParams,
   LowStockAlert,

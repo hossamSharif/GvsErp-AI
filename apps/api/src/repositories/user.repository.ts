@@ -9,7 +9,6 @@ import type { Database } from '@erp/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
-type UserInsert = Database['public']['Tables']['users']['Insert'];
 type UserUpdate = Database['public']['Tables']['users']['Update'];
 
 export interface UserWithRole extends UserRow {

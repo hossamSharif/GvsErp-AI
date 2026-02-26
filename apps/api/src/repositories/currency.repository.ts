@@ -9,7 +9,6 @@ import type { Database } from '@erp/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 
 type CurrencyRow = Database['public']['Tables']['currencies']['Row'];
-type CurrencyInsert = Database['public']['Tables']['currencies']['Insert'];
 type CurrencyUpdate = Database['public']['Tables']['currencies']['Update'];
 
 type ExchangeRateRow = Database['public']['Tables']['exchange_rates']['Row'];

@@ -6,7 +6,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
-import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
+import { BaseRepository, QueryResult } from './base.repository';
 import type { Warehouse, WarehouseWithSummary, WarehouseQueryParams } from '@erp/shared';
 
 type WarehouseRow = Database['public']['Tables']['warehouses']['Row'];

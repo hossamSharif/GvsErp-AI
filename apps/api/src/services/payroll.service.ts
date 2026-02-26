@@ -307,7 +307,7 @@ export class PayrollService {
    */
   private async postPayrollToAccounting(
     payrollRun: any,
-    payrollItems: PayrollItem[],
+    _payrollItems: PayrollItem[],
     userId: string
   ) {
     try {

@@ -12,7 +12,6 @@ import type { JournalEntry, JournalLine, CreateJournalLineInput } from '@erp/sha
 type JournalEntryRow = Database['public']['Tables']['journal_entries']['Row'];
 type JournalEntryInsert = Database['public']['Tables']['journal_entries']['Insert'];
 type JournalEntryUpdate = Database['public']['Tables']['journal_entries']['Update'];
-type JournalLineRow = Database['public']['Tables']['journal_lines']['Row'];
 type JournalLineInsert = Database['public']['Tables']['journal_lines']['Insert'];
 
 export interface JournalEntryQueryOptions extends QueryOptions {

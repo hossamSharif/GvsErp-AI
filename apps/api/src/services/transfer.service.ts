@@ -12,7 +12,6 @@ import { WarehouseRepository } from '../repositories/warehouse.repository';
 import type {
   Transfer,
   TransferWithDetails,
-  TransferStatus,
   TransferQueryParams,
   CreateTransferInput,
   UpdateTransferInput,

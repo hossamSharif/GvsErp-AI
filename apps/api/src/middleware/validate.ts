@@ -26,7 +26,7 @@ export function validateRequest(schemas: ValidationOptions) {
 export function validate(schemas: ValidationOptions) {
   return async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
