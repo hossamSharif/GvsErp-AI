@@ -13,6 +13,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/stores/language-store';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { type ReactNode } from 'react';
 
@@ -112,6 +113,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <main className="p-4 md:p-6">{children}</main>
       </div>
+
+      <Toaster />
     </div>
   );
 }
