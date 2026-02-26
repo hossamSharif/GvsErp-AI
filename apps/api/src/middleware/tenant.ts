@@ -10,6 +10,7 @@ import type { Database } from '@erp-saas/database';
 import { AppError } from './error';
 
 // Extend Express Request type
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -17,6 +18,7 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 /**
  * Extract and validate tenant_id from authenticated user

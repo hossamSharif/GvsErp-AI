@@ -1,6 +1,6 @@
-# Command: /test
+# Command: /test (v2 - Self-Fixing)
 
-> Complete autonomous testing: generates TEST-PLAN.md then executes via Ralph Wiggum
+> Complete autonomous testing AND fixing workflow
 
 ---
 
@@ -8,37 +8,59 @@
 
 ```bash
 /test [feature-branch]
-
-# Examples:
-/test                    # Uses current branch
-/test expenses           # Tests specs/expenses/
-/test 1-gat-exam-v3      # Tests specs/1-gat-exam-v3/
 ```
 
 ---
 
-## What It Does
+## What This Does
 
 ```
-/test = /test-plan + /test-execute
+/test = Generate Plan → Execute Tests → FIX BUGS → Report
 
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 1: PLAN GENERATION                                   │
-│  ├── Detect environment (DB, App URL)                       │
-│  ├── Read specs/[branch]/spec.md + tasks.md                 │
-│  ├── Generate TEST-PLAN.md with all test cases              │
-│  └── Include HARD STOP markers                              │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  PHASE 1: PLAN                                                  │
+│  └── Generate TEST-PLAN.md from specs                           │
+└─────────────────────────────────────────────────────────────────┘
                               ↓
-┌─────────────────────────────────────────────────────────────┐
-│  PHASE 2: EXECUTION (Ralph Wiggum Loop)                     │
-│  ├── Authenticate via Chrome MCP                            │
-│  ├── Execute each test case                                 │
-│  ├── Fix failures → Commit → Re-test                        │
-│  ├── Verify at HARD STOP markers                            │
-│  ├── Generate TEST-REPORT.md                                │
-│  └── Output <promise>ALL_TESTS_COMPLETE</promise>           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  PHASE 2: EXECUTE + FIX (Ralph Wiggum Loop)                     │
+│  ├── Run each test                                              │
+│  ├── If fail: READ DOCS → FIX → COMMIT → RE-TEST                │
+│  ├── Continue until all tests processed                         │
+│  └── Generate TEST-REPORT.md with all fixes                     │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  OUTPUT                                                         │
+│  ├── All bugs FIXED and committed                               │
+│  ├── TEST-REPORT.md with fix details                            │
+│  └── <promise>ALL_TESTS_COMPLETE</promise>                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎯 Core Principle
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   YOU ARE A DEVELOPER-TESTER                                    │
+│                                                                 │
+│   When you find a bug:                                          │
+│   1. READ specs/[branch]/spec.md + tasks.md                     │
+│   2. READ the failing component code                            │
+│   3. ANALYZE root cause                                         │
+│   4. FIX the bug (write code)                                   │
+│   5. COMMIT the fix                                             │
+│   6. RE-TEST                                                    │
+│   7. CONTINUE                                                   │
+│                                                                 │
+│   You NEVER just report bugs.                                   │
+│   You NEVER wait for humans.                                    │
+│   You FIX and CONTINUE.                                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -46,228 +68,192 @@
 ## Execution Prompt
 
 ```
-You are an autonomous QA Test Architect and Executor. Perform complete testing workflow.
+You are an autonomous DEVELOPER-TESTER. Generate test plan, execute tests, and FIX all bugs yourself.
 
-## STRICT AUTONOMOUS RULES
+## PHASE 1: ENVIRONMENT DETECTION
 
-1. ❌ Do NOT ask for human confirmation at any step
-2. ❌ Do NOT stop on console errors (log them)
-3. ✅ DO fix issues immediately and commit
-4. ✅ DO continue until ALL_TESTS_COMPLETE or BLOCKED
+1. Detect database (Supabase/Firebase)
+2. Find running app (ports 3000-3005)
+3. Verify correct project
+4. Read specs/[branch]/ directory
 
----
+## PHASE 2: GENERATE TEST-PLAN.md
 
-## PHASE 1: ENVIRONMENT SETUP
+From specs/[branch]/spec.md and tasks.md:
+- Extract all pages/routes
+- Extract all components
+- Extract all features
+- Generate test cases for each
 
-### Detect Database
-```bash
-# Priority: Check config files → package.json → .env
-if [ -f "supabase/config.toml" ]; then
-  DATABASE="supabase"
-elif [ -f "firebase.json" ]; then
-  DATABASE="firebase"
-elif grep -q "supabase" package.json 2>/dev/null; then
-  DATABASE="supabase"
-elif grep -q "firebase" package.json 2>/dev/null; then
-  DATABASE="firebase"
-fi
-echo "DATABASE_TYPE=$DATABASE"
-```
+Include test types:
+- UI render tests
+- i18n tests
+- CRUD tests
+- Validation tests
+- Mobile tests
 
-### Find Running App
-```bash
-APP_URL=""
-for PORT in 3000 3001 3002 3003 3004 3005; do
-  if curl -s "http://localhost:$PORT" > /dev/null 2>&1; then
-    # Verify correct app
-    APP_URL="http://localhost:$PORT"
-    echo "Found app at $APP_URL"
-    break
-  fi
-done
+Add HARD STOP markers after each section.
 
-if [ -z "$APP_URL" ]; then
-  echo "Starting app..."
-  npm run dev &
-  sleep 15
-  APP_URL="http://localhost:3000"
-fi
-```
+Save to: specs/[branch]/TEST-PLAN.md
 
-### Verify Correct App
-Use Chrome MCP to navigate and check:
-- Page title matches expected
-- Known route from specs exists
-- If wrong app: STOP and alert user
+## PHASE 3: EXECUTE WITH SELF-FIXING
 
----
-
-## PHASE 2: READ SPECS
-
-```
-SPEC_DIR = specs/[branch]/
-
-Read:
-├── spec.md      → Feature requirements
-├── tasks.md     → Implementation details  
-└── *.md         → Any other docs
-```
-
-Extract:
-- All routes/pages
-- All components
-- All API endpoints
-- Database tables
-- Form validations
-- User roles
-- i18n requirements
-
----
-
-## PHASE 3: GENERATE TEST-PLAN.md
-
-Create `specs/[branch]/TEST-PLAN.md` with:
-
-```markdown
-# TEST-PLAN: [Feature Name]
-
-Generated: [timestamp]
-Spec Source: specs/[branch]/
-Database: [supabase|firebase]
-App URL: http://localhost:[port]
-
----
-
-## Pre-Test: Authentication
-
-| ID | Test | Steps | Expected | Tool | Status |
-|----|------|-------|----------|------|--------|
-| AUTH-1 | Login | Navigate → Enter creds → Submit | Dashboard | Chrome | [ ] |
-
-### **HARD STOP** - Auth Checkpoint
-- [ ] Logged in successfully
-
----
-
-## Page: [/route]
-
-### UI Tests
-| ID | Test | Steps | Expected | Tool | Status |
-|----|------|-------|----------|------|--------|
-| [ID]-UI-1 | Load | Navigate to route | Renders | Chrome | [ ] |
-
-### i18n Tests  
-| ID | Test | Steps | Expected | Tool | Status |
-|----|------|-------|----------|------|--------|
-| [ID]-i18n-1 | Translations | Scan text | No raw keys | Chrome | [ ] |
-
-### CRUD Tests
-| ID | Test | Steps | Expected | Tool | Status |
-|----|------|-------|----------|------|--------|
-| [ID]-CRUD-1 | Create | Form → Submit | DB record | Chrome+DB | [ ] |
-
-### Mobile Tests
-| ID | Test | Steps | Expected | Tool | Status |
-|----|------|-------|----------|------|--------|
-| [ID]-MOB-1 | Responsive | 375x812 viewport | Layout OK | Chrome | [ ] |
-
-### **HARD STOP** - [Page] Complete
-- [ ] All tests pass
-
----
-
-[REPEAT FOR ALL PAGES]
-
----
-
-## Success Criteria
-- All [ ] → [x]
-- All fixes committed
-- Output <promise>ALL_TESTS_COMPLETE</promise>
-```
-
----
-
-## PHASE 4: EXECUTE VIA RALPH WIGGUM
-
-Immediately after generating TEST-PLAN.md, begin execution:
+Use Ralph Wiggum loop:
 
 ```bash
-/ralph-loop "Execute specs/[branch]/TEST-PLAN.md completely.
-
-AUTHENTICATION:
-- Use Chrome MCP to login
-- Accounts: hossamsharif1990@gmail.com / Hossam1990@
-- Fallback: halabija@gmail.com, husameldeenh@gmail.com
-- If all fail: Create via Supabase/Firebase CLI
+/ralph-loop "Execute TEST-PLAN.md as DEVELOPER-TESTER.
 
 FOR EACH TEST:
-1. Read test case from plan
-2. Execute via Chrome MCP / DB tool
-3. If PASS: Mark [x], continue
-4. If FAIL:
-   - Screenshot to specs/[branch]/screenshots/
-   - Analyze issue
-   - Fix code
-   - Commit: git commit -m 'fix([scope]): [desc]'
-   - Re-test (max 3 attempts)
-5. If still fails: Mark BLOCKED, continue
+
+1. EXECUTE test via Chrome MCP / DB MCP
+
+2. IF PASS:
+   - Mark [x]
+   - Continue
+
+3. IF FAIL:
+   
+   a. CAPTURE:
+      - Screenshot to specs/[branch]/screenshots/
+      - Console errors
+      - Expected vs actual
+   
+   b. READ DOCS (MANDATORY):
+      ```
+      cat specs/[branch]/spec.md
+      cat specs/[branch]/tasks.md
+      cat specs/[branch]/*.md
+      cat [failing-component-path]
+      ```
+   
+   c. ANALYZE:
+      - What does spec say it should do?
+      - What does code actually do?
+      - Where is the mismatch?
+   
+   d. FIX:
+      - Write code fix based on spec
+      - Handle edge cases from docs
+      - For i18n: add translations
+      - For UI: fix components/styles
+      - For CRUD: fix API/DB logic
+      - For validation: fix schemas
+   
+   e. COMMIT:
+      git add .
+      git commit -m 'fix([scope]): [description]'
+   
+   f. RE-TEST:
+      - Run same test
+      - If pass: mark [x], continue
+      - If fail: repeat b-f (max 3 times)
+   
+   g. AFTER 3 ATTEMPTS:
+      - Mark BLOCKED with details
+      - Continue to next test
 
 HARD STOPS:
-- Pause and verify all checkboxes
-- Do not proceed until section complete
-
-CONSOLE ERRORS:
-- Log to TEST-REPORT.md
-- DO NOT STOP testing
-
-i18n ISSUES:
-- Add missing translations
-- Fix namespace imports
-- Commit fixes
+- Verify all section tests complete
+- Note any BLOCKED
+- Continue to next section
 
 AT END:
 - Generate TEST-REPORT.md
-- Save all screenshots
-- Output <promise>ALL_TESTS_COMPLETE</promise>
+- Include all fixes with commits
+- Include any BLOCKED with attempts
 
-IF BLOCKED (>50% tests):
-- Document issues
-- Output <promise>BLOCKED</promise>
+OUTPUT:
+- <promise>ALL_TESTS_COMPLETE</promise> when done
+- <promise>BLOCKED</promise> if >50% blocked
 " --max-iterations 50 --completion-promise "ALL_TESTS_COMPLETE"
 ```
 
----
+## PHASE 4: FINAL REPORT
 
-## PHASE 5: FINAL REPORT
-
-Generate `specs/[branch]/TEST-REPORT.md`:
+Generate specs/[branch]/TEST-REPORT.md:
 
 ```markdown
 # TEST REPORT: [Feature]
 
-Generated: [timestamp]
-Duration: [X min]
-Status: ✅ COMPLETE | ⚠️ PARTIAL | ❌ BLOCKED
+Status: ✅ COMPLETE
 
 ## Summary
 | Metric | Count |
 |--------|-------|
 | Total | XX |
-| Passed | XX |
-| Fixed | XX |
+| Passed (First) | XX |
+| Passed (Fixed) | XX |
 | Blocked | XX |
 
 ## Fixes Applied
-| Commit | Description |
-|--------|-------------|
-| abc123 | fix(i18n): ... |
+| Test | Bug | Fix | Commit |
+|------|-----|-----|--------|
+| ... | ... | ... | ... |
 
-## Console Errors
-- [logged errors]
+## Fix Details
+### Fix #1
+- Bug: ...
+- Spec Reference: ...
+- Solution: ...
+- Commit: ...
 
-## Screenshots
-- [links to screenshots]
+## Blocked (if any)
+### [Test ID]
+- Attempt 1: ...
+- Attempt 2: ...
+- Attempt 3: ...
+```
+
+---
+
+## Bug Fix Protocols
+
+### i18n (Translation Keys Showing)
+
+```
+1. Read spec for required translations
+2. Find translation files (locales/*.json)
+3. Add missing keys to ALL language files
+4. Check useTranslation() usage
+5. Commit: fix(i18n): add [keys] translations
+```
+
+### UI (Render Issues)
+
+```
+1. Read spec for UI requirements
+2. Read component source
+3. Fix JSX, props, or styles
+4. Handle RTL for Arabic (dir="rtl")
+5. Commit: fix(ui): [description]
+```
+
+### CRUD (Data Issues)
+
+```
+1. Read spec for data requirements
+2. Read API route and DB queries
+3. Fix query logic or response handling
+4. Verify with Supabase/Firebase MCP
+5. Commit: fix(crud): [description]
+```
+
+### Validation (Form Issues)
+
+```
+1. Read spec for validation rules
+2. Read form schema (zod/yup)
+3. Fix validation logic
+4. Commit: fix(validation): [description]
+```
+
+### Logic (Wrong Behavior)
+
+```
+1. Read spec for expected behavior
+2. Trace code logic
+3. Rewrite to match spec
+4. Commit: fix(logic): [description]
 ```
 
 ---
@@ -276,44 +262,41 @@ Status: ✅ COMPLETE | ⚠️ PARTIAL | ❌ BLOCKED
 
 ```
 specs/[branch]/
-├── TEST-PLAN.md        # Generated test plan
-├── TEST-REPORT.md      # Execution report
-└── screenshots/        # Failure evidence
-    ├── AUTH-1-pass.png
-    ├── EXP-UI-1-pass.png
-    └── EXP-i18n-1-fail.png
+├── TEST-PLAN.md         # Generated test plan
+├── TEST-REPORT.md       # Report with all fixes
+└── screenshots/         # Failure evidence
 ```
 
 ---
 
-## Completion Signals
+## Success Output
 
-**Success:**
 ```
 ✅ TEST-PLAN.md generated
 ✅ All tests executed
-✅ All fixes committed  
-✅ TEST-REPORT.md created
+✅ X bugs found and FIXED
+✅ X commits made
+✅ TEST-REPORT.md generated
 
 <promise>ALL_TESTS_COMPLETE</promise>
 ```
 
-**Blocked:**
-```
-⚠️ >50% tests could not pass
-📝 Issues documented
-📸 Screenshots saved
-
-<promise>BLOCKED</promise>
-```
-
 ---
 
-## Quick Reference
+## Rules
 
-| Command | Purpose |
-|---------|---------|
-| `/test` | Full workflow (plan + execute) |
-| `/test-plan` | Generate TEST-PLAN.md only |
-| `/test-execute` | Execute existing plan only |
+### ALWAYS ✅
+- Read docs before ANY fix
+- Fix bugs yourself
+- Commit each fix
+- Re-test after fix
+- Continue after fix or block
+- Try 3 times before blocking
+
+### NEVER ❌
+- Report bugs without fixing
+- Wait for human
+- Skip reading docs
+- Give up after 1 attempt
+- Stop the loop mid-execution
 ```

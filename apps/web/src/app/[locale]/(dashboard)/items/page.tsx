@@ -317,7 +317,12 @@ export default function ItemsPage() {
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                data-testid={`item-actions-${row.original.id}`}
+              >
                 <span className="sr-only">{tc('actions')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -325,16 +330,23 @@ export default function ItemsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{tc('actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
+              <DropdownMenuItem
+                testId="action-view"
+                onClick={() => handleViewItem(row.original)}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 {t('viewItem')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEditItem(row.original)}>
+              <DropdownMenuItem
+                testId="action-edit"
+                onClick={() => handleEditItem(row.original)}
+              >
                 <Pencil className="mr-2 h-4 w-4" />
                 {tc('edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
+                testId="action-delete"
                 onClick={() => handleDeleteItem(row.original)}
                 className="text-destructive"
               >

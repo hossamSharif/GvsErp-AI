@@ -11,6 +11,7 @@ import { getTenantContext } from './tenant';
 import type { AuditEntityType, AuditAction } from '@erp-saas/shared';
 
 // Extend Express Request to include audit metadata
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -18,11 +19,12 @@ declare global {
         entityType?: AuditEntityType;
         entityId?: string;
         action?: AuditAction;
-        oldValues?: Record<string, any>;
+        oldValues?: Record<string, unknown>;
       };
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 /**
  * Configuration for route-to-entity mapping
@@ -74,19 +76,6 @@ function extractEntityType(path: string): AuditEntityType | null {
   return null;
 }
 
-/**
- * Extract entity ID from request (from params or response)
- */
-function extractEntityId(req: Request, res: Response): string | null {
-  // Try to get from route params (:id)
-  if (req.params.id) {
-    return req.params.id;
-  }
-
-  // For POST requests, we'll need to extract from response body
-  // This will be handled in the response interceptor
-  return null;
-}
 
 /**
  * Middleware to capture response body for audit logging
@@ -121,10 +110,9 @@ export function auditMiddleware(
 
   // Store original send function
   const originalSend = res.send;
-  const originalJson = res.json;
 
   // Intercept response to log audit trail
-  const interceptResponse = function (this: Response, body: any): Response {
+  const interceptResponse = function (this: Response, body: unknown): Response {
     // Only log successful operations (2xx status codes)
     if (res.statusCode >= 200 && res.statusCode < 300) {
       // Async function to log audit trail
@@ -154,7 +142,7 @@ export function auditMiddleware(
 
           // Get values to log
           let oldValues = req.auditMetadata?.oldValues || null;
-          let newValues: Record<string, any> | null = null;
+          let newValues: Record<string, unknown> | null = null;
 
           if (action === 'create') {
             newValues = req.body || null;
@@ -186,10 +174,10 @@ export function auditMiddleware(
   };
 
   // Override response methods
-  res.send = interceptResponse;
-  res.json = function (this: Response, body: any): Response {
+  res.send = interceptResponse as typeof res.send;
+  res.json = function (this: Response, body: unknown): Response {
     return interceptResponse.call(this, JSON.stringify(body));
-  };
+  } as typeof res.json;
 
   next();
 }
@@ -202,7 +190,7 @@ export function auditMiddleware(
  * router.put('/:id', captureOldValues(getEntityFunction), updateHandler);
  */
 export function captureOldValues(
-  fetchFunction: (req: Request, id: string) => Promise<any>
+  fetchFunction: (req: Request, id: string) => Promise<Record<string, unknown> | null>
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -237,7 +225,7 @@ export async function logAuditAction(
   action: AuditAction,
   entityType: AuditEntityType,
   entityId: string | null,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): Promise<void> {
   try {
     const { supabase, tenantId, userId } = getTenantContext(req);

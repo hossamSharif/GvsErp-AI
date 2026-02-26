@@ -10,6 +10,7 @@ import type { Permission, JWTClaims } from '@erp-saas/shared';
 import type { Database } from '@erp-saas/database';
 
 // Extend Express Request type
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -24,9 +25,10 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+const _SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!; // Reserved for future client-side token validation
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**

@@ -1,6 +1,6 @@
-# Command: /test-plan
+# Command: /test-plan (v2)
 
-> Generates a comprehensive TEST-PLAN.md from specs for autonomous execution
+> Generates TEST-PLAN.md optimized for self-fixing execution
 
 ---
 
@@ -8,11 +8,6 @@
 
 ```bash
 /test-plan [feature-branch]
-
-# Examples:
-/test-plan                    # Uses current branch
-/test-plan expenses           # Uses specs/expenses/
-/test-plan 1-gat-exam-v3      # Uses specs/1-gat-exam-v3/
 ```
 
 ---
@@ -20,97 +15,52 @@
 ## Execution Prompt
 
 ```
-You are a QA Test Architect. Generate a comprehensive TEST-PLAN.md for autonomous MCP-driven testing.
+Generate a comprehensive TEST-PLAN.md for autonomous self-fixing execution.
 
 ## PHASE 1: ENVIRONMENT DETECTION
 
-1. **Detect Database Type**
-   - Check for `supabase/config.toml` or `firebase.json`
+1. Detect database type:
+   - Check supabase/config.toml or firebase.json
    - Check package.json dependencies
-   - Check .env files for SUPABASE_URL or FIREBASE_*
-   - Store: DATABASE_TYPE = "supabase" | "firebase"
+   - Check .env files
 
-2. **Find Running App**
-   - Check ports: 3000, 3001, 3002, 3003, 3004, 3005
-   - Verify correct app by checking:
-     - Page title
-     - Known route exists
-     - Package.json name matches
-   - If no app: Run `npm run dev`
-   - Store: APP_URL
+2. Find running app:
+   - Check ports 3000-3005
+   - Verify correct project
+   - Start if needed (npm run dev)
 
-3. **Identify Spec Directory**
-   - Use provided branch name OR current git branch
-   - Path: `specs/[branch]/`
-   - Required: spec.md, tasks.md
+3. Identify spec directory:
+   - Use provided branch or current git branch
+   - Path: specs/[branch]/
 
-## PHASE 2: SPEC ANALYSIS
+## PHASE 2: READ SPECS
 
-Read and parse:
-- `specs/[branch]/spec.md` → Feature requirements
-- `specs/[branch]/tasks.md` → Implementation details
-- Any other .md files → Additional context
+Read and analyze:
+- specs/[branch]/spec.md → Feature requirements
+- specs/[branch]/tasks.md → Implementation details
+- specs/[branch]/*.md → Additional docs
 
 Extract:
-- All pages/routes mentioned
-- All components mentioned
+- All pages/routes
+- All components
 - All API endpoints
-- Database tables/collections
-- Form fields and validations
-- User roles and permissions
+- Database schema
+- Form validations
 - i18n requirements
+- User roles
 
-## PHASE 3: TEST CASE GENERATION
+## PHASE 3: GENERATE TEST-PLAN.md
 
-For EACH page/route, generate test cases covering:
+Output: specs/[branch]/TEST-PLAN.md
 
-### UI Tests
-- [ ] Page loads without error
-- [ ] All elements render correctly
-- [ ] Loading states display
-- [ ] Empty states display
-- [ ] Error states display
-
-### i18n Tests
-- [ ] No translation keys visible (e.g., "expenses.title")
-- [ ] RTL layout correct (Arabic)
-- [ ] Date/number formatting localized
-
-### CRUD Tests (if applicable)
-- [ ] Create: Form submit creates DB record
-- [ ] Read: Data loads from DB correctly
-- [ ] Update: Edit saves to DB
-- [ ] Delete: Remove deletes from DB
-- [ ] List: Pagination works
-- [ ] Search: Filter works
-
-### Validation Tests
-- [ ] Required fields enforced
-- [ ] Format validation (email, phone, etc.)
-- [ ] Error messages display
-
-### Auth Tests (if applicable)
-- [ ] Protected route redirects
-- [ ] Role-based access works
-- [ ] Session persists
-
-### Mobile Tests
-- [ ] Responsive layout (375px width)
-- [ ] Touch interactions work
-- [ ] RTL on mobile
-
-## PHASE 4: GENERATE TEST-PLAN.md
-
-Output to: `specs/[branch]/TEST-PLAN.md`
-
-Use this EXACT structure:
+Structure:
 
 ```markdown
 # TEST-PLAN: [Feature Name]
 
-Generated: [YYYY-MM-DD HH:mm]
-Spec Source: specs/[branch]/spec.md
-Executed By: Claude Code + Ralph Wiggum
+Generated: [timestamp]
+Spec Source: specs/[branch]/
+Mode: SELF-FIXING (agent fixes bugs, not just reports)
 
 ---
 
@@ -125,52 +75,113 @@ Executed By: Claude Code + Ralph Wiggum
 
 ---
 
+## 📖 Reference Docs (Read Before Fixing)
+
+| Doc | Path | Purpose |
+|-----|------|---------|
+| Feature Spec | specs/[branch]/spec.md | Requirements |
+| Tasks | specs/[branch]/tasks.md | Implementation |
+| [Others] | specs/[branch]/[name].md | [Purpose] |
+
+---
+
 ## 🔐 Pre-Test: Authentication
 
-| ID | Test | Steps | Expected | Tool |
-|----|------|-------|----------|------|
-| AUTH-1 | Login | Navigate to /login → Enter credentials → Submit | Redirect to dashboard | Chrome MCP |
-| AUTH-2 | Session | Refresh page | Stay logged in | Chrome MCP |
+| ID | Test | Steps | Expected | Tool | Status |
+|----|------|-------|----------|------|--------|
+| AUTH-1 | Login | Navigate → Enter creds → Submit | Dashboard | Chrome | [ ] |
+| AUTH-2 | Session | Refresh page | Stay logged in | Chrome | [ ] |
 
-### **HARD STOP** - Authentication Checkpoint
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/spec.md - Auth section
+2. Check: Login form, auth API, middleware
+3. Fix: Based on spec requirements
+4. Commit: fix(auth): [description]
+
+### **HARD STOP** - Auth Checkpoint
 - [ ] Logged in successfully
 - [ ] Correct user role
-- [ ] Session persisted
 
 ---
 
 ## 📄 Page: [/route-name]
 
+### Reference
+- Spec Section: [X.X]
+- Component: [path/to/component]
+- API: [/api/route]
+
 ### UI Tests
 | ID | Test | Steps | Expected | Tool | Status |
 |----|------|-------|----------|------|--------|
-| [PAGE]-UI-1 | Page Load | Navigate to [route] | Page renders, no errors | Chrome | [ ] |
-| [PAGE]-UI-2 | Elements | Check all elements | All visible | Chrome | [ ] |
+| [PAGE]-UI-1 | Page Load | Navigate | Renders | Chrome | [ ] |
+| [PAGE]-UI-2 | Elements | Check presence | All visible | Chrome | [ ] |
+| [PAGE]-UI-3 | RTL | Check alignment | Right-aligned | Chrome | [ ] |
+
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/spec.md - Section [X]
+2. Read: [component-path]
+3. Fix: JSX, props, styles, RTL
+4. Commit: fix(ui): [description]
 
 ### i18n Tests
 | ID | Test | Steps | Expected | Tool | Status |
 |----|------|-------|----------|------|--------|
-| [PAGE]-i18n-1 | Translations | Scan page text | No keys like "word.word" | Chrome | [ ] |
-| [PAGE]-i18n-2 | RTL | Check text alignment | Right-aligned for Arabic | Chrome | [ ] |
+| [PAGE]-i18n-1 | Translations | Scan text | No raw keys | Chrome | [ ] |
+| [PAGE]-i18n-2 | Arabic | Check text | Proper Arabic | Chrome | [ ] |
+
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/spec.md - i18n section
+2. Find: locales/ar.json or equivalent
+3. Add: Missing translation keys
+4. Check: useTranslation() usage
+5. Commit: fix(i18n): add [keys] translations
 
 ### CRUD Tests
 | ID | Test | Steps | Expected | Tool | Status |
 |----|------|-------|----------|------|--------|
-| [PAGE]-CRUD-1 | Create | Fill form → Submit | New record in DB | Chrome + DB | [ ] |
-| [PAGE]-CRUD-2 | Read | Load page | Data matches DB | Chrome + DB | [ ] |
-| [PAGE]-CRUD-3 | Update | Edit → Save | DB record updated | Chrome + DB | [ ] |
-| [PAGE]-CRUD-4 | Delete | Click delete → Confirm | Record removed from DB | Chrome + DB | [ ] |
+| [PAGE]-CRUD-1 | Create | Fill form → Submit | New DB record | Chrome+DB | [ ] |
+| [PAGE]-CRUD-2 | Read | Load page | Data from DB | Chrome+DB | [ ] |
+| [PAGE]-CRUD-3 | Update | Edit → Save | DB updated | Chrome+DB | [ ] |
+| [PAGE]-CRUD-4 | Delete | Remove → Confirm | DB record gone | Chrome+DB | [ ] |
+
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/tasks.md - CRUD section
+2. Check: API route handler
+3. Check: Database query
+4. Check: Form submission logic
+5. Verify: DB schema with Supabase/Firebase MCP
+6. Fix: Based on spec data requirements
+7. Commit: fix(crud): [description]
+
+### Validation Tests
+| ID | Test | Steps | Expected | Tool | Status |
+|----|------|-------|----------|------|--------|
+| [PAGE]-VAL-1 | Required | Submit empty | Error message | Chrome | [ ] |
+| [PAGE]-VAL-2 | Format | Invalid input | Validation error | Chrome | [ ] |
+
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/spec.md - Validation rules
+2. Check: Form schema (zod/yup)
+3. Fix: Validation logic
+4. Commit: fix(validation): [description]
 
 ### Mobile Tests
 | ID | Test | Steps | Expected | Tool | Status |
 |----|------|-------|----------|------|--------|
-| [PAGE]-MOB-1 | Layout | Set viewport 375x812 | Responsive layout | Chrome | [ ] |
-| [PAGE]-MOB-2 | RTL Mobile | Check alignment | Correct RTL | Chrome | [ ] |
+| [PAGE]-MOB-1 | Layout | 375x812 viewport | Responsive | Chrome | [ ] |
+| [PAGE]-MOB-2 | RTL Mobile | Check alignment | Correct | Chrome | [ ] |
+
+**Fix Protocol (if fails):**
+1. Read: specs/[branch]/spec.md - Responsive requirements
+2. Check: Tailwind classes, media queries
+3. Fix: Add responsive/RTL classes
+4. Commit: fix(ui): responsive [page]
 
 ### **HARD STOP** - [Page Name] Complete
 - [ ] All UI tests pass
 - [ ] All i18n resolved
-- [ ] All CRUD verified in DB
+- [ ] All CRUD verified
 - [ ] Mobile tested
 
 ---
@@ -179,88 +190,48 @@ Executed By: Claude Code + Ralph Wiggum
 
 ---
 
-## 🚨 Blocked Protocol
+## 🔄 Self-Fix Protocol Summary
 
-If unable to proceed after 3 attempts on any test:
+When ANY test fails:
 
-1. Mark test as BLOCKED
-2. Document in this section:
-   - Issue description
-   - Error messages
-   - Attempted solutions
-3. Continue to next test
-4. If >50% tests blocked: Output `<promise>BLOCKED</promise>`
+1. **CAPTURE** - Screenshot, console errors
+2. **READ DOCS** - spec.md, tasks.md, component code
+3. **ANALYZE** - Spec says X, code does Y
+4. **FIX** - Write code to match spec
+5. **COMMIT** - fix([scope]): [description]
+6. **RE-TEST** - Run same test
+7. **REPEAT** - Up to 3 attempts
+8. **BLOCK** - Only after 3 failed fixes
 
 ---
 
 ## ✅ Success Criteria
 
-All must be true to output `<promise>ALL_TESTS_COMPLETE</promise>`:
-
-- [ ] All test cases marked [x]
-- [ ] All HARD STOPs passed
-- [ ] All fixes committed to git
-- [ ] TEST-REPORT.md generated
-- [ ] Screenshots saved for failures
+```
+- All [ ] marked [x] OR documented as BLOCKED
+- All fixes committed with proper messages
+- TEST-REPORT.md generated
+- <promise>ALL_TESTS_COMPLETE</promise>
+```
 
 ---
 
-## 🔄 Ralph Wiggum Execution
-
-Run this plan with:
+## 🔄 Execution Command
 
 \`\`\`bash
-/ralph-loop "Execute specs/[branch]/TEST-PLAN.md autonomously.
-
-RULES:
-1. Read each test case in order
-2. Execute using specified MCP tool
-3. Mark [x] when passed
-4. Fix failures immediately, commit with: git commit -m 'fix([scope]): [desc]'
-5. Re-test after fix
-6. Pause at HARD STOP markers for verification
-7. Log console errors to report (don't stop)
-8. Take screenshots on failure
-9. After 3 failed fix attempts: mark BLOCKED, continue
-
-OUTPUT:
-- <promise>BLOCKED</promise> if >50% tests blocked
-- <promise>ALL_TESTS_COMPLETE</promise> when all pass
-" --max-iterations 50 --completion-promise "ALL_TESTS_COMPLETE"
+/ralph-loop "Execute this TEST-PLAN.md as DEVELOPER-TESTER.
+Read docs before fixing. Fix bugs yourself. Commit each fix.
+Output <promise>ALL_TESTS_COMPLETE</promise> when done."
+--max-iterations 50 --completion-promise "ALL_TESTS_COMPLETE"
 \`\`\`
 ```
 
-## PHASE 5: CONFIRMATION
-
-After generating TEST-PLAN.md:
-1. Display summary: X pages, Y total tests
-2. Show file path
-3. Ask: "Run /test-execute to begin autonomous testing?"
-
 ---
 
-## DO NOT:
-- Ask for confirmation during generation
-- Skip any page mentioned in specs
-- Generate incomplete test cases
-- Forget HARD STOP markers
-- Omit the Ralph Wiggum execution command
-```
+## Key Additions for Self-Fixing
 
----
-
-## Output
-
-```
-specs/[branch]/TEST-PLAN.md
-```
-
----
-
-## Next Step
-
-After `/test-plan` completes, run:
-
-```bash
-/test-execute
+1. **Reference Docs Section** - Lists all docs to read
+2. **Fix Protocol per Test Type** - Specific instructions
+3. **Component Paths** - Where to look for code
+4. **Spec Section References** - Which part of spec to read
 ```

@@ -1,6 +1,6 @@
-# Command: /test-execute
+# Command: /test-execute (v2 - Self-Fixing)
 
-> Executes TEST-PLAN.md autonomously using MCP tools + Ralph Wiggum loop
+> Executes TEST-PLAN.md as a DEVELOPER-TESTER who fixes bugs, not just reports them
 
 ---
 
@@ -8,310 +8,322 @@
 
 ```bash
 /test-execute [feature-branch]
-
-# Examples:
-/test-execute                    # Uses current branch
-/test-execute expenses           # Uses specs/expenses/TEST-PLAN.md
-/test-execute 1-gat-exam-v3      # Uses specs/1-gat-exam-v3/TEST-PLAN.md
 ```
 
 ---
 
-## Prerequisites
+## 🎯 Core Principle
 
-- ✅ TEST-PLAN.md exists in `specs/[branch]/`
-- ✅ Chrome MCP tool connected
-- ✅ Supabase MCP or Firebase CLI available
-- ✅ Ralph Wiggum plugin installed
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  YOU ARE A DEVELOPER-TESTER                                     │
+│                                                                 │
+│  When you find a bug:                                           │
+│  1. READ the docs (spec.md, tasks.md)                           │
+│  2. FIX the bug yourself                                        │
+│  3. COMMIT the fix                                              │
+│  4. RE-TEST                                                     │
+│  5. CONTINUE                                                    │
+│                                                                 │
+│  You NEVER report bugs for someone else to fix.                 │
+│  You NEVER wait for human intervention.                         │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Execution Prompt
 
 ```
-You are an autonomous QA Test Executor. Execute the TEST-PLAN.md using MCP tools.
+You are an autonomous DEVELOPER-TESTER. Your job is to test AND fix bugs.
 
-## STRICT RULES - READ CAREFULLY
+## STRICT RULES
 
-### 1. ONLY Read TEST-PLAN.md
-- Path: `specs/[branch]/TEST-PLAN.md`
-- Do NOT re-read spec.md or tasks.md
-- Trust the plan completely
+1. When a test FAILS, you MUST:
+   - READ docs FIRST (mandatory before any fix)
+   - FIX the bug yourself
+   - COMMIT the fix
+   - RE-TEST
+   - Only mark BLOCKED after 3 failed fix attempts
 
-### 2. Environment Setup
+2. You NEVER:
+   - Report bugs without fixing them
+   - Wait for human to fix bugs
+   - Skip reading docs before fixing
+   - Stop the test loop (except HARD STOP verification)
 
-**Find App:**
+---
+
+## EXECUTION FLOW
+
+### Setup Phase
+
 ```bash
+# 1. Find running app
 for PORT in 3000 3001 3002 3003 3004 3005; do
   if curl -s http://localhost:$PORT > /dev/null; then
-    # Verify it's the correct app
     APP_URL="http://localhost:$PORT"
     break
   fi
 done
+
+# 2. Start if needed
+if [ -z "$APP_URL" ]; then
+  npm run dev &
+  sleep 15
+  APP_URL="http://localhost:3000"
+fi
+
+# 3. Verify correct app
+# Navigate to known route, check it loads
 ```
 
-If no app running:
-```bash
-npm run dev &
-sleep 10
-APP_URL="http://localhost:3000"
-```
-
-**Verify correct app:** Check that navigating to a known route from TEST-PLAN.md works.
-
-### 3. Authentication
-
-Login sequence:
-1. Navigate to login page via Chrome MCP
-2. Use credentials from TEST-PLAN.md (or defaults):
-   - Primary: hossamsharif1990@gmail.com / Hossam1990@
-   - Backup1: halabija@gmail.com / Hossam1990@
-   - Backup2: husameldeenh@gmail.com / Hossam1990@
-3. If login fails:
-   - Check error type
-   - If "not found": Create user via Supabase MCP or CLI
-   - If "wrong password": Reset via DB
-   - Retry
+### Authentication Phase
 
 ```javascript
-// Chrome MCP - Login
+// Login via Chrome MCP
 await chrome.navigate({ url: `${APP_URL}/login` })
 await chrome.type({ selector: 'input[name="email"]', text: 'hossamsharif1990@gmail.com' })
 await chrome.type({ selector: 'input[name="password"]', text: 'Hossam1990@' })
 await chrome.click({ selector: 'button[type="submit"]' })
-await chrome.waitForNavigation({ timeout: 10000 })
+
+// If fails, try backup accounts or create via CLI
 ```
 
-### 4. Execute Tests Sequentially
+### Test Execution Phase
 
-For EACH test in TEST-PLAN.md:
-
-```
-READ test case (ID, Steps, Expected, Tool)
-  ↓
-EXECUTE using specified MCP tool
-  ↓
-VERIFY result matches Expected
-  ↓
-IF PASS:
-  - Mark [x] in TEST-PLAN.md
-  - Continue to next
-  ↓
-IF FAIL:
-  - Take screenshot: specs/[branch]/screenshots/[ID]-fail.png
-  - Analyze the issue
-  - Read related component code
-  - Fix the code
-  - Commit: git add . && git commit -m "fix([scope]): [description]"
-  - Re-test (max 3 attempts)
-  ↓
-IF STILL FAILS after 3 attempts:
-  - Mark as BLOCKED
-  - Document in TEST-PLAN.md
-  - Continue to next test
-```
-
-### 5. MCP Tool Usage
-
-**Chrome MCP - Navigation:**
-```javascript
-await chrome.navigate({ url: `${APP_URL}/expenses` })
-await chrome.waitForSelector({ selector: '[data-testid="page-loaded"]', timeout: 10000 })
-```
-
-**Chrome MCP - Interaction:**
-```javascript
-await chrome.click({ selector: 'button.add-expense' })
-await chrome.type({ selector: 'input[name="amount"]', text: '150' })
-await chrome.select({ selector: 'select[name="category"]', value: 'food' })
-await chrome.click({ selector: 'button[type="submit"]' })
-```
-
-**Chrome MCP - Viewport (Mobile):**
-```javascript
-await chrome.setViewport({ width: 375, height: 812 })
-```
-
-**Chrome MCP - Screenshot:**
-```javascript
-await chrome.screenshot({ path: 'specs/[branch]/screenshots/[test-id].png', fullPage: true })
-```
-
-**Chrome MCP - Console Logs:**
-```javascript
-const logs = await chrome.getConsoleLogs()
-const errors = logs.filter(l => l.level === 'error')
-// Log errors to report, but DO NOT stop testing
-```
-
-**Supabase MCP - Verify Record:**
-```javascript
-const { data } = await supabase.from('expenses').select('*').eq('id', recordId).single()
-assert(data !== null, 'Record should exist')
-```
-
-**Supabase CLI - Fallback:**
-```bash
-supabase db execute "SELECT * FROM expenses WHERE id = 'xxx'"
-```
-
-**Firebase CLI - Fallback:**
-```bash
-firebase firestore:get expenses/[docId]
-```
-
-### 6. i18n Fix Protocol
-
-When translation keys detected (e.g., "expenses.title" instead of "المصروفات"):
+FOR EACH test in TEST-PLAN.md:
 
 ```
-1. Identify all missing keys on page
-2. Find translation files:
-   - Check: /locales/, /messages/, /public/locales/
-3. Add missing translations:
-   ```json
-   // ar.json
-   {
-     "expenses": {
-       "title": "المصروفات",
-       "subtitle": "إدارة المصروفات"
-     }
-   }
-   ```
-4. If keys exist but not loading:
-   - Check i18n configuration
-   - Check namespace imports
-   - Check useTranslation() hook usage
-5. Commit fix:
-   ```bash
-   git add .
-   git commit -m "fix(i18n): resolve [keys] translations for [page]"
-   ```
-6. Refresh page and re-test
+┌─────────────────────────────────────────────────────────────────┐
+│  EXECUTE TEST                                                   │
+│  └── Use Chrome MCP / DB MCP as specified                       │
+└─────────────────────────────────────────────────────────────────┘
+          │
+          ├── IF PASS ────────────────────────────────────────────┐
+          │                                                       │
+          │   ┌───────────────────────────────────────────────┐   │
+          │   │  1. Mark [x] in TEST-PLAN.md                  │   │
+          │   │  2. Continue to next test                     │   │
+          │   └───────────────────────────────────────────────┘   │
+          │                                                       │
+          └── IF FAIL ────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 1: CAPTURE FAILURE                                        │
+│  ├── Screenshot: specs/[branch]/screenshots/[ID]-fail.png       │
+│  ├── Console errors: chrome.getConsoleLogs()                    │
+│  └── Note: expected vs actual behavior                          │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 2: READ DOCS (MANDATORY - DO NOT SKIP)                    │
+│                                                                 │
+│  Execute these commands:                                        │
+│                                                                 │
+│  # Read feature spec                                            │
+│  cat specs/[branch]/spec.md                                     │
+│                                                                 │
+│  # Read implementation tasks                                    │
+│  cat specs/[branch]/tasks.md                                    │
+│                                                                 │
+│  # Read any other docs                                          │
+│  ls specs/[branch]/*.md                                         │
+│  cat specs/[branch]/[other-docs].md                             │
+│                                                                 │
+│  # Read failing component/page source                           │
+│  cat [path/to/component.tsx]                                    │
+│                                                                 │
+│  # Read related files (hooks, utils, API)                       │
+│  cat [related-files]                                            │
+│                                                                 │
+│  EXTRACT:                                                       │
+│  - What should this feature do? (from spec.md)                  │
+│  - How should it behave? (from spec.md)                         │
+│  - What data format is expected? (from spec.md/tasks.md)        │
+│  - What edge cases exist? (from docs)                           │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 3: ANALYZE ROOT CAUSE                                     │
+│                                                                 │
+│  Compare:                                                       │
+│  - SPEC says: [requirement from docs]                           │
+│  - CODE does: [actual behavior]                                 │
+│  - DIFFERENCE: [the bug]                                        │
+│                                                                 │
+│  Identify bug type:                                             │
+│  - i18n (missing translations)                                  │
+│  - UI (render issues, RTL, missing elements)                    │
+│  - CRUD (data not saving/loading)                               │
+│  - Validation (form issues)                                     │
+│  - Logic (wrong behavior)                                       │
+│  - API (endpoint errors)                                        │
+│  - Types (TypeScript errors)                                    │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 4: IMPLEMENT FIX                                          │
+│                                                                 │
+│  Based on spec requirements:                                    │
+│  - Write code that matches spec                                 │
+│  - Handle edge cases from docs                                  │
+│  - Follow project patterns                                      │
+│  - Add missing translations if needed                           │
+│                                                                 │
+│  For i18n bugs:                                                 │
+│  - Add keys to locales/ar.json (and other langs)                │
+│  - Check useTranslation() usage                                 │
+│  - Check i18n config                                            │
+│                                                                 │
+│  For UI bugs:                                                   │
+│  - Fix component JSX                                            │
+│  - Fix Tailwind/CSS classes                                     │
+│  - Add RTL support (dir="rtl", space-x-reverse, etc.)          │
+│                                                                 │
+│  For CRUD bugs:                                                 │
+│  - Fix API route handler                                        │
+│  - Fix database query                                           │
+│  - Fix form submission                                          │
+│                                                                 │
+│  For validation bugs:                                           │
+│  - Fix schema (zod/yup)                                         │
+│  - Fix form validation logic                                    │
+│                                                                 │
+│  For logic bugs:                                                │
+│  - Rewrite logic to match spec                                  │
+│  - Handle conditions from spec                                  │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 5: COMMIT FIX                                             │
+│                                                                 │
+│  git add .                                                      │
+│  git commit -m "fix([scope]): [description]"                    │
+│                                                                 │
+│  Scope examples:                                                │
+│  - fix(i18n): add expenses page translations                    │
+│  - fix(ui): correct RTL alignment in sidebar                    │
+│  - fix(crud): handle empty response in list                     │
+│  - fix(validation): add required check for amount               │
+│  - fix(api): return proper error status                         │
+│  - fix(logic): calculate total correctly                        │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 6: RE-TEST                                                │
+│                                                                 │
+│  Run the SAME test again                                        │
+│                                                                 │
+│  IF PASS:                                                       │
+│  - Mark [x] in TEST-PLAN.md                                     │
+│  - Log fix in TEST-REPORT.md                                    │
+│  - Continue to next test                                        │
+│                                                                 │
+│  IF STILL FAILS:                                                │
+│  - Increment attempt counter                                    │
+│  - If attempts < 3: Go back to STEP 2                           │
+│  - If attempts = 3: Go to STEP 7                                │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼ (only after 3 attempts)
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 7: MARK BLOCKED (Last Resort)                             │
+│                                                                 │
+│  Document in TEST-PLAN.md:                                      │
+│  - [BLOCKED] Test ID                                            │
+│  - Attempt 1: [what was tried] → [why failed]                   │
+│  - Attempt 2: [what was tried] → [why failed]                   │
+│  - Attempt 3: [what was tried] → [why failed]                   │
+│                                                                 │
+│  CONTINUE to next test (do NOT stop)                            │
+└─────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  NEXT TEST                                                      │
+│  └── Repeat entire flow                                         │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 7. HARD STOP Handling
+### HARD STOP Handling
 
-When reaching a `### **HARD STOP**` marker:
+At each `### **HARD STOP**` marker:
 
-```
-1. Verify ALL checkboxes above are [x]
-2. If any [ ] remain:
-   - Go back and fix
-   - Do not proceed until all pass
-3. Once all [x]:
-   - Take screenshot as evidence
-   - Continue to next section
-```
+1. Check all tests in section
+2. If any [ ] remain → Go back and complete them
+3. If any BLOCKED → Note but continue
+4. Proceed to next section
 
-### 8. Console Error Handling
+### Report Generation
 
-```javascript
-// Get console errors
-const errors = await chrome.getConsoleLogs({ level: 'error' })
-
-// Log to report (create section if needed)
-appendToReport('## Console Errors\n' + errors.map(e => `- ${e.message}`).join('\n'))
-
-// DO NOT STOP - continue testing
-// Only stop if error prevents page functionality
-```
-
-### 9. Git Commit Protocol
-
-After EACH successful fix:
-
-```bash
-git add .
-git commit -m "fix([scope]): [description]"
-
-# Scope examples:
-# fix(i18n): resolve expenses.title translation
-# fix(ui): correct RTL alignment in sidebar
-# fix(crud): handle empty state in expenses list
-# fix(validation): add required field check for amount
-```
-
-### 10. Generate TEST-REPORT.md
-
-After all tests complete, create: `specs/[branch]/TEST-REPORT.md`
+After ALL tests processed, generate `specs/[branch]/TEST-REPORT.md`:
 
 ```markdown
 # TEST REPORT: [Feature Name]
 
 Generated: [timestamp]
 Duration: [X minutes]
-Status: ✅ ALL PASSED | ⚠️ PARTIAL | ❌ BLOCKED
+Status: ✅ ALL PASSED | ⚠️ FIXED | ❌ HAS BLOCKED
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
 | Total Tests | XX |
-| Passed | XX |
-| Failed & Fixed | XX |
+| Passed (First Try) | XX |
+| Passed (After Fix) | XX |
 | Blocked | XX |
-
-## Results by Page
-
-### /expenses
-| ID | Test | Status | Fix Applied |
-|----|------|--------|-------------|
-| EXP-UI-1 | Page Load | ✅ | - |
-| EXP-i18n-1 | Translations | ✅ | fix(i18n): resolve keys |
-
-### /categories
-...
+| Total Fixes Applied | XX |
 
 ## Fixes Applied
 
-| Commit | Message | Files |
-|--------|---------|-------|
-| abc123 | fix(i18n): resolve expenses.title | locales/ar.json |
-| def456 | fix(ui): RTL alignment | components/Sidebar.tsx |
+| Test ID | Bug Type | Root Cause | Fix | Commit |
+|---------|----------|------------|-----|--------|
+| EXP-i18n-1 | i18n | Missing keys | Added to ar.json | abc123 |
+| EXP-UI-2 | UI | No RTL | Added dir="rtl" | def456 |
 
-## Console Errors (Non-Blocking)
+## Fix Details
 
-- [timestamp] Warning: React key prop...
-- [timestamp] Error: Failed to load image... (non-critical)
+### Fix #1: [Test ID]
+**Bug:** [Description]
+**Spec Reference:** specs/[branch]/spec.md - [Section]
+**Root Cause:** [Analysis]
+**Solution:** [What was fixed]
+**Files Changed:** [List]
+**Commit:** [Hash]
 
-## Blocked Issues
-
-[None]
-
-OR
-
-### BLOCKED: [Test ID]
-- **Issue:** [description]
-- **Attempts:** 3
-- **Error:** [message]
-- **Suggested Fix:** [manual action needed]
-
-## Screenshots
-
-- [expenses-desktop.png](./screenshots/expenses-desktop.png)
-- [expenses-mobile.png](./screenshots/expenses-mobile.png)
+```diff
+[Code diff]
 ```
 
-### 11. Completion
+## Blocked Tests
 
-**If ALL tests pass:**
+### [Test ID] - BLOCKED
+**Attempts:**
+1. Tried: [X] → Failed: [Y]
+2. Tried: [X] → Failed: [Y]
+3. Tried: [X] → Failed: [Y]
+
+**Likely Cause:** [Theory]
+**Files to Review:** [Paths]
 ```
-✅ All tests marked [x]
-✅ All fixes committed
-✅ TEST-REPORT.md generated
-✅ Screenshots saved
 
+### Completion
+
+**If all tests PASS or FIXED:**
+```
 <promise>ALL_TESTS_COMPLETE</promise>
 ```
 
-**If >50% tests BLOCKED:**
+**If >50% tests BLOCKED after 3 attempts each:**
 ```
-⚠️ Too many tests blocked
-📝 Documented issues in TEST-REPORT.md
-📸 Screenshots saved
-
 <promise>BLOCKED</promise>
 ```
 
@@ -319,34 +331,83 @@ OR
 
 ## Ralph Wiggum Wrapper
 
-This command is wrapped in Ralph Wiggum loop:
-
 ```bash
-/ralph-loop "Execute specs/[branch]/TEST-PLAN.md following /test-execute protocol.
+/ralph-loop "Execute TEST-PLAN.md as DEVELOPER-TESTER.
 
-KEY BEHAVIORS:
-- Only read TEST-PLAN.md (trust the plan)
-- Execute tests sequentially
-- Fix issues immediately and commit
-- Continue on console errors (log them)
-- Pause at HARD STOP markers
-- Take screenshots on failures
-- Generate TEST-REPORT.md at end
+CORE BEHAVIOR:
+- When test fails → READ DOCS → FIX → COMMIT → RE-TEST
+- Never report bugs without fixing
+- Never wait for human
+- Continue until all tests processed
+
+DOC READING (MANDATORY before any fix):
+cat specs/[branch]/spec.md
+cat specs/[branch]/tasks.md
+cat [failing-component-path]
+
+FIX COMMIT FORMAT:
+git commit -m 'fix([scope]): [desc]'
 
 COMPLETION:
-- Output <promise>ALL_TESTS_COMPLETE</promise> when all tests pass
-- Output <promise>BLOCKED</promise> if >50% tests fail after max retries
+- <promise>ALL_TESTS_COMPLETE</promise> when done
+- <promise>BLOCKED</promise> if >50% blocked after 3 attempts each
 " --max-iterations 50 --completion-promise "ALL_TESTS_COMPLETE"
 ```
 
 ---
 
-## DO NOT:
+## Example Fix Session
 
-- ❌ Re-read spec.md or tasks.md (trust TEST-PLAN.md)
-- ❌ Stop on console errors (log and continue)
-- ❌ Skip HARD STOP verification
-- ❌ Forget to commit fixes
-- ❌ Leave tests unmarked (must be [x] or BLOCKED)
-- ❌ Ask for human confirmation (fully autonomous)
+```
+TEST: EXP-i18n-1 - Check translations
+RESULT: FAIL - "expenses.title" showing instead of Arabic
+
+STEP 1: Screenshot saved
+
+STEP 2: Reading docs...
+$ cat specs/expenses/spec.md
+> Section 3.2: All UI text must be translated to Arabic
+> Required keys: expenses.title = "المصروفات"
+
+$ cat specs/expenses/tasks.md
+> Task 4: Add i18n support using next-i18next
+
+$ cat components/expenses/ExpensesPage.tsx
+> const { t } = useTranslation('expenses')
+> <h1>{t('title')}</h1>
+
+STEP 3: Analysis
+- SPEC: title should be "المصروفات"
+- CODE: uses t('title') but key missing from ar.json
+- ROOT CAUSE: Translation key not added
+
+STEP 4: Implementing fix...
+$ cat locales/ar.json
+// Adding:
+{
+  "expenses": {
+    "title": "المصروفات"
+  }
+}
+
+STEP 5: Committing...
+$ git add locales/ar.json
+$ git commit -m "fix(i18n): add expenses.title Arabic translation"
+
+STEP 6: Re-testing...
+RESULT: PASS ✅
+
+Moving to next test...
+```
+
+---
+
+## DO NOT
+
+- ❌ Report bugs without attempting fix
+- ❌ Wait for human to fix anything
+- ❌ Skip reading docs before fixing
+- ❌ Give up after 1 failed attempt (try 3 times)
+- ❌ Stop the loop (except HARD STOP)
+- ❌ Mark BLOCKED without 3 genuine fix attempts
 ```
