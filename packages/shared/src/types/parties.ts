@@ -3,6 +3,8 @@
  * @module types/parties
  */
 
+import type { SortDirection } from './items';
+
 // =============================================================================
 // BASE TYPES
 // =============================================================================
@@ -219,11 +221,6 @@ export type PartySortField = 'name' | 'balance' | 'createdAt' | 'updatedAt';
  * Sort options for payment list
  */
 export type PaymentSortField = 'paymentDate' | 'amount' | 'createdAt';
-
-/**
- * Sort direction
- */
-export type SortDirection = 'asc' | 'desc';
 
 /**
  * Query parameters for fetching parties

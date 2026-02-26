@@ -337,23 +337,4 @@ export const itemReportParamsSchema = z.object({
   currency: currencySchema,
 });
 
-// =============================================================================
-// TYPE EXPORTS
-// =============================================================================
-
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
-export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
-export type CategoryQueryParams = z.infer<typeof categoryQuerySchema>;
-
-export type CreateItemPriceInput = z.infer<typeof createItemPriceSchema>;
-export type UpdateItemPriceInput = z.infer<typeof updateItemPriceSchema>;
-
-export type CreateItemPackagingInput = z.infer<typeof createItemPackagingSchema>;
-export type UpdateItemPackagingInput = z.infer<typeof updateItemPackagingSchema>;
-
-export type CreateItemInput = z.infer<typeof createItemSchema>;
-export type UpdateItemInput = z.infer<typeof updateItemSchema>;
-export type ItemQueryParams = z.infer<typeof itemQuerySchema>;
-
-export type BulkPriceUpdateInput = z.infer<typeof bulkPriceUpdateSchema>;
-export type ItemReportParams = z.infer<typeof itemReportParamsSchema>;
+// Type aliases removed — authoritative types live in types/items.ts

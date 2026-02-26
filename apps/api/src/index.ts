@@ -103,7 +103,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(port, () => {
-  console.log(\`API server running on http://localhost:\${port}\`);
+  console.log(`API server running on http://localhost:${port}`);
 });
 
 export default app;
