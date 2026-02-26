@@ -12,6 +12,7 @@ import { AlertsService } from '../services/alerts.service';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { WarehouseRepository } from '../repositories/warehouse.repository';
 import { ItemRepository } from '../repositories/item.repository';
+import type { SalesReportParams, PurchaseReportParams } from '@erp/shared';
 import { salesReportParamsSchema, purchaseReportParamsSchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
@@ -61,14 +62,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getInvoiceService(req);
-      const params = req.query as unknown as {
-        dateFrom?: string;
-        dateTo?: string;
-        partyId?: string;
-        warehouseId?: string;
-        status?: string | string[];
-        includeSummary?: boolean;
-      };
+      const params = req.query as unknown as SalesReportParams;
 
       const report = await service.getSalesReport(params);
 
@@ -101,14 +95,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getInvoiceService(req);
-      const params = req.query as unknown as {
-        dateFrom?: string;
-        dateTo?: string;
-        partyId?: string;
-        warehouseId?: string;
-        status?: string | string[];
-        includeSummary?: boolean;
-      };
+      const params = req.query as unknown as PurchaseReportParams;
 
       const report = await service.getPurchaseReport(params);
 
@@ -159,47 +146,37 @@ router.get(
   '/inventory',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
+      const { supabase, tenantId } = getTenantContext(req);
       const query = inventoryReportQuerySchema.parse(req.query);
 
-      const inventoryRepo = new InventoryRepository();
-      const warehouseRepo = new WarehouseRepository();
-      const itemRepo = new ItemRepository();
-      const alertsService = new AlertsService(tenantId);
+      const inventoryRepo = new InventoryRepository(supabase);
+      const warehouseRepo = new WarehouseRepository(supabase);
+      const itemRepo = new ItemRepository(supabase);
+      const alertsService = new AlertsService(supabase, tenantId);
 
       // Get all inventory with details
       let inventoryData: any[] = [];
 
       if (query.warehouseId) {
         // Get inventory for specific warehouse
-        const result = await inventoryRepo.getByWarehouse(tenantId, query.warehouseId, {
-          search: undefined,
+        const result = await inventoryRepo.getWarehouseInventory(tenantId, query.warehouseId, {
           lowStockOnly: query.lowStockOnly || false,
           page: 1,
           limit: 10000, // Get all for report
-          sortBy: query.sortBy,
-          sortDir: query.sortDir,
         });
         inventoryData = result.data;
       } else {
         // Get all inventory across warehouses
-        const warehouses = await warehouseRepo.getAll(tenantId, {
-          page: 1,
-          limit: 100,
-          activeOnly: true,
-        });
+        const warehouses = await warehouseRepo.getActiveWarehouses(tenantId);
 
-        for (const warehouse of warehouses.data) {
-          const result = await inventoryRepo.getByWarehouse(tenantId, warehouse.id, {
-            search: undefined,
+        for (const warehouse of warehouses) {
+          const result = await inventoryRepo.getWarehouseInventory(tenantId, warehouse.id, {
             lowStockOnly: query.lowStockOnly || false,
             page: 1,
             limit: 10000,
-            sortBy: query.sortBy,
-            sortDir: query.sortDir,
           });
           inventoryData = inventoryData.concat(
-            result.data.map((item) => ({
+            result.data.map((item: any) => ({
               ...item,
               warehouseName: warehouse.name,
             }))
@@ -209,13 +186,14 @@ router.get(
 
       // Filter by category if specified
       if (query.categoryId) {
-        const itemsInCategory = await itemRepo.getAll(tenantId, {
+        const itemsInCategory = await itemRepo.findAllWithFilters({
+          tenantId,
           categoryId: query.categoryId,
           page: 1,
           limit: 10000,
         });
-        const categoryItemIds = new Set(itemsInCategory.data.map((i) => i.id));
-        inventoryData = inventoryData.filter((inv) => categoryItemIds.has(inv.itemId));
+        const categoryItemIds = new Set(itemsInCategory.data.map((i: any) => i.id));
+        inventoryData = inventoryData.filter((inv: any) => categoryItemIds.has(inv.itemId));
       }
 
       // Filter zero stock if not included
@@ -387,22 +365,18 @@ router.get(
   '/inventory/valuation',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const warehouseService = new WarehouseService(tenantId);
+      const { supabase, tenantId } = getTenantContext(req);
+      const warehouseService = new WarehouseService(supabase, tenantId);
 
       // Get total inventory value across all warehouses
       const totalValue = await warehouseService.getTotalInventoryValue();
 
       // Get value breakdown by warehouse
-      const warehouseRepo = new WarehouseRepository();
-      const warehouses = await warehouseRepo.getAll(tenantId, {
-        page: 1,
-        limit: 100,
-        activeOnly: true,
-      });
+      const warehouseRepo = new WarehouseRepository(supabase);
+      const warehouses = await warehouseRepo.getActiveWarehouses(tenantId);
 
       const valuationByWarehouse = await Promise.all(
-        warehouses.data.map(async (warehouse) => {
+        warehouses.map(async (warehouse: any) => {
           const withSummary = await warehouseRepo.getWithSummary(tenantId, warehouse.id);
           return {
             warehouseId: warehouse.id,
@@ -420,8 +394,8 @@ router.get(
         data: {
           generatedAt: new Date().toISOString(),
           totalValue,
-          warehouseCount: warehouses.data.length,
-          valuationByWarehouse: valuationByWarehouse.sort((a, b) => b.totalValue - a.totalValue),
+          warehouseCount: warehouses.length,
+          valuationByWarehouse: valuationByWarehouse.sort((a: any, b: any) => b.totalValue - a.totalValue),
         },
       });
     } catch (error) {
@@ -438,7 +412,7 @@ router.get(
   '/low-stock',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
+      const { supabase, tenantId } = getTenantContext(req);
 
       const querySchema = z.object({
         warehouseId: z.string().uuid().optional(),
@@ -446,7 +420,7 @@ router.get(
       });
 
       const query = querySchema.parse(req.query);
-      const alertsService = new AlertsService(tenantId);
+      const alertsService = new AlertsService(supabase, tenantId);
 
       // Get low stock alerts
       let alerts = await alertsService.getLowStockAlerts(query.warehouseId);
@@ -478,7 +452,7 @@ router.get(
         warningCount: alerts.filter((a) => a.percentOfThreshold >= 25 && a.percentOfThreshold < 50).length,
         lowCount: alerts.filter((a) => a.percentOfThreshold >= 50).length,
         totalDeficit: alerts.reduce((sum, a) => sum + a.deficit, 0),
-        estimatedReorderValue: reorderSuggestions.reduce((sum, s) => sum + s.estimatedCost, 0),
+        estimatedReorderValue: reorderSuggestions.reduce((sum, s) => sum + ((s as any).estimatedCost || 0), 0),
       };
 
       res.json({
