@@ -10,3 +10,6 @@ export * from './warehouse';
 export * from './pos';
 export * from './parties';
 export * from './audit';
+export * from './accounting';
+export * from './hr';
+export * from './settings';

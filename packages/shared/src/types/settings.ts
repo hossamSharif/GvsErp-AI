@@ -56,29 +56,7 @@ export interface UpdateExchangeRateInput {
   effective_date?: string;
 }
 
-// Tenant Settings
-export interface TenantSettings {
-  default_language?: 'en' | 'ar';
-  default_theme?: 'light' | 'dark';
-  default_currency?: string; // Currency code
-  company_name?: string;
-  company_email?: string;
-  company_phone?: string;
-  company_address?: string;
-  tax_number?: string;
-  logo_url?: string;
-  // Module activation flags
-  accounting_module_enabled?: boolean;
-  hr_module_enabled?: boolean;
-  // Business preferences
-  fiscal_year_start?: string; // MM-DD format (e.g., "01-01")
-  time_zone?: string;
-  date_format?: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
-  number_format?: {
-    decimal_separator: '.' | ',';
-    thousands_separator: ',' | '.' | ' ';
-  };
-}
+// TenantSettings is defined in core.ts — use that as the authoritative source
 
 export interface UpdateTenantSettingsInput {
   default_language?: 'en' | 'ar';
@@ -101,22 +79,7 @@ export interface UpdateTenantSettingsInput {
   };
 }
 
-// User Management Types
-export interface User {
-  id: string;
-  tenant_id: string;
-  email: string;
-  full_name?: string;
-  role_id?: string;
-  role?: Role;
-  preferences: {
-    language?: 'en' | 'ar';
-    theme?: 'light' | 'dark';
-  };
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+// User is defined in core.ts — use that as the authoritative source
 
 export interface CreateUserInput {
   email: string;
@@ -140,15 +103,7 @@ export interface UpdateUserInput {
   is_active?: boolean;
 }
 
-// Role Management Types
-export interface Role {
-  id: string;
-  tenant_id: string;
-  name: string;
-  permissions: string[];
-  is_system: boolean;
-  created_at: string;
-}
+// Role is defined in core.ts — use that as the authoritative source
 
 export interface CreateRoleInput {
   name: string;
