@@ -44,7 +44,13 @@ export type AuditEntityType =
   | 'pos_location'
   | 'currency'
   | 'exchange_rate'
-  | 'settings';
+  | 'settings'
+  | 'employee'
+  | 'attendance'
+  | 'payroll'
+  | 'account'
+  | 'journal_entry'
+  | 'accounting';
 
 // =============================================================================
 // AUDIT LOG ENTITY

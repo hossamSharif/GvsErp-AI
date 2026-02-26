@@ -80,20 +80,6 @@ function extractEntityType(path: string): AuditEntityType | null {
 }
 
 /**
- * Extract entity ID from request (from params or response)
- */
-function extractEntityId(req: Request, res: Response): string | null {
-  // Try to get from route params (:id)
-  if (req.params.id) {
-    return req.params.id;
-  }
-
-  // For POST requests, we'll need to extract from response body
-  // This will be handled in the response interceptor
-  return null;
-}
-
-/**
  * Fields to strip from audit log values to prevent sensitive data leaks
  */
 const SENSITIVE_FIELDS = [
@@ -225,7 +211,7 @@ export function auditMiddleware(
 export function captureOldValues(
   fetchFunction: (req: Request, id: string) => Promise<any>
 ) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
       if (!id) {
@@ -270,7 +256,10 @@ export async function logAuditAction(
       entityType,
       entityId,
       details || null,
-      context
+      {
+        ipAddress: context.ipAddress ?? undefined,
+        userAgent: context.userAgent ?? undefined,
+      }
     );
   } catch (error) {
     console.error('Manual audit logging failed:', error);
