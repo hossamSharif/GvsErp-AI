@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { PaymentService, PaymentError } from '../services/payment.service';
+import type { PaymentQueryParams } from '@erp/shared';
 import {
   createPaymentSchema,
   updatePaymentSchema,
@@ -60,30 +61,18 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPaymentService(req);
-      const params = req.query as unknown as {
-        type?: 'received' | 'made';
-        partyId?: string;
-        invoiceId?: string;
-        paymentMethod?: string;
-        search?: string;
-        dateFrom?: string;
-        dateTo?: string;
-        page?: number;
-        limit?: number;
-        sortBy?: string;
-        sortDir?: 'asc' | 'desc';
-      };
+      const params = req.query as unknown as PaymentQueryParams;
 
       const result = await service.getPayments(params);
 
       res.json({
         success: true,
-        data: result.items,
+        data: result.data,
         meta: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          hasMore: result.hasMore,
+          total: result.meta.total,
+          page: result.meta.page,
+          limit: result.meta.limit,
+          hasMore: result.meta.page < result.meta.total_pages,
         },
       });
     } catch (error) {

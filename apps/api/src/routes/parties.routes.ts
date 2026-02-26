@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { PartyService, PartyError } from '../services/party.service';
+import type { PartyQueryParams } from '@erp/shared';
 import {
   createPartySchema,
   updatePartySchema,
@@ -61,27 +62,18 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPartyService(req);
-      const params = req.query as unknown as {
-        type?: 'customer' | 'supplier';
-        search?: string;
-        isActive?: boolean;
-        hasBalance?: boolean;
-        page?: number;
-        limit?: number;
-        sortBy?: string;
-        sortDir?: 'asc' | 'desc';
-      };
+      const params = req.query as unknown as PartyQueryParams;
 
       const result = await service.getParties(params);
 
       res.json({
         success: true,
-        data: result.items,
+        data: result.data,
         meta: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          hasMore: result.hasMore,
+          total: result.meta.total,
+          page: result.meta.page,
+          limit: result.meta.limit,
+          hasMore: result.meta.page < result.meta.total_pages,
         },
       });
     } catch (error) {
