@@ -3,18 +3,23 @@
  * Phase 7: User Story 5 - Manage Point of Sale Locations
  */
 
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { POSService } from '../services/pos.service';
-import { validate } from '../middleware/validate';
+import { validateBody, validateParams } from '../middleware/validate';
+import { getTenantContext } from '../middleware/tenant';
 import {
   createPOSLocationSchema,
   updatePOSLocationSchema,
   posLocationIdParamSchema,
   quickSaleRequestSchema,
-} from '@repo/shared';
+} from '@erp/shared';
 
 const router = Router();
-const posService = new POSService();
+
+function getPOSService(req: Request) {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new POSService(supabase, tenantId);
+}
 
 /**
  * GET /pos
@@ -22,8 +27,9 @@ const posService = new POSService();
  */
 router.get('/', async (req, res, next) => {
   try {
-    const tenantId = req.user!.tenant_id;
+    const { tenantId } = getTenantContext(req);
     const activeOnly = req.query.active === 'true';
+    const posService = getPOSService(req);
 
     const locations = await posService.getAllLocations(tenantId, activeOnly);
 
@@ -43,11 +49,12 @@ router.get('/', async (req, res, next) => {
  */
 router.get(
   '/:id',
-  validate(posLocationIdParamSchema, 'params'),
+  validateParams(posLocationIdParamSchema),
   async (req, res, next) => {
     try {
-      const tenantId = req.user!.tenant_id;
+      const { tenantId } = getTenantContext(req);
       const { id } = req.params;
+      const posService = getPOSService(req);
 
       const location = await posService.getLocationById(id, tenantId);
 
@@ -74,11 +81,12 @@ router.get(
  */
 router.post(
   '/',
-  validate(createPOSLocationSchema, 'body'),
+  validateBody(createPOSLocationSchema),
   async (req, res, next) => {
     try {
-      const tenantId = req.user!.tenant_id;
+      const { tenantId } = getTenantContext(req);
       const locationData = req.body;
+      const posService = getPOSService(req);
 
       const newLocation = await posService.createLocation(tenantId, locationData);
 
@@ -99,13 +107,14 @@ router.post(
  */
 router.put(
   '/:id',
-  validate(posLocationIdParamSchema, 'params'),
-  validate(updatePOSLocationSchema, 'body'),
+  validateParams(posLocationIdParamSchema),
+  validateBody(updatePOSLocationSchema),
   async (req, res, next) => {
     try {
-      const tenantId = req.user!.tenant_id;
+      const { tenantId } = getTenantContext(req);
       const { id } = req.params;
       const updateData = req.body;
+      const posService = getPOSService(req);
 
       const updatedLocation = await posService.updateLocation(id, tenantId, updateData);
 
@@ -126,11 +135,12 @@ router.put(
  */
 router.delete(
   '/:id',
-  validate(posLocationIdParamSchema, 'params'),
+  validateParams(posLocationIdParamSchema),
   async (req, res, next) => {
     try {
-      const tenantId = req.user!.tenant_id;
+      const { tenantId } = getTenantContext(req);
       const { id } = req.params;
+      const posService = getPOSService(req);
 
       await posService.deleteLocation(id, tenantId);
 
@@ -150,14 +160,14 @@ router.delete(
  */
 router.post(
   '/:id/sale',
-  validate(posLocationIdParamSchema, 'params'),
-  validate(quickSaleRequestSchema, 'body'),
+  validateParams(posLocationIdParamSchema),
+  validateBody(quickSaleRequestSchema),
   async (req, res, next) => {
     try {
-      const tenantId = req.user!.tenant_id;
-      const userId = req.user!.id;
+      const { tenantId, userId } = getTenantContext(req);
       const { id } = req.params;
       const saleData = req.body;
+      const posService = getPOSService(req);
 
       const result = await posService.processQuickSale(id, tenantId, userId, saleData);
 
@@ -178,8 +188,9 @@ router.post(
  */
 router.get('/warehouse/:warehouseId', async (req, res, next) => {
   try {
-    const tenantId = req.user!.tenant_id;
+    const { tenantId } = getTenantContext(req);
     const { warehouseId } = req.params;
+    const posService = getPOSService(req);
 
     const locations = await posService.getLocationsByWarehouse(warehouseId, tenantId);
 

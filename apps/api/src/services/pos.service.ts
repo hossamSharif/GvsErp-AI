@@ -3,6 +3,8 @@
  * Phase 7: User Story 5 - Manage Point of Sale Locations
  */
 
+import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@erp/database';
 import type {
   POSLocation,
   POSLocationWithWarehouse,
@@ -11,20 +13,18 @@ import type {
   QuickSaleRequest,
   QuickSaleResponse,
   POSSaleSummary,
-} from '@repo/shared';
+} from '@erp/shared';
 import { POSLocationRepository } from '../repositories/pos.repository';
-import { InvoiceService } from './invoice.service';
-import { WarehouseRepository } from '../repositories/warehouse.repository';
 
 export class POSService {
   private posRepository: POSLocationRepository;
-  private invoiceService: InvoiceService;
-  private warehouseRepository: WarehouseRepository;
+  private supabase: SupabaseClient<Database>;
+  private tenantId: string;
 
-  constructor() {
-    this.posRepository = new POSLocationRepository();
-    this.invoiceService = new InvoiceService();
-    this.warehouseRepository = new WarehouseRepository();
+  constructor(supabase: SupabaseClient<Database>, tenantId: string) {
+    this.supabase = supabase;
+    this.tenantId = tenantId;
+    this.posRepository = new POSLocationRepository(supabase);
   }
 
   /**
