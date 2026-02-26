@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 4)
+Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 16, updated from Iteration 4)
 
 ## Coverage Summary
 
@@ -87,15 +87,34 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 4)
 
 ## Build Health
 
-- **Shared package**: Builds successfully
-- **Database package**: Builds successfully
-- **API type-check**: 415 TypeScript errors (pre-existing, reduced from 435)
-- **Web app**: Missing Radix dependencies added; 4 missing UI components created
+- **Shared package**: Builds clean (0 errors)
+- **Database package**: Builds clean (0 errors)
+- **API type-check**: 170 TypeScript errors (down from 435 at start)
+- **Web app**: All UI components present; Radix dependencies installed
+
+### Type Error Progression
+| Iteration | Errors | Fix Applied |
+|-----------|--------|-------------|
+| Start | 435 | — |
+| 3 (QA) | 415 | Removed rootDir, added validateRequest export |
+| 7 (Arch) | 399 | Fixed BaseRepository generic type resolution |
+| 9 (QA) | 342 | Added 19 missing table definitions |
+| 13 (Arch) | 332 | Added missing AuditEntityType values |
+| 15 (QA) | 170 | Added Relationships arrays + CompositeTypes + settings table |
+
+### Fixes Applied (Iterations 1–15)
+- Package naming: `@erp-saas/*` → `@erp/*` (142 imports aligned)
+- 4 missing UI components created (Badge, AlertDialog, Skeleton, Switch)
+- Toast notification system created
+- Accessibility: sidebar aria labels, skip-to-content, keyboard nav
+- Audit middleware: fixed Content-Type bug, sanitized sensitive data, added missing entity types
+- Dashboard: replaced fake stats with onboarding guide
+- HR Employees: replaced mock data with real API hook, fixed locale routing
 
 ## Recommendations (Priority Order)
 
-1. **P1**: Implement Expenses module (FR-032–034) — only entirely missing user story
-2. **P1**: Fix remaining 415 API type errors to unblock backend builds
+1. **P1**: Reduce remaining 170 API type errors (top files: reports.routes 21, settings.service 14, party.service 11)
+2. **P1**: Implement Expenses module (FR-032–034) — only entirely missing user story
 3. **P2**: Implement Cash Flow Statement page
 4. **P2**: Add receipt printing to POS terminal
 5. **P3**: Add Bank & Cash Management module
