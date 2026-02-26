@@ -5,8 +5,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'node:crypto';
 import type { ApiError, ErrorCode } from '@erp/shared';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Custom API Error class
@@ -90,7 +90,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  const requestId = (req.headers['x-request-id'] as string) || uuidv4();
+  const requestId = (req.headers['x-request-id'] as string) || randomUUID();
 
   // Log error
   console.error(`[${requestId}] Error:`, {

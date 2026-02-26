@@ -1,7 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { v4 as uuidv4 } from 'uuid';
 import {
   errorHandler,
   notFoundHandler,
@@ -35,7 +35,7 @@ const port = process.env.PORT || 3001;
 
 // Request ID middleware
 app.use((req, _res, next) => {
-  req.headers['x-request-id'] = req.headers['x-request-id'] || uuidv4();
+  req.headers['x-request-id'] = req.headers['x-request-id'] || randomUUID();
   next();
 });
 
