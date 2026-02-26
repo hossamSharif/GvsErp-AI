@@ -20,6 +20,15 @@ import paymentRoutes from './routes/payments.routes';
 import accountRoutes from './routes/accounts.routes';
 import journalEntryRoutes from './routes/journal-entries.routes';
 import accountingRoutes from './routes/accounting.routes';
+import currencyRoutes from './routes/currencies.routes';
+import exchangeRateRoutes from './routes/exchange-rates.routes';
+import employeeRoutes from './routes/employees.routes';
+import attendanceRoutes from './routes/attendance.routes';
+import payrollRoutes from './routes/payroll.routes';
+import roleRoutes from './routes/roles.routes';
+import userRoutes from './routes/users.routes';
+import settingsRoutes from './routes/settings.routes';
+import auditRoutes from './routes/audit.routes';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -76,6 +85,15 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/accounts', accountRoutes);
 app.use('/api/v1/journal-entries', journalEntryRoutes);
 app.use('/api/v1/accounting', accountingRoutes);
+app.use('/api/v1/currencies', currencyRoutes);
+app.use('/api/v1/exchange-rates', exchangeRateRoutes);
+app.use('/api/v1/employees', employeeRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/payroll', payrollRoutes);
+app.use('/api/v1/roles', roleRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/settings', settingsRoutes);
+app.use('/api/v1/audit', auditRoutes);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
