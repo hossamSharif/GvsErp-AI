@@ -52,6 +52,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       roles: {
         Row: {
@@ -78,6 +79,15 @@ export interface Database {
           is_system?: boolean;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "roles_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       users: {
         Row: {
@@ -113,6 +123,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "users_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "users_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       items: {
         Row: {
@@ -133,11 +159,43 @@ export interface Database {
           category_id?: string | null; unit_of_measure?: string; tax_rate?: number;
           images?: string[]; is_active?: boolean; created_at?: string; updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "items_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "items_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       categories: {
         Row: { id: string; tenant_id: string; name: string; parent_id: string | null; created_at: string; };
         Insert: { id?: string; tenant_id: string; name: string; parent_id?: string | null; created_at?: string; };
         Update: { id?: string; tenant_id?: string; name?: string; parent_id?: string | null; created_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "categories_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "categories_parent_id_fkey";
+            columns: ["parent_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       item_prices: {
         Row: {
@@ -155,11 +213,29 @@ export interface Database {
           price?: number; currency?: string; effective_from?: string | null;
           effective_to?: string | null; created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "item_prices_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       item_packagings: {
         Row: { id: string; tenant_id: string; item_id: string; name: string; quantity: number; barcode: string | null; created_at: string; };
         Insert: { id?: string; tenant_id: string; item_id: string; name: string; quantity: number; barcode?: string | null; created_at?: string; };
         Update: { id?: string; tenant_id?: string; item_id?: string; name?: string; quantity?: number; barcode?: string | null; created_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "item_packagings_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       invoices: {
         Row: {
@@ -189,6 +265,22 @@ export interface Database {
           created_by?: string | null; returned_from_id?: string | null;
           created_at?: string; updated_at?: string; finalized_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_party_id_fkey";
+            columns: ["party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_warehouse_id_fkey";
+            columns: ["warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       invoice_items: {
         Row: {
@@ -209,6 +301,22 @@ export interface Database {
           discount_percent?: number; tax_rate?: number; line_total?: number;
           sort_order?: number; created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_items_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       parties: {
         Row: {
@@ -229,6 +337,15 @@ export interface Database {
           tax_number?: string | null; balance?: number; is_active?: boolean;
           notes?: string | null; created_at?: string; updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "parties_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       payments: {
         Row: {
@@ -252,16 +369,57 @@ export interface Database {
           invoice_id?: string | null; notes?: string | null; payment_date?: string;
           created_by?: string | null; created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "payments_party_id_fkey";
+            columns: ["party_id"];
+            isOneToOne: false;
+            referencedRelation: "parties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       warehouses: {
         Row: { id: string; tenant_id: string; name: string; address: string | null; is_active: boolean; created_at: string; updated_at: string; };
         Insert: { id?: string; tenant_id: string; name: string; address?: string | null; is_active?: boolean; created_at?: string; updated_at?: string; };
         Update: { id?: string; tenant_id?: string; name?: string; address?: string | null; is_active?: boolean; created_at?: string; updated_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       inventory: {
         Row: { id: string; tenant_id: string; item_id: string; warehouse_id: string; quantity: number; reserved_quantity: number; low_stock_threshold: number | null; updated_at: string; };
         Insert: { id?: string; tenant_id: string; item_id: string; warehouse_id: string; quantity?: number; reserved_quantity?: number; low_stock_threshold?: number | null; updated_at?: string; };
         Update: { id?: string; tenant_id?: string; item_id?: string; warehouse_id?: string; quantity?: number; reserved_quantity?: number; low_stock_threshold?: number | null; updated_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "inventory_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inventory_warehouse_id_fkey";
+            columns: ["warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       transfers: {
         Row: {
@@ -285,26 +443,69 @@ export interface Database {
           notes?: string | null; created_by?: string | null;
           created_at?: string; updated_at?: string; completed_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "transfers_from_warehouse_id_fkey";
+            columns: ["from_warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfers_to_warehouse_id_fkey";
+            columns: ["to_warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       transfer_items: {
         Row: { id: string; tenant_id: string; transfer_id: string; item_id: string; quantity: number; created_at: string; };
         Insert: { id?: string; tenant_id: string; transfer_id: string; item_id: string; quantity: number; created_at?: string; };
         Update: { id?: string; tenant_id?: string; transfer_id?: string; item_id?: string; quantity?: number; created_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "transfer_items_transfer_id_fkey";
+            columns: ["transfer_id"];
+            isOneToOne: false;
+            referencedRelation: "transfers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transfer_items_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       currencies: {
         Row: { id: string; tenant_id: string; code: string; name: string; symbol: string; is_default: boolean; created_at: string; };
         Insert: { id?: string; tenant_id: string; code: string; name: string; symbol?: string; is_default?: boolean; created_at?: string; };
         Update: { id?: string; tenant_id?: string; code?: string; name?: string; symbol?: string; is_default?: boolean; created_at?: string; };
+        Relationships: [];
       };
       exchange_rates: {
         Row: { id: string; tenant_id: string; from_currency: string; to_currency: string; rate: number; rate_type: 'formal' | 'black_market'; effective_date: string; };
         Insert: { id?: string; tenant_id: string; from_currency: string; to_currency: string; rate: number; rate_type: 'formal' | 'black_market'; effective_date: string; };
         Update: { id?: string; tenant_id?: string; from_currency?: string; to_currency?: string; rate?: number; rate_type?: 'formal' | 'black_market'; effective_date?: string; };
+        Relationships: [];
       };
       pos_locations: {
         Row: { id: string; tenant_id: string; name: string; warehouse_id: string; settings: Json; is_active: boolean; created_at: string; updated_at: string; };
         Insert: { id?: string; tenant_id: string; name: string; warehouse_id: string; settings?: Json; is_active?: boolean; created_at?: string; updated_at?: string; };
         Update: { id?: string; tenant_id?: string; name?: string; warehouse_id?: string; settings?: Json; is_active?: boolean; created_at?: string; updated_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "pos_locations_warehouse_id_fkey";
+            columns: ["warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       accounts: {
         Row: {
@@ -325,16 +526,42 @@ export interface Database {
           parent_id?: string | null; balance?: number; is_active?: boolean;
           created_at?: string; updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "accounts_parent_id_fkey";
+            columns: ["parent_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       journal_entries: {
         Row: { id: string; tenant_id: string; entry_number: string; date: string; description: string | null; reference: string | null; is_auto: boolean; created_by: string | null; created_at: string; };
         Insert: { id?: string; tenant_id: string; entry_number: string; date: string; description?: string | null; reference?: string | null; is_auto?: boolean; created_by?: string | null; created_at?: string; };
         Update: { id?: string; tenant_id?: string; entry_number?: string; date?: string; description?: string | null; reference?: string | null; is_auto?: boolean; created_by?: string | null; created_at?: string; };
+        Relationships: [];
       };
       journal_lines: {
         Row: { id: string; tenant_id: string; journal_entry_id: string; account_id: string; debit: number; credit: number; description: string | null; created_at: string; };
         Insert: { id?: string; tenant_id: string; journal_entry_id: string; account_id: string; debit?: number; credit?: number; description?: string | null; created_at?: string; };
         Update: { id?: string; tenant_id?: string; journal_entry_id?: string; account_id?: string; debit?: number; credit?: number; description?: string | null; created_at?: string; };
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_journal_entry_id_fkey";
+            columns: ["journal_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "journal_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "journal_lines_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       employees: {
         Row: {
@@ -355,6 +582,15 @@ export interface Database {
           hire_date?: string | null; salary?: number | null; salary_currency?: string | null;
           is_active?: boolean; created_at?: string; updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "employees_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       attendance: {
         Row: {
@@ -375,6 +611,15 @@ export interface Database {
           status?: 'present' | 'absent' | 'leave' | 'holiday';
           notes?: string | null; created_at?: string; updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "attendance_employee_id_fkey";
+            columns: ["employee_id"];
+            isOneToOne: false;
+            referencedRelation: "employees";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       payroll_runs: {
         Row: {
@@ -395,6 +640,7 @@ export interface Database {
           total_amount?: number; currency?: string; created_by?: string | null;
           created_at?: string; updated_at?: string;
         };
+        Relationships: [];
       };
       audit_logs: {
         Row: {
@@ -418,6 +664,22 @@ export interface Database {
           ip_address?: string | null; user_agent?: string | null;
           created_at?: string;
         };
+        Relationships: [];
+      };
+      settings: {
+        Row: {
+          id: string; tenant_id: string; key: string; value: Json;
+          created_at: string; updated_at: string;
+        };
+        Insert: {
+          id?: string; tenant_id: string; key: string; value: Json;
+          created_at?: string; updated_at?: string;
+        };
+        Update: {
+          id?: string; tenant_id?: string; key?: string; value?: Json;
+          created_at?: string; updated_at?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {
@@ -442,6 +704,9 @@ export interface Database {
     Enums: {
       subscription_plan: 'freemium' | 'premium';
       subscription_status: 'active' | 'trialing' | 'canceled' | 'past_due';
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }
