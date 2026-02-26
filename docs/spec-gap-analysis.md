@@ -89,10 +89,10 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 16, updated f
 
 - **Shared package**: Builds clean (0 errors)
 - **Database package**: Builds clean (0 errors)
-- **API type-check**: 170 TypeScript errors (down from 435 at start)
-- **Web app**: All UI components present; Radix dependencies installed
+- **API type-check**: 106 TypeScript errors (down from 435 at start, 76% reduction)
+- **Web app**: 188 TypeScript errors (syntax corruption fixed, missing UI components remain)
 
-### Type Error Progression
+### API Type Error Progression
 | Iteration | Errors | Fix Applied |
 |-----------|--------|-------------|
 | Start | 435 | — |
@@ -101,8 +101,12 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 16, updated f
 | 9 (QA) | 342 | Added 19 missing table definitions |
 | 13 (Arch) | 332 | Added missing AuditEntityType values |
 | 15 (QA) | 170 | Added Relationships arrays + CompositeTypes + settings table |
+| 17 (BA) | 156 | Expanded TenantSettings with company info + formatting |
+| 18 (CR) | 138 | Added 7 missing RPC functions to database types |
+| 19 (Arch) | 119 | Fixed POS module DI pattern + validate calls |
+| 21 (QA) | 106 | Fixed 13 TS7030 return-type errors in route handlers |
 
-### Fixes Applied (Iterations 1–15)
+### Fixes Applied (Iterations 1–21)
 - Package naming: `@erp-saas/*` → `@erp/*` (142 imports aligned)
 - 4 missing UI components created (Badge, AlertDialog, Skeleton, Switch)
 - Toast notification system created
@@ -110,13 +114,17 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 16, updated f
 - Audit middleware: fixed Content-Type bug, sanitized sensitive data, added missing entity types
 - Dashboard: replaced fake stats with onboarding guide
 - HR Employees: replaced mock data with real API hook, fixed locale routing
+- Database types: Relationships, CompositeTypes, settings table, 7 RPC functions
+- TenantSettings: added company info, module toggles, formatting options
+- POS module: fixed DI pattern, correct imports, validate calls
+- Web app: fixed corrupted template literals in api-client and auth-provider
 
 ## Recommendations (Priority Order)
 
-1. **P1**: Reduce remaining 170 API type errors (top files: reports.routes 21, settings.service 14, party.service 11)
-2. **P1**: Implement Expenses module (FR-032–034) — only entirely missing user story
-3. **P2**: Implement Cash Flow Statement page
-4. **P2**: Add receipt printing to POS terminal
-5. **P3**: Add Bank & Cash Management module
-6. **P3**: Add adjustable columns and drag-and-drop to data tables
-7. **P3**: Add HR performance records tracking
+1. **P1**: Fix remaining 106 API type errors (top: reports.routes 18, party.service 8, journal-entry.repo 8)
+2. **P1**: Fix 188 web app type errors (missing UI components: alert, progress, command, popover, tooltip)
+3. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
+4. **P2**: Implement Cash Flow Statement page
+5. **P2**: Add receipt printing to POS terminal
+6. **P3**: Add Bank & Cash Management module
+7. **P3**: Add adjustable columns and drag-and-drop to data tables
