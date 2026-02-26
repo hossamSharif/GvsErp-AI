@@ -110,7 +110,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const endDate = req.query.end_date as string;
 
     if (!startDate || !endDate) {
-      return res.status(400).json({
+      return void res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_PARAMS',
@@ -159,7 +159,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const { period_start, period_end } = req.body;
 
     if (!period_start || !period_end) {
-      return res.status(400).json({
+      return void res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_PARAMS',

@@ -59,7 +59,7 @@ router.get(
       const location = await posService.getLocationById(id, tenantId);
 
       if (!location) {
-        return res.status(404).json({
+        return void res.status(404).json({
           success: false,
           error: 'POS location not found',
         });

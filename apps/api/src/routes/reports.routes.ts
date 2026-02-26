@@ -326,12 +326,12 @@ router.get(
           'Content-Disposition',
           `attachment; filename="inventory-report-${new Date().toISOString().split('T')[0]}.csv"`
         );
-        return res.send(csvContent);
+        return void res.send(csvContent);
       }
 
       if (query.format === 'pdf') {
         // Return data structured for PDF generation on frontend
-        return res.json({
+        return void res.json({
           success: true,
           data: {
             type: 'pdf',

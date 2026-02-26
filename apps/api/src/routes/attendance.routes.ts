@@ -89,7 +89,7 @@ router.get('/statistics', async (req: Request, res: Response, next: NextFunction
     const endDate = req.query.end_date as string;
 
     if (!startDate || !endDate) {
-      return res.status(400).json({
+      return void res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_PARAMS',
@@ -141,7 +141,7 @@ router.get(
       const endDate = req.query.end_date as string;
 
       if (!startDate || !endDate) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
@@ -180,7 +180,7 @@ router.get(
       const endDate = req.query.end_date as string;
 
       if (!startDate || !endDate) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
@@ -219,7 +219,7 @@ router.get(
       const endDate = req.query.end_date as string;
 
       if (!startDate || !endDate) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
@@ -287,7 +287,7 @@ router.post('/check-in', async (req: Request, res: Response, next: NextFunction)
     const { employee_id, check_in } = req.body;
 
     if (!employee_id) {
-      return res.status(400).json({
+      return void res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_PARAMS',
@@ -318,7 +318,7 @@ router.post('/check-out', async (req: Request, res: Response, next: NextFunction
     const { employee_id, check_out } = req.body;
 
     if (!employee_id) {
-      return res.status(400).json({
+      return void res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_PARAMS',
@@ -351,7 +351,7 @@ router.post(
       const { employee_id, date, notes } = req.body;
 
       if (!employee_id || !date) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
@@ -385,7 +385,7 @@ router.post(
       const { employee_id, date, notes } = req.body;
 
       if (!employee_id || !date) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
@@ -419,7 +419,7 @@ router.post(
       const { date, notes } = req.body;
 
       if (!date) {
-        return res.status(400).json({
+        return void res.status(400).json({
           success: false,
           error: {
             code: 'MISSING_PARAMS',
