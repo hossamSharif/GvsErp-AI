@@ -18,6 +18,8 @@ interface NavItem {
   href: string;
   icon: React.ReactNode;
   permission?: string;
+  /** Optional prefix for active state matching (e.g. '/accounting' matches all sub-routes) */
+  activePrefix?: string;
 }
 
 const navItems: NavItem[] = [
@@ -27,10 +29,34 @@ const navItems: NavItem[] = [
     icon: <HomeIcon className="w-5 h-5" />,
   },
   {
+    label: 'Sales',
+    href: '/sales',
+    icon: <TrendingUpIcon className="w-5 h-5" />,
+    permission: 'invoices:read',
+  },
+  {
+    label: 'Purchases',
+    href: '/purchases',
+    icon: <ShoppingCartIcon className="w-5 h-5" />,
+    permission: 'invoices:read',
+  },
+  {
     label: 'Items',
     href: '/items',
     icon: <BoxIcon className="w-5 h-5" />,
     permission: 'items:read',
+  },
+  {
+    label: 'Customers',
+    href: '/customers',
+    icon: <UsersIcon className="w-5 h-5" />,
+    permission: 'parties:read',
+  },
+  {
+    label: 'Suppliers',
+    href: '/suppliers',
+    icon: <TruckIcon className="w-5 h-5" />,
+    permission: 'parties:read',
   },
   {
     label: 'Invoices',
@@ -39,10 +65,10 @@ const navItems: NavItem[] = [
     permission: 'invoices:read',
   },
   {
-    label: 'Parties',
-    href: '/parties',
-    icon: <UsersIcon className="w-5 h-5" />,
-    permission: 'parties:read',
+    label: 'Payments',
+    href: '/payments',
+    icon: <CreditCardIcon className="w-5 h-5" />,
+    permission: 'payments:read',
   },
   {
     label: 'Warehouses',
@@ -51,10 +77,24 @@ const navItems: NavItem[] = [
     permission: 'warehouses:read',
   },
   {
-    label: 'Payments',
-    href: '/payments',
-    icon: <CreditCardIcon className="w-5 h-5" />,
-    permission: 'payments:read',
+    label: 'POS',
+    href: '/pos',
+    icon: <StoreIcon className="w-5 h-5" />,
+    permission: 'pos:read',
+  },
+  {
+    label: 'Accounting',
+    href: '/accounting/accounts',
+    icon: <CalculatorIcon className="w-5 h-5" />,
+    permission: 'accounting:read',
+    activePrefix: '/accounting',
+  },
+  {
+    label: 'HR',
+    href: '/hr/employees',
+    icon: <BadgeIcon className="w-5 h-5" />,
+    permission: 'hr:read',
+    activePrefix: '/hr',
   },
   {
     label: 'Expenses',
@@ -126,10 +166,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <ul className="space-y-1 px-2">
           {navItems.map((item) => {
             const href = `${basePath}${item.href}`;
+            const matchPath = item.activePrefix
+              ? `${basePath}${item.activePrefix}`
+              : href;
             const isActive =
               item.href === ''
                 ? pathname === basePath || pathname === `${basePath}/`
-                : pathname.startsWith(href);
+                : pathname.startsWith(matchPath);
 
             return (
               <li key={item.href}>
@@ -251,6 +294,75 @@ function SettingsIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
       <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function TrendingUpIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+      <polyline points="16 7 22 7 22 13" />
+    </svg>
+  );
+}
+
+function ShoppingCartIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+    </svg>
+  );
+}
+
+function TruckIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+      <path d="M15 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 13.52 8H14" />
+      <circle cx="17" cy="18" r="2" />
+      <circle cx="7" cy="18" r="2" />
+    </svg>
+  );
+}
+
+function StoreIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+      <path d="M2 7h20" />
+      <path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7" />
+    </svg>
+  );
+}
+
+function CalculatorIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect width="16" height="20" x="4" y="2" rx="2" />
+      <line x1="8" x2="16" y1="6" y2="6" />
+      <line x1="16" x2="16" y1="14" y2="18" />
+      <path d="M16 10h.01" />
+      <path d="M12 10h.01" />
+      <path d="M8 10h.01" />
+      <path d="M12 14h.01" />
+      <path d="M8 14h.01" />
+      <path d="M12 18h.01" />
+      <path d="M8 18h.01" />
+    </svg>
+  );
+}
+
+function BadgeIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+      <path d="M12 8v8" />
+      <path d="M8 12h8" />
     </svg>
   );
 }
