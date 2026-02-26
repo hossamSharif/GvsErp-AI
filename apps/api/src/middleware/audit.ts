@@ -29,21 +29,26 @@ declare global {
  * Maps API routes to their corresponding entity types
  */
 const ROUTE_ENTITY_MAP: Record<string, AuditEntityType> = {
-  '/api/items': 'item',
-  '/api/categories': 'category',
-  '/api/invoices': 'invoice',
-  '/api/parties': 'party',
-  '/api/payments': 'payment',
-  '/api/warehouses': 'warehouse',
-  '/api/transfers': 'transfer',
-  '/api/expenses': 'expense',
-  '/api/expense-categories': 'expense_category',
-  '/api/pos-locations': 'pos_location',
-  '/api/users': 'user',
-  '/api/roles': 'role',
-  '/api/currencies': 'currency',
-  '/api/exchange-rates': 'exchange_rate',
-  '/api/settings': 'settings',
+  '/api/v1/items': 'item',
+  '/api/v1/categories': 'category',
+  '/api/v1/invoices': 'invoice',
+  '/api/v1/parties': 'party',
+  '/api/v1/payments': 'payment',
+  '/api/v1/warehouses': 'warehouse',
+  '/api/v1/transfers': 'transfer',
+  '/api/v1/expenses': 'expense',
+  '/api/v1/pos': 'pos_location',
+  '/api/v1/users': 'user',
+  '/api/v1/roles': 'role',
+  '/api/v1/currencies': 'currency',
+  '/api/v1/exchange-rates': 'exchange_rate',
+  '/api/v1/settings': 'settings',
+  '/api/v1/employees': 'employee',
+  '/api/v1/attendance': 'attendance',
+  '/api/v1/payroll': 'payroll',
+  '/api/v1/accounts': 'account',
+  '/api/v1/journal-entries': 'journal_entry',
+  '/api/v1/accounting': 'accounting',
 };
 
 /**
@@ -89,6 +94,28 @@ function extractEntityId(req: Request, res: Response): string | null {
 }
 
 /**
+ * Fields to strip from audit log values to prevent sensitive data leaks
+ */
+const SENSITIVE_FIELDS = [
+  'password', 'password_hash', 'secret', 'token',
+  'access_token', 'refresh_token', 'api_key',
+];
+
+/**
+ * Remove sensitive fields from an object before logging
+ */
+function sanitizeForAudit(obj: Record<string, any> | null): Record<string, any> | null {
+  if (!obj || typeof obj !== 'object') return obj;
+  const sanitized = { ...obj };
+  for (const field of SENSITIVE_FIELDS) {
+    if (field in sanitized) {
+      sanitized[field] = '[REDACTED]';
+    }
+  }
+  return sanitized;
+}
+
+/**
  * Middleware to capture response body for audit logging
  */
 export function auditMiddleware(
@@ -102,8 +129,8 @@ export function auditMiddleware(
     return next();
   }
 
-  // Skip audit endpoint itself
-  if (req.path.startsWith('/api/audit')) {
+  // Skip audit and auth endpoints
+  if (req.path.startsWith('/api/v1/audit') || req.path.startsWith('/api/v1/auth')) {
     return next();
   }
 
@@ -119,12 +146,14 @@ export function auditMiddleware(
     return next();
   }
 
-  // Store original send function
+  // Store original send function — only override res.send.
+  // Express's res.json() internally calls this.send(), so overriding
+  // res.send alone correctly intercepts both json and send responses
+  // while preserving Content-Type headers set by res.json().
   const originalSend = res.send;
-  const originalJson = res.json;
 
   // Intercept response to log audit trail
-  const interceptResponse = function (this: Response, body: any): Response {
+  res.send = function (this: Response, body: any): Response {
     // Only log successful operations (2xx status codes)
     if (res.statusCode >= 200 && res.statusCode < 300) {
       // Async function to log audit trail
@@ -152,16 +181,14 @@ export function auditMiddleware(
             entityId = responseData.data.id;
           }
 
-          // Get values to log
-          let oldValues = req.auditMetadata?.oldValues || null;
+          // Get values to log (sanitized to remove sensitive fields)
+          let oldValues = sanitizeForAudit(req.auditMetadata?.oldValues || null);
           let newValues: Record<string, any> | null = null;
 
-          if (action === 'create') {
-            newValues = req.body || null;
-          } else if (action === 'update') {
-            newValues = req.body || null;
+          if (action === 'create' || action === 'update') {
+            newValues = sanitizeForAudit(req.body || null);
           } else if (action === 'delete') {
-            oldValues = req.body || oldValues;
+            oldValues = sanitizeForAudit(req.body) || oldValues;
           }
 
           // Log the audit trail
@@ -181,14 +208,8 @@ export function auditMiddleware(
       })();
     }
 
-    // Call original function
+    // Call original send — preserves Content-Type set by res.json()
     return originalSend.call(this, body);
-  };
-
-  // Override response methods
-  res.send = interceptResponse;
-  res.json = function (this: Response, body: any): Response {
-    return interceptResponse.call(this, JSON.stringify(body));
   };
 
   next();
