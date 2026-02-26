@@ -104,6 +104,14 @@ interface DataTableProps<TData, TValue> {
   };
   /** External pagination handler */
   onPaginationChange?: (page: number, limit: number) => void;
+  /** Total page count (shorthand for server-side pagination) */
+  pageCount?: number;
+  /** Current page index, 0-based (shorthand for server-side pagination) */
+  pageIndex?: number;
+  /** Page change handler (shorthand for server-side pagination) */
+  onPageChange?: (page: number, limit: number) => void;
+  /** External search change handler */
+  onSearchChange?: (value: string) => void;
   /** External sorting state */
   sorting?: { id: string; desc: boolean }[];
   /** External sorting handler */
@@ -163,12 +171,24 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   emptyMessage = 'No results found.',
   onSelectionChange,
-  pagination,
+  pagination: paginationProp,
   onPaginationChange,
+  pageCount,
+  pageIndex,
+  onPageChange,
+  onSearchChange,
   sorting: externalSorting,
   onSortingChange,
   className,
 }: DataTableProps<TData, TValue>) {
+  // Merge shorthand pagination props into pagination object
+  const pagination = paginationProp ?? (pageCount !== undefined ? {
+    page: (pageIndex ?? 0) + 1,
+    limit: pageSize,
+    total: pageCount * pageSize,
+    totalPages: pageCount,
+  } : undefined);
+  const handlePaginationChange = onPaginationChange ?? onPageChange;
   // State
   const [sorting, setSorting] = React.useState<SortingState>(externalSorting || []);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -254,7 +274,9 @@ export function DataTable<TData, TValue>({
                 : globalFilter
               }
               onChange={(event) => {
-                if (searchColumn) {
+                if (onSearchChange) {
+                  onSearchChange(event.target.value);
+                } else if (searchColumn) {
                   table.getColumn(searchColumn)?.setFilterValue(event.target.value);
                 } else {
                   setGlobalFilter(event.target.value);
@@ -417,8 +439,8 @@ export function DataTable<TData, TValue>({
               <Select
                 value={String(pagination?.limit || table.getState().pagination.pageSize)}
                 onValueChange={(value) => {
-                  if (onPaginationChange && pagination) {
-                    onPaginationChange(1, Number(value));
+                  if (handlePaginationChange && pagination) {
+                    handlePaginationChange(1, Number(value));
                   } else {
                     table.setPageSize(Number(value));
                   }
@@ -450,8 +472,8 @@ export function DataTable<TData, TValue>({
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => {
-                  if (onPaginationChange && pagination) {
-                    onPaginationChange(1, pagination.limit);
+                  if (handlePaginationChange && pagination) {
+                    handlePaginationChange(1, pagination.limit);
                   } else {
                     table.setPageIndex(0);
                   }
@@ -466,8 +488,8 @@ export function DataTable<TData, TValue>({
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => {
-                  if (onPaginationChange && pagination) {
-                    onPaginationChange(pagination.page - 1, pagination.limit);
+                  if (handlePaginationChange && pagination) {
+                    handlePaginationChange(pagination.page - 1, pagination.limit);
                   } else {
                     table.previousPage();
                   }
@@ -482,8 +504,8 @@ export function DataTable<TData, TValue>({
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => {
-                  if (onPaginationChange && pagination) {
-                    onPaginationChange(pagination.page + 1, pagination.limit);
+                  if (handlePaginationChange && pagination) {
+                    handlePaginationChange(pagination.page + 1, pagination.limit);
                   } else {
                     table.nextPage();
                   }
@@ -502,8 +524,8 @@ export function DataTable<TData, TValue>({
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => {
-                  if (onPaginationChange && pagination) {
-                    onPaginationChange(pagination.totalPages, pagination.limit);
+                  if (handlePaginationChange && pagination) {
+                    handlePaginationChange(pagination.totalPages, pagination.limit);
                   } else {
                     table.setPageIndex(table.getPageCount() - 1);
                   }
