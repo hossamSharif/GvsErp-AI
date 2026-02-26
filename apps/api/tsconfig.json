@@ -20,10 +20,10 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@erp-saas/shared": ["../../packages/shared/src"],
-      "@erp-saas/shared/*": ["../../packages/shared/src/*"],
-      "@erp-saas/database": ["../../packages/database/src"],
-      "@erp-saas/database/*": ["../../packages/database/src/*"]
+      "@erp/shared": ["../../packages/shared/src"],
+      "@erp/shared/*": ["../../packages/shared/src/*"],
+      "@erp/database": ["../../packages/database/src"],
+      "@erp/database/*": ["../../packages/database/src/*"]
     }
   },
   "include": ["src/**/*"],

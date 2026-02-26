@@ -4,7 +4,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@erp-saas/shared', '@erp-saas/database', '@erp-saas/ui'],
+  transpilePackages: ['@erp/shared', '@erp/database', '@erp/ui'],
   experimental: {
     typedRoutes: true,
   },

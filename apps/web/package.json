@@ -1,5 +1,5 @@
 {
-  "name": "@erp-saas/web",
+  "name": "@erp/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@erp-saas/database": "workspace:*",
-    "@erp-saas/shared": "workspace:*",
-    "@erp-saas/ui": "workspace:*",
+    "@erp/database": "workspace:*",
+    "@erp/shared": "workspace:*",
+    "@erp/ui": "workspace:*",
     "@hookform/resolvers": "^3.3.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",

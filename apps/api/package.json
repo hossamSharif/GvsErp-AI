@@ -1,5 +1,5 @@
 {
-  "name": "@erp-saas/api",
+  "name": "@erp/api",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -13,8 +13,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@erp-saas/database": "workspace:*",
-    "@erp-saas/shared": "workspace:*",
+    "@erp/database": "workspace:*",
+    "@erp/shared": "workspace:*",
     "@supabase/supabase-js": "^2.39.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
