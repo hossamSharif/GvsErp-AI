@@ -4,40 +4,59 @@
  * New Purchase Page
  *
  * Create a new purchase order with autosave support.
+ * Loads real warehouses, suppliers, and items from the API.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
+import { useItems } from '@/hooks/use-items';
+import { useParties } from '@/hooks/use-parties';
+import { useWarehouses } from '@/hooks/use-warehouses';
 import type { InvoiceWithRelations } from '@erp/shared';
-
-// Mock data - in a real app, these would come from API hooks
-const MOCK_WAREHOUSES = [
-  { id: 'wh-1', name: 'Main Warehouse' },
-  { id: 'wh-2', name: 'Branch Store' },
-];
-
-const MOCK_PARTIES = [
-  { id: 'p-4', name: 'Supplier Corp', type: 'supplier' as const, balance: 200.00, email: 'supplier@example.com', phone: '+1234567893' },
-  { id: 'p-5', name: 'Wholesale Inc', type: 'supplier' as const, balance: -100.00, email: 'wholesale@example.com', phone: '+1234567894' },
-  { id: 'p-6', name: 'Global Goods', type: 'supplier' as const, balance: 1000.00, email: 'global@example.com', phone: '+1234567895' },
-];
-
-const MOCK_ITEMS = [
-  { id: 'item-1', name: 'Product A', sku: 'SKU-001', unitPrice: 20.00, taxRate: 10 },
-  { id: 'item-2', name: 'Product B', sku: 'SKU-002', unitPrice: 40.00, taxRate: 10 },
-  { id: 'item-3', name: 'Product C', sku: 'SKU-003', unitPrice: 60.00, taxRate: 5 },
-  { id: 'item-4', name: 'Raw Material X', sku: 'RAW-001', unitPrice: 15.00, taxRate: 0 },
-];
 
 export default function NewPurchasePage() {
   const router = useRouter();
 
+  // Fetch real data from API
+  const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
+  const { data: partiesData, isLoading: partiesLoading } = useParties({ type: 'supplier', limit: 100 });
+  const { data: itemsData, isLoading: itemsLoading } = useItems({ isActive: true, limit: 100 });
+
+  const isLoading = warehousesLoading || partiesLoading || itemsLoading;
+
+  const warehouses = useMemo(() =>
+    (warehousesData?.data ?? []).map((w) => ({ id: w.id, name: w.name })),
+    [warehousesData]
+  );
+
+  const parties = useMemo(() =>
+    (partiesData?.data ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      type: p.type as 'customer' | 'supplier',
+      balance: p.balance ?? 0,
+      email: p.email,
+      phone: p.phone,
+    })),
+    [partiesData]
+  );
+
+  const items = useMemo(() =>
+    (itemsData?.data ?? []).map((i) => ({
+      id: i.id,
+      name: i.name,
+      sku: i.sku,
+      unitPrice: i.prices?.[0]?.price ?? 0,
+      taxRate: i.taxRate,
+    })),
+    [itemsData]
+  );
+
   const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
-    // Navigate to the invoice details page
     router.push(`/purchases/${invoice.id}`);
   }, [router]);
 
@@ -58,15 +77,21 @@ export default function NewPurchasePage() {
         </div>
       </div>
 
-      {/* Invoice Form */}
-      <InvoiceForm
-        type="purchase"
-        warehouses={MOCK_WAREHOUSES}
-        parties={MOCK_PARTIES}
-        items={MOCK_ITEMS}
-        defaultWarehouseId={MOCK_WAREHOUSES[0]?.id}
-        onSaved={handleSaved}
-      />
+      {/* Loading state */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <InvoiceForm
+          type="purchase"
+          warehouses={warehouses}
+          parties={parties}
+          items={items}
+          defaultWarehouseId={warehouses[0]?.id}
+          onSaved={handleSaved}
+        />
+      )}
     </div>
   );
 }
