@@ -34,7 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { InventoryPdf } from '@/components/reports/inventory-pdf';
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useCategories } from '@/hooks/use-categories';
-import { api } from '@/lib/api';
+import { api } from '@/lib/api-client';
 
 interface ReportFilters {
   warehouseId?: string;

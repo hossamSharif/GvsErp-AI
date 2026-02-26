@@ -19,7 +19,7 @@ import type {
   UpdatePOSLocationRequest,
   QuickSaleRequest,
   QuickSaleResponse,
-} from '@repo/shared';
+} from '@erp/shared';
 
 // =============================================================================
 // TYPES

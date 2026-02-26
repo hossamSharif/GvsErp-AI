@@ -14,7 +14,7 @@ import {
   Image,
   Font,
 } from '@react-pdf/renderer';
-import type { Invoice, POSLocationSettings } from '@repo/shared';
+import type { Invoice, POSLocationSettings } from '@erp/shared';
 
 // Register fonts for proper rendering
 Font.register({

@@ -28,7 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import type { QuickSaleItem } from '@repo/shared';
+import type { QuickSaleItem } from '@erp/shared';
 
 interface CartItem extends QuickSaleItem {
   name: string;

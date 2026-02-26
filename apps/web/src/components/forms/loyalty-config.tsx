@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { POSLoyaltySettings } from '@repo/shared';
+import type { POSLoyaltySettings } from '@erp/shared';
 
 const loyaltyConfigSchema = z.object({
   enabled: z.boolean(),
