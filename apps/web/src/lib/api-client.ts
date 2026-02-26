@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
-  params?: Record<string, string | number | boolean | undefined>;
+  params?: Record<string, unknown>;
   body?: unknown;
   headers?: Record<string, string>;
 }
@@ -106,7 +106,7 @@ async function request<T>(
 
 // Typed API client methods
 export const api = {
-  get<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>) {
+  get<T>(endpoint: string, params?: Record<string, unknown>) {
     return request<T>('GET', endpoint, { params });
   },
 
@@ -131,7 +131,7 @@ export const api = {
 export function getPaginated<T>(
   endpoint: string,
   pagination: PaginationParams = {},
-  filters: Record<string, string | number | boolean | undefined> = {}
+  filters: Record<string, unknown> = {}
 ) {
   return api.get<ApiListResponse<T>>(endpoint, {
     page: pagination.page || 1,

@@ -4,7 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../lib/api-client';
+import { api } from '../lib/api-client';
 import type {
   AuditLog,
   AuditLogQueryParams,
@@ -34,7 +34,7 @@ export function useAuditLogs(params: AuditLogQueryParams = {}) {
       searchParams.append('page', page.toString());
       searchParams.append('limit', limit.toString());
 
-      const response = await apiClient.get(`/audit-logs?${searchParams.toString()}`);
+      const response = await api.get(`/audit-logs?${searchParams.toString()}`);
       return response.data;
     },
   });
@@ -51,7 +51,7 @@ export function useEntityAuditLogs(
   return useQuery<AuditLog[]>({
     queryKey: ['audit-logs', 'entity', entityType, entityId, limit],
     queryFn: async () => {
-      const response = await apiClient.get(
+      const response = await api.get(
         `/audit-logs/entity/${entityType}/${entityId}?limit=${limit}`
       );
       return response.data;
@@ -67,7 +67,7 @@ export function useUserRecentAuditLogs(limit: number = 20) {
   return useQuery<AuditLog[]>({
     queryKey: ['audit-logs', 'user', 'recent', limit],
     queryFn: async () => {
-      const response = await apiClient.get(`/audit-logs/user/recent?limit=${limit}`);
+      const response = await api.get(`/audit-logs/user/recent?limit=${limit}`);
       return response.data;
     },
   });
@@ -83,7 +83,7 @@ export function useAuditDiff(
   return useQuery<{ field: string; oldValue: any; newValue: any }[]>({
     queryKey: ['audit-logs', 'diff', oldValues, newValues],
     queryFn: async () => {
-      const response = await apiClient.post('/audit-logs/diff', {
+      const response = await api.post('/audit-logs/diff', {
         oldValues,
         newValues,
       });
