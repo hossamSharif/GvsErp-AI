@@ -162,8 +162,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1 px-2">
+      <nav className="flex-1 py-4 overflow-y-auto" aria-label="Main navigation">
+        <ul className="space-y-1 px-2" role="list">
           {navItems.map((item) => {
             const href = `${basePath}${item.href}`;
             const matchPath = item.activePrefix
@@ -186,8 +186,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                     isCollapsed && 'justify-center'
                   )}
                   title={isCollapsed ? item.label : undefined}
+                  aria-current={isActive ? 'page' : undefined}
+                  aria-label={isCollapsed ? item.label : undefined}
                 >
-                  {item.icon}
+                  <span aria-hidden="true">{item.icon}</span>
                   {!isCollapsed && <span>{item.label}</span>}
                 </Link>
               </li>

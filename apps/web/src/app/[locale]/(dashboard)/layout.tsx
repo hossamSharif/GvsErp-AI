@@ -62,11 +62,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background" dir={direction}>
+      {/* Skip to main content link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md"
+      >
+        Skip to main content
+      </a>
+
       {/* Mobile sidebar overlay */}
       {mobileSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          aria-hidden="true"
           onClick={() => setMobileSidebarOpen(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setMobileSidebarOpen(false)}
         />
       )}
 
@@ -111,7 +121,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <Header onMenuClick={() => setMobileSidebarOpen(true)} />
 
-        <main className="p-4 md:p-6">{children}</main>
+        <main id="main-content" className="p-4 md:p-6">{children}</main>
       </div>
 
       <Toaster />
