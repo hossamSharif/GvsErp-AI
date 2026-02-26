@@ -52,7 +52,7 @@ async function request<T>(
   const { params, body, headers = {} } = options;
 
   // Build URL with query params
-  const url = new URL(\`\${API_BASE_URL}\${endpoint}\`);
+  const url = new URL(`${API_BASE_URL}${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -71,7 +71,7 @@ async function request<T>(
   };
 
   if (accessToken) {
-    requestHeaders['Authorization'] = \`Bearer \${accessToken}\`;
+    requestHeaders['Authorization'] = `Bearer ${accessToken}`;
   }
 
   // Make request
@@ -90,7 +90,7 @@ async function request<T>(
     } catch {
       error = {
         code: 'INTERNAL_ERROR',
-        message: \`HTTP \${response.status}: \${response.statusText}\`,
+        message: `HTTP ${response.status}: ${response.statusText}`,
       };
     }
     throw new ApiClientError(error, response.status);

@@ -88,7 +88,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await fetch('/api/v1/auth/me', {
         headers: {
-          Authorization: \`Bearer \${accessToken}\`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
