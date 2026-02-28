@@ -9,7 +9,7 @@ import { PayrollService, PayrollError } from '../services/payroll.service';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply authentication to all routes
 router.use(requireAuth);

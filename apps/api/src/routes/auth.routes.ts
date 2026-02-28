@@ -10,7 +10,7 @@ import { loginSchema, registerSchema } from '@erp/shared';
 import { validateBody, asyncHandler, AppError, authRateLimiter } from '../middleware';
 import type { Database } from '@erp/database';
 
-const router = Router();
+const router: Router = Router();
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;

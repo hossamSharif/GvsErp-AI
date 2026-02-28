@@ -49,7 +49,7 @@ export abstract class BaseRepository<
    * table types through generic parameters.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected query() {
+  protected query(): ReturnType<SupabaseClient<Database>['from']> {
     return this.supabase.from(this.tableName as any);
   }
 

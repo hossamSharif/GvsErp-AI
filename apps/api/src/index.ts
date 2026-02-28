@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import express from 'express';
+import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import {
@@ -30,7 +30,7 @@ import userRoutes from './routes/users.routes';
 import settingsRoutes from './routes/settings.routes';
 import auditRoutes from './routes/audit.routes';
 
-const app = express();
+const app: Express = express();
 const port = process.env.PORT || 3001;
 
 // Request ID middleware

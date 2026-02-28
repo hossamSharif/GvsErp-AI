@@ -17,7 +17,7 @@ import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply authentication to all routes
 router.use(requireAuth);

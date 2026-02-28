@@ -14,7 +14,7 @@ import {
   quickSaleRequestSchema,
 } from '@erp/shared';
 
-const router = Router();
+const router: Router = Router();
 
 function getPOSService(req: Request) {
   const { supabase, tenantId } = getTenantContext(req);
