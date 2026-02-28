@@ -14,7 +14,7 @@ import { ItemForm } from '@/components/forms/item-form';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/lib/api-client';
-import type { Category, CreateItemInput } from '@erp/shared';
+import type { Category, CreateItemInput, UpdateItemInput } from '@erp/shared';
 import { ArrowLeft } from 'lucide-react';
 
 interface CategoriesResponse {
@@ -57,8 +57,8 @@ export default function NewItemPage() {
 
   // Handle form submission
   const handleSubmit = useCallback(
-    async (data: CreateItemInput) => {
-      await createMutation.mutateAsync(data);
+    async (data: CreateItemInput | UpdateItemInput) => {
+      await createMutation.mutateAsync(data as CreateItemInput);
     },
     [createMutation]
   );

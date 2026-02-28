@@ -77,7 +77,7 @@ export default function ChartOfAccountsPage() {
         code: account.code,
         name: account.name,
         type: account.type,
-        parent_id: account.parent_id,
+        parent_id: account.parent_id ?? undefined,
       });
     } else {
       setEditingAccount(null);

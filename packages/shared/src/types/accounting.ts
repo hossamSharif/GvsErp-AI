@@ -9,8 +9,9 @@ export interface Account {
   code: string;
   name: string;
   type: AccountType;
-  parent_id?: string;
+  parent_id: string | null;
   parent?: Account;
+  children?: Account[];
   balance: number;
   is_active: boolean;
   created_at: string;
