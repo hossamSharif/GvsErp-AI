@@ -13,7 +13,7 @@ import { useDirection } from '@/stores/language-store';
 import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const { isRtl } = useDirection();
   const params = useParams();
   const locale = params.locale as string;
@@ -23,7 +23,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">
-          Welcome back, {user?.full_name?.split(' ')[0] || 'User'}
+          Welcome back, {currentUser?.full_name?.split(' ')[0] || 'User'}
         </h1>
         <p className="text-muted-foreground">
           Here&apos;s what&apos;s happening with your business today.

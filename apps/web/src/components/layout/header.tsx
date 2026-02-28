@@ -22,7 +22,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const { user, signOut } = useAuth();
+  const { user, currentUser, signOut } = useAuth();
   const { theme, setTheme } = useThemeStore();
   const { locale, setLocale } = useLanguageStore();
   const { isRtl } = useDirection();
@@ -125,15 +125,15 @@ export function Header({ onMenuClick }: HeaderProps) {
           >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground text-sm font-medium">
-                {user?.full_name ? getInitials(user.full_name) : 'U'}
+                {currentUser?.full_name ? getInitials(currentUser.full_name) : 'U'}
               </span>
             </div>
             <div className="hidden sm:block text-start">
               <p className="text-sm font-medium leading-none">
-                {user?.full_name || 'User'}
+                {currentUser?.full_name || 'User'}
               </p>
               <p className="text-xs text-muted-foreground">
-                {user?.tenant?.name || 'Organization'}
+                {currentUser?.tenant?.name || 'Organization'}
               </p>
             </div>
             <ChevronDownIcon className="w-4 h-4 text-muted-foreground hidden sm:block" />
@@ -148,7 +148,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               )}
             >
               <div className="px-3 py-2 border-b">
-                <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
+                <p className="text-sm font-medium">{currentUser?.full_name || 'User'}</p>
                 <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
 
