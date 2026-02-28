@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, Send, FileText, AlertCircle } from 'lucide-react';
+import { Save, Send, FileText, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -612,7 +612,13 @@ export function InvoiceForm({
 
       {/* Actions */}
       {!readOnly && (
-        <div className="flex gap-3 justify-end">
+        <div className="flex items-center gap-3 justify-end">
+          {draft?.lastSavedAt && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Check className="h-3 w-3 text-green-500" />
+              Draft saved locally {new Date(draft.lastSavedAt).toLocaleTimeString()}
+            </span>
+          )}
           <Button
             variant="outline"
             onClick={handleSaveDraft}
