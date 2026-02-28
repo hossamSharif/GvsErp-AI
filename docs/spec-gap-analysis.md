@@ -91,9 +91,9 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **Database package**: Builds clean (0 errors)
 - **API CJS build**: Succeeds (uuid→crypto.randomUUID fix, cycle 2)
 - **API DTS build**: Now succeeds (explicit Router/Express type annotations, cycle 3 iter 3)
-- **API type-check**: 55 TypeScript errors (down from 435 at start, 87% reduction)
-- **Web build**: Fails on `Account.children` type error (Account type missing `children` field)
-- **Web type-check**: 67 TypeScript errors (down from 188 first measured, 64% reduction)
+- **API type-check**: 46 TypeScript errors (down from 435 at start, 89% reduction)
+- **Web build**: Progressing — cleared Account, User, ItemWithCategory, TenantSettings blockers
+- **Web type-check**: 51 TypeScript errors (down from 188 first measured, 73% reduction)
 - **Tests**: 20 passing (API error middleware)
 
 ### Error Progression
@@ -120,6 +120,13 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 | C3-1 (Arch) | — | — | Replaced uuid with crypto.randomUUID() in web app |
 | C3-2 (FD) | — | — | Added aria-labels + focus visibility to invoice items table |
 | C3-3 (QA) | 55 | 67 | Fixed 24 TS2742 DTS build errors (API build now passes) |
+| C3-4 (PM) | 55 | 67 | Updated gap analysis, elevated Account.children to P0 |
+| C3-5 (BA) | — | — | Added draft auto-save indicator to invoice form |
+| C3-6 (CR) | 46 | 65 | Fixed Account type: children field + parent_id null alignment |
+| C3-7 (Arch) | 46 | 57 | Fixed User type confusion: currentUser for full_name/tenant |
+| C3-8 (FD) | 46 | 53 | Added optional prices to ItemWithCategory |
+| C3-9 (QA) | 46 | 52 | Added time_zone to TenantSettings |
+| C3-10 (PM) | 46 | 51 | Narrowed date_format/number_format types in TenantSettings |
 
 ### Top Remaining API Errors (55 total, by file)
 | File | Errors | Root Cause |
@@ -172,13 +179,13 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **[C3]** Replaced uuid with crypto.randomUUID() in web app (aligned with API approach)
 - **[C3]** Added aria-labels to invoice items table (drag handle, delete, editable cells) + keyboard focus visibility
 - **[C3]** Fixed 24 TS2742 DTS build errors: explicit Router/Express/query() type annotations — API build now fully passes
+- **[C3]** Fixed Account type (children + parent_id null), User type confusion (currentUser), ItemWithCategory (prices), TenantSettings (time_zone, narrowed date/number formats)
+- **[C3]** Added draft auto-save indicator to invoice form (UX improvement)
 
 ## Recommendations (Priority Order)
 
-1. **P0**: Fix `Account` type — add `children` field (blocks web production build)
-2. **P1**: Fix `PartyBalanceSummary` type (20 web errors in one file)
-3. **P1**: Fix `User` type — add full_name, role, tenant (10 web errors across header + pages)
-4. **P1**: Fix remaining 55 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
+1. **P1**: Fix `PartyBalanceSummary` type (20 web errors in one file)
+2. **P1**: Fix remaining 46 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
 5. **P2**: Fix React-PDF report components (14 errors — receipt, items, payments reports)
 6. **P2**: Fix `ItemWithCategory` missing `prices` field (4 errors in POS/sales/purchases)
 7. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story

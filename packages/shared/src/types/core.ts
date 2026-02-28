@@ -44,10 +44,10 @@ export interface TenantSettings {
   // Formatting & fiscal settings
   fiscal_year_start?: string;
   time_zone?: string;
-  date_format?: string;
+  date_format?: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   number_format?: {
-    decimal_separator: string;
-    thousands_separator: string;
+    decimal_separator: '.' | ',';
+    thousands_separator: ',' | '.' | ' ';
   };
 }
 
