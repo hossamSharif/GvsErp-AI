@@ -43,6 +43,7 @@ export interface TenantSettings {
   hr_module_enabled?: boolean;
   // Formatting & fiscal settings
   fiscal_year_start?: string;
+  time_zone?: string;
   date_format?: string;
   number_format?: {
     decimal_separator: string;
