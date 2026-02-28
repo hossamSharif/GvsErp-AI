@@ -8,7 +8,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
 import { Save, Send, FileText, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -155,7 +154,7 @@ export function InvoiceForm({
         discountAmount: existingInvoice.discountAmount,
         notes: existingInvoice.notes || '',
         items: existingInvoice.items.map((item) => ({
-          localId: uuidv4(),
+          localId: crypto.randomUUID(),
           itemId: item.itemId,
           itemName: item.item.name,
           itemSku: item.item.sku,

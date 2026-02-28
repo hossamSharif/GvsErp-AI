@@ -7,7 +7,6 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { v4 as uuidv4 } from 'uuid';
 import type { DraftInvoice, DraftInvoiceItem, InvoiceType } from '@erp/shared';
 
 // =============================================================================
@@ -71,7 +70,7 @@ function calculateLineTotal(item: Pick<DraftInvoiceItem, 'quantity' | 'unitPrice
 function createEmptyDraft(type: InvoiceType, warehouseId?: string): DraftInvoice {
   const now = new Date().toISOString();
   return {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     type,
     partyId: null,
     warehouseId: warehouseId || null,
@@ -147,7 +146,7 @@ export const useDraftStore = create<DraftStore>()(
 
           const newItem: DraftInvoiceItem = {
             ...item,
-            localId: uuidv4(),
+            localId: crypto.randomUUID(),
             sortOrder: draft.items.length,
             lineTotal: calculateLineTotal(item),
           };
