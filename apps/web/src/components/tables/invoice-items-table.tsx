@@ -73,6 +73,8 @@ interface EditableCellProps {
   max?: number;
   step?: number;
   readOnly?: boolean;
+  /** Accessible label for screen readers */
+  'aria-label'?: string;
 }
 
 // =============================================================================
@@ -88,6 +90,7 @@ function EditableCell({
   max,
   step,
   readOnly,
+  'aria-label': ariaLabel,
 }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(value));
@@ -144,6 +147,7 @@ function EditableCell({
         min={min}
         max={max}
         step={step}
+        aria-label={ariaLabel}
         className={cn('h-8 px-2', className)}
       />
     );
@@ -159,6 +163,7 @@ function EditableCell({
       onKeyDown={(e) => e.key === 'Enter' && setIsEditing(true)}
       tabIndex={0}
       role="button"
+      aria-label={ariaLabel ? `${ariaLabel}: ${value}` : undefined}
     >
       {type === 'number' ? Number(value).toLocaleString() : value}
     </div>
@@ -212,6 +217,7 @@ function SortableRow({
             {...attributes}
             {...listeners}
             className="cursor-grab touch-none p-1 opacity-50 hover:opacity-100"
+            aria-label={`Reorder ${item.itemName}`}
           >
             <GripVertical className="h-4 w-4" />
           </button>
@@ -239,6 +245,7 @@ function SortableRow({
           value={item.description}
           onChange={(v) => onUpdate(item.localId, 'description', String(v))}
           readOnly={readOnly}
+          aria-label={`Description for ${item.itemName}`}
         />
       </TableCell>
 
@@ -253,6 +260,7 @@ function SortableRow({
             step={0.001}
             readOnly={readOnly}
             className="w-20"
+            aria-label={`Quantity for ${item.itemName}`}
           />
           {stockAvailable !== undefined && (
             <span
@@ -277,6 +285,7 @@ function SortableRow({
           step={0.01}
           readOnly={readOnly}
           className="w-24"
+          aria-label={`Unit price for ${item.itemName}`}
         />
       </TableCell>
 
@@ -291,6 +300,7 @@ function SortableRow({
           step={0.1}
           readOnly={readOnly}
           className="w-16"
+          aria-label={`Discount percent for ${item.itemName}`}
         />
       </TableCell>
 
@@ -305,6 +315,7 @@ function SortableRow({
           step={0.1}
           readOnly={readOnly}
           className="w-16"
+          aria-label={`Tax rate for ${item.itemName}`}
         />
       </TableCell>
 
@@ -322,8 +333,9 @@ function SortableRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100"
+            className="h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100"
             onClick={() => onRemove(item.localId)}
+            aria-label={`Remove ${item.itemName}`}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
