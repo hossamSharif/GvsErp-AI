@@ -95,6 +95,7 @@ export interface Item {
  */
 export interface ItemWithCategory extends Item {
   category: Category | null;
+  prices?: ItemPrice[];
 }
 
 /**
