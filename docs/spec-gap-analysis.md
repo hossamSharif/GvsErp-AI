@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 28, updated from Iteration 22)
+Date: 2026-02-27 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 2; prev: Iteration 28)
 
 ## Coverage Summary
 
@@ -89,8 +89,10 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 28, updated f
 
 - **Shared package**: Builds clean (0 errors)
 - **Database package**: Builds clean (0 errors)
-- **API type-check**: 67 TypeScript errors (down from 435 at start, 85% reduction)
-- **Web app**: 95 TypeScript errors (down from 188 first measured, 49% reduction)
+- **API CJS build**: Now succeeds (uuid→crypto.randomUUID fix, cycle 2 iter 1)
+- **API type-check**: 55 TypeScript errors (down from 435 at start, 87% reduction)
+- **Web app**: 67 TypeScript errors (down from 188 first measured, 64% reduction)
+- **Tests**: 20 passing (API error middleware)
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -110,8 +112,39 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 28, updated f
 | 25 (Arch) | 67 | — | Fixed reports.routes.ts: DI constructors, method names |
 | 26 (FD) | — | 124 | Disabled typedRoutes (incompatible with next-intl) |
 | 27 (QA) | — | 95 | Fixed @repo/shared→@erp/shared, added 13 missing deps |
+| C2-1 (Arch) | 55 | — | Replaced uuid with Node.js crypto.randomUUID() |
+| C2-2 (FD) | — | 67 | Added pageCount/onPageChange/onSearchChange to DataTable |
+| C2-3 (QA) | — | — | Added 20 unit tests for AppError + error middleware |
 
-### Fixes Applied (Iterations 1–27)
+### Top Remaining API Errors (55 total, by file)
+| File | Errors | Root Cause |
+|------|--------|------------|
+| services/party.service.ts | 8 | Type mismatches with database schema |
+| services/payroll.service.ts | 7 | Type mismatches with database schema |
+| repositories/journal-entry.repository.ts | 7 | JournalEntry type vs DB row shape mismatch |
+| repositories/account.repository.ts | 6 | Account type vs DB row shape (parent_id, children) |
+| services/payment.service.ts | 5 | Payment relation query types |
+| services/user.service.ts | 4 | User type mismatches |
+| services/pos.service.ts | 4 | POSLocationSettings JSON type |
+| services/accounting.service.ts | 3 | Accounting integration types |
+| routes (5 files) | 6 | Misc route handler types |
+| middleware/validate.ts | 1 | Request→Record cast |
+| repositories (4 files) | 4 | Schema type mismatches |
+
+### Top Remaining Web Errors (67 total, by file)
+| File | Errors | Root Cause |
+|------|--------|------------|
+| reports/customer-balances-report.tsx | 20 | PartyBalanceSummary missing fields |
+| app/[locale] pages (8 files) | 13 | Missing type fields (children, prices, full_name) |
+| reports/receipt.tsx | 8 | React-PDF API mismatches |
+| layout/header.tsx | 5 | User type missing full_name, role, tenant |
+| hooks (4 files) | 8 | API response type mismatches |
+| reports/payments-report.tsx | 4 | React-PDF API mismatches |
+| forms/employee-form.tsx | 4 | null vs undefined in form values |
+| reports/items-report.tsx | 2 | React-PDF API mismatches |
+| forms/journal-entry-form.tsx | 2 | Possibly undefined debit/credit |
+
+### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
 - 10 missing UI components created (Badge, AlertDialog, Skeleton, Switch, Alert, Popover, Command, Tooltip, Progress, RadioGroup)
 - Toast notification system created
@@ -128,13 +161,19 @@ Date: 2026-02-26 | Reviewer: Project Manager (Ralph Loop Iteration 28, updated f
 - Disabled experimental typedRoutes (conflicted with next-intl [locale] routing)
 - Created missing use-debounce hook
 - Added 13 missing npm dependencies (date-fns, @react-pdf/renderer, @dnd-kit/*, etc.)
+- **[C2]** Replaced uuid with Node.js built-in crypto.randomUUID() (unblocked API build)
+- **[C2]** Added pageCount/pageIndex/onPageChange/onSearchChange to DataTable (fixed 28 web errors)
+- **[C2]** Added 20 unit tests for AppError class + error/notFound/async handlers
 
 ## Recommendations (Priority Order)
 
-1. **P1**: Fix remaining 67 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
-2. **P1**: Fix remaining 95 web type errors (TS2339 54, TS7006 20, TS2322 18)
-3. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
-4. **P2**: Implement Cash Flow Statement page
-5. **P2**: Add receipt printing to POS terminal
-6. **P3**: Add Bank & Cash Management module
-7. **P3**: Add adjustable columns and drag-and-drop to data tables
+1. **P1**: Fix `PartyBalanceSummary` type (20 web errors in one file)
+2. **P1**: Fix `User` type — add full_name, role, tenant (10 web errors across header + pages)
+3. **P1**: Fix remaining 55 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
+4. **P2**: Fix React-PDF report components (14 errors — receipt, items, payments reports)
+5. **P2**: Fix `ItemWithCategory` missing `prices` field (4 errors in POS/sales/purchases)
+6. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
+7. **P3**: Implement Cash Flow Statement page
+8. **P3**: Add receipt printing to POS terminal
+9. **P3**: Add Bank & Cash Management module
+10. **P3**: Add adjustable columns and drag-and-drop to data tables
