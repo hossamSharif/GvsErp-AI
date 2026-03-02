@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { InventoryPdf } from '@/components/reports/inventory-pdf';
+import { useAuth } from '@/providers/auth-provider';
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useCategories } from '@/hooks/use-categories';
 import { api } from '@/lib/api-client';
@@ -47,6 +48,8 @@ interface ReportFilters {
 export default function InventoryReportPage() {
   const t = useTranslations('warehouses');
   const router = useRouter();
+  const { currentUser } = useAuth();
+  const companyName = currentUser?.tenant?.name || 'Your Company';
   const printRef = useRef<HTMLDivElement>(null);
 
   const [filters, setFilters] = useState<ReportFilters>({
@@ -308,6 +311,7 @@ export default function InventoryReportPage() {
               <InventoryPdf
                 ref={printRef}
                 report={reportData}
+                companyName={companyName}
                 showLowStockHighlight={true}
               />
             </div>
