@@ -61,7 +61,7 @@ router.get(
         sort_order = 'desc',
       } = req.query;
 
-      const result = await service['journalRepo'].findAllEntries({
+      const result = await service.getJournalEntries({
         tenantId,
         start_date: start_date as string,
         end_date: end_date as string,
@@ -97,7 +97,7 @@ router.get(
       const { tenantId } = getContext(req);
       const { id } = req.params;
 
-      const entry = await service['journalRepo'].findById(tenantId, id);
+      const entry = await service.getJournalEntry(tenantId, id);
 
       if (!entry) {
         res.status(404).json({

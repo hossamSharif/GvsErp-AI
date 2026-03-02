@@ -86,8 +86,7 @@ router.get(
       const { tenantId } = getContext(req);
       const { id } = req.params;
 
-      // Use the repository directly for single account lookup
-      const account = await service['accountRepo'].findById(tenantId, id);
+      const account = await service.getAccount(tenantId, id);
 
       if (!account) {
         res.status(404).json({
@@ -236,7 +235,7 @@ router.get(
       const { tenantId } = getContext(req);
       const { id } = req.params;
 
-      const children = await service['accountRepo'].getChildren(tenantId, id);
+      const children = await service.getAccountChildren(tenantId, id);
 
       res.json({
         success: true,

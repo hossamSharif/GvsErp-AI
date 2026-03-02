@@ -49,6 +49,27 @@ export class AccountingService {
   }
 
   /**
+   * Get a single account by ID
+   */
+  async getAccount(tenantId: string, id: string) {
+    return this.accountRepo.findById(tenantId, id);
+  }
+
+  /**
+   * Get child accounts
+   */
+  async getAccountChildren(tenantId: string, parentId: string) {
+    return this.accountRepo.getChildren(tenantId, parentId);
+  }
+
+  /**
+   * List accounts with pagination
+   */
+  async listAccounts(tenantId: string, options: { page?: number; limit?: number; sort_by?: string; sort_order?: 'asc' | 'desc' }) {
+    return this.accountRepo.findAll({ tenantId, ...options });
+  }
+
+  /**
    * Create account
    */
   async createAccount(
@@ -138,6 +159,20 @@ export class AccountingService {
   }
 
   // ==================== Journal Entries ====================
+
+  /**
+   * Get journal entries with filters
+   */
+  async getJournalEntries(options: Parameters<typeof this.journalRepo.findAllEntries>[0]) {
+    return this.journalRepo.findAllEntries(options);
+  }
+
+  /**
+   * Get a single journal entry by ID
+   */
+  async getJournalEntry(tenantId: string, id: string) {
+    return this.journalRepo.findEntryById(tenantId, id);
+  }
 
   /**
    * Create journal entry

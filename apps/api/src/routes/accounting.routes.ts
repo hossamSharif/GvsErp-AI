@@ -105,10 +105,7 @@ router.get(
       const { tenantId } = getContext(req);
 
       // Check if any accounts exist
-      const accounts = await service['accountRepo'].findAll({
-        tenantId,
-        limit: 1,
-      });
+      const accounts = await service.listAccounts(tenantId, { limit: 1 });
 
       const isActivated = accounts.meta.total > 0;
 
@@ -281,7 +278,7 @@ router.get(
       const balanceSheet = await service.generateBalanceSheet(tenantId, today);
 
       // Get recent journal entries
-      const recentEntries = await service['journalRepo'].findAll({
+      const recentEntries = await service.getJournalEntries({
         tenantId,
         limit: 10,
         sort_by: 'entry_date',
