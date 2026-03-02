@@ -93,7 +93,7 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **API DTS build**: Now succeeds (explicit Router/Express type annotations, cycle 3 iter 3)
 - **API type-check**: 46 TypeScript errors (down from 435 at start, 89% reduction)
 - **Web build**: Progressing — cleared Account, User, ItemWithCategory, TenantSettings blockers
-- **Web type-check**: 51 TypeScript errors (down from 188 first measured, 73% reduction)
+- **Web type-check**: 31 TypeScript errors (down from 188 first measured, 84% reduction)
 - **Tests**: 20 passing (API error middleware)
 
 ### Error Progression
@@ -127,6 +127,7 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 | C3-8 (FD) | 46 | 53 | Added optional prices to ItemWithCategory |
 | C3-9 (QA) | 46 | 52 | Added time_zone to TenantSettings |
 | C3-10 (PM) | 46 | 51 | Narrowed date_format/number_format types in TenantSettings |
+| C4-1 (Arch) | 46 | 31 | Fix type misalignment: use CustomerBalanceReportEntry in report PDF |
 
 ### Top Remaining API Errors (55 total, by file)
 | File | Errors | Root Cause |
@@ -143,18 +144,18 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 | middleware/validate.ts | 1 | Request→Record cast |
 | repositories (4 files) | 4 | Schema type mismatches |
 
-### Top Remaining Web Errors (67 total, by file)
+### Top Remaining Web Errors (31 total, by file)
 | File | Errors | Root Cause |
 |------|--------|------------|
-| reports/customer-balances-report.tsx | 20 | PartyBalanceSummary missing fields |
-| app/[locale] pages (8 files) | 13 | Missing type fields (children, prices, full_name) |
 | reports/receipt.tsx | 8 | React-PDF API mismatches |
-| layout/header.tsx | 5 | User type missing full_name, role, tenant |
-| hooks (4 files) | 8 | API response type mismatches |
-| reports/payments-report.tsx | 4 | React-PDF API mismatches |
+| reports/payments-report.tsx | 4 | React-PDF API mismatches (boolean style) |
+| reports/items-report.tsx | 2 | React-PDF API mismatches (boolean style, numberOfLines) |
 | forms/employee-form.tsx | 4 | null vs undefined in form values |
-| reports/items-report.tsx | 2 | React-PDF API mismatches |
 | forms/journal-entry-form.tsx | 2 | Possibly undefined debit/credit |
+| app/[locale] pages (various) | ~8 | Missing type fields |
+| settings/users/page.tsx | 1 | User.role missing |
+| warehouses/report/page.tsx | 1 | contentRef vs content prop |
+| layout/header.tsx | 1 | User type missing fields |
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -181,13 +182,14 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **[C3]** Fixed 24 TS2742 DTS build errors: explicit Router/Express/query() type annotations — API build now fully passes
 - **[C3]** Fixed Account type (children + parent_id null), User type confusion (currentUser), ItemWithCategory (prices), TenantSettings (time_zone, narrowed date/number formats)
 - **[C3]** Added draft auto-save indicator to invoice form (UX improvement)
+- **[C4]** Fixed customer-balances-report type: PartyBalanceSummary→CustomerBalanceReportEntry (20 errors eliminated), added isActive to report entry, fixed react-pdf boolean style/numberOfLines
 
 ## Recommendations (Priority Order)
 
-1. **P1**: Fix `PartyBalanceSummary` type (20 web errors in one file)
-2. **P1**: Fix remaining 46 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
-5. **P2**: Fix React-PDF report components (14 errors — receipt, items, payments reports)
-6. **P2**: Fix `ItemWithCategory` missing `prices` field (4 errors in POS/sales/purchases)
+1. **P1**: Fix remaining 46 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
+2. **P1**: Fix React-PDF report components (14 errors — receipt, items, payments reports)
+3. **P1**: Fix employee-form null values + journal-entry undefined debit/credit (6 errors)
+4. **P2**: Fix remaining page-level type issues (~8 errors)
 7. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
 8. **P3**: Implement Cash Flow Statement page
 9. **P3**: Add receipt printing to POS terminal

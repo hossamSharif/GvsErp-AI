@@ -284,6 +284,7 @@ export interface CustomerBalanceReportEntry {
   name: string;
   email: string | null;
   phone: string | null;
+  isActive: boolean;
   totalInvoiced: number;
   totalPaid: number;
   balance: number;

@@ -14,7 +14,7 @@ import {
   View,
   StyleSheet,
 } from '@react-pdf/renderer';
-import type { PartyBalanceSummary } from '@erp/shared';
+import type { CustomerBalanceReportEntry } from '@erp/shared';
 
 // =============================================================================
 // STYLES
@@ -163,7 +163,7 @@ interface CustomerBalancesReportProps {
   /** Company/tenant name */
   companyName?: string;
   /** Customer balances data */
-  customers: PartyBalanceSummary[];
+  customers: CustomerBalanceReportEntry[];
   /** Currency symbol */
   currencySymbol?: string;
   /** Filter description */
@@ -262,12 +262,12 @@ export function CustomerBalancesReportDocument({
           {customers.map((customer, index) => (
             <View
               key={customer.id}
-              style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}
+              style={[styles.tableRow, ...(index % 2 === 1 ? [styles.tableRowAlt] : [])]}
             >
-              <Text style={[styles.tableCell, styles.colName]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colName]}>
                 {customer.name}
               </Text>
-              <Text style={[styles.tableCell, styles.colEmail]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colEmail]}>
                 {customer.email || '-'}
               </Text>
               <Text style={[styles.tableCell, styles.colPhone]}>
