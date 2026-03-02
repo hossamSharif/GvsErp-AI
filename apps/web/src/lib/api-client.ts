@@ -10,8 +10,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+type QueryParamValue = string | number | boolean | null | undefined;
+type QueryParams = Record<string, QueryParamValue | QueryParamValue[]>;
+
 interface RequestOptions {
-  params?: Record<string, unknown>;
+  params?: QueryParams;
   body?: unknown;
   headers?: Record<string, string>;
 }
@@ -55,7 +58,14 @@ async function request<T>(
   const url = new URL(`${API_BASE_URL}${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value === undefined || value === null) return;
+      if (Array.isArray(value)) {
+        value.forEach((v) => {
+          if (v !== undefined && v !== null) {
+            url.searchParams.append(key, String(v));
+          }
+        });
+      } else {
         url.searchParams.append(key, String(value));
       }
     });
@@ -106,8 +116,9 @@ async function request<T>(
 
 // Typed API client methods
 export const api = {
-  get<T>(endpoint: string, params?: Record<string, unknown>) {
-    return request<T>('GET', endpoint, { params });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get<T>(endpoint: string, params?: Record<string, any>) {
+    return request<T>('GET', endpoint, { params: params as QueryParams });
   },
 
   post<T>(endpoint: string, body?: unknown) {
@@ -131,7 +142,7 @@ export const api = {
 export function getPaginated<T>(
   endpoint: string,
   pagination: PaginationParams = {},
-  filters: Record<string, unknown> = {}
+  filters: Record<string, any> = {}
 ) {
   return api.get<ApiListResponse<T>>(endpoint, {
     page: pagination.page || 1,
