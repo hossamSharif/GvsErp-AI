@@ -65,7 +65,7 @@ export default function InventoryReportPage() {
   const categories = categoriesData?.data || [];
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    content: () => printRef.current,
     documentTitle: `Inventory Report - ${new Date().toISOString().split('T')[0]}`,
   });
 

@@ -65,7 +65,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { User, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, UserWithRole, CreateUserInput, UpdateUserInput } from '@erp/shared';
 import {
   Plus,
   MoreHorizontal,
@@ -300,7 +300,7 @@ export default function UsersPage() {
   );
 
   // Table columns
-  const columns = useMemo<ColumnDef<User>[]>(
+  const columns = useMemo<ColumnDef<UserWithRole>[]>(
     () => [
       {
         accessorKey: 'full_name',
@@ -409,7 +409,7 @@ export default function UsersPage() {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={data?.data || []}
+        data={(data?.data || []) as UserWithRole[]}
         pageCount={data?.meta.total ? Math.ceil(data.meta.total / queryParams.limit) : 0}
         pageIndex={queryParams.page - 1}
         pageSize={queryParams.limit}
