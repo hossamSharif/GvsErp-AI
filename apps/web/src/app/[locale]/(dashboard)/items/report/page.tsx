@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import type { ItemReportParams } from '@erp/shared';
+import { useAuth } from '@/providers/auth-provider';
 import { ArrowLeft, Download, FileText, Loader2, Eye } from 'lucide-react';
 
 // Dynamically import PDFViewer to avoid SSR issues
@@ -71,6 +72,8 @@ export default function ItemsReportPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const { currentUser } = useAuth();
+  const companyName = currentUser?.tenant?.name || 'Your Company';
 
   // Filter state
   const [reportParams, setReportParams] = useState<ItemReportParams>({
@@ -128,7 +131,7 @@ export default function ItemsReportPage() {
         await downloadItemsReport(
           {
             title: 'Inventory Items Report',
-            companyName: 'Your Company', // TODO: Get from tenant settings
+            companyName,
             items: result.data.data,
             currencySymbol,
             filterDescription: getFilterDescription(),
@@ -344,7 +347,7 @@ export default function ItemsReportPage() {
                 <PDFViewer width="100%" height={600} showToolbar={false}>
                   <ItemsReportDocument
                     title="Inventory Items Report"
-                    companyName="Your Company"
+                    companyName={companyName}
                     items={reportData.data}
                     currencySymbol={currencySymbol}
                     filterDescription={getFilterDescription()}
