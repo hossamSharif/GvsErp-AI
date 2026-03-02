@@ -345,6 +345,21 @@ export function DataTable<TData, TValue>({
                                 'cursor-pointer select-none hover:text-foreground'
                             )}
                             onClick={header.column.getToggleSortingHandler()}
+                            {...(header.column.getCanSort() ? {
+                              role: 'button',
+                              tabIndex: 0,
+                              'aria-sort': header.column.getIsSorted() === 'asc'
+                                ? 'ascending'
+                                : header.column.getIsSorted() === 'desc'
+                                  ? 'descending'
+                                  : 'none',
+                              onKeyDown: (e: React.KeyboardEvent) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  header.column.getToggleSortingHandler()?.(e);
+                                }
+                              },
+                            } : {})}
                           >
                             {flexRender(
                               header.column.columnDef.header,
@@ -435,7 +450,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center gap-6 lg:gap-8">
             {/* Page size selector */}
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">Rows per page</p>
+              <label id="rows-per-page-label" className="text-sm font-medium">Rows per page</label>
               <Select
                 value={String(pagination?.limit || table.getState().pagination.pageSize)}
                 onValueChange={(value) => {
@@ -446,7 +461,7 @@ export function DataTable<TData, TValue>({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-[70px]">
+                <SelectTrigger className="h-8 w-[70px]" aria-labelledby="rows-per-page-label">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent side="top">
