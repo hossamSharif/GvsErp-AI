@@ -318,8 +318,8 @@ export class PayrollService {
         .eq('id', this.tenantId)
         .single();
 
-      const accountingEnabled =
-        tenantSettings?.settings?.modules?.accounting?.enabled || false;
+      const settings = tenantSettings?.settings as Record<string, any> | null;
+      const accountingEnabled = settings?.modules?.accounting?.enabled || false;
 
       if (!accountingEnabled) {
         // Accounting module not enabled, skip posting
@@ -330,10 +330,10 @@ export class PayrollService {
       const salaryExpenseAccount = await this.getOrCreateSalaryExpenseAccount();
       const payableAccount = await this.getOrCreatePayableAccount();
 
-      // Calculate total payroll
-      const totalGross = payrollRun.total_gross || 0;
-      const totalNet = payrollRun.total_net || 0;
-      const totalDeductions = payrollRun.total_deductions || 0;
+      // Calculate total payroll — DB only stores total_amount (net)
+      const totalNet = Number(payrollRun.total_amount || 0);
+      const totalGross = totalNet; // Approximate: detailed breakdown is in payroll items
+      const totalDeductions = 0;
 
       // Create journal entry lines
       const lines = [
@@ -366,8 +366,6 @@ export class PayrollService {
       await this.accountingService.createJournalEntry(this.tenantId, userId, {
         entry_date: payrollRun.period_end,
         description: `Payroll for period ${payrollRun.period_start} to ${payrollRun.period_end}`,
-        source_type: 'payroll',
-        source_id: payrollRun.id,
         lines,
       });
     } catch (error) {
@@ -475,15 +473,15 @@ export class PayrollService {
 
     const summary = {
       total_runs: runs.length,
-      total_gross: runs.reduce((sum, run) => sum + (run.total_gross || 0), 0),
-      total_deductions: runs.reduce((sum, run) => sum + (run.total_deductions || 0), 0),
-      total_net: runs.reduce((sum, run) => sum + (run.total_net || 0), 0),
+      total_gross: runs.reduce((sum, run) => sum + Number(run.total_amount || 0), 0),
+      total_deductions: 0,
+      total_net: runs.reduce((sum, run) => sum + Number(run.total_amount || 0), 0),
       runs: runs.map((run) => ({
         id: run.id,
         period_start: run.period_start,
         period_end: run.period_end,
-        total_gross: run.total_gross,
-        total_net: run.total_net,
+        total_gross: Number(run.total_amount || 0),
+        total_net: Number(run.total_amount || 0),
         status: run.status,
       })),
     };

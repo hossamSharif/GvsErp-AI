@@ -215,7 +215,7 @@ export class PayrollRepository extends BaseRepository<
   ): Promise<PayrollRunRow | null> {
     const { data, error } = await this.supabase
       .from(this.tableName)
-      .update(totals)
+      .update({ total_amount: totals.total_net } as any)
       .eq('tenant_id', tenantId)
       .eq('id', id)
       .select()
