@@ -211,7 +211,7 @@ export function EmployeeForm({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Input {...field} placeholder="IT Department" />
+                        <Input {...field} value={field.value ?? ''} placeholder="IT Department" />
                       )}
                     </FormControl>
                     <FormMessage />
@@ -243,7 +243,7 @@ export function EmployeeForm({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Input {...field} placeholder="Software Engineer" />
+                        <Input {...field} value={field.value ?? ''} placeholder="Software Engineer" />
                       )}
                     </FormControl>
                     <FormMessage />
@@ -259,7 +259,7 @@ export function EmployeeForm({
                 <FormItem>
                   <FormLabel>Hire Date</FormLabel>
                   <FormControl>
-                    <Input {...field} type="date" />
+                    <Input {...field} value={field.value ?? ''} type="date" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,6 +288,7 @@ export function EmployeeForm({
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value ?? ''}
                           type="number"
                           step="0.01"
                           placeholder="5000.00"

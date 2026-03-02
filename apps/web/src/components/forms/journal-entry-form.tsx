@@ -123,7 +123,7 @@ export function JournalEntryForm({
     // Filter out empty lines
     const validLines = lines.filter(
       (line) =>
-        line.account_id && (line.debit > 0 || line.credit > 0)
+        line.account_id && ((line.debit ?? 0) > 0 || (line.credit ?? 0) > 0)
     );
 
     if (validLines.length < 2) {

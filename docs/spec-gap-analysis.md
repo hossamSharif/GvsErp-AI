@@ -93,7 +93,7 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **API DTS build**: Now succeeds (explicit Router/Express type annotations, cycle 3 iter 3)
 - **API type-check**: 46 TypeScript errors (down from 435 at start, 89% reduction)
 - **Web build**: Progressing — cleared Account, User, ItemWithCategory, TenantSettings blockers
-- **Web type-check**: 31 TypeScript errors (down from 188 first measured, 84% reduction)
+- **Web type-check**: 2 TypeScript errors (down from 188 first measured, 99% reduction)
 - **Tests**: 20 passing (API error middleware)
 
 ### Error Progression
@@ -128,34 +128,28 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 | C3-9 (QA) | 46 | 52 | Added time_zone to TenantSettings |
 | C3-10 (PM) | 46 | 51 | Narrowed date_format/number_format types in TenantSettings |
 | C4-1 (Arch) | 46 | 31 | Fix type misalignment: use CustomerBalanceReportEntry in report PDF |
+| C4-2 (FD) | 46 | 17 | Fix receipt snake→camelCase, react-pdf boolean style/numberOfLines |
+| C4-3 (QA) | 46 | 8 | Fix api-client params type, audit-logs hook typing |
+| C4-4 (PM) | 46 | 2 | Fix employee-form null values, journal-entry undefined debit/credit |
 
-### Top Remaining API Errors (55 total, by file)
+### Top Remaining API Errors (46 total, by file)
 | File | Errors | Root Cause |
 |------|--------|------------|
-| services/party.service.ts | 8 | Type mismatches with database schema |
-| services/payroll.service.ts | 7 | Type mismatches with database schema |
+| services/party.service.ts | 8 | snake_case DB rows vs camelCase types, private method access |
 | repositories/journal-entry.repository.ts | 7 | JournalEntry type vs DB row shape mismatch |
-| repositories/account.repository.ts | 6 | Account type vs DB row shape (parent_id, children) |
-| services/payment.service.ts | 5 | Payment relation query types |
-| services/user.service.ts | 4 | User type mismatches |
-| services/pos.service.ts | 4 | POSLocationSettings JSON type |
-| services/accounting.service.ts | 3 | Accounting integration types |
-| routes (5 files) | 6 | Misc route handler types |
+| services/payroll.service.ts | 7 | total_gross/total_net missing from payroll_runs schema |
+| services/payment.service.ts | 5 | snake→camelCase, missing mapPayment, QueryResult shape |
+| services/user.service.ts | 4 | Spread of unknown, role field, missing args |
+| services/pos.service.ts | 4 | Missing invoiceService/warehouseRepository properties |
+| routes (5 files) | 5 | Implicit any, sortBy types, missing args |
+| repositories (4 files) | 5 | DB row shape mismatches, SelectQueryError |
 | middleware/validate.ts | 1 | Request→Record cast |
-| repositories (4 files) | 4 | Schema type mismatches |
 
-### Top Remaining Web Errors (31 total, by file)
+### Top Remaining Web Errors (2 total, by file)
 | File | Errors | Root Cause |
 |------|--------|------------|
-| reports/receipt.tsx | 8 | React-PDF API mismatches |
-| reports/payments-report.tsx | 4 | React-PDF API mismatches (boolean style) |
-| reports/items-report.tsx | 2 | React-PDF API mismatches (boolean style, numberOfLines) |
-| forms/employee-form.tsx | 4 | null vs undefined in form values |
-| forms/journal-entry-form.tsx | 2 | Possibly undefined debit/credit |
-| app/[locale] pages (various) | ~8 | Missing type fields |
-| settings/users/page.tsx | 1 | User.role missing |
-| warehouses/report/page.tsx | 1 | contentRef vs content prop |
-| layout/header.tsx | 1 | User type missing fields |
+| settings/users/page.tsx | 1 | User.role missing from shared type |
+| warehouses/report/page.tsx | 1 | contentRef→content prop (react-to-print API) |
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -186,10 +180,9 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 
 ## Recommendations (Priority Order)
 
-1. **P1**: Fix remaining 46 API type errors (top: party.service 8, payroll.service 7, journal-entry.repo 7)
-2. **P1**: Fix React-PDF report components (14 errors — receipt, items, payments reports)
-3. **P1**: Fix employee-form null values + journal-entry undefined debit/credit (6 errors)
-4. **P2**: Fix remaining page-level type issues (~8 errors)
+1. **P0**: Fix remaining 2 web type errors (User.role, contentRef→content)
+2. **P1**: Fix remaining 46 API type errors (party.service 8, journal-entry.repo 7, payroll.service 7)
+3. **P1**: Core API pattern: snake_case DB rows need mapping to camelCase shared types
 7. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
 8. **P3**: Implement Cash Flow Statement page
 9. **P3**: Add receipt printing to POS terminal
