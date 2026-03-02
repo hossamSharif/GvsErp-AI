@@ -100,7 +100,6 @@ export class PartyService {
     }
 
     const partyData = {
-      tenant_id: this.tenantId,
       type: input.type,
       name: input.name.trim(),
       email: input.email?.trim() || null,
@@ -112,9 +111,9 @@ export class PartyService {
       is_active: true,
     };
 
-    const party = await this.partyRepository.create(partyData);
+    const row = await this.partyRepository.create(this.tenantId, partyData);
 
-    return party;
+    return this.mapRow(row);
   }
 
   /**
@@ -141,13 +140,13 @@ export class PartyService {
     if (input.isActive !== undefined) updates.is_active = input.isActive;
     if (input.notes !== undefined) updates.notes = input.notes?.trim() || null;
 
-    const party = await this.partyRepository.update(this.tenantId, id, updates);
+    const row = await this.partyRepository.update(this.tenantId, id, updates);
 
-    if (!party) {
+    if (!row) {
       throw new PartyError('Failed to update party', 'UPDATE_FAILED', 500);
     }
 
-    return party;
+    return this.mapRow(row);
   }
 
   /**
@@ -265,7 +264,7 @@ export class PartyService {
     const totalCredits = transactions.reduce((sum, txn) => sum + txn.credit, 0);
 
     return {
-      party: this.partyRepository.mapParty(party),
+      party: this.mapRow(party),
       openingBalance,
       transactions: transactionsWithBalance,
       closingBalance: runningBalance,
@@ -339,7 +338,6 @@ export class PartyService {
         description: `Invoice ${invoice.invoice_number}`,
         debit: amount,
         credit: 0,
-        balance: 0, // Will be calculated later
       });
     }
 
@@ -362,7 +360,6 @@ export class PartyService {
         description: payment.notes || 'Payment',
         debit: 0,
         credit: amount,
-        balance: 0, // Will be calculated later
       });
     }
 
@@ -389,11 +386,11 @@ export class PartyService {
     };
 
     const result = await this.getParties(queryParams);
-    const parties = result.items;
+    const parties = result.data;
 
     // Get detailed information for each customer
     const entries: CustomerBalanceReportEntry[] = await Promise.all(
-      parties.map(async (party) => {
+      parties.map(async (party: Party) => {
         // Get last invoice date
         const { data: lastInvoice } = await this.supabase
           .from('invoices')
@@ -440,6 +437,7 @@ export class PartyService {
           name: party.name,
           email: party.email,
           phone: party.phone,
+          isActive: party.isActive,
           totalInvoiced,
           totalPaid,
           balance: Number(party.balance),
@@ -532,6 +530,27 @@ export class PartyService {
         400
       );
     }
+  }
+
+  /**
+   * Map a DB row to the camelCase Party type
+   */
+  private mapRow(row: any): Party {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      type: row.type,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      address: row.address,
+      taxNumber: row.tax_number,
+      balance: Number(row.balance || 0),
+      isActive: row.is_active,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   /**
