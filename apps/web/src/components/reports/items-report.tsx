@@ -254,9 +254,9 @@ export function ItemsReportDocument({
           {items.map((item, index) => (
             <View
               key={item.id}
-              style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}
+              style={[styles.tableRow, ...(index % 2 === 1 ? [styles.tableRowAlt] : [])]}
             >
-              <Text style={[styles.tableCell, styles.colName]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colName]}>
                 {item.name}
               </Text>
               <Text style={[styles.tableCell, styles.colSku]}>{item.sku || '-'}</Text>

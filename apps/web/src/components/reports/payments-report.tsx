@@ -281,12 +281,12 @@ export function PaymentsReportDocument({
           {payments.map((payment, index) => (
             <View
               key={payment.id}
-              style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}
+              style={[styles.tableRow, ...(index % 2 === 1 ? [styles.tableRowAlt] : [])]}
             >
               <Text style={[styles.tableCell, styles.colDate]}>
                 {formatDate(payment.paymentDate)}
               </Text>
-              <Text style={[styles.tableCell, styles.colReference]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colReference]}>
                 {payment.reference || '-'}
               </Text>
               <View style={styles.colType}>
@@ -301,7 +301,7 @@ export function PaymentsReportDocument({
                   {payment.type === 'received' ? 'Received' : 'Made'}
                 </Text>
               </View>
-              <Text style={[styles.tableCell, styles.colParty]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colParty]}>
                 {payment.party.name}
               </Text>
               <Text style={[styles.tableCell, styles.colMethod]}>
@@ -318,7 +318,7 @@ export function PaymentsReportDocument({
               >
                 {formatCurrency(payment.amount, payment.currency, currencySymbol)}
               </Text>
-              <Text style={[styles.tableCell, styles.colNotes]} numberOfLines={1}>
+              <Text style={[styles.tableCell, styles.colNotes]}>
                 {payment.notes || '-'}
               </Text>
             </View>

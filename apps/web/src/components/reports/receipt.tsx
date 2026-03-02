@@ -175,19 +175,19 @@ export const ReceiptDocument: React.FC<ReceiptProps> = ({
         <View>
           <View style={styles.row}>
             <Text style={styles.label}>Receipt #:</Text>
-            <Text style={styles.value}>{invoice.invoice_number}</Text>
+            <Text style={styles.value}>{invoice.invoiceNumber}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Date:</Text>
             <Text style={styles.value}>
-              {new Date(invoice.created_at).toLocaleString()}
+              {new Date(invoice.createdAt).toLocaleString()}
             </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>POS Location:</Text>
             <Text style={styles.value}>{posLocation.name}</Text>
           </View>
-          {invoice.party_id && (
+          {invoice.partyId && (
             <View style={styles.row}>
               <Text style={styles.label}>Customer:</Text>
               <Text style={styles.value}>Customer Name</Text>
@@ -223,17 +223,17 @@ export const ReceiptDocument: React.FC<ReceiptProps> = ({
             <Text>${invoice.subtotal.toFixed(2)}</Text>
           </View>
 
-          {invoice.discount_amount > 0 && (
+          {invoice.discountAmount > 0 && (
             <View style={styles.totalRow}>
               <Text>Discount:</Text>
-              <Text>-${invoice.discount_amount.toFixed(2)}</Text>
+              <Text>-${invoice.discountAmount.toFixed(2)}</Text>
             </View>
           )}
 
-          {invoice.tax_amount > 0 && (
+          {invoice.taxAmount > 0 && (
             <View style={styles.totalRow}>
               <Text>Tax:</Text>
-              <Text>${invoice.tax_amount.toFixed(2)}</Text>
+              <Text>${invoice.taxAmount.toFixed(2)}</Text>
             </View>
           )}
 
@@ -250,7 +250,7 @@ export const ReceiptDocument: React.FC<ReceiptProps> = ({
           <View>
             {/* In production, use a barcode library to generate actual barcode */}
             <Text style={{ textAlign: 'center', fontSize: 8, marginTop: 10 }}>
-              {invoice.invoice_number}
+              {invoice.invoiceNumber}
             </Text>
           </View>
         )}
