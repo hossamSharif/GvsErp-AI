@@ -284,6 +284,7 @@ export class PartyService {
     const { data: invoices } = await this.supabase
       .from('invoices')
       .select('total, exchange_rate')
+      .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
       .eq('status', 'final')
       .lt('finalized_at', date);
@@ -297,6 +298,7 @@ export class PartyService {
     const { data: payments } = await this.supabase
       .from('payments')
       .select('amount, exchange_rate')
+      .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
       .lt('created_at', date);
 
@@ -322,6 +324,7 @@ export class PartyService {
     const { data: invoices } = await this.supabase
       .from('invoices')
       .select('id, invoice_number, total, exchange_rate, status, finalized_at')
+      .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
       .eq('status', 'final')
       .gte('finalized_at', dateFrom)
@@ -345,6 +348,7 @@ export class PartyService {
     const { data: payments } = await this.supabase
       .from('payments')
       .select('id, reference, amount, exchange_rate, payment_date, notes')
+      .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
       .gte('payment_date', dateFrom)
       .lte('payment_date', dateTo)
