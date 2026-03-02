@@ -43,7 +43,7 @@ export function validate(schemas: ValidationOptions) {
           }
 
           // Replace request data with validated/transformed data
-          (req as Record<string, unknown>)[type] = result.data;
+          (req as unknown as Record<string, unknown>)[type] = result.data;
         }
       }
 

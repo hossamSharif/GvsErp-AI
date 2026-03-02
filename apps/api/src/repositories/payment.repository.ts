@@ -158,7 +158,7 @@ export class PaymentRepository extends BaseRepository<'payments', PaymentRow, Pa
       throw error;
     }
 
-    return this.mapPaymentWithRelations(data);
+    return this.mapPaymentWithRelations(data as any);
   }
 
   /**

@@ -61,7 +61,7 @@ router.get(
         sort_order = 'desc',
       } = req.query;
 
-      const result = await service['journalRepo'].findAll({
+      const result = await service['journalRepo'].findAllEntries({
         tenantId,
         start_date: start_date as string,
         end_date: end_date as string,

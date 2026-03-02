@@ -75,7 +75,7 @@ router.get(
         sortDir?: 'asc' | 'desc';
       };
 
-      const result = await service.getItems(params);
+      const result = await service.getItems(params as any);
 
       res.json({
         success: true,

@@ -15,12 +15,35 @@ import type {
   POSSaleSummary,
 } from '@erp/shared';
 import { POSLocationRepository } from '../repositories/pos.repository';
+import { InvoiceService } from './invoice.service';
 
 export class POSService {
   private posRepository: POSLocationRepository;
+  private supabase: SupabaseClient<Database>;
 
   constructor(supabase: SupabaseClient<Database>, _tenantId: string) {
+    this.supabase = supabase;
     this.posRepository = new POSLocationRepository(supabase);
+  }
+
+  /**
+   * Validate warehouse exists and is active (inline to avoid circular deps)
+   */
+  private async validateWarehouse(warehouseId: string, tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('warehouses')
+      .select('id, is_active')
+      .eq('id', warehouseId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (error || !data) {
+      throw new Error('Warehouse not found');
+    }
+    if (!data.is_active) {
+      throw new Error('Cannot use inactive warehouse');
+    }
+    return data;
   }
 
   /**
@@ -49,14 +72,7 @@ export class POSService {
    */
   async createLocation(tenantId: string, data: CreatePOSLocationRequest): Promise<POSLocation> {
     // Validate that warehouse exists
-    const warehouse = await this.warehouseRepository.findById(data.warehouse_id, tenantId);
-    if (!warehouse) {
-      throw new Error('Warehouse not found');
-    }
-
-    if (!warehouse.is_active) {
-      throw new Error('Cannot create POS location for inactive warehouse');
-    }
+    await this.validateWarehouse(data.warehouse_id, tenantId);
 
     return this.posRepository.create(tenantId, data);
   }
@@ -77,13 +93,7 @@ export class POSService {
 
     // Validate warehouse if being updated
     if (data.warehouse_id) {
-      const warehouse = await this.warehouseRepository.findById(data.warehouse_id, tenantId);
-      if (!warehouse) {
-        throw new Error('Warehouse not found');
-      }
-      if (!warehouse.is_active) {
-        throw new Error('Cannot assign POS location to inactive warehouse');
-      }
+      await this.validateWarehouse(data.warehouse_id, tenantId);
     }
 
     return this.posRepository.update(id, tenantId, data);
@@ -122,28 +132,29 @@ export class POSService {
     // Calculate sale summary
     const summary = this.calculateSaleSummary(saleData, posLocation.settings.tax?.default_rate);
 
-    // Create invoice using the invoice service
-    const invoice = await this.invoiceService.createInvoice(tenantId, userId, {
+    // Create invoice using InvoiceService (instantiated per-call for userId context)
+    const invoiceService = new InvoiceService(this.supabase, tenantId, userId);
+    const invoice = await invoiceService.createInvoice({
       type: 'sale',
-      warehouse_id: posLocation.warehouse_id,
-      party_id: saleData.party_id,
+      warehouseId: posLocation.warehouse_id,
+      partyId: saleData.party_id,
       items: saleData.items.map((item) => ({
-        item_id: item.item_id,
+        itemId: item.item_id,
         quantity: item.quantity,
-        unit_price: item.unit_price,
-        discount_percent: item.discount_percent || 0,
-        tax_rate: posLocation.settings.tax?.default_rate || 0,
+        unitPrice: item.unit_price,
+        discountPercent: item.discount_percent || 0,
+        taxRate: posLocation.settings.tax?.default_rate || 0,
       })),
-      discount_amount: saleData.discount_amount,
+      discountAmount: saleData.discount_amount,
       notes: saleData.notes,
     });
 
     // Auto-finalize the invoice (POS sales are always immediate)
-    await this.invoiceService.finalizeInvoice(invoice.id, tenantId, userId);
+    await invoiceService.finalizeInvoice(invoice.id);
 
     return {
       invoice_id: invoice.id,
-      invoice_number: invoice.invoice_number,
+      invoice_number: invoice.invoiceNumber,
       total: summary.total,
     };
   }

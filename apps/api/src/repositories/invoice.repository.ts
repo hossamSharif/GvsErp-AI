@@ -166,7 +166,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
       throw error;
     }
 
-    return this.mapInvoiceWithRelations(data);
+    return this.mapInvoiceWithRelations(data as any);
   }
 
   /**

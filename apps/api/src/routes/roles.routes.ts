@@ -110,7 +110,7 @@ router.post(
         is_system: false,
       };
 
-      const role = await repository.create({ tenant_id: tenantId, ...roleData });
+      const role = await repository.create(tenantId, roleData);
 
       res.status(201).json({
         success: true,

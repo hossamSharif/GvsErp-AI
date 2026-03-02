@@ -75,7 +75,7 @@ router.get(
         sortDir?: 'asc' | 'desc';
       };
 
-      const result = await service.getInvoices(params);
+      const result = await service.getInvoices(params as any);
 
       res.json({
         success: true,

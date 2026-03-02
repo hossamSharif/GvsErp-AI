@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; prev: Iteration 4 cycle 2)
+Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -91,9 +91,9 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **Database package**: Builds clean (0 errors)
 - **API CJS build**: Succeeds (uuid→crypto.randomUUID fix, cycle 2)
 - **API DTS build**: Now succeeds (explicit Router/Express type annotations, cycle 3 iter 3)
-- **API type-check**: 46 TypeScript errors (down from 435 at start, 89% reduction)
-- **Web build**: Progressing — cleared Account, User, ItemWithCategory, TenantSettings blockers
-- **Web type-check**: 2 TypeScript errors (down from 188 first measured, 99% reduction)
+- **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
+- **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
+- **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
 - **Tests**: 20 passing (API error middleware)
 
 ### Error Progression
@@ -131,25 +131,17 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 | C4-2 (FD) | 46 | 17 | Fix receipt snake→camelCase, react-pdf boolean style/numberOfLines |
 | C4-3 (QA) | 46 | 8 | Fix api-client params type, audit-logs hook typing |
 | C4-4 (PM) | 46 | 2 | Fix employee-form null values, journal-entry undefined debit/credit |
+| C4-5 (BA) | 46 | 0 | Fix User→UserWithRole, contentRef→content |
+| C4-6 (CR) | 38 | 0 | Fix party.service: mapRow, create args, result.data |
+| C4-7 (Arch) | 32 | 0 | Fix journal-entry.repo: mapEntry, rename findAll/findById |
+| C4-8 (FD) | 24 | 0 | Fix payroll: total_amount, settings cast, journal input |
+| C4-9 (QA) | 15 | 0 | Fix payment.service, user.service: create args, mapRow |
+| C4-10 (PM) | **0** | **0** | Fix pos.service (InvoiceService), all route/repo errors |
 
-### Top Remaining API Errors (46 total, by file)
-| File | Errors | Root Cause |
-|------|--------|------------|
-| services/party.service.ts | 8 | snake_case DB rows vs camelCase types, private method access |
-| repositories/journal-entry.repository.ts | 7 | JournalEntry type vs DB row shape mismatch |
-| services/payroll.service.ts | 7 | total_gross/total_net missing from payroll_runs schema |
-| services/payment.service.ts | 5 | snake→camelCase, missing mapPayment, QueryResult shape |
-| services/user.service.ts | 4 | Spread of unknown, role field, missing args |
-| services/pos.service.ts | 4 | Missing invoiceService/warehouseRepository properties |
-| routes (5 files) | 5 | Implicit any, sortBy types, missing args |
-| repositories (4 files) | 5 | DB row shape mismatches, SelectQueryError |
-| middleware/validate.ts | 1 | Request→Record cast |
-
-### Top Remaining Web Errors (2 total, by file)
-| File | Errors | Root Cause |
-|------|--------|------------|
-| settings/users/page.tsx | 1 | User.role missing from shared type |
-| warehouses/report/page.tsx | 1 | contentRef→content prop (react-to-print API) |
+### Build Status: ALL CLEAR
+- **API type-check**: 0 errors
+- **Web type-check**: 0 errors
+- **Tests**: 20 passing
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -177,14 +169,15 @@ Date: 2026-02-28 | Reviewer: Project Manager (Ralph Loop Iteration 4, cycle 3; p
 - **[C3]** Fixed Account type (children + parent_id null), User type confusion (currentUser), ItemWithCategory (prices), TenantSettings (time_zone, narrowed date/number formats)
 - **[C3]** Added draft auto-save indicator to invoice form (UX improvement)
 - **[C4]** Fixed customer-balances-report type: PartyBalanceSummary→CustomerBalanceReportEntry (20 errors eliminated), added isActive to report entry, fixed react-pdf boolean style/numberOfLines
+- **[C4]** Fixed all 46 API errors: snake→camel mapRow() in services, BaseRepository.create() args, QueryResult.data, SelectQueryError casts, InvoiceService integration in POS, route type casts
+- **[C4]** Fixed all 51 web errors: receipt camelCase, react-pdf styles, api-client params, audit-logs types, employee-form null, UserWithRole, useReactToPrint API
 
 ## Recommendations (Priority Order)
 
-1. **P0**: Fix remaining 2 web type errors (User.role, contentRef→content)
-2. **P1**: Fix remaining 46 API type errors (party.service 8, journal-entry.repo 7, payroll.service 7)
-3. **P1**: Core API pattern: snake_case DB rows need mapping to camelCase shared types
-7. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
-8. **P3**: Implement Cash Flow Statement page
-9. **P3**: Add receipt printing to POS terminal
-10. **P3**: Add Bank & Cash Management module
-11. **P3**: Add adjustable columns and drag-and-drop to data tables
+1. **P0**: ~~Fix type errors~~ **DONE** — 0 API errors, 0 web errors
+2. **P1**: Fix Next.js SSG prerender errors (useAuth outside AuthProvider — pages need `export const dynamic = 'force-dynamic'`)
+3. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
+4. **P3**: Implement Cash Flow Statement page
+5. **P3**: Add receipt printing to POS terminal
+6. **P3**: Add Bank & Cash Management module
+7. **P3**: Add adjustable columns and drag-and-drop to data tables

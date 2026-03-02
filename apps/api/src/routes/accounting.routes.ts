@@ -58,7 +58,7 @@ router.post(
       const { tenantId } = getContext(req);
       const { import_default_chart } = req.body;
 
-      let accounts = [];
+      let accounts: any[] = [];
 
       if (import_default_chart !== false) {
         // Import default chart of accounts

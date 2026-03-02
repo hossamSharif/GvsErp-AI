@@ -111,7 +111,7 @@ router.post(
         is_default: req.body.is_default || false,
       };
 
-      const currency = await repository.create({ tenant_id: tenantId, ...currencyData });
+      const currency = await repository.create(tenantId, currencyData);
 
       res.status(201).json({
         success: true,

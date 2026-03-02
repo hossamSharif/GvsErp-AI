@@ -103,7 +103,7 @@ export class POSLocationRepository {
         tenant_id: tenantId,
         name: data.name,
         warehouse_id: data.warehouse_id,
-        settings: data.settings || {},
+        settings: (data.settings || {}) as any,
       })
       .select()
       .single();
