@@ -115,7 +115,6 @@ export class PaymentService {
     const reference = input.reference || await this.generatePaymentReference(input.type);
 
     const paymentData = {
-      tenant_id: this.tenantId,
       party_id: input.partyId,
       type: input.type,
       amount: input.amount,
@@ -129,7 +128,7 @@ export class PaymentService {
       created_by: userId || null,
     };
 
-    const payment = await this.paymentRepository.create(paymentData);
+    const payment = await this.paymentRepository.create(this.tenantId, paymentData);
 
     // Get payment with relations
     const paymentWithRelations = await this.paymentRepository.findByIdWithRelations(
@@ -165,13 +164,13 @@ export class PaymentService {
       updates.notes = input.notes?.trim() || null;
     }
 
-    const payment = await this.paymentRepository.update(this.tenantId, id, updates);
+    const row = await this.paymentRepository.update(this.tenantId, id, updates);
 
-    if (!payment) {
+    if (!row) {
       throw new PaymentError('Failed to update payment', 'UPDATE_FAILED', 500);
     }
 
-    return payment;
+    return this.mapRow(row);
   }
 
   /**
@@ -212,10 +211,10 @@ export class PaymentService {
     };
 
     const result = await this.getPayments(queryParams);
-    const payments = result.items;
+    const payments = result.data;
 
     // Build report entries
-    const entries: PaymentReportEntry[] = payments.map((payment) => ({
+    const entries: PaymentReportEntry[] = payments.map((payment: PaymentWithParty) => ({
       id: payment.id,
       reference: payment.reference,
       partyName: payment.party.name,
@@ -231,7 +230,7 @@ export class PaymentService {
 
     // Populate invoice numbers for linked payments
     for (const entry of entries) {
-      const payment = payments.find((p) => p.id === entry.id);
+      const payment = payments.find((p: PaymentWithParty) => p.id === entry.id);
       if (payment?.invoiceId) {
         const { data: invoice } = await this.supabase
           .from('invoices')
@@ -291,6 +290,28 @@ export class PaymentService {
   // ==========================================================================
   // HELPER METHODS
   // ==========================================================================
+
+  /**
+   * Map DB row to camelCase Payment type
+   */
+  private mapRow(row: any): Payment {
+    return {
+      id: row.id,
+      tenantId: row.tenant_id,
+      partyId: row.party_id,
+      type: row.type,
+      amount: Number(row.amount),
+      currency: row.currency,
+      exchangeRate: Number(row.exchange_rate),
+      paymentMethod: row.payment_method,
+      reference: row.reference,
+      invoiceId: row.invoice_id,
+      notes: row.notes,
+      paymentDate: row.payment_date,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+    };
+  }
 
   /**
    * Validate payment type matches party type

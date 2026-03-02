@@ -8,7 +8,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
-import type { User, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -128,7 +128,7 @@ export class UserService {
         is_active: true,
       };
 
-      const user = await this.userRepository.create(userData);
+      const user = await this.userRepository.create(this.tenantId, userData);
 
       return this.mapUser(user);
     } catch (error) {
@@ -200,7 +200,7 @@ export class UserService {
     if (input.is_active !== undefined) updates.is_active = input.is_active;
     if (input.preferences !== undefined) {
       updates.preferences = {
-        ...existing.preferences,
+        ...(existing.preferences as Record<string, unknown> || {}),
         ...input.preferences,
       };
     }
@@ -285,7 +285,7 @@ export class UserService {
     }
 
     const updatedPreferences = {
-      ...existing.preferences,
+      ...(existing.preferences as Record<string, unknown> || {}),
       ...preferences,
     };
 
@@ -376,13 +376,13 @@ export class UserService {
   /**
    * Map database user to API user type
    */
-  private mapUser(user: any): User {
+  private mapUser(user: any): SharedUserWithRole {
     return {
       id: user.id,
       tenant_id: user.tenant_id,
       email: user.email,
-      full_name: user.full_name || undefined,
-      role_id: user.role_id || undefined,
+      full_name: user.full_name || null,
+      role_id: user.role_id || null,
       role: user.role ? {
         id: user.role.id,
         tenant_id: user.role.tenant_id,
@@ -390,7 +390,7 @@ export class UserService {
         permissions: user.role.permissions,
         is_system: user.role.is_system,
         created_at: user.role.created_at,
-      } : undefined,
+      } : null,
       preferences: user.preferences || {},
       is_active: user.is_active,
       created_at: user.created_at,
