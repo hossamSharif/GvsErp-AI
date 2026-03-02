@@ -124,7 +124,7 @@ export class AccountingService {
     }
 
     // Check if account has journal entries
-    const entries = await this.journalRepo.findAll({
+    const entries = await this.journalRepo.findAllEntries({
       tenantId,
       account_id: id,
       limit: 1,
@@ -185,7 +185,7 @@ export class AccountingService {
     id: string,
     data: UpdateJournalEntryInput
   ): Promise<JournalEntry | null> {
-    const entry = await this.journalRepo.findById(tenantId, id);
+    const entry = await this.journalRepo.findEntryById(tenantId, id);
     if (!entry) return null;
 
     if (entry.is_posted) {

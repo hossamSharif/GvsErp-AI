@@ -33,9 +33,27 @@ export class JournalEntryRepository extends BaseRepository<
   }
 
   /**
+   * Map DB row (with joined journal_lines) to JournalEntry type
+   */
+  private mapEntry(row: any): JournalEntry {
+    return {
+      id: row.id,
+      tenant_id: row.tenant_id,
+      entry_number: row.entry_number,
+      entry_date: row.date,
+      description: row.description,
+      is_posted: row.is_auto ?? false,
+      created_by: row.created_by,
+      created_at: row.created_at,
+      updated_at: row.created_at, // DB doesn't have updated_at, use created_at
+      lines: row.journal_lines || [],
+    };
+  }
+
+  /**
    * Find all journal entries with optional filters
    */
-  async findAll(options: JournalEntryQueryOptions): Promise<QueryResult<JournalEntry>> {
+  async findAllEntries(options: JournalEntryQueryOptions): Promise<QueryResult<JournalEntry>> {
     const {
       tenantId,
       page = 1,
@@ -112,7 +130,7 @@ export class JournalEntryRepository extends BaseRepository<
     }
 
     return {
-      data: (data || []) as JournalEntry[],
+      data: (data || []).map((row: any) => this.mapEntry(row)),
       meta: {
         page,
         limit,
@@ -125,7 +143,7 @@ export class JournalEntryRepository extends BaseRepository<
   /**
    * Find journal entry by ID with lines
    */
-  async findById(tenantId: string, id: string): Promise<JournalEntry | null> {
+  async findEntryById(tenantId: string, id: string): Promise<JournalEntry | null> {
     const { data, error } = await this.supabase
       .from(this.tableName)
       .select('*, journal_lines(*)')
@@ -140,7 +158,7 @@ export class JournalEntryRepository extends BaseRepository<
       throw error;
     }
 
-    return data as JournalEntry;
+    return this.mapEntry(data);
   }
 
   /**
@@ -161,7 +179,7 @@ export class JournalEntryRepository extends BaseRepository<
       throw error;
     }
 
-    return data as JournalEntry;
+    return this.mapEntry(data);
   }
 
   /**
@@ -187,9 +205,11 @@ export class JournalEntryRepository extends BaseRepository<
       .from(this.tableName)
       .insert({
         tenant_id: tenantId,
+        date: entryData.entry_date,
+        description: entryData.description || null,
+        reference: null,
+        is_auto: false,
         created_by: userId,
-        is_posted: false,
-        ...entryData,
       } as JournalEntryInsert)
       .select()
       .single();
@@ -222,7 +242,7 @@ export class JournalEntryRepository extends BaseRepository<
     }
 
     // Fetch the complete entry with lines
-    return this.findById(tenantId, entry.id) as Promise<JournalEntry>;
+    return this.findEntryById(tenantId, entry.id) as Promise<JournalEntry>;
   }
 
   /**
@@ -238,7 +258,7 @@ export class JournalEntryRepository extends BaseRepository<
     lines?: CreateJournalLineInput[]
   ): Promise<JournalEntry | null> {
     // Check if entry exists and is not posted
-    const existing = await this.findById(tenantId, id);
+    const existing = await this.findEntryById(tenantId, id);
     if (!existing) return null;
     if (existing.is_posted) {
       throw new Error('Cannot update posted journal entry');
@@ -288,7 +308,7 @@ export class JournalEntryRepository extends BaseRepository<
       }
     }
 
-    return this.findById(tenantId, id);
+    return this.findEntryById(tenantId, id);
   }
 
   /**
@@ -307,7 +327,7 @@ export class JournalEntryRepository extends BaseRepository<
       throw error;
     }
 
-    return data as JournalEntry;
+    return this.mapEntry(data);
   }
 
   /**
@@ -350,7 +370,7 @@ export class JournalEntryRepository extends BaseRepository<
    */
   async delete(tenantId: string, id: string): Promise<boolean> {
     // Check if entry is posted
-    const entry = await this.findById(tenantId, id);
+    const entry = await this.findEntryById(tenantId, id);
     if (!entry) return false;
     if (entry.is_posted) {
       throw new Error('Cannot delete posted journal entry');
