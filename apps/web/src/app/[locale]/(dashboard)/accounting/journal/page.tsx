@@ -26,6 +26,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Plus, MoreHorizontal, Edit2, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -37,18 +47,25 @@ export default function JournalEntriesPage() {
     page: 1,
     limit: 50,
   });
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [targetEntryId, setTargetEntryId] = useState<string | null>(null);
 
   const { data, isLoading } = useJournalEntries(filters);
   const postMutation = usePostJournalEntry();
   const deleteMutation = useDeleteJournalEntry();
 
-  const handlePost = async (id: string) => {
-    if (!confirm('Are you sure you want to post this journal entry? This action cannot be undone.')) {
-      return;
-    }
+  const handlePost = (id: string) => {
+    setTargetEntryId(id);
+    setPostDialogOpen(true);
+  };
+
+  const confirmPost = async () => {
+    if (!targetEntryId) return;
+    setPostDialogOpen(false);
 
     try {
-      await postMutation.mutateAsync(id);
+      await postMutation.mutateAsync(targetEntryId);
       toast({
         title: 'Success',
         description: 'Journal entry posted successfully',
@@ -60,15 +77,20 @@ export default function JournalEntriesPage() {
         variant: 'destructive',
       });
     }
+    setTargetEntryId(null);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this journal entry?')) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    setTargetEntryId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!targetEntryId) return;
+    setDeleteDialogOpen(false);
 
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(targetEntryId);
       toast({
         title: 'Success',
         description: 'Journal entry deleted successfully',
@@ -80,6 +102,7 @@ export default function JournalEntriesPage() {
         variant: 'destructive',
       });
     }
+    setTargetEntryId(null);
   };
 
   return (
@@ -187,6 +210,43 @@ export default function JournalEntriesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Post Confirmation Dialog */}
+      <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Post Journal Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to post this journal entry? This action cannot be undone.
+              Once posted, the entry will update account balances and cannot be edited or deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPost}>
+              Post Entry
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Journal Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this journal entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

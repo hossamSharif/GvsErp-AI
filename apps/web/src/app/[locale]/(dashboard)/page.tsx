@@ -59,7 +59,7 @@ export default function DashboardPage() {
             icon={<DollarIcon className="w-5 h-5" />}
             label="Record a Payment"
             description="Track money in and out"
-            href={`/${locale}/payments`}
+            href={`/${locale}/payments/new`}
           />
         </div>
       </div>
