@@ -341,8 +341,9 @@ export function ImageUpload({
             onChange={handleInputChange}
             className="hidden"
             disabled={disabled}
+            aria-label="Upload images"
           />
-          <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+          <Upload aria-hidden="true" className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
           <p className="text-sm text-muted-foreground mb-2">
             Drag and drop images here, or{' '}
             <Button
@@ -378,7 +379,7 @@ export function ImageUpload({
               <div className="absolute inset-0 flex items-center justify-center">
                 {upload.error ? (
                   <div className="text-center p-2">
-                    <AlertCircle className="mx-auto h-6 w-6 text-destructive mb-1" />
+                    <AlertCircle aria-hidden="true" className="mx-auto h-6 w-6 text-destructive mb-1" />
                     <p className="text-xs text-destructive">{upload.error}</p>
                     <Button
                       type="button"
@@ -392,7 +393,7 @@ export function ImageUpload({
                   </div>
                 ) : (
                   <div className="w-3/4">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary mb-2" />
+                    <Loader2 aria-hidden="true" className="mx-auto h-6 w-6 animate-spin text-primary mb-2" />
                     <Progress value={upload.progress} className="h-1" />
                   </div>
                 )}
@@ -437,9 +438,9 @@ export function ImageUpload({
                   variant="secondary"
                   size="icon"
                   className="h-8 w-8 cursor-grab active:cursor-grabbing"
-                  title="Drag to reorder"
+                  aria-label={`Drag to reorder image ${index + 1}`}
                 >
-                  <GripVertical className="h-4 w-4" />
+                  <GripVertical aria-hidden="true" className="h-4 w-4" />
                 </Button>
                 <Button
                   type="button"
@@ -447,9 +448,9 @@ export function ImageUpload({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => handleRemove(index)}
-                  title="Remove"
+                  aria-label={`Remove image ${index + 1}`}
                 >
-                  <X className="h-4 w-4" />
+                  <X aria-hidden="true" className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -460,7 +461,7 @@ export function ImageUpload({
       {/* Empty State */}
       {value.length === 0 && uploading.length === 0 && !canAddMore && (
         <div className="text-center py-8 text-muted-foreground">
-          <ImageIcon className="mx-auto h-10 w-10 opacity-50 mb-2" />
+          <ImageIcon aria-hidden="true" className="mx-auto h-10 w-10 opacity-50 mb-2" />
           <p>No images uploaded</p>
         </div>
       )}
