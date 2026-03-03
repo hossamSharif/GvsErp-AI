@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 0 API + 0 Web TS errors)
+Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -20,7 +20,7 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 
 | Logging | FR-041–042 | 2 | 0 | 0 |
 | Authorization | FR-043–044 | 2 | 0 | 0 |
 | Currency | FR-045–046 | 2 | 0 | 0 |
-| UX Requirements | FR-047–049 | 1 | 2 | 0 |
+| UX Requirements | FR-047–049 | 2 | 1 | 0 |
 | Accounting Module | FR-050–061 | 8 | 1 | 3 |
 | HR Module | FR-062–073 | 8 | 2 | 2 |
 
@@ -59,10 +59,11 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 
 ## Partial Implementations
 
 ### Excel-like UX (FR-015, FR-047, FR-048)
-- Fixed/sticky table headers: Implemented in `data-table.tsx`
-- Adjustable column widths: NOT implemented
-- Drag-and-drop row reordering: NOT implemented
-- **Status**: Basic table UX only
+- Fixed/sticky table headers: Implemented in `data-table.tsx` (sticky top-0)
+- Adjustable column widths: Implemented via TanStack Table column resize (data-table.tsx L372-382)
+- Drag-and-drop row reordering: Implemented in invoice items table via @dnd-kit (invoice-items-table.tsx)
+- Adjustable row heights: NOT implemented (FR-048 partial gap)
+- **Status**: Mostly implemented — only row height adjustment missing
 
 ### Autosave for Drafts (FR-014, FR-021, FR-049)
 - Draft store exists (`stores/draft-store.ts`)
@@ -140,8 +141,10 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 
 
 ### Build Status: ALL CLEAR
 - **API type-check**: 0 errors
+- **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
-- **Tests**: 20 passing
+- **Web build**: Succeeds (all pages prerender correctly)
+- **Tests**: 86 passing (4 test suites: error middleware, invoice service, POS service, report service)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -171,13 +174,18 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Iteration 10, cycle 4; 
 - **[C4]** Fixed customer-balances-report type: PartyBalanceSummary→CustomerBalanceReportEntry (20 errors eliminated), added isActive to report entry, fixed react-pdf boolean style/numberOfLines
 - **[C4]** Fixed all 46 API errors: snake→camel mapRow() in services, BaseRepository.create() args, QueryResult.data, SelectQueryError casts, InvoiceService integration in POS, route type casts
 - **[C4]** Fixed all 51 web errors: receipt camelCase, react-pdf styles, api-client params, audit-logs types, employee-form null, UserWithRole, useReactToPrint API
+- **[C5]** Extracted ReportService from reports.routes.ts — enforced routes→services→repos layering
+- **[C5]** Fixed keyboard accessibility: low-stock-config clickable span (role, tabIndex, keyDown), EditableCell Space key
+- **[C5]** Added 33 unit tests for ReportService (calculateSummary, groupBy, generateCsv) — total 86 tests
+- **[C5]** Restored and updated gap analysis with corrected FR-048 status (column resize implemented)
 
 ## Recommendations (Priority Order)
 
 1. **P0**: ~~Fix type errors~~ **DONE** — 0 API errors, 0 web errors
-2. **P1**: Fix Next.js SSG prerender errors (useAuth outside AuthProvider — pages need `export const dynamic = 'force-dynamic'`)
+2. **P1**: ~~Fix Next.js SSG prerender errors~~ **DONE** — all pages prerender correctly
 3. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
 4. **P3**: Implement Cash Flow Statement page
 5. **P3**: Add receipt printing to POS terminal
 6. **P3**: Add Bank & Cash Management module
-7. **P3**: Add adjustable columns and drag-and-drop to data tables
+7. **P3**: ~~Add adjustable columns to data tables~~ **DONE** — column resize implemented via TanStack Table
+8. **P3**: Add adjustable row heights to data tables (FR-048 remaining gap)
