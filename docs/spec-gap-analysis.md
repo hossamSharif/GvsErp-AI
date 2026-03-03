@@ -144,7 +144,7 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 86 passing (4 test suites: error middleware, invoice service, POS service, report service)
+- **Tests**: 106 passing (5 test suites: error middleware, invoice, POS, report, payment services)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -178,6 +178,11 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0
 - **[C5]** Fixed keyboard accessibility: low-stock-config clickable span (role, tabIndex, keyDown), EditableCell Space key
 - **[C5]** Added 33 unit tests for ReportService (calculateSummary, groupBy, generateCsv) — total 86 tests
 - **[C5]** Restored and updated gap analysis with corrected FR-048 status (column resize implemented)
+- **[C5]** Moved invoice validation alert above items section with contextual messages (UX)
+- **[C5]** Fixed missing await on ReportService.applyFilters + CSV grouped-data bug
+- **[C5]** Fixed roles route overly broad error handler leaking internal errors (security)
+- **[C5]** Added ARIA labels: language selector, party search input, sort icons aria-hidden
+- **[C5]** Added 20 unit tests for PaymentService — total 106 tests across 5 suites
 
 ## Recommendations (Priority Order)
 
