@@ -50,6 +50,8 @@ export interface InventoryReportResult {
   summary: InventoryReportSummaryResult;
   alertsSummary: AlertsSummaryResult;
   data: any[];
+  /** Flat (ungrouped) inventory data — use for CSV export */
+  flatData: any[];
 }
 
 export interface ValuationReportResult {
@@ -108,12 +110,12 @@ export class ReportService {
   // -------------------------------------------------------------------------
 
   async getInventoryReport(query: InventoryReportQuery): Promise<InventoryReportResult> {
-    let inventoryData = await this.fetchInventoryData(query);
-    inventoryData = this.applyFilters(inventoryData, query);
+    const rawData = await this.fetchInventoryData(query);
+    const filteredData = await this.applyFilters(rawData, query);
 
-    const summary = this.calculateSummary(inventoryData);
+    const summary = this.calculateSummary(filteredData);
     const alertsSummary = await this.calculateAlertsSummary(query.warehouseId);
-    const groupedData = this.groupData(inventoryData, query.groupBy);
+    const groupedData = this.groupData(filteredData, query.groupBy);
 
     return {
       generatedAt: new Date().toISOString(),
@@ -129,6 +131,7 @@ export class ReportService {
       summary,
       alertsSummary,
       data: groupedData,
+      flatData: filteredData,
     };
   }
 

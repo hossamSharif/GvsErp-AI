@@ -156,9 +156,9 @@ router.get(
 
       const report = await reportService.getInventoryReport(query);
 
-      // Handle CSV format
+      // Handle CSV format — use flat (ungrouped) data for tabular export
       if (query.format === 'csv') {
-        const csvContent = reportService.generateInventoryCsv(report.data);
+        const csvContent = reportService.generateInventoryCsv(report.flatData);
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader(
           'Content-Disposition',
