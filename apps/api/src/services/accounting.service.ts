@@ -30,6 +30,20 @@ import type {
   UpdateAccountInput,
 } from '@erp/shared';
 
+/**
+ * Application error for accounting-related operations
+ */
+export class AccountingError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number = 400
+  ) {
+    super(message);
+    this.name = 'AccountingError';
+  }
+}
+
 export class AccountingService {
   private accountRepo: AccountRepository;
   private journalRepo: JournalEntryRepository;
@@ -80,18 +94,18 @@ export class AccountingService {
     if (data.parent_id) {
       const parent = await this.accountRepo.findById(tenantId, data.parent_id);
       if (!parent) {
-        throw new Error('Parent account not found');
+        throw new AccountingError('Parent account not found', 'PARENT_NOT_FOUND', 404);
       }
       // Ensure parent is same type
       if (parent.type !== data.type) {
-        throw new Error('Parent account must be of the same type');
+        throw new AccountingError('Parent account must be of the same type', 'TYPE_MISMATCH');
       }
     }
 
     // Check if code already exists
     const existing = await this.accountRepo.findByCode(tenantId, data.code);
     if (existing) {
-      throw new Error(`Account with code ${data.code} already exists`);
+      throw new AccountingError(`Account with code ${data.code} already exists`, 'CODE_EXISTS');
     }
 
     return this.accountRepo.create(tenantId, data);
@@ -112,7 +126,7 @@ export class AccountingService {
     if (data.code && data.code !== account.code) {
       const existing = await this.accountRepo.findByCode(tenantId, data.code);
       if (existing && existing.id !== id) {
-        throw new Error(`Account with code ${data.code} already exists`);
+        throw new AccountingError(`Account with code ${data.code} already exists`, 'CODE_EXISTS');
       }
     }
 
@@ -120,14 +134,14 @@ export class AccountingService {
     if (data.parent_id) {
       const parent = await this.accountRepo.findById(tenantId, data.parent_id);
       if (!parent) {
-        throw new Error('Parent account not found');
+        throw new AccountingError('Parent account not found', 'PARENT_NOT_FOUND', 404);
       }
       if (parent.type !== account.type) {
-        throw new Error('Parent account must be of the same type');
+        throw new AccountingError('Parent account must be of the same type', 'TYPE_MISMATCH');
       }
       // Prevent circular references
       if (parent.id === id) {
-        throw new Error('Account cannot be its own parent');
+        throw new AccountingError('Account cannot be its own parent', 'CIRCULAR_REFERENCE');
       }
     }
 
@@ -141,7 +155,7 @@ export class AccountingService {
     // Check if account has children
     const hasChildren = await this.accountRepo.hasChildren(tenantId, id);
     if (hasChildren) {
-      throw new Error('Cannot delete account with child accounts');
+      throw new AccountingError('Cannot delete account with child accounts', 'HAS_CHILDREN');
     }
 
     // Check if account has journal entries
@@ -152,7 +166,7 @@ export class AccountingService {
     });
 
     if (entries.meta.total > 0) {
-      throw new Error('Cannot delete account with journal entries');
+      throw new AccountingError('Cannot delete account with journal entries', 'HAS_ENTRIES');
     }
 
     return this.accountRepo.delete(tenantId, id, true);
@@ -186,7 +200,7 @@ export class AccountingService {
     for (const line of data.lines) {
       const account = await this.accountRepo.findById(tenantId, line.account_id);
       if (!account) {
-        throw new Error(`Account ${line.account_id} not found`);
+        throw new AccountingError(`Account ${line.account_id} not found`, 'ACCOUNT_NOT_FOUND', 404);
       }
     }
 
@@ -195,8 +209,9 @@ export class AccountingService {
     const totalCredits = data.lines.reduce((sum, line) => sum + (line.credit || 0), 0);
 
     if (Math.abs(totalDebits - totalCredits) > 0.01) {
-      throw new Error(
-        `Journal entry must be balanced. Debits: ${totalDebits}, Credits: ${totalCredits}`
+      throw new AccountingError(
+        `Journal entry must be balanced. Debits: ${totalDebits}, Credits: ${totalCredits}`,
+        'UNBALANCED_ENTRY'
       );
     }
 
@@ -224,7 +239,7 @@ export class AccountingService {
     if (!entry) return null;
 
     if (entry.is_posted) {
-      throw new Error('Cannot update posted journal entry');
+      throw new AccountingError('Cannot update posted journal entry', 'ENTRY_POSTED');
     }
 
     // Validate lines if provided
@@ -232,7 +247,7 @@ export class AccountingService {
       for (const line of data.lines) {
         const account = await this.accountRepo.findById(tenantId, line.account_id);
         if (!account) {
-          throw new Error(`Account ${line.account_id} not found`);
+          throw new AccountingError(`Account ${line.account_id} not found`, 'ACCOUNT_NOT_FOUND', 404);
         }
       }
 
@@ -241,7 +256,7 @@ export class AccountingService {
       const totalCredits = data.lines.reduce((sum, line) => sum + (line.credit || 0), 0);
 
       if (Math.abs(totalDebits - totalCredits) > 0.01) {
-        throw new Error('Journal entry must be balanced');
+        throw new AccountingError('Journal entry must be balanced', 'UNBALANCED_ENTRY');
       }
     }
 
@@ -526,7 +541,7 @@ export class AccountingService {
   ): Promise<GeneralLedgerReport> {
     const account = await this.accountRepo.findById(tenantId, accountId);
     if (!account) {
-      throw new Error('Account not found');
+      throw new AccountingError('Account not found', 'ACCOUNT_NOT_FOUND', 404);
     }
 
     // Get beginning balance (before start date)

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AccountingService } from '../services/accounting.service';
+import { AccountingService, AccountingError } from '../services/accounting.service';
 import { createAccountSchema, updateAccountSchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
@@ -30,6 +30,23 @@ function getAccountingService(req: Request): AccountingService {
 function getContext(req: Request): { tenantId: string; userId: string } {
   const { tenantId, userId } = getTenantContext(req);
   return { tenantId, userId };
+}
+
+/**
+ * Error handler for accounting-specific errors
+ */
+function handleAccountingError(error: unknown, res: Response, next: NextFunction): void {
+  if (error instanceof AccountingError) {
+    res.status(error.statusCode).json({
+      success: false,
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    });
+    return;
+  }
+  next(error);
 }
 
 // =============================================================================
@@ -127,18 +144,8 @@ router.post(
         success: true,
         data: account,
       });
-    } catch (error: any) {
-      if (error.message.includes('already exists') || error.message.includes('not found')) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: error.message,
-          },
-        });
-        return;
-      }
-      next(error);
+    } catch (error) {
+      handleAccountingError(error, res, next);
     }
   }
 );
@@ -173,18 +180,8 @@ router.put(
         success: true,
         data: account,
       });
-    } catch (error: any) {
-      if (error.message.includes('already exists') || error.message.includes('not found')) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: error.message,
-          },
-        });
-        return;
-      }
-      next(error);
+    } catch (error) {
+      handleAccountingError(error, res, next);
     }
   }
 );
@@ -207,18 +204,8 @@ router.delete(
         success: true,
         message: 'Account deleted successfully',
       });
-    } catch (error: any) {
-      if (error.message.includes('Cannot delete')) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'CANNOT_DELETE',
-            message: error.message,
-          },
-        });
-        return;
-      }
-      next(error);
+    } catch (error) {
+      handleAccountingError(error, res, next);
     }
   }
 );
