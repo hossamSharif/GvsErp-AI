@@ -13,7 +13,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ColumnDef } from '@tanstack/react-table';
-import { useItems, useDeleteItem, itemKeys } from '@/hooks/use-items';
+import { useItems, useDeleteItem } from '@/hooks/use-items';
+import { BulkPriceDialog } from '@/components/dialogs/bulk-price-dialog';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,7 @@ export default function ItemsPage() {
   const [selectedItems, setSelectedItems] = useState<ItemWithCategory[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
+  const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
 
   // Fetch items
   const { data, isLoading, error } = useItems(queryParams);
@@ -139,12 +141,8 @@ export default function ItemsPage() {
   }, [itemToDelete, deleteMutation]);
 
   const handleBulkPriceUpdate = useCallback(() => {
-    // TODO: Open bulk price update dialog
-    toast({
-      title: 'Bulk Price Update',
-      description: `Update prices for ${selectedItems.length} selected items`,
-    });
-  }, [selectedItems, toast]);
+    setBulkPriceDialogOpen(true);
+  }, []);
 
   const handleExportPdf = useCallback(() => {
     router.push(`/${locale}/items/report`);
@@ -352,6 +350,13 @@ export default function ItemsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Price Update Dialog */}
+      <BulkPriceDialog
+        open={bulkPriceDialogOpen}
+        onOpenChange={setBulkPriceDialogOpen}
+        items={selectedItems}
+      />
     </div>
   );
 }
