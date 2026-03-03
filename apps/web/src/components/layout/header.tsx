@@ -6,7 +6,7 @@
  * Main header with user menu, theme toggle, and language switcher.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
@@ -32,6 +32,14 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const currentLocale = params.locale as string;
 
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuItemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const closeMenu = useCallback(() => {
+    setIsUserMenuOpen(false);
+    menuButtonRef.current?.focus();
+  }, []);
+
   // Close menu on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -43,6 +51,45 @@ export function Header({ onMenuClick }: HeaderProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close menu on Escape and handle arrow key navigation
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      const items = menuItemsRef.current.filter(Boolean) as HTMLButtonElement[];
+      const currentIndex = items.indexOf(document.activeElement as HTMLButtonElement);
+
+      switch (event.key) {
+        case 'Escape':
+          event.preventDefault();
+          closeMenu();
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          if (currentIndex < items.length - 1) {
+            items[currentIndex + 1]?.focus();
+          } else {
+            items[0]?.focus();
+          }
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          if (currentIndex > 0) {
+            items[currentIndex - 1]?.focus();
+          } else {
+            items[items.length - 1]?.focus();
+          }
+          break;
+        case 'Tab':
+          closeMenu();
+          break;
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isUserMenuOpen, closeMenu]);
 
   const handleLanguageChange = (newLocale: Locale) => {
     setLocale(newLocale);
@@ -75,6 +122,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <input
             type="text"
             placeholder="Search..."
+            aria-label="Search"
             className="bg-transparent border-none outline-none text-sm w-48"
           />
         </div>
@@ -114,13 +162,19 @@ export function Header({ onMenuClick }: HeaderProps) {
           aria-label="Notifications"
         >
           <BellIcon className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" aria-hidden="true" />
+          <span className="sr-only">You have unread notifications</span>
         </button>
 
         {/* User Menu */}
         <div className="relative" ref={userMenuRef}>
           <button
+            ref={menuButtonRef}
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            aria-label="User menu"
+            aria-expanded={isUserMenuOpen}
+            aria-haspopup="menu"
+            aria-controls={isUserMenuOpen ? 'user-menu-dropdown' : undefined}
             className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
@@ -142,6 +196,9 @@ export function Header({ onMenuClick }: HeaderProps) {
           {/* Dropdown Menu */}
           {isUserMenuOpen && (
             <div
+              id="user-menu-dropdown"
+              role="menu"
+              aria-label="User menu"
               className={cn(
                 'absolute top-full mt-1 w-56 bg-card border rounded-md shadow-lg py-1 z-50',
                 isRtl ? 'left-0' : 'right-0'
@@ -154,6 +211,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
               <div className="py-1">
                 <button
+                  ref={(el) => { menuItemsRef.current[0] = el; }}
+                  role="menuitem"
                   onClick={() => {
                     setIsUserMenuOpen(false);
                     router.push(`/${currentLocale}/settings/profile`);
@@ -164,6 +223,8 @@ export function Header({ onMenuClick }: HeaderProps) {
                   Profile
                 </button>
                 <button
+                  ref={(el) => { menuItemsRef.current[1] = el; }}
+                  role="menuitem"
                   onClick={() => {
                     setIsUserMenuOpen(false);
                     router.push(`/${currentLocale}/settings`);
@@ -177,6 +238,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
               <div className="border-t py-1">
                 <button
+                  ref={(el) => { menuItemsRef.current[2] = el; }}
+                  role="menuitem"
                   onClick={handleSignOut}
                   className="w-full px-3 py-2 text-sm text-start hover:bg-muted transition-colors flex items-center gap-2 text-destructive"
                 >
