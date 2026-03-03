@@ -28,14 +28,28 @@ function getRoleRepository(req: Request): RoleRepository {
 }
 
 /**
+ * Application error for role-related operations
+ */
+class RoleError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number = 400
+  ) {
+    super(message);
+    this.name = 'RoleError';
+  }
+}
+
+/**
  * Error handler for role-specific errors
  */
 function handleRoleError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof Error) {
-    res.status(400).json({
+  if (error instanceof RoleError) {
+    res.status(error.statusCode).json({
       success: false,
       error: {
-        code: 'ROLE_ERROR',
+        code: error.code,
         message: error.message,
       },
     });
@@ -94,14 +108,7 @@ router.post(
       // Check if role name already exists
       const nameExists = await repository.nameExists(tenantId, req.body.name);
       if (nameExists) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'ROLE_NAME_EXISTS',
-            message: 'A role with this name already exists',
-          },
-        });
-        return;
+        throw new RoleError('A role with this name already exists', 'ROLE_NAME_EXISTS');
       }
 
       const roleData = {
@@ -135,14 +142,7 @@ router.get(
       const role = await repository.findById(tenantId, req.params.id);
 
       if (!role) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ROLE_NOT_FOUND',
-            message: 'Role not found',
-          },
-        });
-        return;
+        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
       }
 
       res.json({
@@ -170,40 +170,19 @@ router.put(
       // Check if role exists
       const existing = await repository.findById(tenantId, req.params.id);
       if (!existing) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ROLE_NOT_FOUND',
-            message: 'Role not found',
-          },
-        });
-        return;
+        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
       }
 
       // Prevent modifying system roles
       if (existing.is_system) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'SYSTEM_ROLE',
-            message: 'Cannot modify system roles',
-          },
-        });
-        return;
+        throw new RoleError('Cannot modify system roles', 'SYSTEM_ROLE');
       }
 
       // Check if new name conflicts with existing role
       if (req.body.name && req.body.name !== existing.name) {
         const nameExists = await repository.nameExists(tenantId, req.body.name, req.params.id);
         if (nameExists) {
-          res.status(400).json({
-            success: false,
-            error: {
-              code: 'ROLE_NAME_EXISTS',
-              message: 'A role with this name already exists',
-            },
-          });
-          return;
+          throw new RoleError('A role with this name already exists', 'ROLE_NAME_EXISTS');
         }
       }
 
@@ -214,14 +193,7 @@ router.put(
       const role = await repository.update(tenantId, req.params.id, updates);
 
       if (!role) {
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'UPDATE_FAILED',
-            message: 'Failed to update role',
-          },
-        });
-        return;
+        throw new RoleError('Failed to update role', 'UPDATE_FAILED', 500);
       }
 
       res.json({
@@ -249,27 +221,13 @@ router.delete(
       const { canDelete, reason } = await repository.canDelete(tenantId, req.params.id);
 
       if (!canDelete) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'CANNOT_DELETE',
-            message: reason || 'Cannot delete role',
-          },
-        });
-        return;
+        throw new RoleError(reason || 'Cannot delete role', 'CANNOT_DELETE');
       }
 
       const deleted = await repository.delete(tenantId, req.params.id);
 
       if (!deleted) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ROLE_NOT_FOUND',
-            message: 'Role not found',
-          },
-        });
-        return;
+        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
       }
 
       res.json({
@@ -307,14 +265,7 @@ router.put(
       );
 
       if (!role) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ROLE_NOT_FOUND',
-            message: 'Role not found',
-          },
-        });
-        return;
+        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
       }
 
       res.json({
