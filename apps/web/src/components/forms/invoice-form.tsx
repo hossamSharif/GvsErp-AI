@@ -483,6 +483,20 @@ export function InvoiceForm({
       </div>
 
       {/* Items Table */}
+      {/* Validation guidance — visible before items are added */}
+      {!isValid && !readOnly && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {!draft?.warehouseId && (draft?.items?.length || 0) === 0
+              ? 'Select a warehouse and add at least one item to create this invoice.'
+              : !draft?.warehouseId
+                ? 'Please select a warehouse to continue.'
+                : 'Add at least one item to continue.'}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Items</CardTitle>
@@ -637,15 +651,6 @@ export function InvoiceForm({
         </div>
       )}
 
-      {/* Validation Warning */}
-      {!isValid && !readOnly && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Please select a warehouse and add at least one item to continue.
-          </AlertDescription>
-        </Alert>
-      )}
     </div>
   );
 }
