@@ -21,6 +21,20 @@ const router: Router = Router();
 router.use(requireAuth);
 
 /**
+ * Application error for exchange rate-related operations
+ */
+class ExchangeRateError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number = 400
+  ) {
+    super(message);
+    this.name = 'ExchangeRateError';
+  }
+}
+
+/**
  * Helper to create ExchangeRateRepository with tenant context
  */
 function getExchangeRateRepository(req: Request): ExchangeRateRepository {
@@ -32,11 +46,11 @@ function getExchangeRateRepository(req: Request): ExchangeRateRepository {
  * Error handler for exchange rate-specific errors
  */
 function handleExchangeRateError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof Error) {
-    res.status(400).json({
+  if (error instanceof ExchangeRateError) {
+    res.status(error.statusCode).json({
       success: false,
       error: {
-        code: 'EXCHANGE_RATE_ERROR',
+        code: error.code,
         message: error.message,
       },
     });

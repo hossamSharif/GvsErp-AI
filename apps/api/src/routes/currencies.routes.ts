@@ -20,6 +20,20 @@ const router: Router = Router();
 router.use(requireAuth);
 
 /**
+ * Application error for currency-related operations
+ */
+class CurrencyError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number = 400
+  ) {
+    super(message);
+    this.name = 'CurrencyError';
+  }
+}
+
+/**
  * Helper to create CurrencyRepository with tenant context
  */
 function getCurrencyRepository(req: Request): CurrencyRepository {
@@ -31,11 +45,11 @@ function getCurrencyRepository(req: Request): CurrencyRepository {
  * Error handler for currency-specific errors
  */
 function handleCurrencyError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof Error) {
-    res.status(400).json({
+  if (error instanceof CurrencyError) {
+    res.status(error.statusCode).json({
       success: false,
       error: {
-        code: 'CURRENCY_ERROR',
+        code: error.code,
         message: error.message,
       },
     });
