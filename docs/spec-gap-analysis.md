@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0 API + 0 Web TS errors)
+Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 7, Iteration 4; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 106 passing (5 test suites: error middleware, invoice, POS, report, payment services)
+- **Tests**: 140 passing (6 test suites: error middleware, invoice, POS, report, payment, audit services)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -183,6 +183,10 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 5, Iteration 4; 0
 - **[C5]** Fixed roles route overly broad error handler leaking internal errors (security)
 - **[C5]** Added ARIA labels: language selector, party search input, sort icons aria-hidden
 - **[C5]** Added 20 unit tests for PaymentService — total 106 tests across 5 suites
+- **[C6]** Created missing /payments/new page to fix dead Record Payment link (BA)
+- **[C6]** Fixed overly broad error handlers in currencies and exchange-rates routes (security — same issue as roles fix)
+- **[C6]** Added ARIA labels to image upload (file input, reorder/remove buttons) and return invoice dialog (quantity inputs, icons)
+- **[C6]** Added 34 unit tests for AuditService (sanitizeValues, calculateDiff, extractContext, mapAuditLog) — total 140 tests across 6 suites
 
 ## Recommendations (Priority Order)
 
