@@ -335,8 +335,17 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                           </div>
                         ) : (
                           <span
-                            className="cursor-pointer hover:underline"
+                            className="cursor-pointer hover:underline rounded px-1 focus:outline-none focus:ring-2 focus:ring-ring"
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Edit threshold for ${item.itemName}: ${item.lowStockThreshold ? formatNumber(item.lowStockThreshold) : t('notSet')}`}
                             onClick={() => startEditing(item)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                startEditing(item);
+                              }
+                            }}
                           >
                             {item.lowStockThreshold
                               ? formatNumber(item.lowStockThreshold)

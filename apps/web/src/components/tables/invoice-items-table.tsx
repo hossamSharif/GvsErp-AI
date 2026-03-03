@@ -160,7 +160,12 @@ function EditableCell({
         className
       )}
       onClick={() => setIsEditing(true)}
-      onKeyDown={(e) => e.key === 'Enter' && setIsEditing(true)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setIsEditing(true);
+        }
+      }}
       tabIndex={0}
       role="button"
       aria-label={ariaLabel ? `${ariaLabel}: ${value}` : undefined}
