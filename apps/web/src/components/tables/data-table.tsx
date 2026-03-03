@@ -254,9 +254,9 @@ export function DataTable<TData, TValue>({
   // Get sort icon for column
   const getSortIcon = (column: { getIsSorted: () => false | 'asc' | 'desc' }) => {
     const sorted = column.getIsSorted();
-    if (sorted === 'asc') return <ArrowUp className="ml-2 h-4 w-4" />;
-    if (sorted === 'desc') return <ArrowDown className="ml-2 h-4 w-4" />;
-    return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+    if (sorted === 'asc') return <ArrowUp className="ml-2 h-4 w-4" aria-hidden="true" />;
+    if (sorted === 'desc') return <ArrowDown className="ml-2 h-4 w-4" aria-hidden="true" />;
+    return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" aria-hidden="true" />;
   };
 
   return (

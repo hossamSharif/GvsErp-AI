@@ -135,6 +135,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           value={locale}
           onChange={(e) => handleLanguageChange(e.target.value as Locale)}
           className="px-2 py-1.5 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Change language"
         >
           {locales.map((loc) => (
             <option key={loc} value={loc}>
