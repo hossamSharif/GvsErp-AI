@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { RoleRepository } from '../repositories/role.repository';
+import { RoleService, RoleError } from '../services/role.service';
 import {
   createRoleSchema,
   updateRoleSchema,
@@ -20,25 +20,11 @@ const router: Router = Router();
 router.use(requireAuth);
 
 /**
- * Helper to create RoleRepository with tenant context
+ * Helper to create RoleService with tenant context
  */
-function getRoleRepository(req: Request): RoleRepository {
-  const { supabase } = getTenantContext(req);
-  return new RoleRepository(supabase);
-}
-
-/**
- * Application error for role-related operations
- */
-class RoleError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly statusCode: number = 400
-  ) {
-    super(message);
-    this.name = 'RoleError';
-  }
+function getRoleService(req: Request): RoleService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new RoleService(supabase, tenantId);
 }
 
 /**
@@ -70,17 +56,12 @@ router.get(
   '/',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-
-      const params = {
-        tenantId,
-        page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
-        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 50,
+      const service = getRoleService(req);
+      const result = await service.getRoles({
+        page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
         is_system: req.query.is_system === 'true' ? true : req.query.is_system === 'false' ? false : undefined,
-      };
-
-      const result = await repository.findAllRoles(params);
+      });
 
       res.json({
         success: true,
@@ -102,22 +83,11 @@ router.post(
   validateRequest({ body: createRoleSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-
-      // Check if role name already exists
-      const nameExists = await repository.nameExists(tenantId, req.body.name);
-      if (nameExists) {
-        throw new RoleError('A role with this name already exists', 'ROLE_NAME_EXISTS');
-      }
-
-      const roleData = {
+      const service = getRoleService(req);
+      const role = await service.createRole({
         name: req.body.name,
         permissions: req.body.permissions,
-        is_system: false,
-      };
-
-      const role = await repository.create(tenantId, roleData);
+      });
 
       res.status(201).json({
         success: true,
@@ -137,13 +107,8 @@ router.get(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-      const role = await repository.findById(tenantId, req.params.id);
-
-      if (!role) {
-        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
-      }
+      const service = getRoleService(req);
+      const role = await service.getRole(req.params.id);
 
       res.json({
         success: true,
@@ -164,37 +129,11 @@ router.put(
   validateRequest({ body: updateRoleSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-
-      // Check if role exists
-      const existing = await repository.findById(tenantId, req.params.id);
-      if (!existing) {
-        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
-      }
-
-      // Prevent modifying system roles
-      if (existing.is_system) {
-        throw new RoleError('Cannot modify system roles', 'SYSTEM_ROLE');
-      }
-
-      // Check if new name conflicts with existing role
-      if (req.body.name && req.body.name !== existing.name) {
-        const nameExists = await repository.nameExists(tenantId, req.body.name, req.params.id);
-        if (nameExists) {
-          throw new RoleError('A role with this name already exists', 'ROLE_NAME_EXISTS');
-        }
-      }
-
-      const updates: any = {};
-      if (req.body.name !== undefined) updates.name = req.body.name;
-      if (req.body.permissions !== undefined) updates.permissions = req.body.permissions;
-
-      const role = await repository.update(tenantId, req.params.id, updates);
-
-      if (!role) {
-        throw new RoleError('Failed to update role', 'UPDATE_FAILED', 500);
-      }
+      const service = getRoleService(req);
+      const role = await service.updateRole(req.params.id, {
+        name: req.body.name,
+        permissions: req.body.permissions,
+      });
 
       res.json({
         success: true,
@@ -214,21 +153,8 @@ router.delete(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-
-      // Check if role can be deleted
-      const { canDelete, reason } = await repository.canDelete(tenantId, req.params.id);
-
-      if (!canDelete) {
-        throw new RoleError(reason || 'Cannot delete role', 'CANNOT_DELETE');
-      }
-
-      const deleted = await repository.delete(tenantId, req.params.id);
-
-      if (!deleted) {
-        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
-      }
+      const service = getRoleService(req);
+      await service.deleteRole(req.params.id);
 
       res.json({
         success: true,
@@ -255,18 +181,8 @@ router.put(
   }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-
-      const role = await repository.updatePermissions(
-        tenantId,
-        req.params.id,
-        req.body.permissions
-      );
-
-      if (!role) {
-        throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
-      }
+      const service = getRoleService(req);
+      const role = await service.updatePermissions(req.params.id, req.body.permissions);
 
       res.json({
         success: true,
@@ -290,9 +206,8 @@ router.get(
   '/system/list',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-      const roles = await repository.getSystemRoles(tenantId);
+      const service = getRoleService(req);
+      const roles = await service.getSystemRoles();
 
       res.json({
         success: true,
@@ -312,9 +227,8 @@ router.get(
   '/custom/list',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getRoleRepository(req);
-      const roles = await repository.getCustomRoles(tenantId);
+      const service = getRoleService(req);
+      const roles = await service.getCustomRoles();
 
       res.json({
         success: true,
