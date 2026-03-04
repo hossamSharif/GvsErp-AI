@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 14, Iteration 16; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 15, Iteration 22; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 14, Iteration 16;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 283 passing (15 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user services + base repository)
+- **Tests**: 298 passing (16 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user, accounting services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -224,6 +224,12 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 14, Iteration 16;
 - **[C14]** Fixed employee form submit button showing double icon during loading state (UX)
 - **[C14]** Added 19 unit tests for UserService (UserError, error codes, mapUser, constructor) — total 283 tests across 15 suites
 - **[C14]** Updated gap analysis: 283 tests, cycle 14 progress documented
+- **[C15]** Added critical low-stock alert banner on warehouse detail page — surfaces items below 25% threshold without tab switching (UX)
+- **[C15]** Added requirePermission guards to all user management write endpoints: create, update, delete, activate, deactivate, change-password, role update (security — previously any authenticated user could modify any account)
+- **[C15]** Replaced 'any' cast with typed JournalLineWithEntry interface in accounting general ledger (type safety)
+- **[C15]** Fixed label-input association and added accessible loading state on trial balance page (accessibility)
+- **[C15]** Added 15 unit tests for AccountingService (AccountingError, error codes, constructor) — total 298 tests across 16 suites
+- **[C15]** Updated gap analysis: 298 tests, cycle 15 progress documented
 
 ## Recommendations (Priority Order)
 
