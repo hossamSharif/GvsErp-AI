@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 11, Iteration 22; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 12, Iteration 28; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 11, Iteration 22;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 217 passing (11 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency services + base repository)
+- **Tests**: 226 passing (12 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -205,6 +205,11 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 11, Iteration 22;
 - **[C11]** Extracted CurrencyService from currencies routes to enforce service layer pattern (architecture)
 - **[C11]** Added aria-labels to journal entry form line inputs and delete button (accessibility)
 - **[C11]** Added 13 unit tests for CurrencyService (CurrencyError, error codes, constructor) — total 217 tests across 11 suites
+- **[C12]** Replaced broken estimatedReorderValue (always 0) with totalSuggestedReorderQty in low-stock report (code review)
+- **[C12]** Extracted ExchangeRateService from exchange-rates routes — completes service layer pattern for all routes (architecture)
+- **[C12]** Added focus-visible ring to dashboard quick action buttons for keyboard navigation (accessibility)
+- **[C12]** Added 9 unit tests for ExchangeRateService (ExchangeRateError, error codes, constructor) — total 226 tests across 12 suites
+- **[C12]** Removed misleading hardcoded 'Stock: 100' from POS item search results (UX)
 
 ## Recommendations (Priority Order)
 
