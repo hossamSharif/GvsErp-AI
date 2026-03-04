@@ -36,8 +36,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { useCategories } from '@/hooks/use-categories';
 import type { ItemWithCategory, ItemQueryParams } from '@erp/shared';
 import {
   Plus,
@@ -70,8 +78,9 @@ export default function ItemsPage() {
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
   const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
 
-  // Fetch items
+  // Fetch items and categories
   const { data, isLoading, error } = useItems(queryParams);
+  const { data: categoriesData } = useCategories();
 
   // Delete mutation
   const deleteMutation = useDeleteItem({
@@ -296,6 +305,35 @@ export default function ItemsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Category Filter */}
+      {categoriesData?.data && categoriesData.data.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select
+            value={queryParams.categoryId || 'all'}
+            onValueChange={(value) =>
+              setQueryParams((prev) => ({
+                ...prev,
+                categoryId: value === 'all' ? undefined : value,
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categoriesData.data.map((cat: { id: string; name: string }) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Data Table */}
       <DataTable
