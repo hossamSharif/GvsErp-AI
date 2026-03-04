@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 9, Iteration 10; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 10, Iteration 16; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 9, Iteration 10; 
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 193 passing (9 test suites: error middleware, invoice, POS, report, payment, audit, item, category services + base repository)
+- **Tests**: 204 passing (10 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -196,6 +196,11 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 9, Iteration 10; 
 - **[C9]** Extracted CategoryService from categories routes to enforce service layer pattern (architecture)
 - **[C9]** Added keyboard accessibility (role, tabIndex, aria-sort, onKeyDown) to virtualized data table sort headers (accessibility)
 - **[C9]** Added 26 tests: CategoryService errors/guards (16) + BaseRepository.escapeILike (10) — total 193 tests across 9 suites
+- **[C10]** Replaced ambiguous balance display with Owes/Credit labels in payment form party selector (UX)
+- **[C10]** Fixed missed ILIKE wildcard escaping in employee and party search repositories (security)
+- **[C10]** Extracted RoleService from roles routes to enforce service layer pattern (architecture)
+- **[C10]** Replaced non-interactive div with semantic button for POS item search results (accessibility)
+- **[C10]** Added 11 tests for RoleService (RoleError, error codes, constructor) — total 204 tests across 10 suites
 
 ## Recommendations (Priority Order)
 
