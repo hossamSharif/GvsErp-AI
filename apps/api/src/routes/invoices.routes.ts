@@ -14,7 +14,7 @@ import {
   returnInvoiceSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -94,6 +94,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('invoices:write'),
   validateRequest({ body: createInvoiceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -137,6 +138,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('invoices:write'),
   validateRequest({ body: updateInvoiceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -159,6 +161,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('invoices:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getInvoiceService(req);
@@ -185,6 +188,7 @@ router.delete(
  */
 router.post(
   '/:id/finalize',
+  requirePermission('invoices:finalize'),
   validateRequest({ body: finalizeInvoiceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -215,6 +219,7 @@ router.post(
  */
 router.post(
   '/:id/return',
+  requirePermission('invoices:write'),
   validateRequest({ body: returnInvoiceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
