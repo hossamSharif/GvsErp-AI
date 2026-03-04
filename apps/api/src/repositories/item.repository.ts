@@ -82,7 +82,8 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
 
     // Apply search using full-text search or ILIKE
     if (search) {
-      const searchPattern = `%${search}%`;
+      const s = BaseRepository.escapeILike(search);
+      const searchPattern = `%${s}%`;
       query = query.or(
         `name.ilike.${searchPattern},name_alias.ilike.${searchPattern},sku.ilike.${searchPattern},barcode.ilike.${searchPattern},brand.ilike.${searchPattern}`
       );

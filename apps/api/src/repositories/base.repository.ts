@@ -54,6 +54,15 @@ export abstract class BaseRepository<
   }
 
   /**
+   * Escape special characters for PostgreSQL ILIKE patterns.
+   * Prevents user input containing %, _, or \ from being interpreted
+   * as wildcard operators in ILIKE queries.
+   */
+  protected static escapeILike(input: string): string {
+    return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+  }
+
+  /**
    * Find all records with pagination
    */
   async findAll(options: QueryOptions): Promise<QueryResult<TRow>> {

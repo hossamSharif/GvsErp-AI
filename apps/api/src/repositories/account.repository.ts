@@ -75,7 +75,8 @@ export class AccountRepository extends BaseRepository<
     }
 
     if (search) {
-      query = query.or(`code.ilike.%${search}%,name.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`code.ilike.%${s}%,name.ilike.%${s}%`);
     }
 
     // Apply sorting and pagination

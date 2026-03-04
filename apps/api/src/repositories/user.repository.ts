@@ -66,7 +66,8 @@ export class UserRepository extends BaseRepository<'users'> {
 
     // Search by name or email
     if (search) {
-      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%`);
     }
 
     const { data, count, error } = await query;

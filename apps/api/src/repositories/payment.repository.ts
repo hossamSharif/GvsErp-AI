@@ -93,7 +93,8 @@ export class PaymentRepository extends BaseRepository<'payments', PaymentRow, Pa
     }
 
     if (search) {
-      query = query.or(`reference.ilike.%${search}%,notes.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`reference.ilike.%${s}%,notes.ilike.%${s}%`);
     }
 
     if (dateFrom) {

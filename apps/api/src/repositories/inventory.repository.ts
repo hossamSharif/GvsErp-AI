@@ -161,7 +161,8 @@ export class InventoryRepository extends BaseRepository<
 
     // Apply search filter
     if (search) {
-      query = query.or(`items.name.ilike.%${search}%,items.sku.ilike.%${search}%,items.barcode.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`items.name.ilike.%${s}%,items.sku.ilike.%${s}%,items.barcode.ilike.%${s}%`);
     }
 
     // Apply low stock filter

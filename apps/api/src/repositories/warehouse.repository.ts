@@ -75,7 +75,8 @@ export class WarehouseRepository extends BaseRepository<
 
     // Apply search filter
     if (search) {
-      query = query.or(`name.ilike.%${search}%,address.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`name.ilike.%${s}%,address.ilike.%${s}%`);
     }
 
     // Apply active filter

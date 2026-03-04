@@ -70,7 +70,8 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
     }
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+      const s = BaseRepository.escapeILike(search);
+      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%`);
     }
 
     if (isActive !== undefined) {
