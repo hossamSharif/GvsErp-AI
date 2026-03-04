@@ -75,10 +75,18 @@ export async function authMiddleware(
     // Extract custom claims from user metadata
     const claims = user.user_metadata as Partial<JWTClaims>;
 
+    if (!claims.tenant_id) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'User is not associated with a tenant',
+      });
+      return;
+    }
+
     req.user = {
       id: user.id,
       email: user.email!,
-      tenant_id: claims.tenant_id || '',
+      tenant_id: claims.tenant_id,
       role: claims.role || '',
       permissions: (claims.permissions || []) as Permission[],
     };
