@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 10; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 14, Iteration 16; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 10;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 264 passing (14 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse services + base repository)
+- **Tests**: 283 passing (15 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -219,6 +219,11 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 10;
 - **[C13]** Replaced 15 'any' casts in ReportService with typed ReportInventoryEntry and ReportGroup (architecture/type safety)
 - **[C13]** Added aria-labels to POS terminal cart buttons (decrease, increase, remove) with item name context (accessibility)
 - **[C13]** Added 14 unit tests for WarehouseService (error codes, constructor, bulk result) — total 264 tests across 14 suites
+- **[C14]** Added null check for session in auth login route before accessing tokens (security)
+- **[C14]** Eliminated all remaining 'any' types from ReportService — zero any in entire file (type safety)
+- **[C14]** Fixed employee form submit button showing double icon during loading state (UX)
+- **[C14]** Added 19 unit tests for UserService (UserError, error codes, mapUser, constructor) — total 283 tests across 15 suites
+- **[C14]** Updated gap analysis: 283 tests, cycle 14 progress documented
 
 ## Recommendations (Priority Order)
 
