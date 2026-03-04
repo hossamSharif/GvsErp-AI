@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { ExchangeRateRepository } from '../repositories/currency.repository';
+import { ExchangeRateService, ExchangeRateError } from '../services/exchange-rate.service';
 import {
   createExchangeRateSchema,
   updateExchangeRateSchema,
@@ -21,25 +21,11 @@ const router: Router = Router();
 router.use(requireAuth);
 
 /**
- * Application error for exchange rate-related operations
+ * Helper to create ExchangeRateService with tenant context
  */
-class ExchangeRateError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly statusCode: number = 400
-  ) {
-    super(message);
-    this.name = 'ExchangeRateError';
-  }
-}
-
-/**
- * Helper to create ExchangeRateRepository with tenant context
- */
-function getExchangeRateRepository(req: Request): ExchangeRateRepository {
-  const { supabase } = getTenantContext(req);
-  return new ExchangeRateRepository(supabase);
+function getExchangeRateService(req: Request): ExchangeRateService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new ExchangeRateService(supabase, tenantId);
 }
 
 /**
@@ -71,18 +57,13 @@ router.get(
   '/',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      const params = {
-        tenantId,
+      const service = getExchangeRateService(req);
+      const result = await service.getRates({
         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 50,
         sort_by: req.query.sortBy as string || 'effective_date',
         sort_order: (req.query.sortDir as 'asc' | 'desc') || 'desc',
-      };
-
-      const result = await repository.findAll(params);
+      });
 
       res.json({
         success: true,
@@ -104,43 +85,8 @@ router.post(
   validateRequest({ body: createExchangeRateSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      const fromCurrency = req.body.from_currency.toUpperCase();
-      const toCurrency = (req.body.to_currency || 'USD').toUpperCase();
-      const rateType = req.body.rate_type || 'formal';
-      const effectiveDate = req.body.effective_date;
-
-      // Check if rate already exists for the same date
-      const rateExists = await repository.rateExists(
-        tenantId,
-        fromCurrency,
-        toCurrency,
-        rateType,
-        effectiveDate
-      );
-
-      if (rateExists) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'RATE_EXISTS',
-            message: 'An exchange rate for this currency pair, type, and date already exists',
-          },
-        });
-        return;
-      }
-
-      const rateData = {
-        from_currency: fromCurrency,
-        to_currency: toCurrency,
-        rate_type: rateType,
-        rate: req.body.rate,
-        effective_date: effectiveDate,
-      };
-
-      const rate = await repository.create(tenantId, rateData);
+      const service = getExchangeRateService(req);
+      const rate = await service.createRate(req.body);
 
       res.status(201).json({
         success: true,
@@ -160,20 +106,8 @@ router.get(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-      const rate = await repository.findById(tenantId, req.params.id);
-
-      if (!rate) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'RATE_NOT_FOUND',
-            message: 'Exchange rate not found',
-          },
-        });
-        return;
-      }
+      const service = getExchangeRateService(req);
+      const rate = await service.getRate(req.params.id);
 
       res.json({
         success: true,
@@ -194,74 +128,8 @@ router.put(
   validateRequest({ body: updateExchangeRateSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      // Check if rate exists
-      const existing = await repository.findById(tenantId, req.params.id);
-      if (!existing) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'RATE_NOT_FOUND',
-            message: 'Exchange rate not found',
-          },
-        });
-        return;
-      }
-
-      // If updating key fields, check for duplicates
-      const fromCurrency = req.body.from_currency?.toUpperCase() || existing.from_currency;
-      const toCurrency = req.body.to_currency?.toUpperCase() || existing.to_currency;
-      const rateType = req.body.rate_type || existing.rate_type;
-      const effectiveDate = req.body.effective_date || existing.effective_date;
-
-      if (
-        req.body.from_currency ||
-        req.body.to_currency ||
-        req.body.rate_type ||
-        req.body.effective_date
-      ) {
-        const rateExists = await repository.rateExists(
-          tenantId,
-          fromCurrency,
-          toCurrency,
-          rateType,
-          effectiveDate,
-          req.params.id
-        );
-
-        if (rateExists) {
-          res.status(400).json({
-            success: false,
-            error: {
-              code: 'RATE_EXISTS',
-              message: 'An exchange rate for this currency pair, type, and date already exists',
-            },
-          });
-          return;
-        }
-      }
-
-      const updates: any = {};
-      if (req.body.from_currency !== undefined) updates.from_currency = fromCurrency;
-      if (req.body.to_currency !== undefined) updates.to_currency = toCurrency;
-      if (req.body.rate_type !== undefined) updates.rate_type = rateType;
-      if (req.body.rate !== undefined) updates.rate = req.body.rate;
-      if (req.body.effective_date !== undefined) updates.effective_date = effectiveDate;
-
-      const rate = await repository.update(tenantId, req.params.id, updates);
-
-      if (!rate) {
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'UPDATE_FAILED',
-            message: 'Failed to update exchange rate',
-          },
-        });
-        return;
-      }
+      const service = getExchangeRateService(req);
+      const rate = await service.updateRate(req.params.id, req.body);
 
       res.json({
         success: true,
@@ -281,21 +149,8 @@ router.delete(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      const deleted = await repository.delete(tenantId, req.params.id);
-
-      if (!deleted) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'RATE_NOT_FOUND',
-            message: 'Exchange rate not found',
-          },
-        });
-        return;
-      }
+      const service = getExchangeRateService(req);
+      await service.deleteRate(req.params.id);
 
       res.json({
         success: true,
@@ -327,32 +182,13 @@ router.get(
   }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      const fromCurrency = (req.query.from as string).toUpperCase();
-      const toCurrency = ((req.query.to as string) || 'USD').toUpperCase();
-      const rateType = (req.query.type as 'formal' | 'black_market') || 'formal';
-      const asOfDate = req.query.asOfDate as string | undefined;
-
-      const rate = await repository.getLatestRate(
-        tenantId,
-        fromCurrency,
-        toCurrency,
-        rateType,
-        asOfDate
-      );
-
-      if (!rate) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'RATE_NOT_FOUND',
-            message: 'No exchange rate found for the specified criteria',
-          },
-        });
-        return;
-      }
+      const service = getExchangeRateService(req);
+      const rate = await service.getLatestRate({
+        from: req.query.from as string,
+        to: req.query.to as string,
+        type: req.query.type as 'formal' | 'black_market',
+        asOfDate: req.query.asOfDate as string | undefined,
+      });
 
       res.json({
         success: true,
@@ -381,23 +217,14 @@ router.get(
   }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tenantId } = getTenantContext(req);
-      const repository = getExchangeRateRepository(req);
-
-      const fromCurrency = (req.query.from as string).toUpperCase();
-      const toCurrency = ((req.query.to as string) || 'USD').toUpperCase();
-      const rateType = (req.query.type as 'formal' | 'black_market') || 'formal';
-      const startDate = req.query.startDate as string;
-      const endDate = req.query.endDate as string;
-
-      const rates = await repository.getRatesInRange(
-        tenantId,
-        fromCurrency,
-        toCurrency,
-        rateType,
-        startDate,
-        endDate
-      );
+      const service = getExchangeRateService(req);
+      const rates = await service.getRatesInRange({
+        from: req.query.from as string,
+        to: req.query.to as string,
+        type: req.query.type as 'formal' | 'black_market',
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+      });
 
       res.json({
         success: true,
