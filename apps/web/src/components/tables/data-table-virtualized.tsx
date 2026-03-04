@@ -292,6 +292,21 @@ export function VirtualizedDataTable<TData, TValue>({
                                 'cursor-pointer select-none hover:text-foreground'
                             )}
                             onClick={header.column.getToggleSortingHandler()}
+                            {...(header.column.getCanSort() ? {
+                              role: 'button',
+                              tabIndex: 0,
+                              'aria-sort': header.column.getIsSorted() === 'asc'
+                                ? 'ascending'
+                                : header.column.getIsSorted() === 'desc'
+                                  ? 'descending'
+                                  : 'none',
+                              onKeyDown: (e: React.KeyboardEvent) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  header.column.getToggleSortingHandler()?.(e);
+                                }
+                              },
+                            } : {})}
                           >
                             {flexRender(
                               header.column.columnDef.header,
