@@ -17,7 +17,7 @@ import {
   lowStockAlertQuerySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -121,6 +121,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('warehouses:write'),
   validateRequest({ body: createWarehouseSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -164,6 +165,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('warehouses:write'),
   validateRequest({ body: updateWarehouseSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -186,6 +188,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('warehouses:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getWarehouseService(req);
@@ -243,6 +246,7 @@ router.get(
  */
 router.put(
   '/:id/inventory/thresholds',
+  requirePermission('warehouses:write'),
   validateRequest({ body: updateInventoryThresholdSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -271,6 +275,7 @@ router.put(
  */
 router.post(
   '/:id/inventory/thresholds/bulk',
+  requirePermission('warehouses:write'),
   validateRequest({ body: bulkUpdateInventoryThresholdSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
