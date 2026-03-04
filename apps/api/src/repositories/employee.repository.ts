@@ -73,8 +73,9 @@ export class EmployeeRepository extends BaseRepository<
       }
 
       if (filters.search) {
+        const s = BaseRepository.escapeILike(filters.search);
         query = query.or(
-          `full_name.ilike.%${filters.search}%,employee_number.ilike.%${filters.search}%`
+          `full_name.ilike.%${s}%,employee_number.ilike.%${s}%`
         );
       }
     } else if (!includeInactive) {

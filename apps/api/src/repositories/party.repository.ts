@@ -219,7 +219,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
       .select('*')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
-      .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
+      .or(`name.ilike.%${BaseRepository.escapeILike(query)}%,email.ilike.%${BaseRepository.escapeILike(query)}%,phone.ilike.%${BaseRepository.escapeILike(query)}%`)
       .order('name')
       .limit(limit);
 
