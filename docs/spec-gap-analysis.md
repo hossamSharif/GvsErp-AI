@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 12, Iteration 28; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 4; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 12, Iteration 28;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 226 passing (12 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate services + base repository)
+- **Tests**: 250 passing (13 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -210,6 +210,9 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 12, Iteration 28;
 - **[C12]** Added focus-visible ring to dashboard quick action buttons for keyboard navigation (accessibility)
 - **[C12]** Added 9 unit tests for ExchangeRateService (ExchangeRateError, error codes, constructor) — total 226 tests across 12 suites
 - **[C12]** Removed misleading hardcoded 'Stock: 100' from POS item search results (UX)
+- **[C13]** Extracted Supabase storage logic from ImageUpload into useImageUpload hook — restores separation of concerns (architecture)
+- **[C13]** Fixed responsive overflow: party-select popover max-w-[calc(100vw-2rem)], journal entry table overflow-x-auto (accessibility/UX)
+- **[C13]** Added 24 unit tests for PartyService (error codes, mapRow, mapSortField, constructor) — total 250 tests across 13 suites
 
 ## Recommendations (Priority Order)
 
