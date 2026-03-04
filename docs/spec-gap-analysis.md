@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 10, Iteration 16; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 11, Iteration 22; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 10, Iteration 16;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 204 passing (10 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role services + base repository)
+- **Tests**: 217 passing (11 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -201,6 +201,10 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 10, Iteration 16;
 - **[C10]** Extracted RoleService from roles routes to enforce service layer pattern (architecture)
 - **[C10]** Replaced non-interactive div with semantic button for POS item search results (accessibility)
 - **[C10]** Added 11 tests for RoleService (RoleError, error codes, constructor) — total 204 tests across 10 suites
+- **[C11]** Removed tautological conditional in updatePartyBalance (code review)
+- **[C11]** Extracted CurrencyService from currencies routes to enforce service layer pattern (architecture)
+- **[C11]** Added aria-labels to journal entry form line inputs and delete button (accessibility)
+- **[C11]** Added 13 unit tests for CurrencyService (CurrencyError, error codes, constructor) — total 217 tests across 11 suites
 
 ## Recommendations (Priority Order)
 
