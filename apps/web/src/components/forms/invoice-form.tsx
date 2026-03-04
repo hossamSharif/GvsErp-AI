@@ -546,6 +546,7 @@ export function InvoiceForm({
                     key={item.id}
                     className="w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b last:border-b-0"
                     onClick={() => handleSelectItem(item)}
+                    aria-label={`Select ${item.name}${item.sku ? ` (${item.sku})` : ''} - ${item.unitPrice.toLocaleString()}`}
                   >
                     <div>
                       <p className="font-medium">{item.name}</p>
