@@ -9,7 +9,7 @@
  * - Optional invoice linking
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,6 +45,16 @@ import type {
   CreatePaymentInput,
   Party,
 } from '@erp/shared';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Save, Loader2, DollarSign } from 'lucide-react';
 
 // =============================================================================
@@ -163,7 +173,11 @@ export function PaymentForm({
     }
   }, [selectedPartyId, payment, form]);
 
-  // Handle form submission
+  // Confirmation state
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingData, setPendingData] = useState<CreatePaymentInput | null>(null);
+
+  // Handle form submission — show confirmation first
   const handleSubmit = async (data: PaymentFormData) => {
     const submitData: CreatePaymentInput = {
       partyId: data.partyId,
@@ -178,8 +192,16 @@ export function PaymentForm({
       paymentDate: data.paymentDate,
     };
 
-    await onSubmit(submitData);
+    setPendingData(submitData);
+    setShowConfirm(true);
   };
+
+  const confirmPayment = useCallback(async () => {
+    if (!pendingData) return;
+    setShowConfirm(false);
+    await onSubmit(pendingData);
+    setPendingData(null);
+  }, [pendingData, onSubmit]);
 
   const paymentLabel = paymentType === 'received' ? 'Payment Received' : 'Payment Made';
   const partyTypeLabel = paymentType === 'received' ? 'Customer' : 'Supplier';
@@ -414,6 +436,30 @@ export function PaymentForm({
           </Button>
         </div>
       </form>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm payment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingData && (
+                <>
+                  You are about to record a {pendingData.type === 'received' ? 'received' : 'made'} payment
+                  of {pendingData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} {pendingData.currency}.
+                  This will update the party balance immediately.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPayment}>
+              Record Payment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Form>
   );
 }
