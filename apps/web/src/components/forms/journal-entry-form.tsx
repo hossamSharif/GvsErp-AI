@@ -201,7 +201,7 @@ export function JournalEntryForm({
                       value={line.account_id}
                       onValueChange={(value) => updateLine(index, 'account_id', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger aria-label={`Account for line ${index + 1}`}>
                         <SelectValue placeholder="Select account" />
                       </SelectTrigger>
                       <SelectContent>
@@ -220,6 +220,7 @@ export function JournalEntryForm({
                         updateLine(index, 'description', e.target.value)
                       }
                       placeholder="Line description"
+                      aria-label={`Description for line ${index + 1}`}
                     />
                   </TableCell>
                   <TableCell>
@@ -235,6 +236,7 @@ export function JournalEntryForm({
                       }}
                       className="text-right"
                       placeholder="0.00"
+                      aria-label={`Debit amount for line ${index + 1}`}
                     />
                   </TableCell>
                   <TableCell>
@@ -250,6 +252,7 @@ export function JournalEntryForm({
                       }}
                       className="text-right"
                       placeholder="0.00"
+                      aria-label={`Credit amount for line ${index + 1}`}
                     />
                   </TableCell>
                   <TableCell>
@@ -259,6 +262,7 @@ export function JournalEntryForm({
                       size="sm"
                       onClick={() => removeLine(index)}
                       disabled={lines.length <= 2}
+                      aria-label={`Remove line ${index + 1}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
