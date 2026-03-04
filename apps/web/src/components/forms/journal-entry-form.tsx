@@ -33,6 +33,7 @@ import {
   TableRow,
   TableFooter,
 } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import type { CreateJournalLineInput } from '@erp/shared';
 
@@ -65,6 +66,7 @@ export function JournalEntryForm({
       { account_id: '', debit: 0, credit: 0, description: '' },
     ]
   );
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const { data: accounts } = useAccounts({ tree: false });
 
@@ -116,7 +118,7 @@ export function JournalEntryForm({
     e.preventDefault();
 
     if (!isBalanced) {
-      alert('Journal entry must be balanced (debits must equal credits)');
+      setValidationError('Journal entry must be balanced — debits must equal credits.');
       return;
     }
 
@@ -127,9 +129,11 @@ export function JournalEntryForm({
     );
 
     if (validLines.length < 2) {
-      alert('Journal entry must have at least 2 lines');
+      setValidationError('Journal entry must have at least 2 valid lines with an account and amount.');
       return;
     }
+
+    setValidationError(null);
 
     await onSubmit({
       entry_date: entryDate,
@@ -182,6 +186,14 @@ export function JournalEntryForm({
             Add Line
           </Button>
         </CardHeader>
+        {validationError && (
+          <div className="px-6 pb-2">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
         <CardContent className="p-0">
           <Table>
             <TableHeader>
