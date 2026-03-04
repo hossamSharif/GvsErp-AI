@@ -369,9 +369,17 @@ export function EmployeeForm({
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Save className="mr-2 h-4 w-4" />
-            {mode === 'create' ? 'Create Employee' : 'Update Employee'}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                {mode === 'create' ? 'Create Employee' : 'Update Employee'}
+              </>
+            )}
           </Button>
         </div>
       </form>
