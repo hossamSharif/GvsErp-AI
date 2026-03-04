@@ -29,6 +29,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
@@ -117,6 +127,7 @@ export function InvoiceForm({
   // Item selection dialog state
   const [showItemSelect, setShowItemSelect] = useState(false);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   // Mutations
   const createInvoice = useCreateInvoice();
@@ -643,7 +654,7 @@ export function InvoiceForm({
             Save as Draft
           </Button>
           <Button
-            onClick={handleFinalize}
+            onClick={() => setShowFinalizeConfirm(true)}
             disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
           >
             <Send className="h-4 w-4 mr-2" />
@@ -651,6 +662,31 @@ export function InvoiceForm({
           </Button>
         </div>
       )}
+
+      {/* Finalize Confirmation Dialog */}
+      <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Finalize this invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Finalizing locks the invoice and updates stock quantities and party balances.
+              This action cannot be undone. If you need to make changes later, you will
+              need to create a return invoice.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowFinalizeConfirm(false);
+                handleFinalize();
+              }}
+            >
+              Finalize Invoice
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
