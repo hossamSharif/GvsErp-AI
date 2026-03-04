@@ -44,7 +44,7 @@ router.post(
       password,
     });
 
-    if (error) {
+    if (error || !data.session) {
       throw AppError.unauthorized('Invalid email or password');
     }
 
