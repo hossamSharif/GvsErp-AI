@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { CategoryRepository } from '../repositories/category.repository';
+import { CategoryService, CategoryError } from '../services/category.service';
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -21,28 +21,11 @@ const router: Router = Router();
 router.use(requireAuth);
 
 /**
- * Application error for category-related operations
+ * Helper to create CategoryService with tenant context
  */
-class CategoryError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly statusCode: number = 400
-  ) {
-    super(message);
-    this.name = 'CategoryError';
-  }
-}
-
-/**
- * Helper to create CategoryRepository with tenant context
- */
-function getCategoryRepository(req: Request): { repository: CategoryRepository; tenantId: string } {
+function getCategoryService(req: Request): CategoryService {
   const { supabase, tenantId } = getTenantContext(req);
-  return {
-    repository: new CategoryRepository(supabase),
-    tenantId,
-  };
+  return new CategoryService(supabase, tenantId);
 }
 
 /**
@@ -75,27 +58,13 @@ router.get(
   validateRequest({ query: categoryQuerySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
+      const service = getCategoryService(req);
       const { parentId, includeTree } = req.query as {
         parentId?: string | null;
         includeTree?: boolean;
       };
 
-      let data;
-
-      if (includeTree) {
-        // Return tree structure
-        data = await repository.findAsTree(tenantId);
-      } else if (parentId === null || parentId === 'null') {
-        // Return only root categories
-        data = await repository.findRoots(tenantId);
-      } else if (parentId) {
-        // Return children of specific parent
-        data = await repository.findChildren(tenantId, parentId);
-      } else {
-        // Return flat list
-        data = await repository.findAllFlat(tenantId);
-      }
+      const data = await service.getCategories({ parentId, includeTree });
 
       res.json({
         success: true,
@@ -116,41 +85,14 @@ router.post(
   validateRequest({ body: createCategorySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
+      const service = getCategoryService(req);
       const { name, parentId } = req.body;
 
-      // Validate parent exists if provided
-      if (parentId) {
-        const parentExists = await repository.exists(tenantId, parentId);
-        if (!parentExists) {
-          throw new CategoryError('Parent category not found', 'PARENT_NOT_FOUND', 404);
-        }
-
-        // Check depth limit
-        const parentDepth = await repository.getDepth(tenantId, parentId);
-        if (parentDepth >= 4) {
-          throw new CategoryError(
-            'Cannot create category: maximum depth of 5 levels would be exceeded',
-            'MAX_DEPTH_EXCEEDED',
-            400
-          );
-        }
-      }
-
-      const category = await repository.create(tenantId, {
-        name,
-        parent_id: parentId || null,
-      });
+      const category = await service.createCategory({ name, parentId });
 
       res.status(201).json({
         success: true,
-        data: {
-          id: category.id,
-          tenantId: category.tenant_id,
-          name: category.name,
-          parentId: category.parent_id,
-          createdAt: category.created_at,
-        },
+        data: category,
       });
     } catch (error) {
       handleCategoryError(error, res, next);
@@ -166,22 +108,12 @@ router.get(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
-      const category = await repository.findById(tenantId, req.params.id);
-
-      if (!category) {
-        throw new CategoryError('Category not found', 'CATEGORY_NOT_FOUND', 404);
-      }
+      const service = getCategoryService(req);
+      const category = await service.getCategory(req.params.id);
 
       res.json({
         success: true,
-        data: {
-          id: category.id,
-          tenantId: category.tenant_id,
-          name: category.name,
-          parentId: category.parent_id,
-          createdAt: category.created_at,
-        },
+        data: category,
       });
     } catch (error) {
       handleCategoryError(error, res, next);
@@ -197,12 +129,8 @@ router.get(
   '/:id/tree',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
-      const category = await repository.findByIdWithChildren(tenantId, req.params.id);
-
-      if (!category) {
-        throw new CategoryError('Category not found', 'CATEGORY_NOT_FOUND', 404);
-      }
+      const service = getCategoryService(req);
+      const category = await service.getCategoryTree(req.params.id);
 
       res.json({
         success: true,
@@ -222,15 +150,8 @@ router.get(
   '/:id/path',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
-
-      // Check category exists
-      const exists = await repository.exists(tenantId, req.params.id);
-      if (!exists) {
-        throw new CategoryError('Category not found', 'CATEGORY_NOT_FOUND', 404);
-      }
-
-      const path = await repository.findPath(tenantId, req.params.id);
+      const service = getCategoryService(req);
+      const path = await service.getCategoryPath(req.params.id);
 
       res.json({
         success: true,
@@ -251,42 +172,14 @@ router.put(
   validateRequest({ body: updateCategorySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
+      const service = getCategoryService(req);
       const { name, parentId } = req.body;
 
-      // Check category exists
-      const existing = await repository.findById(tenantId, req.params.id);
-      if (!existing) {
-        throw new CategoryError('Category not found', 'CATEGORY_NOT_FOUND', 404);
-      }
-
-      // Validate move if parent is changing
-      if (parentId !== undefined && parentId !== existing.parent_id) {
-        const validation = await repository.validateMove(tenantId, req.params.id, parentId);
-        if (!validation.valid) {
-          throw new CategoryError(validation.error || 'Invalid move', 'INVALID_MOVE', 400);
-        }
-      }
-
-      const updateData: Record<string, unknown> = {};
-      if (name !== undefined) updateData.name = name;
-      if (parentId !== undefined) updateData.parent_id = parentId;
-
-      const updated = await repository.update(tenantId, req.params.id, updateData);
-
-      if (!updated) {
-        throw new CategoryError('Failed to update category', 'UPDATE_FAILED', 500);
-      }
+      const category = await service.updateCategory(req.params.id, { name, parentId });
 
       res.json({
         success: true,
-        data: {
-          id: updated.id,
-          tenantId: updated.tenant_id,
-          name: updated.name,
-          parentId: updated.parent_id,
-          createdAt: updated.created_at,
-        },
+        data: category,
       });
     } catch (error) {
       handleCategoryError(error, res, next);
@@ -302,35 +195,8 @@ router.delete(
   '/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
-
-      // Check category exists
-      const existing = await repository.findById(tenantId, req.params.id);
-      if (!existing) {
-        throw new CategoryError('Category not found', 'CATEGORY_NOT_FOUND', 404);
-      }
-
-      // Check for children
-      const hasChildren = await repository.hasChildren(tenantId, req.params.id);
-      if (hasChildren) {
-        throw new CategoryError(
-          'Cannot delete category with subcategories. Delete or move subcategories first.',
-          'HAS_CHILDREN',
-          400
-        );
-      }
-
-      // Check for items
-      const hasItems = await repository.hasItems(tenantId, req.params.id);
-      if (hasItems) {
-        throw new CategoryError(
-          'Cannot delete category with items. Move items to another category first.',
-          'HAS_ITEMS',
-          400
-        );
-      }
-
-      await repository.delete(tenantId, req.params.id, false); // Hard delete
+      const service = getCategoryService(req);
+      await service.deleteCategory(req.params.id);
 
       res.json({
         success: true,
@@ -354,18 +220,10 @@ router.get(
   '/search',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { repository, tenantId } = getCategoryRepository(req);
+      const service = getCategoryService(req);
       const query = req.query.q as string;
 
-      if (!query || query.length < 1) {
-        res.json({
-          success: true,
-          data: [],
-        });
-        return;
-      }
-
-      const categories = await repository.search(tenantId, query);
+      const categories = await service.searchCategories(query);
 
       res.json({
         success: true,
