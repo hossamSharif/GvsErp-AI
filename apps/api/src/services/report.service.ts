@@ -95,7 +95,7 @@ export class ReportService {
   private warehouseService: WarehouseService;
 
   constructor(
-    private supabase: SupabaseClient<Database>,
+    supabase: SupabaseClient<Database>,
     private tenantId: string,
   ) {
     this.inventoryRepo = new InventoryRepository(supabase);
