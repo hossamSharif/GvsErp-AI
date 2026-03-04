@@ -775,7 +775,7 @@ export class InvoiceService {
   private async updatePartyBalance(
     partyId: string,
     amount: number,
-    invoiceType: InvoiceType
+    _invoiceType: InvoiceType
   ): Promise<FinalizeInvoiceResult['partyBalanceUpdate']> {
     const { data: party } = await this.supabase
       .from('parties')
