@@ -14,7 +14,7 @@ import {
   paymentReportParamsSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -87,11 +87,12 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('payments:write'),
   validateRequest({ body: createPaymentSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPaymentService(req);
-      const userId = (req as any).user?.id; // From auth middleware
+      const { userId } = getTenantContext(req);
       const payment = await service.createPayment(req.body, userId);
 
       res.status(201).json({
@@ -131,6 +132,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('payments:write'),
   validateRequest({ body: updatePaymentSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -153,6 +155,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('payments:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPaymentService(req);
