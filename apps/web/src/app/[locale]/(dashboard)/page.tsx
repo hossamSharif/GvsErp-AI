@@ -191,7 +191,7 @@ function QuickActionButton({ icon, label, href, description }: QuickActionButton
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 p-3 rounded-md border hover:bg-muted transition-colors text-start"
+      className="flex items-center gap-3 p-3 rounded-md border hover:bg-muted transition-colors text-start focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       <span className="p-2 bg-primary/10 text-primary rounded-md shrink-0">{icon}</span>
       <div className="min-w-0">
