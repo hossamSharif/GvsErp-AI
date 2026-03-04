@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -211,6 +212,17 @@ export default function WarehouseDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Critical Low-Stock Banner */}
+      {alerts.filter((a) => a.percentOfThreshold < 25).length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Critical Stock Alert</AlertTitle>
+          <AlertDescription>
+            {alerts.filter((a) => a.percentOfThreshold < 25).length} item(s) are critically low (below 25% of threshold). Review the Alerts tab to take action.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="inventory" className="space-y-4">
