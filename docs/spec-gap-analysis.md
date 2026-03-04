@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 15, Iteration 22; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 16, Iteration 28; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 15, Iteration 22;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 298 passing (16 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user, accounting services + base repository)
+- **Tests**: 309 passing (17 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user, accounting, employee services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -230,6 +230,13 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 15, Iteration 22;
 - **[C15]** Fixed label-input association and added accessible loading state on trial balance page (accessibility)
 - **[C15]** Added 15 unit tests for AccountingService (AccountingError, error codes, constructor) — total 298 tests across 16 suites
 - **[C15]** Updated gap analysis: 298 tests, cycle 15 progress documented
+- **[C16]** Added search by code/name to chart of accounts page — enables fast account lookup for large charts (UX)
+- **[C16]** Added requirePermission guards to all invoice write/delete/finalize endpoints (security)
+- **[C16]** Added requirePermission guards to payment routes and fixed unsafe 'as any' user extraction (security + type safety)
+- **[C16]** Replaced 'any' cast with typed JournalLineWithEntry in accounting general ledger (type safety)
+- **[C16]** Fixed label-input associations and accessible loading states on income statement and balance sheet pages (accessibility)
+- **[C16]** Added 11 unit tests for EmployeeService (EmployeeError, error codes, constructor) — total 309 tests across 17 suites
+- **[C16]** Updated gap analysis: 309 tests, cycle 16 progress documented
 
 ## Recommendations (Priority Order)
 
