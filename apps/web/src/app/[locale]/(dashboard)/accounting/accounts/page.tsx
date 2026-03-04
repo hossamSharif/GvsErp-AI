@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Account, AccountType, CreateAccountInput } from '@erp/shared';
 
@@ -40,6 +40,7 @@ export default function ChartOfAccountsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<AccountType | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form state
   const [formData, setFormData] = useState<CreateAccountInput>({
@@ -140,6 +141,20 @@ export default function ChartOfAccountsPage() {
         variant: 'destructive',
       });
     }
+  };
+
+  /** Recursively filter accounts matching search query (code or name) */
+  const filterAccounts = (accountList: Account[], query: string): Account[] => {
+    if (!query) return accountList;
+    const lower = query.toLowerCase();
+    return accountList.reduce<Account[]>((acc, account) => {
+      const matches = account.code.toLowerCase().includes(lower) || account.name.toLowerCase().includes(lower);
+      const filteredChildren = account.children ? filterAccounts(account.children, query) : [];
+      if (matches || filteredChildren.length > 0) {
+        acc.push({ ...account, children: filteredChildren.length > 0 ? filteredChildren : account.children });
+      }
+      return acc;
+    }, []);
   };
 
   const renderAccountTree = (accountList: Account[], depth: number = 0) => {
@@ -260,8 +275,17 @@ export default function ChartOfAccountsPage() {
       </div>
 
       <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by code or name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <div className="flex items-center gap-2">
-          <Label>Filter by Type:</Label>
+          <Label htmlFor="account-type-filter">Filter by Type:</Label>
           <Select
             value={filterType}
             onValueChange={(value) => setFilterType(value as AccountType | 'all')}
@@ -289,7 +313,7 @@ export default function ChartOfAccountsPage() {
             </div>
           ) : accounts && accounts.length > 0 ? (
             <div className="space-y-1">
-              {renderAccountTree(accounts)}
+              {renderAccountTree(filterAccounts(accounts, searchQuery))}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
