@@ -77,7 +77,7 @@ export interface LowStockReportResult {
     warningCount: number;
     lowCount: number;
     totalDeficit: number;
-    estimatedReorderValue: number;
+    totalSuggestedReorderQty: number;
   };
   alerts: any[];
   reorderSuggestions: any[];
@@ -233,7 +233,7 @@ export class ReportService {
         warningCount: alerts.filter((a) => a.percentOfThreshold >= 25 && a.percentOfThreshold < 50).length,
         lowCount: alerts.filter((a) => a.percentOfThreshold >= 50).length,
         totalDeficit: alerts.reduce((sum, a) => sum + a.deficit, 0),
-        estimatedReorderValue: reorderSuggestions.reduce((sum, s) => sum + ((s as any).estimatedCost || 0), 0),
+        totalSuggestedReorderQty: reorderSuggestions.reduce((sum, s) => sum + s.suggestedQuantity, 0),
       },
       alerts,
       reorderSuggestions,
