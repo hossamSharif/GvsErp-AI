@@ -12,7 +12,7 @@ import { WarehouseRepository } from '../repositories/warehouse.repository';
 import { ItemRepository } from '../repositories/item.repository';
 import { AlertsService } from './alerts.service';
 import { WarehouseService } from './warehouse.service';
-import type { Warehouse, WarehouseInventoryEntry } from '@erp/shared';
+import type { Warehouse, WarehouseInventoryEntry, LowStockAlert } from '@erp/shared';
 
 /** Inventory entry enriched with warehouse/category context for report grouping */
 interface ReportInventoryEntry extends WarehouseInventoryEntry {
@@ -89,6 +89,19 @@ export interface ValuationReportResult {
   }[];
 }
 
+/** Reorder suggestion from low-stock analysis */
+interface ReorderSuggestion {
+  itemId: string;
+  itemName: string;
+  itemSku: string | null;
+  warehouseId: string;
+  warehouseName: string;
+  currentQuantity: number;
+  threshold: number;
+  suggestedQuantity: number;
+  severity: string;
+}
+
 export interface LowStockReportResult {
   generatedAt: string;
   filters: { warehouseId?: string; severity: string };
@@ -100,8 +113,8 @@ export interface LowStockReportResult {
     totalDeficit: number;
     totalSuggestedReorderQty: number;
   };
-  alerts: any[];
-  reorderSuggestions: any[];
+  alerts: LowStockAlert[];
+  reorderSuggestions: ReorderSuggestion[];
 }
 
 // ---------------------------------------------------------------------------
