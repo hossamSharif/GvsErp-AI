@@ -225,7 +225,7 @@ export default function POSTerminalPage() {
                     key={item.id}
                     className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-accent cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     onClick={() =>
-                      addToCart(item.id, item.name, item.prices?.[0]?.price || 0, 100)
+                      addToCart(item.id, item.name, item.prices?.[0]?.price || 0, 0)
                     }
                     aria-label={`Add ${item.name} to cart - $${(item.prices?.[0]?.price || 0).toFixed(2)}`}
                   >
@@ -234,8 +234,7 @@ export default function POSTerminalPage() {
                       <p className="text-sm text-muted-foreground">{item.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">${item.prices?.[0]?.price.toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground">Stock: 100</p>
+                      <p className="font-bold">${(item.prices?.[0]?.price || 0).toFixed(2)}</p>
                     </div>
                   </button>
                 ))}
