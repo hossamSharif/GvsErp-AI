@@ -216,8 +216,10 @@ export function PaymentForm({
                         <SelectItem key={party.id} value={party.id}>
                           {party.name}
                           {party.balance !== 0 && (
-                            <span className="ml-2 text-sm text-muted-foreground">
-                              (Balance: ${party.balance.toFixed(2)})
+                            <span className={`ml-2 text-sm ${party.balance > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                              ({party.balance > 0
+                                ? `Owes: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                : `Credit: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`})
                             </span>
                           )}
                         </SelectItem>
