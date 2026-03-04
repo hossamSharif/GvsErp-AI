@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { useImageUpload } from '@/hooks/use-image-upload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -86,51 +86,7 @@ export function ImageUpload({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize Supabase client
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  // Generate unique file name
-  const generateFileName = useCallback((file: File) => {
-    const ext = file.name.split('.').pop() || 'jpg';
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8);
-    const prefix = pathPrefix ? `${pathPrefix}/` : '';
-    return `${prefix}${timestamp}-${random}.${ext}`;
-  }, [pathPrefix]);
-
-  // Upload a single file
-  const uploadFile = useCallback(
-    async (file: File, uploadId: string): Promise<string | null> => {
-      const fileName = generateFileName(file);
-
-      try {
-        const { data, error } = await supabase.storage
-          .from(bucket)
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-          });
-
-        if (error) {
-          throw error;
-        }
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(data.path);
-
-        return urlData.publicUrl;
-      } catch (error) {
-        console.error('Upload error:', error);
-        return null;
-      }
-    },
-    [supabase, bucket, generateFileName]
-  );
+  const { uploadFile } = useImageUpload({ bucket, pathPrefix });
 
   // Handle file selection
   const handleFiles = useCallback(
@@ -183,7 +139,7 @@ export function ImageUpload({
           );
         }, 200);
 
-        const url = await uploadFile(upload.file, upload.id);
+        const url = await uploadFile(upload.file);
 
         clearInterval(progressInterval);
 
