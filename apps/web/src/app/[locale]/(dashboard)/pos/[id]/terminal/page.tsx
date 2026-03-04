@@ -274,6 +274,7 @@ export default function POSTerminalPage() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
+                        aria-label={`Decrease quantity of ${item.name}`}
                         onClick={() => updateQuantity(item.item_id, item.quantity - 1)}
                       >
                         <Minus className="h-4 w-4" />
@@ -283,6 +284,7 @@ export default function POSTerminalPage() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
+                        aria-label={`Increase quantity of ${item.name}`}
                         onClick={() => updateQuantity(item.item_id, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
@@ -291,6 +293,7 @@ export default function POSTerminalPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
+                        aria-label={`Remove ${item.name} from cart`}
                         onClick={() => removeFromCart(item.item_id)}
                       >
                         <Trash2 className="h-4 w-4" />
