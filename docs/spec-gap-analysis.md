@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 4; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 10; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 4; 
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 250 passing (13 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party services + base repository)
+- **Tests**: 264 passing (14 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -213,6 +213,12 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 13, Iteration 4; 
 - **[C13]** Extracted Supabase storage logic from ImageUpload into useImageUpload hook — restores separation of concerns (architecture)
 - **[C13]** Fixed responsive overflow: party-select popover max-w-[calc(100vw-2rem)], journal entry table overflow-x-auto (accessibility/UX)
 - **[C13]** Added 24 unit tests for PartyService (error codes, mapRow, mapSortField, constructor) — total 250 tests across 13 suites
+- **[C13]** Updated gap analysis: 250 tests, cycle 13 progress documented
+- **[C13]** Added confirmation dialog before invoice finalization — prevents accidental locks (UX)
+- **[C13]** Rejected requests with missing tenant_id instead of defaulting to empty string (security)
+- **[C13]** Replaced 15 'any' casts in ReportService with typed ReportInventoryEntry and ReportGroup (architecture/type safety)
+- **[C13]** Added aria-labels to POS terminal cart buttons (decrease, increase, remove) with item name context (accessibility)
+- **[C13]** Added 14 unit tests for WarehouseService (error codes, constructor, bulk result) — total 264 tests across 14 suites
 
 ## Recommendations (Priority Order)
 
