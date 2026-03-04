@@ -788,10 +788,9 @@ export class InvoiceService {
     }
 
     const previousBalance = Number(party.balance);
-    // Customer sale: increases what they owe (positive)
-    // Supplier purchase: increases what we owe (positive)
-    const change = invoiceType === 'sale' ? amount : amount;
-    const newBalance = previousBalance + change;
+    // Both sale and purchase increase the party's outstanding balance.
+    // Returns pass a negative amount to reverse.
+    const newBalance = previousBalance + amount;
 
     await this.supabase
       .from('parties')
@@ -802,7 +801,7 @@ export class InvoiceService {
       partyId,
       previousBalance,
       newBalance,
-      change,
+      change: amount,
     };
   }
 
