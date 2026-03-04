@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 8, Iteration 4; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 9, Iteration 10; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 8, Iteration 4; 0
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 167 passing (7 test suites: error middleware, invoice, POS, report, payment, audit, item services)
+- **Tests**: 193 passing (9 test suites: error middleware, invoice, POS, report, payment, audit, item, category services + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -191,6 +191,11 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 8, Iteration 4; 0
 - **[C8]** Deduplicated cn() utility: web app re-exports from @erp/ui instead of duplicating (architecture)
 - **[C8]** Added aria-label to item selection buttons in invoice form Add Item dialog (accessibility)
 - **[C8]** Added 27 unit tests for ItemService (ItemError, mapSortField, constructor, error codes) — total 167 tests across 7 suites
+- **[C9]** Escaped ILIKE wildcards (%, _, \) in search queries across 7 repositories via BaseRepository.escapeILike() (security)
+- **[C9]** Removed dead /invoices nav link from sidebar — redundant with Sales/Purchases (UX)
+- **[C9]** Extracted CategoryService from categories routes to enforce service layer pattern (architecture)
+- **[C9]** Added keyboard accessibility (role, tabIndex, aria-sort, onKeyDown) to virtualized data table sort headers (accessibility)
+- **[C9]** Added 26 tests: CategoryService errors/guards (16) + BaseRepository.escapeILike (10) — total 193 tests across 9 suites
 
 ## Recommendations (Priority Order)
 
