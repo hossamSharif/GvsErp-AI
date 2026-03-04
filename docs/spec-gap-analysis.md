@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 7, Iteration 4; 0 API + 0 Web TS errors)
+Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 8, Iteration 4; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 7, Iteration 4; 0
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 140 passing (6 test suites: error middleware, invoice, POS, report, payment, audit services)
+- **Tests**: 167 passing (7 test suites: error middleware, invoice, POS, report, payment, audit, item services)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -187,6 +187,10 @@ Date: 2026-03-03 | Reviewer: Project Manager (Ralph Loop Cycle 7, Iteration 4; 0
 - **[C6]** Fixed overly broad error handlers in currencies and exchange-rates routes (security — same issue as roles fix)
 - **[C6]** Added ARIA labels to image upload (file input, reorder/remove buttons) and return invoice dialog (quantity inputs, icons)
 - **[C6]** Added 34 unit tests for AuditService (sanitizeValues, calculateDiff, extractContext, mapAuditLog) — total 140 tests across 6 suites
+- **[C7]** Replaced fragile error.message.includes() with instanceof AccountingError in journal-entries routes (security)
+- **[C8]** Deduplicated cn() utility: web app re-exports from @erp/ui instead of duplicating (architecture)
+- **[C8]** Added aria-label to item selection buttons in invoice form Add Item dialog (accessibility)
+- **[C8]** Added 27 unit tests for ItemService (ItemError, mapSortField, constructor, error codes) — total 167 tests across 7 suites
 
 ## Recommendations (Priority Order)
 
