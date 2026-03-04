@@ -11,7 +11,7 @@ import {
   updateUserSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import { z } from 'zod';
 
@@ -85,6 +85,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('users:write'),
   validateRequest({ body: createUserSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -128,6 +129,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('users:write'),
   validateRequest({ body: updateUserSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -150,6 +152,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('users:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getUserService(req);
@@ -175,6 +178,7 @@ router.delete(
  */
 router.post(
   '/:id/activate',
+  requirePermission('users:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getUserService(req);
@@ -196,6 +200,7 @@ router.post(
  */
 router.post(
   '/:id/deactivate',
+  requirePermission('users:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getUserService(req);
@@ -252,6 +257,7 @@ router.patch(
  */
 router.post(
   '/:id/change-password',
+  requirePermission('users:write'),
   validateRequest({
     body: z.object({
       password: z.string().min(8).max(100),
@@ -308,6 +314,7 @@ router.post(
  */
 router.put(
   '/:id/role',
+  requirePermission('users:write'),
   validateRequest({
     body: z.object({
       role_id: z.string().uuid(),
