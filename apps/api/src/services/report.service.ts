@@ -12,6 +12,27 @@ import { WarehouseRepository } from '../repositories/warehouse.repository';
 import { ItemRepository } from '../repositories/item.repository';
 import { AlertsService } from './alerts.service';
 import { WarehouseService } from './warehouse.service';
+import type { Warehouse, WarehouseInventoryEntry } from '@erp/shared';
+
+/** Inventory entry enriched with warehouse/category context for report grouping */
+interface ReportInventoryEntry extends WarehouseInventoryEntry {
+  warehouseId?: string;
+  warehouseName?: string;
+  categoryId?: string | null;
+  categoryName?: string;
+}
+
+/** Grouped report data (by warehouse or category) */
+interface ReportGroup {
+  warehouseId?: string;
+  warehouseName?: string;
+  categoryId?: string | null;
+  categoryName?: string;
+  items: ReportInventoryEntry[];
+  totalQuantity: number;
+  totalValue: number;
+  lowStockCount: number;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,9 +70,9 @@ export interface InventoryReportResult {
   filters: Omit<InventoryReportQuery, 'format'>;
   summary: InventoryReportSummaryResult;
   alertsSummary: AlertsSummaryResult;
-  data: any[];
+  data: ReportInventoryEntry[] | ReportGroup[];
   /** Flat (ungrouped) inventory data — use for CSV export */
-  flatData: any[];
+  flatData: ReportInventoryEntry[];
 }
 
 export interface ValuationReportResult {
@@ -135,7 +156,7 @@ export class ReportService {
     };
   }
 
-  generateInventoryCsv(inventoryData: any[]): string {
+  generateInventoryCsv(inventoryData: ReportInventoryEntry[]): string {
     const csvHeaders = [
       'Item Name',
       'SKU',
@@ -148,7 +169,7 @@ export class ReportService {
       'Low Stock Threshold',
       'Is Low Stock',
     ];
-    const csvRows = inventoryData.map((item: any) => [
+    const csvRows = inventoryData.map((item) => [
       item.itemName,
       item.itemSku || '',
       item.warehouseName || '',
@@ -178,7 +199,7 @@ export class ReportService {
     const warehouses = await this.warehouseRepo.getActiveWarehouses(this.tenantId);
 
     const valuationByWarehouse = await Promise.all(
-      warehouses.map(async (warehouse: any) => {
+      warehouses.map(async (warehouse: Warehouse) => {
         const withSummary = await this.warehouseRepo.getWithSummary(this.tenantId, warehouse.id);
         return {
           warehouseId: warehouse.id,
@@ -244,7 +265,7 @@ export class ReportService {
   // Private helpers
   // -------------------------------------------------------------------------
 
-  private async fetchInventoryData(query: InventoryReportQuery): Promise<any[]> {
+  private async fetchInventoryData(query: InventoryReportQuery): Promise<ReportInventoryEntry[]> {
     if (query.warehouseId) {
       const result = await this.inventoryRepo.getWarehouseInventory(this.tenantId, query.warehouseId, {
         lowStockOnly: query.lowStockOnly || false,
@@ -255,7 +276,7 @@ export class ReportService {
     }
 
     const warehouses = await this.warehouseRepo.getActiveWarehouses(this.tenantId);
-    let inventoryData: any[] = [];
+    let inventoryData: ReportInventoryEntry[] = [];
 
     for (const warehouse of warehouses) {
       const result = await this.inventoryRepo.getWarehouseInventory(this.tenantId, warehouse.id, {
@@ -264,7 +285,7 @@ export class ReportService {
         limit: 10000,
       });
       inventoryData = inventoryData.concat(
-        result.data.map((item: any) => ({
+        result.data.map((item) => ({
           ...item,
           warehouseName: warehouse.name,
         }))
@@ -274,7 +295,7 @@ export class ReportService {
     return inventoryData;
   }
 
-  private async applyFilters(inventoryData: any[], query: InventoryReportQuery): Promise<any[]> {
+  private async applyFilters(inventoryData: ReportInventoryEntry[], query: InventoryReportQuery): Promise<ReportInventoryEntry[]> {
     let data = inventoryData;
 
     if (query.categoryId) {
@@ -284,25 +305,25 @@ export class ReportService {
         page: 1,
         limit: 10000,
       });
-      const categoryItemIds = new Set(itemsInCategory.data.map((i: any) => i.id));
-      data = data.filter((inv: any) => categoryItemIds.has(inv.itemId));
+      const categoryItemIds = new Set(itemsInCategory.data.map((i) => i.id));
+      data = data.filter((inv) => categoryItemIds.has(inv.itemId));
     }
 
     if (!query.includeZeroStock) {
-      data = data.filter((inv: any) => inv.quantity > 0);
+      data = data.filter((inv) => inv.quantity > 0);
     }
 
     return data;
   }
 
-  private calculateSummary(inventoryData: any[]): InventoryReportSummaryResult {
+  private calculateSummary(inventoryData: ReportInventoryEntry[]): InventoryReportSummaryResult {
     return {
-      totalItems: new Set(inventoryData.map((i: any) => i.itemId)).size,
-      totalQuantity: inventoryData.reduce((sum: number, i: any) => sum + i.quantity, 0),
-      totalValue: inventoryData.reduce((sum: number, i: any) => sum + (i.estimatedValue || 0), 0),
-      totalReserved: inventoryData.reduce((sum: number, i: any) => sum + (i.reservedQuantity || 0), 0),
-      lowStockItems: inventoryData.filter((i: any) => i.isLowStock).length,
-      warehouseCount: new Set(inventoryData.map((i: any) => i.warehouseId)).size,
+      totalItems: new Set(inventoryData.map((i) => i.itemId)).size,
+      totalQuantity: inventoryData.reduce((sum, i) => sum + i.quantity, 0),
+      totalValue: inventoryData.reduce((sum, i) => sum + (i.estimatedValue || 0), 0),
+      totalReserved: inventoryData.reduce((sum, i) => sum + (i.reservedQuantity || 0), 0),
+      lowStockItems: inventoryData.filter((i) => i.isLowStock).length,
+      warehouseCount: new Set(inventoryData.map((i) => i.warehouseId)).size,
     };
   }
 
@@ -316,7 +337,7 @@ export class ReportService {
     };
   }
 
-  private groupData(inventoryData: any[], groupBy: string): any[] {
+  private groupData(inventoryData: ReportInventoryEntry[], groupBy: string): ReportInventoryEntry[] | ReportGroup[] {
     if (groupBy === 'warehouse') {
       return this.groupByWarehouse(inventoryData);
     }
@@ -326,10 +347,10 @@ export class ReportService {
     return inventoryData;
   }
 
-  private groupByWarehouse(inventoryData: any[]): any[] {
-    const byWarehouse: Record<string, any> = {};
+  private groupByWarehouse(inventoryData: ReportInventoryEntry[]): ReportGroup[] {
+    const byWarehouse: Record<string, ReportGroup> = {};
     for (const item of inventoryData) {
-      const key = item.warehouseId;
+      const key = item.warehouseId || 'unknown';
       if (!byWarehouse[key]) {
         byWarehouse[key] = {
           warehouseId: item.warehouseId,
@@ -348,8 +369,8 @@ export class ReportService {
     return Object.values(byWarehouse);
   }
 
-  private groupByCategory(inventoryData: any[]): any[] {
-    const byCategory: Record<string, any> = {};
+  private groupByCategory(inventoryData: ReportInventoryEntry[]): ReportGroup[] {
+    const byCategory: Record<string, ReportGroup> = {};
     for (const item of inventoryData) {
       const key = item.categoryId || 'uncategorized';
       if (!byCategory[key]) {
