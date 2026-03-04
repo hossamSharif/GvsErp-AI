@@ -24,15 +24,15 @@ export default function BalanceSheetPage() {
         <CardContent className="pt-6">
           <div className="flex items-end gap-4 mb-6">
             <div className="flex-1 max-w-xs space-y-2">
-              <Label>As Of Date</Label>
-              <Input type="date" value={asOfDate} onChange={(e) => setAsOfDate(e.target.value)} />
+              <Label htmlFor="balance-sheet-date">As Of Date</Label>
+              <Input id="balance-sheet-date" type="date" value={asOfDate} onChange={(e) => setAsOfDate(e.target.value)} />
             </div>
             <Button onClick={() => refetch()}>Generate Report</Button>
             <Button variant="outline"><Download className="mr-2 h-4 w-4" />Export PDF</Button>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center h-64" role="status" aria-label="Loading balance sheet">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : data ? (

@@ -25,19 +25,19 @@ export default function IncomeStatementPage() {
         <CardContent className="pt-6">
           <div className="flex items-end gap-4 mb-6">
             <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Label htmlFor="income-start-date">Start Date</Label>
+              <Input id="income-start-date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>End Date</Label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <Label htmlFor="income-end-date">End Date</Label>
+              <Input id="income-end-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
             </div>
             <Button onClick={() => refetch()}>Generate Report</Button>
             <Button variant="outline"><Download className="mr-2 h-4 w-4" />Export PDF</Button>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center h-64" role="status" aria-label="Loading income statement">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : data ? (
