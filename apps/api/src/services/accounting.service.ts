@@ -33,6 +33,18 @@ import type {
 /**
  * Application error for accounting-related operations
  */
+/** Journal line joined with its parent journal entry (from *, journal_entries!inner(*) select) */
+interface JournalLineWithEntry {
+  debit: number;
+  credit: number;
+  description: string | null;
+  journal_entries: {
+    entry_date: string;
+    entry_number: string;
+    description: string | null;
+  };
+}
+
 export class AccountingError extends Error {
   constructor(
     message: string,
@@ -566,7 +578,7 @@ export class AccountingService {
     );
 
     let runningBalance = beginningBalance;
-    const entries: GeneralLedgerEntry[] = lines.map((line: any) => {
+    const entries: GeneralLedgerEntry[] = (lines as unknown as JournalLineWithEntry[]).map((line) => {
       runningBalance += line.debit - line.credit;
       return {
         date: line.journal_entries.entry_date,
