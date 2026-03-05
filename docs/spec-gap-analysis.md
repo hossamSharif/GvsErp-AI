@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 16, Iteration 28; 0 API + 0 Web TS errors)
+Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 16, Iteration 28;
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 309 passing (17 test suites: error middleware, invoice, POS, report, payment, audit, item, category, role, currency, exchange-rate, party, warehouse, user, accounting, employee services + base repository)
+- **Tests**: 375 passing (22 test suites: all 20 services + error middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -237,6 +237,12 @@ Date: 2026-03-04 | Reviewer: Project Manager (Ralph Loop Cycle 16, Iteration 28;
 - **[C16]** Fixed label-input associations and accessible loading states on income statement and balance sheet pages (accessibility)
 - **[C16]** Added 11 unit tests for EmployeeService (EmployeeError, error codes, constructor) — total 309 tests across 17 suites
 - **[C16]** Updated gap analysis: 309 tests, cycle 16 progress documented
+- **[Post-Loop]** Added requirePermission guards to warehouses, items, parties, transfers routes (security)
+- **[Post-Loop]** Added 24 unit tests for AlertsService and AttendanceService — total 333 tests across 19 suites
+- **[Post-Loop]** Added requirePermission guards to accounting, attendance, employees, categories routes (via agents)
+- **[Post-Loop]** Added requirePermission guards to accounts, currencies, exchange-rates, journal-entries, payroll, pos, roles, settings routes — **ALL 22 route files now enforce permission-based authorization** (security)
+- **[Post-Loop]** Added all new Permission types and labels: employees, attendance, journal_entries, payroll, pos, currencies, exchange_rates, accounts, categories (type safety)
+- **[Post-Loop]** Added 42 unit tests for PayrollService, SettingsService, TransferService — **all 20 services now have test coverage** — total 375 tests across 22 suites
 
 ## Recommendations (Priority Order)
 
