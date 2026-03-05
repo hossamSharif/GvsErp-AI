@@ -6,7 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AttendanceService, AttendanceError } from '../services/attendance.service';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -261,7 +261,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * POST /attendance
  * Record attendance
  */
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getAttendanceService(req);
     const record = await service.recordAttendance(req.body);
@@ -280,7 +280,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
  * POST /attendance/check-in
  * Check in an employee
  */
-router.post('/check-in', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/check-in', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getAttendanceService(req);
     const { employee_id, check_in } = req.body;
@@ -311,7 +311,7 @@ router.post('/check-in', async (req: Request, res: Response, next: NextFunction)
  * POST /attendance/check-out
  * Check out an employee
  */
-router.post('/check-out', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/check-out', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getAttendanceService(req);
     const { employee_id, check_out } = req.body;
@@ -344,6 +344,7 @@ router.post('/check-out', async (req: Request, res: Response, next: NextFunction
  */
 router.post(
   '/mark-absent',
+  requirePermission('attendance:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAttendanceService(req);
@@ -378,6 +379,7 @@ router.post(
  */
 router.post(
   '/mark-leave',
+  requirePermission('attendance:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAttendanceService(req);
@@ -412,6 +414,7 @@ router.post(
  */
 router.post(
   '/mark-holiday',
+  requirePermission('attendance:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAttendanceService(req);
@@ -444,7 +447,7 @@ router.post(
  * PUT /attendance/:id
  * Update attendance record
  */
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getAttendanceService(req);
     const record = await service.updateAttendance(req.params.id, req.body);
@@ -463,7 +466,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * DELETE /attendance/:id
  * Delete attendance record
  */
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('attendance:delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getAttendanceService(req);
     await service.deleteAttendance(req.params.id);
