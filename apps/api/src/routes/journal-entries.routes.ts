@@ -11,7 +11,7 @@ import {
   updateJournalEntrySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -143,6 +143,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('journal_entries:write'),
   validateRequest({ body: createJournalEntrySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -167,6 +168,7 @@ router.post(
  */
 router.put(
   '/:id',
+  requirePermission('journal_entries:write'),
   validateRequest({ body: updateJournalEntrySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -203,6 +205,7 @@ router.put(
  */
 router.post(
   '/:id/post',
+  requirePermission('journal_entries:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAccountingService(req);
@@ -239,6 +242,7 @@ router.post(
  */
 router.delete(
   '/:id',
+  requirePermission('journal_entries:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAccountingService(req);

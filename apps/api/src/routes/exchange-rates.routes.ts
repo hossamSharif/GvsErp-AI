@@ -11,7 +11,7 @@ import {
   updateExchangeRateSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import { z } from 'zod';
 
@@ -82,6 +82,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('exchange_rates:write'),
   validateRequest({ body: createExchangeRateSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -125,6 +126,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('exchange_rates:write'),
   validateRequest({ body: updateExchangeRateSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -147,6 +149,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('exchange_rates:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getExchangeRateService(req);

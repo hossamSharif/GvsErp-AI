@@ -11,7 +11,7 @@ import {
   updateRoleSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -80,6 +80,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('roles:write'),
   validateRequest({ body: createRoleSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -126,6 +127,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('roles:write'),
   validateRequest({ body: updateRoleSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -151,6 +153,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('roles:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getRoleService(req);
@@ -176,6 +179,7 @@ router.delete(
  */
 router.put(
   '/:id/permissions',
+  requirePermission('roles:write'),
   validateRequest({
     body: createRoleSchema.pick({ permissions: true }),
   }),

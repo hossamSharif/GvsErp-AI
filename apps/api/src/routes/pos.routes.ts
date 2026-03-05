@@ -6,6 +6,7 @@
 import { Router, Request } from 'express';
 import { POSService } from '../services/pos.service';
 import { validateBody, validateParams } from '../middleware/validate';
+import { requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import {
   createPOSLocationSchema,
@@ -81,6 +82,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('pos:write'),
   validateBody(createPOSLocationSchema),
   async (req, res, next) => {
     try {
@@ -107,6 +109,7 @@ router.post(
  */
 router.put(
   '/:id',
+  requirePermission('pos:write'),
   validateParams(posLocationIdParamSchema),
   validateBody(updatePOSLocationSchema),
   async (req, res, next) => {
@@ -135,6 +138,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('pos:delete'),
   validateParams(posLocationIdParamSchema),
   async (req, res, next) => {
     try {
@@ -160,6 +164,7 @@ router.delete(
  */
 router.post(
   '/:id/sale',
+  requirePermission('pos:write'),
   validateParams(posLocationIdParamSchema),
   validateBody(quickSaleRequestSchema),
   async (req, res, next) => {

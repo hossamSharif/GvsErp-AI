@@ -6,7 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { PayrollService, PayrollError } from '../services/payroll.service';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -151,7 +151,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * POST /payroll
  * Create a new payroll run
  */
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('payroll:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getPayrollService(req);
     const userId = getUserId(req);
@@ -188,6 +188,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.post(
   '/:id/calculate',
+  requirePermission('payroll:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPayrollService(req);
@@ -210,6 +211,7 @@ router.post(
  */
 router.post(
   '/:id/process',
+  requirePermission('payroll:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPayrollService(req);
@@ -231,7 +233,7 @@ router.post(
  * DELETE /payroll/:id
  * Delete a payroll run (only if draft)
  */
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('payroll:delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getPayrollService(req);
     await service.deletePayrollRun(req.params.id);

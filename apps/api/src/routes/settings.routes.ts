@@ -8,7 +8,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { SettingsService, SettingsError } from '../services/settings.service';
 import { updateTenantSettingsSchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import { z } from 'zod';
 
@@ -73,6 +73,7 @@ router.get(
  */
 router.put(
   '/',
+  requirePermission('settings:write'),
   validateRequest({ body: updateTenantSettingsSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -95,6 +96,7 @@ router.put(
  */
 router.post(
   '/reset',
+  requirePermission('settings:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getSettingsService(req);
@@ -142,6 +144,7 @@ router.get(
  */
 router.put(
   '/company',
+  requirePermission('settings:write'),
   validateRequest({
     body: z.object({
       company_name: z.string().min(1).max(255).optional(),
@@ -177,6 +180,7 @@ router.put(
  */
 router.post(
   '/modules/accounting/enable',
+  requirePermission('settings:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getSettingsService(req);
@@ -199,6 +203,7 @@ router.post(
  */
 router.post(
   '/modules/accounting/disable',
+  requirePermission('settings:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getSettingsService(req);
@@ -221,6 +226,7 @@ router.post(
  */
 router.post(
   '/modules/hr/enable',
+  requirePermission('settings:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getSettingsService(req);
@@ -243,6 +249,7 @@ router.post(
  */
 router.post(
   '/modules/hr/disable',
+  requirePermission('settings:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getSettingsService(req);
@@ -293,6 +300,7 @@ router.get(
  */
 router.put(
   '/:key',
+  requirePermission('settings:write'),
   validateRequest({
     body: z.object({
       value: z.any(),

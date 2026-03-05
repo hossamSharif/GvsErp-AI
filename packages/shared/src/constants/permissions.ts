@@ -96,6 +96,54 @@ export const CATEGORY_PERMISSIONS = [
   'categories:delete',
 ] as const;
 
+export const EMPLOYEE_PERMISSIONS = [
+  'employees:read',
+  'employees:write',
+  'employees:delete',
+] as const;
+
+export const ATTENDANCE_PERMISSIONS = [
+  'attendance:read',
+  'attendance:write',
+  'attendance:delete',
+] as const;
+
+export const JOURNAL_ENTRY_PERMISSIONS = [
+  'journal_entries:read',
+  'journal_entries:write',
+  'journal_entries:delete',
+] as const;
+
+export const PAYROLL_PERMISSIONS = [
+  'payroll:read',
+  'payroll:write',
+  'payroll:delete',
+] as const;
+
+export const POS_PERMISSIONS = [
+  'pos:read',
+  'pos:write',
+  'pos:delete',
+] as const;
+
+export const CURRENCY_PERMISSIONS = [
+  'currencies:read',
+  'currencies:write',
+  'currencies:delete',
+] as const;
+
+export const EXCHANGE_RATE_PERMISSIONS = [
+  'exchange_rates:read',
+  'exchange_rates:write',
+  'exchange_rates:delete',
+] as const;
+
+export const ACCOUNT_PERMISSIONS = [
+  'accounts:read',
+  'accounts:write',
+  'accounts:delete',
+] as const;
+
 // ============================================
 // ALL PERMISSIONS
 // ============================================
@@ -117,6 +165,14 @@ export const ALL_PERMISSIONS: Permission[] = [
   ...ACCOUNTING_PERMISSIONS,
   ...HR_PERMISSIONS,
   ...CATEGORY_PERMISSIONS,
+  ...EMPLOYEE_PERMISSIONS,
+  ...ATTENDANCE_PERMISSIONS,
+  ...JOURNAL_ENTRY_PERMISSIONS,
+  ...PAYROLL_PERMISSIONS,
+  ...POS_PERMISSIONS,
+  ...CURRENCY_PERMISSIONS,
+  ...EXCHANGE_RATE_PERMISSIONS,
+  ...ACCOUNT_PERMISSIONS,
 ];
 
 // ============================================
@@ -268,6 +324,30 @@ export function getPermissionLabel(permission: Permission): string {
     'categories:read': 'View Categories',
     'categories:write': 'Create/Edit Categories',
     'categories:delete': 'Delete Categories',
+    'employees:read': 'View Employees',
+    'employees:write': 'Create/Edit Employees',
+    'employees:delete': 'Delete Employees',
+    'attendance:read': 'View Attendance',
+    'attendance:write': 'Record Attendance',
+    'attendance:delete': 'Delete Attendance',
+    'journal_entries:read': 'View Journal Entries',
+    'journal_entries:write': 'Create/Edit Journal Entries',
+    'journal_entries:delete': 'Delete Journal Entries',
+    'payroll:read': 'View Payroll',
+    'payroll:write': 'Run Payroll',
+    'payroll:delete': 'Delete Payroll Runs',
+    'pos:read': 'View POS Locations',
+    'pos:write': 'Manage POS Locations',
+    'pos:delete': 'Delete POS Locations',
+    'currencies:read': 'View Currencies',
+    'currencies:write': 'Manage Currencies',
+    'currencies:delete': 'Delete Currencies',
+    'exchange_rates:read': 'View Exchange Rates',
+    'exchange_rates:write': 'Manage Exchange Rates',
+    'exchange_rates:delete': 'Delete Exchange Rates',
+    'accounts:read': 'View Chart of Accounts',
+    'accounts:write': 'Create/Edit Accounts',
+    'accounts:delete': 'Delete Accounts',
   };
 
   return labels[permission] || permission;
@@ -293,6 +373,14 @@ export function getPermissionsByCategory(): Record<string, Permission[]> {
     'Accounting': [...ACCOUNTING_PERMISSIONS],
     'HR': [...HR_PERMISSIONS],
     'Categories': [...CATEGORY_PERMISSIONS],
+    'Employees': [...EMPLOYEE_PERMISSIONS],
+    'Attendance': [...ATTENDANCE_PERMISSIONS],
+    'Journal Entries': [...JOURNAL_ENTRY_PERMISSIONS],
+    'Payroll': [...PAYROLL_PERMISSIONS],
+    'POS': [...POS_PERMISSIONS],
+    'Currencies': [...CURRENCY_PERMISSIONS],
+    'Exchange Rates': [...EXCHANGE_RATE_PERMISSIONS],
+    'Accounts': [...ACCOUNT_PERMISSIONS],
   };
 }
 

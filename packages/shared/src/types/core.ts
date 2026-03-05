@@ -175,7 +175,31 @@ export type Permission =
   // Attendance
   | 'attendance:read'
   | 'attendance:write'
-  | 'attendance:delete';
+  | 'attendance:delete'
+  // Journal Entries
+  | 'journal_entries:read'
+  | 'journal_entries:write'
+  | 'journal_entries:delete'
+  // Payroll
+  | 'payroll:read'
+  | 'payroll:write'
+  | 'payroll:delete'
+  // POS
+  | 'pos:read'
+  | 'pos:write'
+  | 'pos:delete'
+  // Currencies
+  | 'currencies:read'
+  | 'currencies:write'
+  | 'currencies:delete'
+  // Exchange Rates
+  | 'exchange_rates:read'
+  | 'exchange_rates:write'
+  | 'exchange_rates:delete'
+  // Accounts (Chart of Accounts)
+  | 'accounts:read'
+  | 'accounts:write'
+  | 'accounts:delete';
 
 export interface Role {
   id: string;

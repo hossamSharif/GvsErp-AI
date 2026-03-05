@@ -8,7 +8,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { AccountingService, AccountingError } from '../services/accounting.service';
 import { createAccountSchema, updateAccountSchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -132,6 +132,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('accounts:write'),
   validateRequest({ body: createAccountSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -156,6 +157,7 @@ router.post(
  */
 router.put(
   '/:id',
+  requirePermission('accounts:write'),
   validateRequest({ body: updateAccountSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -192,6 +194,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('accounts:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getAccountingService(req);

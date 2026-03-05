@@ -11,7 +11,7 @@ import {
   updateCurrencySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -79,6 +79,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('currencies:write'),
   validateRequest({ body: createCurrencySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -143,6 +144,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('currencies:write'),
   validateRequest({ body: updateCurrencySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -165,6 +167,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('currencies:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getCurrencyService(req);
@@ -211,6 +214,7 @@ router.get(
  */
 router.post(
   '/:id/set-default',
+  requirePermission('currencies:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getCurrencyService(req);
