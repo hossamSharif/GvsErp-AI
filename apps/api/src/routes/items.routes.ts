@@ -18,7 +18,7 @@ import {
   itemReportParamsSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -94,6 +94,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('items:write'),
   validateRequest({ body: createItemSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -137,6 +138,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('items:write'),
   validateRequest({ body: updateItemSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -159,6 +161,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('items:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getItemService(req);
@@ -184,6 +187,7 @@ router.delete(
  */
 router.post(
   '/bulk-price-update',
+  requirePermission('items:write'),
   validateRequest({ body: bulkPriceUpdateSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -299,6 +303,7 @@ router.get(
  */
 router.post(
   '/:id/prices',
+  requirePermission('items:write'),
   validateRequest({ body: createItemPriceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -321,6 +326,7 @@ router.post(
  */
 router.put(
   '/:id/prices/:priceId',
+  requirePermission('items:write'),
   validateRequest({ body: updateItemPriceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -343,6 +349,7 @@ router.put(
  */
 router.delete(
   '/:id/prices/:priceId',
+  requirePermission('items:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getItemService(req);
@@ -389,6 +396,7 @@ router.get(
  */
 router.post(
   '/:id/packagings',
+  requirePermission('items:write'),
   validateRequest({ body: createItemPackagingSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -411,6 +419,7 @@ router.post(
  */
 router.put(
   '/:id/packagings/:packagingId',
+  requirePermission('items:write'),
   validateRequest({ body: updateItemPackagingSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -433,6 +442,7 @@ router.put(
  */
 router.delete(
   '/:id/packagings/:packagingId',
+  requirePermission('items:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getItemService(req);
