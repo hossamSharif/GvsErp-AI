@@ -12,7 +12,7 @@ import {
   categoryQuerySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -82,6 +82,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('categories:write'),
   validateRequest({ body: createCategorySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -169,6 +170,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('categories:write'),
   validateRequest({ body: updateCategorySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -193,6 +195,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('categories:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getCategoryService(req);

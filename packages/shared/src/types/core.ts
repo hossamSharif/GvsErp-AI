@@ -163,7 +163,19 @@ export type Permission =
   | 'accounting:write'
   // HR module
   | 'hr:read'
-  | 'hr:write';
+  | 'hr:write'
+  // Categories
+  | 'categories:read'
+  | 'categories:write'
+  | 'categories:delete'
+  // Employees
+  | 'employees:read'
+  | 'employees:write'
+  | 'employees:delete'
+  // Attendance
+  | 'attendance:read'
+  | 'attendance:write'
+  | 'attendance:delete';
 
 export interface Role {
   id: string;

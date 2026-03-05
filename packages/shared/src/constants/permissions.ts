@@ -90,6 +90,12 @@ export const HR_PERMISSIONS = [
   'hr:write',
 ] as const;
 
+export const CATEGORY_PERMISSIONS = [
+  'categories:read',
+  'categories:write',
+  'categories:delete',
+] as const;
+
 // ============================================
 // ALL PERMISSIONS
 // ============================================
@@ -110,6 +116,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   ...SETTINGS_PERMISSIONS,
   ...ACCOUNTING_PERMISSIONS,
   ...HR_PERMISSIONS,
+  ...CATEGORY_PERMISSIONS,
 ];
 
 // ============================================
@@ -258,6 +265,9 @@ export function getPermissionLabel(permission: Permission): string {
     'accounting:write': 'Manage Accounting',
     'hr:read': 'View HR',
     'hr:write': 'Manage HR',
+    'categories:read': 'View Categories',
+    'categories:write': 'Create/Edit Categories',
+    'categories:delete': 'Delete Categories',
   };
 
   return labels[permission] || permission;
@@ -282,6 +292,7 @@ export function getPermissionsByCategory(): Record<string, Permission[]> {
     'Settings': [...SETTINGS_PERMISSIONS],
     'Accounting': [...ACCOUNTING_PERMISSIONS],
     'HR': [...HR_PERMISSIONS],
+    'Categories': [...CATEGORY_PERMISSIONS],
   };
 }
 
