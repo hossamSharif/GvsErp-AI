@@ -12,7 +12,7 @@ import {
   transferQuerySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -91,6 +91,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('transfers:write'),
   validateRequest({ body: createTransferSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -135,6 +136,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('transfers:write'),
   validateRequest({ body: updateTransferSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -162,6 +164,7 @@ router.put(
  */
 router.post(
   '/:id/start',
+  requirePermission('transfers:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getTransferService(req);
@@ -185,6 +188,7 @@ router.post(
  */
 router.post(
   '/:id/complete',
+  requirePermission('transfers:complete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getTransferService(req);
@@ -208,6 +212,7 @@ router.post(
  */
 router.post(
   '/:id/quick-complete',
+  requirePermission('transfers:complete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getTransferService(req);
@@ -231,6 +236,7 @@ router.post(
  */
 router.post(
   '/:id/cancel',
+  requirePermission('transfers:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getTransferService(req);
