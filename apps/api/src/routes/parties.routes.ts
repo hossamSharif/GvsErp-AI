@@ -15,7 +15,7 @@ import {
   partyStatementParamsSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -88,6 +88,7 @@ router.get(
  */
 router.post(
   '/',
+  requirePermission('parties:write'),
   validateRequest({ body: createPartySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -131,6 +132,7 @@ router.get(
  */
 router.put(
   '/:id',
+  requirePermission('parties:write'),
   validateRequest({ body: updatePartySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -153,6 +155,7 @@ router.put(
  */
 router.delete(
   '/:id',
+  requirePermission('parties:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getPartyService(req);
