@@ -6,7 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { EmployeeService, EmployeeError } from '../services/employee.service';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -173,7 +173,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * POST /employees
  * Create a new employee
  */
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('employees:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getEmployeeService(req);
     const employee = await service.createEmployee(req.body);
@@ -192,7 +192,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
  * PUT /employees/:id
  * Update an existing employee
  */
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('employees:write'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getEmployeeService(req);
     const employee = await service.updateEmployee(req.params.id, req.body);
@@ -213,6 +213,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.post(
   '/:id/deactivate',
+  requirePermission('employees:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getEmployeeService(req);
@@ -235,6 +236,7 @@ router.post(
  */
 router.post(
   '/:id/reactivate',
+  requirePermission('employees:write'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getEmployeeService(req);
@@ -255,7 +257,7 @@ router.post(
  * DELETE /employees/:id
  * Delete an employee (hard delete, only if no records)
  */
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requirePermission('employees:delete'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const service = getEmployeeService(req);
     await service.deleteEmployee(req.params.id);
