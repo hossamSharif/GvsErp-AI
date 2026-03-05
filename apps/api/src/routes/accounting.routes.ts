@@ -17,7 +17,7 @@ import {
   generalLedgerQuerySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
 const router: Router = Router();
@@ -51,6 +51,7 @@ function getContext(req: Request): { tenantId: string; userId: string } {
  */
 router.post(
   '/activate',
+  requirePermission('accounting:write'),
   validateRequest({ body: accountingActivationSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
