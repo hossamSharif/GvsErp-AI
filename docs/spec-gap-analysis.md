@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors)
+Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 426 passing (25 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + base repository)
+- **Tests**: 436 passing (25 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -263,6 +263,12 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop-2]** Fixed .single() → .maybeSingle() in settings service — 3 tenant lookups (bug fix)
 - **[Post-Loop-2]** Replaced hardcoded '-' stats on warehouses page with 'Showing X of Y' and 'Active on page' (UX)
 - **[Post-Loop-2]** Added 9 unit tests for tenant middleware (tenantMiddleware + verifyTenantAccess) — total 426 tests across 25 suites
+- **[Loop-3 C1]** Replaced mock data with real API hooks in purchases edit page — was using hardcoded MOCK_WAREHOUSES/PARTIES/ITEMS instead of useWarehouses/useParties/useItems (architecture)
+- **[Loop-3 C1]** Fixed locale-less navigation across all 4 purchase pages — links now include /${locale}/ prefix (bug fix)
+- **[Loop-3 C2]** Added keyboard accessibility to purchase list table rows — tabIndex, role="link", aria-label, Enter/Space key support (accessibility)
+- **[Loop-3 C2]** Added aria-label to purchase search input, made detail page header responsive on mobile (accessibility/UX)
+- **[Loop-3 C2]** Removed unused cn imports from purchases pages (cleanup)
+- **[Loop-3 C3]** Added 10 unit tests for InvoiceService edge cases (negative qty, discount >100%, high tax, fractional qty, error codes) — total 436 tests across 25 suites
 
 ## Recommendations (Priority Order)
 
