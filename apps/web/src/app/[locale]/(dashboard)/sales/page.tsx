@@ -23,7 +23,6 @@ import {
   XCircle,
   RotateCcw,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -169,6 +168,7 @@ export default function SalesListPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by invoice number..."
+            aria-label="Search sales invoices"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -246,8 +246,18 @@ export default function SalesListPage() {
                     <TableRow
                       key={invoice.id}
                       className="cursor-pointer"
+                      tabIndex={0}
+                      role="link"
+                      aria-label={`View sale ${invoice.invoiceNumber}`}
                       onClick={() => handleRowClick(invoice.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleRowClick(invoice.id);
+                        }
+                      }}
                       onMouseEnter={() => handleRowHover(invoice.id)}
+                      onFocus={() => handleRowHover(invoice.id)}
                     >
                       <TableCell className="font-medium">
                         {invoice.invoiceNumber}
