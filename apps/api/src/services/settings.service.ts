@@ -46,7 +46,7 @@ export class SettingsService {
       .from('tenants')
       .select('settings')
       .eq('id', this.tenantId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new SettingsError('Failed to fetch settings', 'FETCH_FAILED', 500);
@@ -86,7 +86,7 @@ export class SettingsService {
       .update({ settings: updatedSettings as any })
       .eq('id', this.tenantId)
       .select('settings')
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new SettingsError('Failed to update settings', 'UPDATE_FAILED', 500);
@@ -124,7 +124,7 @@ export class SettingsService {
       .update({ settings: defaultSettings as any })
       .eq('id', this.tenantId)
       .select('settings')
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new SettingsError('Failed to reset settings', 'RESET_FAILED', 500);
