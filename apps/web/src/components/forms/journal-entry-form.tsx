@@ -240,11 +240,10 @@ export function JournalEntryForm({
                       type="number"
                       step="0.01"
                       value={line.debit || ''}
-                      onChange={(e) =>
-                        updateLine(index, 'debit', parseFloat(e.target.value) || 0)
-                      }
-                      onFocus={(e) => {
-                        updateLine(index, 'credit', 0);
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 0;
+                        updateLine(index, 'debit', val);
+                        if (val > 0) updateLine(index, 'credit', 0);
                       }}
                       className="text-right"
                       placeholder="0.00"
@@ -256,11 +255,10 @@ export function JournalEntryForm({
                       type="number"
                       step="0.01"
                       value={line.credit || ''}
-                      onChange={(e) =>
-                        updateLine(index, 'credit', parseFloat(e.target.value) || 0)
-                      }
-                      onFocus={(e) => {
-                        updateLine(index, 'debit', 0);
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 0;
+                        updateLine(index, 'credit', val);
+                        if (val > 0) updateLine(index, 'debit', 0);
                       }}
                       className="text-right"
                       placeholder="0.00"
