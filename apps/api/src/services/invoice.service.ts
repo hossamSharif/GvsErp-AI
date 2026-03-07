@@ -681,7 +681,7 @@ export class InvoiceService {
         .eq('tenant_id', this.tenantId)
         .eq('warehouse_id', invoice.warehouseId)
         .eq('item_id', item.itemId)
-        .single();
+        .maybeSingle();
 
       const previousQuantity = inventory ? Number(inventory.quantity) : 0;
       const quantityChange = isSale ? -item.quantity : item.quantity;
@@ -734,7 +734,7 @@ export class InvoiceService {
         .eq('tenant_id', this.tenantId)
         .eq('warehouse_id', returnInvoice.warehouseId)
         .eq('item_id', item.itemId)
-        .single();
+        .maybeSingle();
 
       const previousQuantity = inventory ? Number(inventory.quantity) : 0;
       // Sale return: add back to stock; Purchase return: remove from stock

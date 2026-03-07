@@ -236,7 +236,7 @@ export class PaymentService {
           .from('invoices')
           .select('invoice_number')
           .eq('id', payment.invoiceId)
-          .single();
+          .maybeSingle();
 
         if (invoice) {
           entry.invoiceNumber = invoice.invoice_number;
