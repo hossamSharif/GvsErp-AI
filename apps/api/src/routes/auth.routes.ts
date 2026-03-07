@@ -138,12 +138,19 @@ router.post(
     }
 
     // Get admin role for tenant (created by trigger)
-    const { data: adminRole } = await supabase
+    const { data: adminRole, error: adminRoleError } = await supabase
       .from('roles')
       .select('id')
       .eq('tenant_id', tenant.id)
       .eq('name', 'admin')
-      .single();
+      .maybeSingle();
+
+    if (adminRoleError || !adminRole) {
+      // Rollback: delete auth user (tenant will cascade)
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      console.error('Admin role lookup error:', adminRoleError);
+      throw AppError.internal('Failed to initialize organization roles');
+    }
 
     // Create user record
     const { data: user, error: userError } = await supabase
@@ -153,7 +160,7 @@ router.post(
         tenant_id: tenant.id,
         email: email.toLowerCase(),
         full_name: full_name || null,
-        role_id: adminRole?.id || null,
+        role_id: adminRole.id,
       })
       .select(`
         *,
