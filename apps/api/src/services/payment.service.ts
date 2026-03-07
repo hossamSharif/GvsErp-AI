@@ -104,7 +104,7 @@ export class PaymentService {
     }
 
     // Validate payment type matches party type
-    this.validatePaymentType(input.type, party.type as any);
+    this.validatePaymentType(input.type, party.type);
 
     // Validate invoice if provided
     if (input.invoiceId) {
