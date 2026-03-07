@@ -84,6 +84,7 @@ export default function PurchaseDetailPage() {
   const { toast } = useToast();
 
   const invoiceId = params.id as string;
+  const locale = params.locale as string;
   const showReturn = searchParams.get('return') === 'true';
 
   // Fetch invoice
@@ -157,7 +158,7 @@ export default function PurchaseDetailPage() {
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-destructive">Purchase not found</p>
         <Button variant="outline" asChild>
-          <Link href="/purchases">Back to Purchases</Link>
+          <Link href={`/${locale}/purchases`}>Back to Purchases</Link>
         </Button>
       </div>
     );
@@ -172,7 +173,7 @@ export default function PurchaseDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/purchases">
+            <Link href={`/${locale}/purchases`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -194,7 +195,7 @@ export default function PurchaseDetailPage() {
           {invoice.status === 'draft' && (
             <>
               <Button variant="outline" asChild>
-                <Link href={`/purchases/${invoiceId}/edit`}>
+                <Link href={`/${locale}/purchases/${invoiceId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Link>

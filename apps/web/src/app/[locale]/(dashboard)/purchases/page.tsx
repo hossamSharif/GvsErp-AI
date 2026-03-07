@@ -8,7 +8,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Plus,
   Search,
@@ -71,6 +71,7 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementT
 
 export default function PurchasesListPage() {
   const router = useRouter();
+  const { locale } = useParams();
   const prefetchInvoice = usePrefetchInvoice();
 
   // Filter state
@@ -97,7 +98,7 @@ export default function PurchasesListPage() {
 
   // Handle row click
   const handleRowClick = (invoiceId: string) => {
-    router.push(`/purchases/${invoiceId}`);
+    router.push(`/${locale}/purchases/${invoiceId}`);
   };
 
   // Handle row hover (prefetch)
@@ -116,7 +117,7 @@ export default function PurchasesListPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/purchases/new">
+          <Link href={`/${locale}/purchases/new`}>
             <Plus className="h-4 w-4 mr-2" />
             New Purchase
           </Link>
@@ -231,7 +232,7 @@ export default function PurchasesListPage() {
                       <FileText className="h-8 w-8" />
                       <p>No purchase orders found</p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href="/purchases/new">Create your first purchase</Link>
+                        <Link href={`/${locale}/purchases/new`}>Create your first purchase</Link>
                       </Button>
                     </div>
                   </TableCell>
@@ -282,14 +283,14 @@ export default function PurchasesListPage() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link href={`/purchases/${invoice.id}`}>
+                              <Link href={`/${locale}/purchases/${invoice.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </Link>
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/purchases/${invoice.id}/edit`}>
+                                <Link href={`/${locale}/purchases/${invoice.id}/edit`}>
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit
                                 </Link>
@@ -297,7 +298,7 @@ export default function PurchasesListPage() {
                             )}
                             {invoice.status === 'final' && (
                               <DropdownMenuItem asChild>
-                                <Link href={`/purchases/${invoice.id}?return=true`}>
+                                <Link href={`/${locale}/purchases/${invoice.id}?return=true`}>
                                   <Undo2 className="h-4 w-4 mr-2" />
                                   Create Return
                                 </Link>

@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import type { InvoiceWithRelations } from '@erp/shared';
 
 export default function NewPurchasePage() {
   const router = useRouter();
+  const { locale } = useParams();
 
   // Fetch real data from API
   const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
@@ -57,7 +58,7 @@ export default function NewPurchasePage() {
   );
 
   const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
-    router.push(`/purchases/${invoice.id}`);
+    router.push(`/${locale}/purchases/${invoice.id}`);
   }, [router]);
 
   return (
@@ -65,7 +66,7 @@ export default function NewPurchasePage() {
       {/* Page Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/purchases">
+          <Link href={`/${locale}/purchases`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
