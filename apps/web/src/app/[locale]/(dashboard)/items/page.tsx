@@ -50,7 +50,6 @@ import type { ItemWithCategory, ItemQueryParams } from '@erp/shared';
 import {
   Plus,
   MoreHorizontal,
-  Pencil,
   Trash2,
   Eye,
   Download,
@@ -123,13 +122,6 @@ export default function ItemsPage() {
   const handleAddItem = useCallback(() => {
     router.push(`/${locale}/items/new`);
   }, [router, locale]);
-
-  const handleEditItem = useCallback(
-    (item: ItemWithCategory) => {
-      router.push(`/${locale}/items/${item.id}`);
-    },
-    [router, locale]
-  );
 
   const handleViewItem = useCallback(
     (item: ItemWithCategory) => {
@@ -243,11 +235,7 @@ export default function ItemsPage() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleEditItem(row.original)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                View Details
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -265,7 +253,7 @@ export default function ItemsPage() {
         enableHiding: false,
       },
     ],
-    [handleViewItem, handleEditItem, handleDeleteItem]
+    [handleViewItem, handleDeleteItem]
   );
 
   // Error state
