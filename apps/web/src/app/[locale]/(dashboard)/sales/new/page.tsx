@@ -60,7 +60,7 @@ export default function NewSalePage() {
 
   const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
     router.push(`/${locale}/sales/${invoice.id}`);
-  }, [router]);
+  }, [router, locale]);
 
   return (
     <div className="space-y-6">
