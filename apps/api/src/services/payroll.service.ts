@@ -383,7 +383,7 @@ export class PayrollService {
       .select('*')
       .eq('tenant_id', this.tenantId)
       .eq('code', '6100')
-      .single();
+      .maybeSingle();
 
     if (account) {
       return account;
@@ -406,7 +406,7 @@ export class PayrollService {
       .select('*')
       .eq('tenant_id', this.tenantId)
       .eq('code', '2100')
-      .single();
+      .maybeSingle();
 
     if (account) {
       return account;
@@ -429,7 +429,7 @@ export class PayrollService {
       .select('*')
       .eq('tenant_id', this.tenantId)
       .eq('code', '2110')
-      .single();
+      .maybeSingle();
 
     if (account) {
       return account;
