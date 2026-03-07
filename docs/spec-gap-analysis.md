@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 375 passing (22 test suites: all 20 services + error middleware + base repository)
+- **Tests**: 385 passing (22 test suites: all 20 services + error middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -243,6 +243,9 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop]** Added requirePermission guards to accounts, currencies, exchange-rates, journal-entries, payroll, pos, roles, settings routes — **ALL 22 route files now enforce permission-based authorization** (security)
 - **[Post-Loop]** Added all new Permission types and labels: employees, attendance, journal_entries, payroll, pos, currencies, exchange_rates, accounts, categories (type safety)
 - **[Post-Loop]** Added 42 unit tests for PayrollService, SettingsService, TransferService — **all 20 services now have test coverage** — total 375 tests across 22 suites
+- **[Post-Loop-2]** Extracted routes barrel module (`routes/index.ts`) — app entry point reduced from 22 individual route imports to single `app.use('/api/v1', apiRoutes)` (architecture)
+- **[Post-Loop-2]** Replaced 8 custom inline SVG icon components with lucide-react imports on dashboard page — 69 lines removed, consistency improved (frontend)
+- **[Post-Loop-2]** Added 10 unit tests for POSService.validateDiscount (max limit, manager approval, threshold boundaries) — total 385 tests across 22 suites
 
 ## Recommendations (Priority Order)
 
