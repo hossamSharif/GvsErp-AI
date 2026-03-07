@@ -133,3 +133,111 @@ describe('InvoiceService.mapSortField', () => {
     expect(invoiceService.mapSortField('')).toBe('created_at');
   });
 });
+
+// ==========================================================================
+// mapRowToInvoice
+// ==========================================================================
+
+describe('InvoiceService.mapRowToInvoice', () => {
+  const sampleRow = {
+    id: 'inv-1',
+    tenant_id: 'tenant-1',
+    invoice_number: 'INV-00001',
+    type: 'sale',
+    status: 'draft',
+    party_id: 'party-1',
+    warehouse_id: 'wh-1',
+    subtotal: '1000.00',
+    tax_amount: '100.00',
+    discount_amount: '50.00',
+    total: '1050.00',
+    currency: 'USD',
+    exchange_rate: '1.00',
+    notes: 'Test invoice',
+    created_by: 'user-1',
+    returned_from_id: null,
+    created_at: '2026-01-15T10:00:00Z',
+    updated_at: '2026-01-15T11:00:00Z',
+    finalized_at: null,
+  };
+
+  it('maps snake_case to camelCase', () => {
+    const result = invoiceService.mapRowToInvoice(sampleRow);
+    expect(result.tenantId).toBe('tenant-1');
+    expect(result.invoiceNumber).toBe('INV-00001');
+    expect(result.partyId).toBe('party-1');
+    expect(result.warehouseId).toBe('wh-1');
+    expect(result.createdBy).toBe('user-1');
+    expect(result.returnedFromId).toBeNull();
+    expect(result.createdAt).toBe('2026-01-15T10:00:00Z');
+    expect(result.updatedAt).toBe('2026-01-15T11:00:00Z');
+    expect(result.finalizedAt).toBeNull();
+  });
+
+  it('converts numeric strings to numbers', () => {
+    const result = invoiceService.mapRowToInvoice(sampleRow);
+    expect(result.subtotal).toBe(1000);
+    expect(typeof result.subtotal).toBe('number');
+    expect(result.taxAmount).toBe(100);
+    expect(typeof result.taxAmount).toBe('number');
+    expect(result.discountAmount).toBe(50);
+    expect(typeof result.discountAmount).toBe('number');
+    expect(result.total).toBe(1050);
+    expect(typeof result.total).toBe('number');
+    expect(result.exchangeRate).toBe(1);
+    expect(typeof result.exchangeRate).toBe('number');
+  });
+
+  it('preserves type and status as strings', () => {
+    const result = invoiceService.mapRowToInvoice(sampleRow);
+    expect(result.type).toBe('sale');
+    expect(result.status).toBe('draft');
+  });
+
+  it('handles finalized invoice', () => {
+    const row = { ...sampleRow, status: 'final', finalized_at: '2026-01-16T09:00:00Z' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.status).toBe('final');
+    expect(result.finalizedAt).toBe('2026-01-16T09:00:00Z');
+  });
+
+  it('handles return invoice with returned_from_id', () => {
+    const row = { ...sampleRow, type: 'sale_return', returned_from_id: 'inv-original' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.type).toBe('sale_return');
+    expect(result.returnedFromId).toBe('inv-original');
+  });
+
+  it('handles zero amounts', () => {
+    const row = { ...sampleRow, subtotal: '0', tax_amount: '0', discount_amount: '0', total: '0' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.subtotal).toBe(0);
+    expect(result.taxAmount).toBe(0);
+    expect(result.discountAmount).toBe(0);
+    expect(result.total).toBe(0);
+  });
+
+  it('handles large amounts', () => {
+    const row = { ...sampleRow, total: '999999999.99' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.total).toBe(999999999.99);
+  });
+
+  it('preserves null notes', () => {
+    const row = { ...sampleRow, notes: null };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.notes).toBeNull();
+  });
+
+  it('handles purchase type', () => {
+    const row = { ...sampleRow, type: 'purchase' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.type).toBe('purchase');
+  });
+
+  it('preserves currency field', () => {
+    const row = { ...sampleRow, currency: 'EUR' };
+    const result = invoiceService.mapRowToInvoice(row);
+    expect(result.currency).toBe('EUR');
+  });
+});
