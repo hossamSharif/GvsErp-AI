@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 394 passing (23 test suites: all 20 services + error middleware + auth middleware + base repository)
+- **Tests**: 404 passing (23 test suites: all 20 services + error middleware + auth middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -250,6 +250,9 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop-2]** Fixed `.single()` → `.maybeSingle()` in party service for optional queries (getCustomerBalanceReport, validateEmailUniqueness) — prevents PGRST116 errors (bug fix)
 - **[Post-Loop-2]** Removed redundant View/Edit dropdown actions on items page — both navigated to same URL (UX)
 - **[Post-Loop-2]** Added 9 unit tests for requirePermission middleware (auth, wildcard, 403, multiple permissions) — total 394 tests across 23 suites
+- **[Post-Loop-2]** Fixed misleading stats cards on employees and attendance pages: removed hardcoded "New This Month: 0", fixed duplicate present count (UX)
+- **[Post-Loop-2]** Fixed last remaining `.single()` → `.maybeSingle()` calls in invoice.service.ts (inventory lookups, payment report invoice lookup, updatePartyBalance) — 7 total fixes across 3 services
+- **[Post-Loop-2]** Added 10 unit tests for InvoiceService.mapRowToInvoice (snake→camel mapping, numeric conversion, null handling) — total 404 tests across 23 suites
 
 ## Recommendations (Priority Order)
 
