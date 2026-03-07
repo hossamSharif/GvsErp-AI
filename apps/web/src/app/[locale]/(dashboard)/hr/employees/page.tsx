@@ -137,9 +137,12 @@ export default function EmployeesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active</CardDescription>
+            <CardDescription>Showing</CardDescription>
             <CardTitle className="text-3xl">
-              {data?.data?.filter((e) => e.is_active).length || 0}
+              {data?.data?.length || 0}
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                of {data?.meta?.total || 0}
+              </span>
             </CardTitle>
           </CardHeader>
         </Card>
@@ -151,8 +154,10 @@ export default function EmployeesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>New This Month</CardDescription>
-            <CardTitle className="text-3xl">0</CardTitle>
+            <CardDescription>Active on Page</CardDescription>
+            <CardTitle className="text-3xl">
+              {data?.data?.filter((e) => e.is_active).length || 0}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
