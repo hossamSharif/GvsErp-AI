@@ -403,7 +403,7 @@ export class PartyService {
           .eq('status', 'final')
           .order('finalized_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         // Get last payment date
         const { data: lastPayment } = await this.supabase
@@ -412,7 +412,7 @@ export class PartyService {
           .eq('party_id', party.id)
           .order('payment_date', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         // Calculate totals
         const { data: invoiceSum } = await this.supabase
@@ -525,7 +525,7 @@ export class PartyService {
       .eq('type', type)
       .ilike('email', email)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (data && data.id !== excludeId) {
       throw new PartyError(
