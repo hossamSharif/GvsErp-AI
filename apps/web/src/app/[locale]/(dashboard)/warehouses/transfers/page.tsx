@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Plus,
   TruckIcon,
@@ -94,6 +94,7 @@ const statusConfig: Record<
 export default function TransfersPage() {
   const t = useTranslations('transfers');
   const router = useRouter();
+  const { locale } = useParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');
@@ -166,7 +167,7 @@ export default function TransfersPage() {
           <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
-        <Button onClick={() => router.push('/warehouses/transfers/new')}>
+        <Button onClick={() => router.push(`/${locale}/warehouses/transfers/new`)}>
           <Plus className="mr-2 h-4 w-4" />
           {t('newTransfer')}
         </Button>
@@ -294,7 +295,7 @@ export default function TransfersPage() {
                       key={transfer.id}
                       className="cursor-pointer"
                       onClick={() =>
-                        router.push(`/warehouses/transfers/${transfer.id}`)
+                        router.push(`/${locale}/warehouses/transfers/${transfer.id}`)
                       }
                     >
                       <TableCell className="font-medium font-mono">

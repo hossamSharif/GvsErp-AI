@@ -7,7 +7,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, FileDown, Printer, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useReactToPrint } from 'react-to-print';
@@ -48,6 +48,7 @@ interface ReportFilters {
 export default function InventoryReportPage() {
   const t = useTranslations('warehouses');
   const router = useRouter();
+  const { locale } = useParams();
   const { currentUser } = useAuth();
   const companyName = currentUser?.tenant?.name || 'Your Company';
   const printRef = useRef<HTMLDivElement>(null);
@@ -134,7 +135,7 @@ export default function InventoryReportPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push('/warehouses')}
+            onClick={() => router.push(`/${locale}/warehouses`)}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

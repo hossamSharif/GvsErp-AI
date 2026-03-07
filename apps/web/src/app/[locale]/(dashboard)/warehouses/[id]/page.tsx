@@ -54,6 +54,7 @@ export default function WarehouseDetailPage() {
   const t = useTranslations('warehouses');
   const params = useParams();
   const router = useRouter();
+  const locale = params.locale as string;
   const warehouseId = params.id as string;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +136,7 @@ export default function WarehouseDetailPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold">{t('warehouseNotFound')}</h2>
-        <Button variant="link" onClick={() => router.push('/warehouses')}>
+        <Button variant="link" onClick={() => router.push(`/${locale}/warehouses`)}>
           {t('backToWarehouses')}
         </Button>
       </div>
@@ -147,7 +148,7 @@ export default function WarehouseDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/warehouses')}>
+          <Button variant="ghost" size="icon" onClick={() => router.push(`/${locale}/warehouses`)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -159,11 +160,11 @@ export default function WarehouseDetailPage() {
           </Badge>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push(`/warehouses/${warehouseId}/edit`)}>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/${warehouseId}/edit`)}>
             <Edit className="mr-2 h-4 w-4" />
             {t('edit')}
           </Button>
-          <Button onClick={() => router.push(`/warehouses/transfers/new?from=${warehouseId}`)}>
+          <Button onClick={() => router.push(`/${locale}/warehouses/transfers/new?from=${warehouseId}`)}>
             <TruckIcon className="mr-2 h-4 w-4" />
             {t('newTransfer')}
           </Button>

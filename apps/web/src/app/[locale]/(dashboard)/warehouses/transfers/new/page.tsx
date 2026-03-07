@@ -6,7 +6,7 @@
  * Create a new stock transfer between warehouses.
  */
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -20,6 +20,7 @@ import type { CreateTransferInput } from '@erp/shared';
 export default function NewTransferPage() {
   const t = useTranslations('transfers');
   const router = useRouter();
+  const { locale } = useParams();
   const searchParams = useSearchParams();
   const createMutation = useCreateTransfer();
 
@@ -28,7 +29,7 @@ export default function NewTransferPage() {
 
   const handleSubmit = async (data: CreateTransferInput) => {
     const result = await createMutation.mutateAsync(data);
-    router.push(`/warehouses/transfers/${result.data.id}`);
+    router.push(`/${locale}/warehouses/transfers/${result.data.id}`);
   };
 
   return (
@@ -38,7 +39,7 @@ export default function NewTransferPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/warehouses/transfers')}
+          onClick={() => router.push(`/${locale}/warehouses/transfers`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>

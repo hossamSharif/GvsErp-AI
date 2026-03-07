@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Plus, Package, AlertTriangle, Building2, Search, MoreHorizontal, Settings, TruckIcon, FileBarChart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -48,6 +48,7 @@ import { CreateWarehouseDialog } from '@/components/dialogs/create-warehouse-dia
 export default function WarehousesPage() {
   const t = useTranslations('warehouses');
   const router = useRouter();
+  const { locale } = useParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -96,15 +97,15 @@ export default function WarehousesPage() {
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/warehouses/report')}>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/report`)}>
             <FileBarChart className="mr-2 h-4 w-4" />
             {t('report')}
           </Button>
-          <Button variant="outline" onClick={() => router.push('/warehouses/settings')}>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/settings`)}>
             <Settings className="mr-2 h-4 w-4" />
             {t('settings')}
           </Button>
-          <Button variant="outline" onClick={() => router.push('/warehouses/transfers')}>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/transfers`)}>
             <TruckIcon className="mr-2 h-4 w-4" />
             {t('transfers')}
           </Button>
@@ -129,7 +130,7 @@ export default function WarehousesPage() {
 
         <Card
           className="cursor-pointer hover:bg-accent/50 transition-colors"
-          onClick={() => router.push('/warehouses/settings')}
+          onClick={() => router.push(`/${locale}/warehouses/settings`)}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('lowStockAlerts')}</CardTitle>
@@ -225,7 +226,7 @@ export default function WarehousesPage() {
                   <TableRow
                     key={warehouse.id}
                     className="cursor-pointer"
-                    onClick={() => router.push(`/warehouses/${warehouse.id}`)}
+                    onClick={() => router.push(`/${locale}/warehouses/${warehouse.id}`)}
                   >
                     <TableCell className="font-medium">{warehouse.name}</TableCell>
                     <TableCell>{warehouse.address || '-'}</TableCell>
@@ -245,7 +246,7 @@ export default function WarehousesPage() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/warehouses/${warehouse.id}`);
+                              router.push(`/${locale}/warehouses/${warehouse.id}`);
                             }}
                           >
                             {t('view')}
@@ -253,7 +254,7 @@ export default function WarehousesPage() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/warehouses/${warehouse.id}/edit`);
+                              router.push(`/${locale}/warehouses/${warehouse.id}/edit`);
                             }}
                           >
                             {t('edit')}

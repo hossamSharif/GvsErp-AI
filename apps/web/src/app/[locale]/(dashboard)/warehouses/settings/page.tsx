@@ -6,7 +6,7 @@
  * Configuration page for warehouse-related settings including low stock alerts.
  */
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -16,6 +16,7 @@ import { LowStockConfig } from '@/components/forms/low-stock-config';
 export default function WarehouseSettingsPage() {
   const t = useTranslations('warehouses');
   const router = useRouter();
+  const { locale } = useParams();
 
   return (
     <div className="space-y-6">
@@ -24,7 +25,7 @@ export default function WarehouseSettingsPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/warehouses')}
+          onClick={() => router.push(`/${locale}/warehouses`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
