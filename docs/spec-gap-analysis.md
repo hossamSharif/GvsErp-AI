@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 385 passing (22 test suites: all 20 services + error middleware + base repository)
+- **Tests**: 394 passing (23 test suites: all 20 services + error middleware + auth middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -246,6 +246,10 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop-2]** Extracted routes barrel module (`routes/index.ts`) — app entry point reduced from 22 individual route imports to single `app.use('/api/v1', apiRoutes)` (architecture)
 - **[Post-Loop-2]** Replaced 8 custom inline SVG icon components with lucide-react imports on dashboard page — 69 lines removed, consistency improved (frontend)
 - **[Post-Loop-2]** Added 10 unit tests for POSService.validateDiscount (max limit, manager approval, threshold boundaries) — total 385 tests across 22 suites
+- **[Post-Loop-2]** Fixed misleading stats cards on sales and purchases list pages: renamed "This Month" to "Page Total", added "Showing X of Y" (UX/data integrity)
+- **[Post-Loop-2]** Fixed `.single()` → `.maybeSingle()` in party service for optional queries (getCustomerBalanceReport, validateEmailUniqueness) — prevents PGRST116 errors (bug fix)
+- **[Post-Loop-2]** Removed redundant View/Edit dropdown actions on items page — both navigated to same URL (UX)
+- **[Post-Loop-2]** Added 9 unit tests for requirePermission middleware (auth, wildcard, 403, multiple permissions) — total 394 tests across 23 suites
 
 ## Recommendations (Priority Order)
 
