@@ -176,6 +176,20 @@ export default function TransfersPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Showing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {transfers.length}
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                of {meta?.total || 0}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('pending')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -183,6 +197,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold">
               {transfers.filter((t) => t.status === 'pending').length}
             </div>
+            <p className="text-xs text-muted-foreground">on this page</p>
           </CardContent>
         </Card>
 
@@ -195,6 +210,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold text-blue-500">
               {transfers.filter((t) => t.status === 'in_transit').length}
             </div>
+            <p className="text-xs text-muted-foreground">on this page</p>
           </CardContent>
         </Card>
 
@@ -207,18 +223,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold text-green-500">
               {transfers.filter((t) => t.status === 'completed').length}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('canceled')}</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-500">
-              {transfers.filter((t) => t.status === 'canceled').length}
-            </div>
+            <p className="text-xs text-muted-foreground">on this page</p>
           </CardContent>
         </Card>
       </div>
