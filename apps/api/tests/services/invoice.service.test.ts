@@ -30,6 +30,30 @@ describe('InvoiceError', () => {
     const err = new InvoiceError('test', 'TEST');
     expect(err).toBeInstanceOf(Error);
   });
+
+  it('preserves stack trace', () => {
+    const err = new InvoiceError('stack test', 'STACK');
+    expect(err.stack).toBeDefined();
+    expect(err.stack).toContain('InvoiceError');
+  });
+
+  it('creates WAREHOUSE_NOT_FOUND error', () => {
+    const err = new InvoiceError('Warehouse not found', 'WAREHOUSE_NOT_FOUND', 400);
+    expect(err.code).toBe('WAREHOUSE_NOT_FOUND');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates INVOICE_NOT_FOUND error with 404', () => {
+    const err = new InvoiceError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
+    expect(err.code).toBe('INVOICE_NOT_FOUND');
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('creates INVALID_STATUS error', () => {
+    const err = new InvoiceError('Invalid status transition', 'INVALID_STATUS');
+    expect(err.code).toBe('INVALID_STATUS');
+    expect(err.statusCode).toBe(400);
+  });
 });
 
 // ==========================================================================
@@ -93,6 +117,36 @@ describe('InvoiceService.calculateLineTotal', () => {
   it('handles discount + tax that produces sub-cent result', () => {
     // 1 * 33.33 * 0.85 * 1.07 = 1 * 33.33 * 0.9095 = 30.313635 -> 30.31
     expect(invoiceService.calculateLineTotal(1, 33.33, 15, 7)).toBe(30.31);
+  });
+
+  it('handles negative quantity (credit/return scenario)', () => {
+    // -1 * 100 * 1 * 1 = -100
+    expect(invoiceService.calculateLineTotal(-1, 100, 0, 0)).toBe(-100);
+  });
+
+  it('handles discount over 100% resulting in negative value', () => {
+    // 1 * 100 * (1 - 1.5) * 1 = -50
+    expect(invoiceService.calculateLineTotal(1, 100, 150, 0)).toBe(-50);
+  });
+
+  it('handles very high tax rate', () => {
+    // 1 * 100 * 1 * (1 + 2) = 300
+    expect(invoiceService.calculateLineTotal(1, 100, 0, 200)).toBe(300);
+  });
+
+  it('handles combined high discount and high tax', () => {
+    // 10 * 50 * (1 - 0.5) * (1 + 0.25) = 10 * 50 * 0.5 * 1.25 = 312.5
+    expect(invoiceService.calculateLineTotal(10, 50, 50, 25)).toBe(312.5);
+  });
+
+  it('handles fractional quantity', () => {
+    // 1.5 * 10 * 1 * 1 = 15
+    expect(invoiceService.calculateLineTotal(1.5, 10, 0, 0)).toBe(15);
+  });
+
+  it('handles all parameters at extreme precision', () => {
+    // 0.001 * 0.001 * (1 - 0) * (1 + 0) = 0.000001 -> rounds to 0
+    expect(invoiceService.calculateLineTotal(0.001, 0.001, 0, 0)).toBe(0);
   });
 });
 
