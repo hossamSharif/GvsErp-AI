@@ -781,7 +781,7 @@ export class InvoiceService {
       .from('parties')
       .select('id, balance')
       .eq('id', partyId)
-      .single();
+      .maybeSingle();
 
     if (!party) {
       return undefined;
