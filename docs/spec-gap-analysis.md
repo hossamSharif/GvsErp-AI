@@ -144,7 +144,7 @@ Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 436 passing (25 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + base repository)
+- **Tests**: 449 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -269,6 +269,11 @@ Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites
 - **[Loop-3 C2]** Added aria-label to purchase search input, made detail page header responsive on mobile (accessibility/UX)
 - **[Loop-3 C2]** Removed unused cn imports from purchases pages (cleanup)
 - **[Loop-3 C3]** Added 10 unit tests for InvoiceService edge cases (negative qty, discount >100%, high tax, fractional qty, error codes) — total 436 tests across 25 suites
+- **[Loop-3 C5]** Wired up Print/Export PDF buttons on purchase detail page using useReactToPrint + InvoicePdf (UX — buttons were non-functional)
+- **[Loop-3 C6]** Fixed stale locale in useCallback deps on purchases/new and sales/new pages (bug fix)
+- **[Loop-3 C7]** Applied same fixes to sales detail page: locale navigation, Print/PDF, responsive header, unused import (architecture consistency)
+- **[Loop-3 C8]** Added keyboard accessibility to sales list page: tabIndex, role, aria-label, Enter/Space, prefetch on focus (accessibility)
+- **[Loop-3 C9]** Added 13 unit tests for rate limiting middleware (rate limiter behavior, key generators) — total 449 tests across 26 suites
 
 ## Recommendations (Priority Order)
 
