@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 417 passing (24 test suites: all 20 services + error middleware + auth middleware + validate middleware + base repository)
+- **Tests**: 426 passing (25 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -258,6 +258,11 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop-2]** Removed unnecessary 'as any' cast in payment.service.ts — validatePaymentType already accepts string (type safety)
 - **[Post-Loop-2]** Fixed misleading transfer stats cards — added "Showing X of Y" and "on this page" labels (UX)
 - **[Post-Loop-2]** Added 13 unit tests for validateRequest middleware (body/query/params validation, transformation, edge cases) — total 417 tests across 24 suites
+- **[Post-Loop-2]** Fixed destructive onFocus behavior in journal entry debit/credit fields — clears opposite only on actual value input, not on focus (UX)
+- **[Post-Loop-2]** Added missing error handling for admin role lookup in registration — prevents users without role assignment (security)
+- **[Post-Loop-2]** Fixed .single() → .maybeSingle() in settings service — 3 tenant lookups (bug fix)
+- **[Post-Loop-2]** Replaced hardcoded '-' stats on warehouses page with 'Showing X of Y' and 'Active on page' (UX)
+- **[Post-Loop-2]** Added 9 unit tests for tenant middleware (tenantMiddleware + verifyTenantAccess) — total 426 tests across 25 suites
 
 ## Recommendations (Priority Order)
 
