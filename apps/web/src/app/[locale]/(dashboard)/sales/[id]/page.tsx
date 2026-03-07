@@ -6,7 +6,8 @@
  * View and manage a single sales invoice.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -22,7 +23,6 @@ import {
   XCircle,
   RotateCcw,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -59,6 +59,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
+import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
 
 // =============================================================================
@@ -83,6 +84,7 @@ export default function SaleDetailPage() {
   const { toast } = useToast();
 
   const invoiceId = params.id as string;
+  const locale = params.locale as string;
   const showReturn = searchParams.get('return') === 'true';
 
   // Fetch invoice
@@ -92,6 +94,13 @@ export default function SaleDetailPage() {
   // Mutations
   const finalizeInvoice = useFinalizeInvoice();
   const cancelInvoice = useCancelInvoice();
+
+  // Print ref
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Sale-${invoiceId}`,
+  });
 
   // Dialog state
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
@@ -156,7 +165,7 @@ export default function SaleDetailPage() {
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-destructive">Invoice not found</p>
         <Button variant="outline" asChild>
-          <Link href="/sales">Back to Sales</Link>
+          <Link href={`/${locale}/sales`}>Back to Sales</Link>
         </Button>
       </div>
     );
@@ -168,10 +177,10 @@ export default function SaleDetailPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/sales">
+            <Link href={`/${locale}/sales`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -189,11 +198,11 @@ export default function SaleDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:ml-auto">
           {invoice.status === 'draft' && (
             <>
               <Button variant="outline" asChild>
-                <Link href={`/sales/${invoiceId}/edit`}>
+                <Link href={`/${locale}/sales/${invoiceId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Link>
@@ -219,11 +228,11 @@ export default function SaleDetailPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint()}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint()}>
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </DropdownMenuItem>
@@ -371,6 +380,11 @@ export default function SaleDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Hidden Printable Invoice */}
+      <div className="hidden">
+        <InvoicePdf ref={printRef} invoice={invoice} />
+      </div>
 
       {/* Finalize Confirmation Dialog */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
