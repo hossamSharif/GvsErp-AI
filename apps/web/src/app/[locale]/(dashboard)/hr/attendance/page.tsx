@@ -149,17 +149,15 @@ export default function AttendancePage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Today's Attendance</CardDescription>
+            <CardDescription>Showing</CardDescription>
             <CardTitle className="text-3xl flex items-center gap-2">
               <Users className="h-6 w-6" />
-              {data?.data?.filter((a) => a.status === 'present').length || 0}
+              {data?.data?.length || 0}
+              <span className="text-sm font-normal text-muted-foreground">
+                of {data?.meta?.total || 0}
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Out of {data?.meta?.total || 0} employees
-            </p>
-          </CardContent>
         </Card>
 
         <Card>
