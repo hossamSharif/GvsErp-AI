@@ -23,7 +23,6 @@ import {
   RotateCcw,
   Package,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -170,7 +169,7 @@ export default function PurchaseDetailPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href={`/${locale}/purchases`}>
@@ -191,7 +190,7 @@ export default function PurchaseDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:ml-auto">
           {invoice.status === 'draft' && (
             <>
               <Button variant="outline" asChild>
