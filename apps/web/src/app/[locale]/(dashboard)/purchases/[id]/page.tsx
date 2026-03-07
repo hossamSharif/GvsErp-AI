@@ -6,7 +6,8 @@
  * View and manage a single purchase invoice.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -59,6 +60,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
+import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
 
 // =============================================================================
@@ -93,6 +95,13 @@ export default function PurchaseDetailPage() {
   // Mutations
   const finalizeInvoice = useFinalizeInvoice();
   const cancelInvoice = useCancelInvoice();
+
+  // Print ref
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Purchase-${invoiceId}`,
+  });
 
   // Dialog state
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
@@ -220,11 +229,11 @@ export default function PurchaseDetailPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint()}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint()}>
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </DropdownMenuItem>
@@ -385,6 +394,11 @@ export default function PurchaseDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Hidden Printable Invoice */}
+      <div className="hidden">
+        <InvoicePdf ref={printRef} invoice={invoice} />
+      </div>
 
       {/* Finalize Confirmation Dialog */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
