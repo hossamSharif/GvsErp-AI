@@ -1,14 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import { POSService } from '../../src/services/pos.service';
-import type { QuickSaleRequest } from '@erp/shared';
+import type { QuickSaleRequest, POSLocation } from '@erp/shared';
 
 /**
- * Unit tests for POSService.calculateSaleSummary
- * Pure function — no mocks needed.
+ * Unit tests for POSService pure functions
+ * No mocks needed — testing calculateSaleSummary and validateDiscount.
  */
 
 // Create a minimal instance (only calling pure methods, no DB)
 const posService = new (POSService as any)(null, 'test-tenant');
+
+/** Helper to build a POSLocation with specific discount settings */
+function makePOSLocation(discounts?: POSLocation['settings']['discounts']): POSLocation {
+  return {
+    id: 'pos-1',
+    tenant_id: 'tenant-1',
+    name: 'Test POS',
+    warehouse_id: 'wh-1',
+    settings: { discounts },
+    is_active: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  };
+}
 
 describe('POSService.calculateSaleSummary', () => {
   it('calculates subtotal from items', () => {
@@ -124,5 +138,93 @@ describe('POSService.calculateSaleSummary', () => {
     expect(result.subtotal).toBe(150);
     expect(result.discount_amount).toBe(15); // 10 item + 5 invoice
     expect(result.total).toBe(135);
+  });
+});
+
+describe('POSService.validateDiscount', () => {
+  it('returns valid when no discount settings configured', () => {
+    const location = makePOSLocation(undefined);
+    const result = posService.validateDiscount(50, location);
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it('returns valid when discount is within max limit', () => {
+    const location = makePOSLocation({ max_discount_percent: 20 });
+    const result = posService.validateDiscount(15, location);
+    expect(result.valid).toBe(true);
+  });
+
+  it('returns valid when discount equals max limit', () => {
+    const location = makePOSLocation({ max_discount_percent: 20 });
+    const result = posService.validateDiscount(20, location);
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects discount exceeding max limit', () => {
+    const location = makePOSLocation({ max_discount_percent: 20 });
+    const result = posService.validateDiscount(25, location);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('20%');
+  });
+
+  it('returns valid when manager approval not required', () => {
+    const location = makePOSLocation({
+      require_manager_approval: false,
+      manager_approval_threshold: 10,
+    });
+    const result = posService.validateDiscount(50, location);
+    expect(result.valid).toBe(true);
+  });
+
+  it('returns valid when discount is below manager approval threshold', () => {
+    const location = makePOSLocation({
+      require_manager_approval: true,
+      manager_approval_threshold: 15,
+    });
+    const result = posService.validateDiscount(10, location);
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects discount above threshold without manager approval', () => {
+    const location = makePOSLocation({
+      require_manager_approval: true,
+      manager_approval_threshold: 15,
+    });
+    const result = posService.validateDiscount(20, location, false);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('manager approval');
+    expect(result.reason).toContain('15%');
+  });
+
+  it('allows discount above threshold with manager approval', () => {
+    const location = makePOSLocation({
+      require_manager_approval: true,
+      manager_approval_threshold: 15,
+    });
+    const result = posService.validateDiscount(20, location, true);
+    expect(result.valid).toBe(true);
+  });
+
+  it('checks max limit before manager approval', () => {
+    const location = makePOSLocation({
+      max_discount_percent: 10,
+      require_manager_approval: true,
+      manager_approval_threshold: 5,
+    });
+    // 15% exceeds max of 10% — should fail on max, not manager approval
+    const result = posService.validateDiscount(15, location, true);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('maximum');
+  });
+
+  it('returns valid with zero discount', () => {
+    const location = makePOSLocation({
+      max_discount_percent: 10,
+      require_manager_approval: true,
+      manager_approval_threshold: 5,
+    });
+    const result = posService.validateDiscount(0, location);
+    expect(result.valid).toBe(true);
   });
 });
