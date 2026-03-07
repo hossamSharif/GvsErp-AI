@@ -144,7 +144,7 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 404 passing (23 test suites: all 20 services + error middleware + auth middleware + base repository)
+- **Tests**: 417 passing (24 test suites: all 20 services + error middleware + auth middleware + validate middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -253,6 +253,11 @@ Date: 2026-03-05 | Reviewer: Project Manager (Post-Loop; 0 API + 0 Web TS errors
 - **[Post-Loop-2]** Fixed misleading stats cards on employees and attendance pages: removed hardcoded "New This Month: 0", fixed duplicate present count (UX)
 - **[Post-Loop-2]** Fixed last remaining `.single()` → `.maybeSingle()` calls in invoice.service.ts (inventory lookups, payment report invoice lookup, updatePartyBalance) — 7 total fixes across 3 services
 - **[Post-Loop-2]** Added 10 unit tests for InvoiceService.mapRowToInvoice (snake→camel mapping, numeric conversion, null handling) — total 404 tests across 23 suites
+- **[Post-Loop-2]** Removed misleading hardcoded mock data from payroll page — fake $45K/$43K payroll runs replaced with empty state (UX/data integrity)
+- **[Post-Loop-2]** Fixed .single() → .maybeSingle() in payroll getOrCreate methods — 3 methods that look up accounts which may not exist yet (bug fix)
+- **[Post-Loop-2]** Removed unnecessary 'as any' cast in payment.service.ts — validatePaymentType already accepts string (type safety)
+- **[Post-Loop-2]** Fixed misleading transfer stats cards — added "Showing X of Y" and "on this page" labels (UX)
+- **[Post-Loop-2]** Added 13 unit tests for validateRequest middleware (body/query/params validation, transformation, edge cases) — total 417 tests across 24 suites
 
 ## Recommendations (Priority Order)
 
