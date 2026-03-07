@@ -133,7 +133,18 @@ export default function SalesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Drafts</CardDescription>
+            <CardDescription>Showing</CardDescription>
+            <CardTitle className="text-2xl">
+              {invoices.length}
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                of {meta?.total || 0}
+              </span>
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Drafts on Page</CardDescription>
             <CardTitle className="text-2xl text-amber-600">
               {invoices.filter(i => i.status === 'draft').length}
             </CardTitle>
@@ -141,18 +152,9 @@ export default function SalesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Finalized</CardDescription>
-            <CardTitle className="text-2xl text-green-600">
-              {invoices.filter(i => i.status === 'final').length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>This Month</CardDescription>
+            <CardDescription>Page Total</CardDescription>
             <CardTitle className="text-2xl">
               {invoices
-                .filter(i => i.status === 'final')
                 .reduce((sum, i) => sum + i.total, 0)
                 .toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </CardTitle>
