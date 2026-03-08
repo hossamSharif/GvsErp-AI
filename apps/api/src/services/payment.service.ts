@@ -294,7 +294,13 @@ export class PaymentService {
   /**
    * Map DB row to camelCase Payment type
    */
-  private mapRow(row: any): Payment {
+  private mapRow(row: {
+    id: string; tenant_id: string; party_id: string; type: PaymentType;
+    amount: number; currency: string; exchange_rate: number;
+    payment_method: string | null; reference: string | null; invoice_id: string | null;
+    notes: string | null; payment_date: string; created_by: string | null;
+    created_at: string;
+  }): Payment {
     return {
       id: row.id,
       tenantId: row.tenant_id,
