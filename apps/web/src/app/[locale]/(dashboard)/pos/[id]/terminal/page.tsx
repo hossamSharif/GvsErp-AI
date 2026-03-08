@@ -325,7 +325,7 @@ export default function POSTerminalPage() {
                     <Input
                       type="number"
                       value={discountPercent}
-                      onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                      onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value))))}
                       className="w-20 h-8"
                       min="0"
                       max="100"
