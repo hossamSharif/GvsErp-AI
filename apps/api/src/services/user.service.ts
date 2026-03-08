@@ -193,7 +193,7 @@ export class UserService {
     }
 
     // Build update object
-    const updates: any = {};
+    const updates: Record<string, unknown> = {};
     if (input.email) updates.email = input.email.toLowerCase();
     if (input.full_name !== undefined) updates.full_name = input.full_name;
     if (input.role_id !== undefined) updates.role_id = input.role_id;
