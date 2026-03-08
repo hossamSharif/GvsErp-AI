@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 22; 498 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 28; 498 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -296,6 +296,13 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 22; 498 tests across 2
 - **[Loop-4 C19]** Replaced 4 any types with Request and unknown in AuditService (type safety)
 - **[Loop-4 C20]** Fixed responsive headers on HR payroll and attendance pages (UX)
 - **[Loop-4 C21]** Added 3 unit tests for AccountingService.getFlatChartOfAccounts — total 498 tests across 26 suites
+- **[Loop-4 C22]** Updated gap analysis: 498 tests, documented iterations 16-21
+- **[Loop-4 C23]** Fixed last 3 non-responsive headers (accounts, journal, categories) — all list pages now mobile-ready (UX)
+- **[Loop-4 C24]** Escaped ILIKE in party name/email lookups, made escapeILike public — zero unescaped ILIKE in codebase (security)
+- **[Loop-4 C25]** Replaced any with Record<string, unknown> in user update builder (type safety)
+- **[Loop-4 C26]** Fixed responsive header on settings users page (UX)
+- **[Loop-4 C27]** QA clean pass — 498 tests pass, no issues found
+- **[Loop-4 C28]** PM clean pass — gap analysis updated, all iterative fixes complete
 
 ## Recommendations (Priority Order)
 
