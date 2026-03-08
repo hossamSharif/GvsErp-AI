@@ -5,6 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import type { Request } from 'express';
 import type { Database } from '@erp/database';
 import type {
   AuditLog,
@@ -330,10 +331,10 @@ export class AuditService {
    * Calculate differences between old and new values
    */
   public static calculateDiff(
-    oldValues: Record<string, any> | null,
-    newValues: Record<string, any> | null
-  ): { field: string; oldValue: any; newValue: any }[] {
-    const changes: { field: string; oldValue: any; newValue: any }[] = [];
+    oldValues: Record<string, unknown> | null,
+    newValues: Record<string, unknown> | null
+  ): { field: string; oldValue: unknown; newValue: unknown }[] {
+    const changes: { field: string; oldValue: unknown; newValue: unknown }[] = [];
 
     if (!oldValues && !newValues) {
       return changes;
@@ -367,7 +368,7 @@ export class AuditService {
   /**
    * Extract audit context from Express request
    */
-  public static extractContext(req: any): {
+  public static extractContext(req: Request): {
     ipAddress: string | null;
     userAgent: string | null;
   } {
@@ -380,7 +381,7 @@ export class AuditService {
   /**
    * Get client IP address from request
    */
-  private static getClientIp(req: any): string | null {
+  private static getClientIp(req: Request): string | null {
     const forwarded = req.headers?.['x-forwarded-for'];
     if (forwarded) {
       const ips = forwarded.split(',');
