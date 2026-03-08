@@ -6,8 +6,11 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
+import type { Role, Permission } from '@erp/shared';
 import { RoleRepository } from '../repositories/role.repository';
 import type { QueryResult } from '../repositories/base.repository';
+
+type RoleRow = { id: string; tenant_id: string; name: string; permissions: unknown; is_system: boolean; created_at: string };
 
 /**
  * Application error for role-related operations
@@ -35,6 +38,17 @@ export class RoleService {
     this.tenantId = tenantId;
   }
 
+  private mapRow(row: RoleRow): Role {
+    return {
+      id: row.id,
+      tenant_id: row.tenant_id,
+      name: row.name,
+      permissions: (Array.isArray(row.permissions) ? row.permissions : []) as Permission[],
+      is_system: row.is_system,
+      created_at: row.created_at,
+    };
+  }
+
   /**
    * List roles with pagination and filters
    */
@@ -42,46 +56,48 @@ export class RoleService {
     page?: number;
     limit?: number;
     is_system?: boolean;
-  }): Promise<QueryResult<any>> {
-    return this.repository.findAllRoles({
+  }): Promise<QueryResult<Role>> {
+    const result = await this.repository.findAllRoles({
       tenantId: this.tenantId,
       page: params.page || 1,
       limit: params.limit || 50,
       is_system: params.is_system,
     });
+    return { ...result, data: result.data.map((row) => this.mapRow(row)) };
   }
 
   /**
    * Get a single role by ID
    */
-  async getRole(id: string): Promise<any> {
+  async getRole(id: string): Promise<Role> {
     const role = await this.repository.findById(this.tenantId, id);
     if (!role) {
       throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
     }
-    return role;
+    return this.mapRow(role);
   }
 
   /**
    * Create a new role
    */
-  async createRole(input: { name: string; permissions: string[] }): Promise<any> {
+  async createRole(input: { name: string; permissions: string[] }): Promise<Role> {
     const nameExists = await this.repository.nameExists(this.tenantId, input.name);
     if (nameExists) {
       throw new RoleError('A role with this name already exists', 'ROLE_NAME_EXISTS');
     }
 
-    return this.repository.create(this.tenantId, {
+    const created = await this.repository.create(this.tenantId, {
       name: input.name,
       permissions: input.permissions,
       is_system: false,
     });
+    return this.mapRow(created);
   }
 
   /**
    * Update a role
    */
-  async updateRole(id: string, input: { name?: string; permissions?: string[] }): Promise<any> {
+  async updateRole(id: string, input: { name?: string; permissions?: string[] }): Promise<Role> {
     const existing = await this.repository.findById(this.tenantId, id);
     if (!existing) {
       throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
@@ -107,7 +123,7 @@ export class RoleService {
       throw new RoleError('Failed to update role', 'UPDATE_FAILED', 500);
     }
 
-    return role;
+    return this.mapRow(role);
   }
 
   /**
@@ -128,25 +144,27 @@ export class RoleService {
   /**
    * Update role permissions
    */
-  async updatePermissions(id: string, permissions: string[]): Promise<any> {
+  async updatePermissions(id: string, permissions: string[]): Promise<Role> {
     const role = await this.repository.updatePermissions(this.tenantId, id, permissions);
     if (!role) {
       throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
     }
-    return role;
+    return this.mapRow(role);
   }
 
   /**
    * Get all system roles
    */
-  async getSystemRoles(): Promise<any[]> {
-    return this.repository.getSystemRoles(this.tenantId);
+  async getSystemRoles(): Promise<Role[]> {
+    const rows = await this.repository.getSystemRoles(this.tenantId);
+    return rows.map((row) => this.mapRow(row));
   }
 
   /**
    * Get all custom (non-system) roles
    */
-  async getCustomRoles(): Promise<any[]> {
-    return this.repository.getCustomRoles(this.tenantId);
+  async getCustomRoles(): Promise<Role[]> {
+    const rows = await this.repository.getCustomRoles(this.tenantId);
+    return rows.map((row) => this.mapRow(row));
   }
 }
