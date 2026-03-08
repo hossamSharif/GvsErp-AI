@@ -220,6 +220,7 @@ export default function POSTerminalPage() {
             <CardContent>
               <Input
                 placeholder="Search items by name, SKU, or barcode..."
+                aria-label="Search items by name, SKU, or barcode"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
@@ -353,6 +354,7 @@ export default function POSTerminalPage() {
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
+                      aria-label="Discount percentage"
                       value={discountPercent}
                       onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value))))}
                       className="w-20 h-8"
