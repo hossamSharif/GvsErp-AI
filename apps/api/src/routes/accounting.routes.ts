@@ -15,6 +15,7 @@ import {
   incomeStatementQuerySchema,
   balanceSheetQuerySchema,
   generalLedgerQuerySchema,
+  type Account,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
@@ -59,7 +60,7 @@ router.post(
       const { tenantId } = getContext(req);
       const { import_default_chart } = req.body;
 
-      let accounts: any[] = [];
+      let accounts: Account[] = [];
 
       if (import_default_chart !== false) {
         // Import default chart of accounts
