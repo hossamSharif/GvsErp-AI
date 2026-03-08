@@ -54,6 +54,36 @@ describe('InvoiceError', () => {
     expect(err.code).toBe('INVALID_STATUS');
     expect(err.statusCode).toBe(400);
   });
+
+  it('creates INVOICE_NOT_DRAFT error', () => {
+    const err = new InvoiceError('Only draft invoices can be updated', 'INVOICE_NOT_DRAFT');
+    expect(err.code).toBe('INVOICE_NOT_DRAFT');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates INVOICE_NO_ITEMS error', () => {
+    const err = new InvoiceError('Invoice must have at least one item', 'INVOICE_NO_ITEMS');
+    expect(err.code).toBe('INVOICE_NO_ITEMS');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates INVOICE_NOT_FINAL error', () => {
+    const err = new InvoiceError('Only finalized invoices can be returned', 'INVOICE_NOT_FINAL');
+    expect(err.code).toBe('INVOICE_NOT_FINAL');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates ITEMS_NOT_FOUND error', () => {
+    const err = new InvoiceError('Items not found: abc', 'ITEMS_NOT_FOUND');
+    expect(err.code).toBe('ITEMS_NOT_FOUND');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates INSUFFICIENT_STOCK error', () => {
+    const err = new InvoiceError('Insufficient stock: item1', 'INSUFFICIENT_STOCK');
+    expect(err.code).toBe('INSUFFICIENT_STOCK');
+    expect(err.statusCode).toBe(400);
+  });
 });
 
 // ==========================================================================

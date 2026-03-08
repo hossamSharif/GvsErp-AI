@@ -68,6 +68,12 @@ describe('PayrollError specific codes', () => {
     const err = new PayrollError('Payroll run already completed', 'ALREADY_COMPLETED');
     expect(err.code).toBe('ALREADY_COMPLETED');
   });
+
+  it('creates CANNOT_DELETE error for non-draft payroll runs', () => {
+    const err = new PayrollError('Cannot delete non-draft payroll run', 'CANNOT_DELETE');
+    expect(err.code).toBe('CANNOT_DELETE');
+    expect(err.statusCode).toBe(400);
+  });
 });
 
 // ==========================================================================
