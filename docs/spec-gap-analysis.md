@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 22; 514 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 28; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -325,6 +325,12 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 22; 514 tests across 2
 - **[Loop-5 C20]** Fixed responsive header on POS locations page (UX)
 - **[Loop-5 C21]** QA clean pass — 514 tests, all error codes covered
 - **[Loop-5 C22]** PM update — documented iterations 16-21, remaining: 1 responsive header (transfers), few any types in mapRow params
+- **[Loop-5 C23]** Fixed last non-responsive header on warehouse transfers page — all list page headers now mobile-ready (UX)
+- **[Loop-5 C24]** Replaced 2 any types with PartyRow and BalanceSummaryRow in PartyService (type safety)
+- **[Loop-5 C25]** Replaced any with typed parameter in PaymentService.mapRow (type safety)
+- **[Loop-5 C26]** Added aria-labels to POS terminal search and discount inputs (accessibility)
+- **[Loop-5 C27]** QA clean pass — 514 tests, 0 web TS errors, 2 pre-existing API audit errors only
+- **[Loop-5 C28]** PM update — documented iterations 22-27; only 1 remaining any in UserService.mapUser; all responsive headers, error codes, and type safety issues resolved
 
 ## Recommendations (Priority Order)
 
