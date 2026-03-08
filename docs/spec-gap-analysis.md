@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 4; 473 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 449 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 473 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -274,6 +274,10 @@ Date: 2026-03-07 | Reviewer: Project Manager (Loop 3; 436 tests across 25 suites
 - **[Loop-3 C7]** Applied same fixes to sales detail page: locale navigation, Print/PDF, responsive header, unused import (architecture consistency)
 - **[Loop-3 C8]** Added keyboard accessibility to sales list page: tabIndex, role, aria-label, Enter/Space, prefetch on focus (accessibility)
 - **[Loop-3 C9]** Added 13 unit tests for rate limiting middleware (rate limiter behavior, key generators) — total 449 tests across 26 suites
+- **[Loop-3 C10]** Fixed broken locale-less navigation across entire warehouses module (bug fix)
+- **[Loop-4 C1]** Fixed locale-less navigation across accounting journal, POS, and activation wizard modules — 6 files, 10 routes fixed (architecture/bug fix)
+- **[Loop-4 C2]** Improved responsive layout on customers list page — header stacks on mobile, normalized container (accessibility/UX)
+- **[Loop-4 C3]** Added 24 unit tests for ExchangeRateService methods (getRates, getRate, createRate, updateRate, deleteRate, getLatestRate, getRatesInRange) — total 473 tests across 26 suites
 
 ## Recommendations (Priority Order)
 
