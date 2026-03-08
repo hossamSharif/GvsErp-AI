@@ -269,11 +269,11 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="flex h-full flex-col space-y-4 p-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
           <p className="text-muted-foreground">Track all payments received and made</p>
         </div>
         <div className="flex items-center gap-2">
