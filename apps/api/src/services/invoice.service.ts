@@ -689,13 +689,14 @@ export class InvoiceService {
 
       if (inventory) {
         // Update existing inventory
-        await this.supabase
+        const { error: updateError } = await this.supabase
           .from('inventory')
           .update({ quantity: newQuantity })
           .eq('id', inventory.id);
+        if (updateError) throw updateError;
       } else {
         // Create inventory record (for purchases)
-        await this.supabase
+        const { error: insertError } = await this.supabase
           .from('inventory')
           .insert({
             tenant_id: this.tenantId,
@@ -703,6 +704,7 @@ export class InvoiceService {
             item_id: item.itemId,
             quantity: newQuantity,
           });
+        if (insertError) throw insertError;
       }
 
       movements.push({
@@ -742,12 +744,13 @@ export class InvoiceService {
       const newQuantity = previousQuantity + quantityChange;
 
       if (inventory) {
-        await this.supabase
+        const { error: updateError } = await this.supabase
           .from('inventory')
           .update({ quantity: newQuantity })
           .eq('id', inventory.id);
+        if (updateError) throw updateError;
       } else if (isSaleReturn) {
-        await this.supabase
+        const { error: insertError } = await this.supabase
           .from('inventory')
           .insert({
             tenant_id: this.tenantId,
@@ -755,6 +758,7 @@ export class InvoiceService {
             item_id: item.itemId,
             quantity: newQuantity,
           });
+        if (insertError) throw insertError;
       }
 
       movements.push({
