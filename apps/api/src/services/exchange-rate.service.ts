@@ -6,6 +6,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
+import type { ExchangeRate } from '@erp/shared';
 import { ExchangeRateRepository } from '../repositories/currency.repository';
 import type { QueryResult } from '../repositories/base.repository';
 
@@ -43,7 +44,7 @@ export class ExchangeRateService {
     limit?: number;
     sort_by?: string;
     sort_order?: 'asc' | 'desc';
-  }): Promise<QueryResult<any>> {
+  }): Promise<QueryResult<ExchangeRate>> {
     return this.repository.findAll({
       tenantId: this.tenantId,
       page: params.page || 1,
@@ -56,7 +57,7 @@ export class ExchangeRateService {
   /**
    * Get a single exchange rate by ID
    */
-  async getRate(id: string): Promise<any> {
+  async getRate(id: string): Promise<ExchangeRate> {
     const rate = await this.repository.findById(this.tenantId, id);
     if (!rate) {
       throw new ExchangeRateError('Exchange rate not found', 'RATE_NOT_FOUND', 404);
@@ -73,7 +74,7 @@ export class ExchangeRateService {
     rate_type?: string;
     rate: number;
     effective_date: string;
-  }): Promise<any> {
+  }): Promise<ExchangeRate> {
     const fromCurrency = input.from_currency.toUpperCase();
     const toCurrency = (input.to_currency || 'USD').toUpperCase();
     const rateType = (input.rate_type || 'formal') as 'formal' | 'black_market';
@@ -111,7 +112,7 @@ export class ExchangeRateService {
     rate_type?: string;
     rate?: number;
     effective_date?: string;
-  }): Promise<any> {
+  }): Promise<ExchangeRate> {
     const existing = await this.repository.findById(this.tenantId, id);
     if (!existing) {
       throw new ExchangeRateError('Exchange rate not found', 'RATE_NOT_FOUND', 404);
@@ -174,7 +175,7 @@ export class ExchangeRateService {
     to?: string;
     type?: 'formal' | 'black_market';
     asOfDate?: string;
-  }): Promise<any> {
+  }): Promise<ExchangeRate> {
     const rate = await this.repository.getLatestRate(
       this.tenantId,
       params.from.toUpperCase(),

@@ -36,8 +36,8 @@ export interface ExchangeRate {
   rate_type: RateType;
   rate: number;
   effective_date: string; // ISO date string
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CreateExchangeRateInput {
