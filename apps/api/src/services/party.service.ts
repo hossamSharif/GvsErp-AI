@@ -8,6 +8,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { PartyRepository } from '../repositories/party.repository';
+import { BaseRepository } from '../repositories/base.repository';
 import type {
   Party,
   PartyWithSummary,
@@ -523,7 +524,7 @@ export class PartyService {
       .select('id')
       .eq('tenant_id', this.tenantId)
       .eq('type', type)
-      .ilike('email', email)
+      .ilike('email', BaseRepository.escapeILike(email))
       .limit(1)
       .maybeSingle();
 

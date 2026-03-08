@@ -354,7 +354,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
       .from('parties')
       .select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
-      .ilike('name', name);
+      .ilike('name', BaseRepository.escapeILike(name));
 
     if (excludeId) {
       query = query.neq('id', excludeId);

@@ -58,7 +58,7 @@ export abstract class BaseRepository<
    * Prevents user input containing %, _, or \ from being interpreted
    * as wildcard operators in ILIKE queries.
    */
-  protected static escapeILike(input: string): string {
+  static escapeILike(input: string): string {
     return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
   }
 
