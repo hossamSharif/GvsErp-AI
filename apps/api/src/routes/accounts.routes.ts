@@ -66,24 +66,11 @@ router.get(
       const { type, tree } = req.query;
 
       if (tree === 'true') {
-        // Return hierarchical tree structure
-        const accounts = await service.getChartOfAccounts(
-          tenantId,
-          type as any
-        );
-        res.json({
-          success: true,
-          data: accounts,
-        });
-      } else {
-        // Return flat list
         const accounts = await service.getChartOfAccounts(tenantId, type as any);
-        // Flatten the tree
-        const flatAccounts = flattenTree(accounts);
-        res.json({
-          success: true,
-          data: flatAccounts,
-        });
+        res.json({ success: true, data: accounts });
+      } else {
+        const accounts = await service.getFlatChartOfAccounts(tenantId, type as any);
+        res.json({ success: true, data: accounts });
       }
     } catch (error) {
       next(error);
@@ -236,29 +223,5 @@ router.get(
     }
   }
 );
-
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
-/**
- * Flatten hierarchical account tree to flat array
- */
-function flattenTree(accounts: any[]): any[] {
-  const result: any[] = [];
-
-  function traverse(nodes: any[], depth: number = 0) {
-    for (const node of nodes) {
-      const { children, ...account } = node;
-      result.push({ ...account, depth });
-      if (children && children.length > 0) {
-        traverse(children, depth + 1);
-      }
-    }
-  }
-
-  traverse(accounts);
-  return result;
-}
 
 export default router;

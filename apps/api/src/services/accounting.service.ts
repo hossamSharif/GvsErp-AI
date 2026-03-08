@@ -75,6 +75,27 @@ export class AccountingService {
   }
 
   /**
+   * Get chart of accounts as flat list with depth indicator
+   */
+  async getFlatChartOfAccounts(tenantId: string, type?: AccountType): Promise<(Account & { depth: number })[]> {
+    const tree = await this.accountRepo.getAccountTree(tenantId, type);
+    const result: (Account & { depth: number })[] = [];
+
+    const traverse = (nodes: Account[], depth: number = 0) => {
+      for (const node of nodes) {
+        const { children, ...account } = node as Account & { children?: Account[] };
+        result.push({ ...account, children, depth } as Account & { depth: number });
+        if (children && children.length > 0) {
+          traverse(children, depth + 1);
+        }
+      }
+    };
+
+    traverse(tree);
+    return result;
+  }
+
+  /**
    * Get a single account by ID
    */
   async getAccount(tenantId: string, id: string) {
