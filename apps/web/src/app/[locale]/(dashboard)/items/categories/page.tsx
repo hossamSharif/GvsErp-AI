@@ -104,6 +104,7 @@ function CategoryTreeItem({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
+          aria-label={isExpanded ? `Collapse ${category.name}` : `Expand ${category.name}`}
           className={cn(
             'p-0.5 rounded hover:bg-muted',
             !hasChildren && 'invisible'

@@ -172,6 +172,7 @@ export default function ChartOfAccountsPage() {
               {hasChildren ? (
                 <button
                   onClick={() => toggleNode(account.id)}
+                  aria-label={isExpanded ? `Collapse account ${account.code}` : `Expand account ${account.code}`}
                   className="mr-2 p-0.5 hover:bg-muted rounded"
                 >
                   {isExpanded ? (
