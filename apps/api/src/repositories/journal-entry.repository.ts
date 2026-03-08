@@ -12,7 +12,12 @@ import type { JournalEntry, JournalLine, CreateJournalLineInput } from '@erp/sha
 type JournalEntryRow = Database['public']['Tables']['journal_entries']['Row'];
 type JournalEntryInsert = Database['public']['Tables']['journal_entries']['Insert'];
 type JournalEntryUpdate = Database['public']['Tables']['journal_entries']['Update'];
+type JournalLineRow = Database['public']['Tables']['journal_lines']['Row'];
 type JournalLineInsert = Database['public']['Tables']['journal_lines']['Insert'];
+
+type JournalEntryWithLines = JournalEntryRow & {
+  journal_lines: JournalLineRow[];
+};
 
 export interface JournalEntryQueryOptions extends QueryOptions {
   start_date?: string;
@@ -35,18 +40,27 @@ export class JournalEntryRepository extends BaseRepository<
   /**
    * Map DB row (with joined journal_lines) to JournalEntry type
    */
-  private mapEntry(row: any): JournalEntry {
+  private mapEntry(row: JournalEntryWithLines): JournalEntry {
     return {
       id: row.id,
       tenant_id: row.tenant_id,
       entry_number: row.entry_number,
       entry_date: row.date,
-      description: row.description,
+      description: row.description ?? undefined,
       is_posted: row.is_auto ?? false,
-      created_by: row.created_by,
+      created_by: row.created_by ?? undefined,
       created_at: row.created_at,
       updated_at: row.created_at, // DB doesn't have updated_at, use created_at
-      lines: row.journal_lines || [],
+      lines: (row.journal_lines || []).map((line) => ({
+        id: line.id,
+        journal_entry_id: line.journal_entry_id,
+        tenant_id: line.tenant_id,
+        account_id: line.account_id,
+        debit: line.debit,
+        credit: line.credit,
+        description: line.description ?? undefined,
+        created_at: line.created_at,
+      })),
     };
   }
 
@@ -130,7 +144,7 @@ export class JournalEntryRepository extends BaseRepository<
     }
 
     return {
-      data: (data || []).map((row: any) => this.mapEntry(row)),
+      data: (data || []).map((row) => this.mapEntry(row as JournalEntryWithLines)),
       meta: {
         page,
         limit,
