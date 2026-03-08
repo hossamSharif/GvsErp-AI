@@ -341,7 +341,7 @@ export default function TransfersPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(
-                                  `/warehouses/transfers/${transfer.id}`
+                                  `/${locale}/warehouses/transfers/${transfer.id}`
                                 );
                               }}
                             >
