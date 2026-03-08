@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useJournalEntries, usePostJournalEntry, useDeleteJournalEntry } from '@/hooks/use-journal-entries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +42,7 @@ import { format } from 'date-fns';
 
 export default function JournalEntriesPage() {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const [filters, setFilters] = useState({
     page: 1,
@@ -114,7 +115,7 @@ export default function JournalEntriesPage() {
             Manage your accounting journal entries
           </p>
         </div>
-        <Button onClick={() => router.push('/accounting/journal/new')}>
+        <Button onClick={() => router.push(`/${locale}/accounting/journal/new`)}>
           <Plus className="mr-2 h-4 w-4" />
           New Journal Entry
         </Button>
@@ -171,7 +172,7 @@ export default function JournalEntriesPage() {
                           {!entry.is_posted && (
                             <>
                               <DropdownMenuItem
-                                onClick={() => router.push(`/accounting/journal/${entry.id}`)}
+                                onClick={() => router.push(`/${locale}/accounting/journal/${entry.id}`)}
                               >
                                 <Edit2 className="mr-2 h-4 w-4" />
                                 Edit
@@ -191,7 +192,7 @@ export default function JournalEntriesPage() {
                           )}
                           {entry.is_posted && (
                             <DropdownMenuItem
-                              onClick={() => router.push(`/accounting/journal/${entry.id}`)}
+                              onClick={() => router.push(`/${locale}/accounting/journal/${entry.id}`)}
                             >
                               View Details
                             </DropdownMenuItem>

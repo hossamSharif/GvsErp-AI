@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useActivateAccounting } from '@/hooks/use-accounting';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +34,7 @@ export function AccountingActivationWizard({
   onClose,
 }: AccountingActivationWizardProps) {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [importDefaultChart, setImportDefaultChart] = useState(true);
@@ -66,7 +67,7 @@ export function AccountingActivationWizard({
 
   const handleClose = () => {
     if (step === 3) {
-      router.push('/accounting/accounts');
+      router.push(`/${locale}/accounting/accounts`);
     }
     onClose();
     setStep(1);

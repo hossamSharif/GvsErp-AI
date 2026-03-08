@@ -1,12 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useCreateJournalEntry } from '@/hooks/use-journal-entries';
 import { JournalEntryForm } from '@/components/forms/journal-entry-form';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NewJournalEntryPage() {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const createMutation = useCreateJournalEntry();
 
@@ -17,7 +18,7 @@ export default function NewJournalEntryPage() {
         title: 'Success',
         description: 'Journal entry created successfully',
       });
-      router.push('/accounting/journal');
+      router.push(`/${locale}/accounting/journal`);
     } catch (error: any) {
       toast({
         title: 'Error',

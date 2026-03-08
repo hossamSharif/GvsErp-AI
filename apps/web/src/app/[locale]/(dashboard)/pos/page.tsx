@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {  Plus, Settings, Store, MapPin, CheckCircle2, XCircle } from 'lucide-react';
 import { usePOSLocations, useDeletePOSLocation } from '@/hooks/use-pos';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ import { CreateWarehouseDialog } from '@/components/dialogs/create-warehouse-dia
 
 export default function POSLocationsPage() {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -76,11 +77,11 @@ export default function POSLocationsPage() {
   };
 
   const handleOpenTerminal = (id: string) => {
-    router.push(`/pos/${id}/terminal`);
+    router.push(`/${locale}/pos/${id}/terminal`);
   };
 
   const handleConfigure = (id: string) => {
-    router.push(`/pos/${id}/settings`);
+    router.push(`/${locale}/pos/${id}/settings`);
   };
 
   if (isLoading) {

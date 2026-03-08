@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,6 +31,7 @@ interface HRActivationWizardProps {
 
 export function HRActivationWizard({ open, onClose }: HRActivationWizardProps) {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isActivating, setIsActivating] = useState(false);
@@ -71,7 +72,7 @@ export function HRActivationWizard({ open, onClose }: HRActivationWizardProps) {
 
   const handleClose = () => {
     if (step === 3) {
-      router.push('/hr/employees');
+      router.push(`/${locale}/hr/employees`);
     }
     onClose();
     setStep(1);

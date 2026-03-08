@@ -39,6 +39,7 @@ export default function POSTerminalPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const locale = params.locale as string;
   const posLocationId = params.id as string;
 
   // State
@@ -171,7 +172,7 @@ export default function POSTerminalPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h2 className="text-2xl font-bold mb-4">POS Location Not Found</h2>
-        <Button onClick={() => router.push('/pos')}>Back to POS Locations</Button>
+        <Button onClick={() => router.push(`/${locale}/pos`)}>Back to POS Locations</Button>
       </div>
     );
   }
@@ -187,7 +188,7 @@ export default function POSTerminalPage() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{selectedPaymentMethod.toUpperCase()}</Badge>
-            <Button variant="outline" size="sm" onClick={() => router.push('/pos')}>
+            <Button variant="outline" size="sm" onClick={() => router.push(`/${locale}/pos`)}>
               <X className="h-4 w-4 mr-2" />
               Close Terminal
             </Button>
