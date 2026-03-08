@@ -6,6 +6,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
+import type { Currency } from '@erp/shared';
 import { CurrencyRepository } from '../repositories/currency.repository';
 import type { QueryResult } from '../repositories/base.repository';
 
@@ -41,7 +42,7 @@ export class CurrencyService {
   async getCurrencies(params: {
     page?: number;
     limit?: number;
-  }): Promise<QueryResult<any>> {
+  }): Promise<QueryResult<Currency>> {
     return this.repository.findAll({
       tenantId: this.tenantId,
       page: params.page || 1,
@@ -52,7 +53,7 @@ export class CurrencyService {
   /**
    * Get a single currency by ID
    */
-  async getCurrency(id: string): Promise<any> {
+  async getCurrency(id: string): Promise<Currency> {
     const currency = await this.repository.findById(this.tenantId, id);
     if (!currency) {
       throw new CurrencyError('Currency not found', 'CURRENCY_NOT_FOUND', 404);
@@ -63,7 +64,7 @@ export class CurrencyService {
   /**
    * Get a currency by code
    */
-  async getCurrencyByCode(code: string): Promise<any> {
+  async getCurrencyByCode(code: string): Promise<Currency> {
     const currency = await this.repository.findByCode(this.tenantId, code);
     if (!currency) {
       throw new CurrencyError('Currency not found', 'CURRENCY_NOT_FOUND', 404);
@@ -79,7 +80,7 @@ export class CurrencyService {
     name: string;
     symbol?: string;
     is_default?: boolean;
-  }): Promise<any> {
+  }): Promise<Currency> {
     const codeExists = await this.repository.codeExists(this.tenantId, input.code);
     if (codeExists) {
       throw new CurrencyError('A currency with this code already exists', 'CURRENCY_CODE_EXISTS');
@@ -101,7 +102,7 @@ export class CurrencyService {
     name?: string;
     symbol?: string;
     is_default?: boolean;
-  }): Promise<any> {
+  }): Promise<Currency> {
     const existing = await this.repository.findById(this.tenantId, id);
     if (!existing) {
       throw new CurrencyError('Currency not found', 'CURRENCY_NOT_FOUND', 404);
@@ -153,7 +154,7 @@ export class CurrencyService {
   /**
    * Get the default currency
    */
-  async getDefaultCurrency(): Promise<any> {
+  async getDefaultCurrency(): Promise<Currency> {
     const currency = await this.repository.getDefault(this.tenantId);
     if (!currency) {
       throw new CurrencyError('No default currency set', 'NO_DEFAULT_CURRENCY', 404);
@@ -164,7 +165,7 @@ export class CurrencyService {
   /**
    * Set a currency as the default
    */
-  async setDefault(id: string): Promise<any> {
+  async setDefault(id: string): Promise<Currency> {
     const existing = await this.repository.findById(this.tenantId, id);
     if (!existing) {
       throw new CurrencyError('Currency not found', 'CURRENCY_NOT_FOUND', 404);
