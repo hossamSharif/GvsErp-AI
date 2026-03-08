@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 10; 487 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 16; 495 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 10; 487 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 487 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 495 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -285,6 +285,11 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 10; 487 tests across 2
 - **[Loop-4 C8]** Improved responsive layout on payments list page — header stacks on mobile (UX)
 - **[Loop-4 C9]** Added 14 unit tests for SettingsService methods (getSettings, resetSettings, getCompanyInfo, toggleAccountingModule, toggleHRModule, getSetting) — total 487 tests across 26 suites
 - **[Loop-4 C10]** Fixed last locale-less navigation in warehouses/transfers/page.tsx dropdown menu (bug fix); updated gap analysis to 487 tests
+- **[Loop-4 C11]** Fixed non-responsive header on warehouses list page — 4 action buttons now wrap on mobile (UX)
+- **[Loop-4 C12]** Added BaseRepository.assertUuid() to validate UUIDs before PostgREST .or() filter interpolation — prevents filter injection (security)
+- **[Loop-4 C13]** Moved flattenTree from accounts route to AccountingService.getFlatChartOfAccounts — typed, eliminates last route-level business logic (architecture)
+- **[Loop-4 C14]** Fixed responsive headers on sales and purchases list pages (UX)
+- **[Loop-4 C15]** Added 8 unit tests for BaseRepository.assertUuid (valid, invalid, injection payloads) — total 495 tests across 26 suites
 
 ## Recommendations (Priority Order)
 
