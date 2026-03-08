@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { AccountingService, AccountingError } from '../../src/services/accounting.service';
 
 /**
@@ -103,5 +103,57 @@ describe('AccountingService constructor', () => {
 
   it('initializes journalRepo', () => {
     expect(accountingService.journalRepo).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// getFlatChartOfAccounts
+// ==========================================================================
+
+describe('AccountingService.getFlatChartOfAccounts', () => {
+  it('flattens a tree with depth indicators', async () => {
+    const svc = new (AccountingService as any)(null);
+    const mockTree = [
+      {
+        id: '1', code: '1000', name: 'Assets', children: [
+          { id: '2', code: '1100', name: 'Cash', children: [] },
+          { id: '3', code: '1200', name: 'Receivables', children: [
+            { id: '4', code: '1210', name: 'Trade Receivables', children: [] },
+          ]},
+        ],
+      },
+      { id: '5', code: '2000', name: 'Liabilities', children: [] },
+    ];
+    svc.accountRepo = { getAccountTree: vi.fn().mockResolvedValue(mockTree) };
+
+    const result = await svc.getFlatChartOfAccounts('t1');
+    expect(result).toHaveLength(5);
+    expect(result[0].name).toBe('Assets');
+    expect(result[0].depth).toBe(0);
+    expect(result[1].name).toBe('Cash');
+    expect(result[1].depth).toBe(1);
+    expect(result[2].name).toBe('Receivables');
+    expect(result[2].depth).toBe(1);
+    expect(result[3].name).toBe('Trade Receivables');
+    expect(result[3].depth).toBe(2);
+    expect(result[4].name).toBe('Liabilities');
+    expect(result[4].depth).toBe(0);
+  });
+
+  it('returns empty array for empty tree', async () => {
+    const svc = new (AccountingService as any)(null);
+    svc.accountRepo = { getAccountTree: vi.fn().mockResolvedValue([]) };
+
+    const result = await svc.getFlatChartOfAccounts('t1');
+    expect(result).toEqual([]);
+  });
+
+  it('passes type parameter to accountRepo', async () => {
+    const svc = new (AccountingService as any)(null);
+    const getAccountTree = vi.fn().mockResolvedValue([]);
+    svc.accountRepo = { getAccountTree };
+
+    await svc.getFlatChartOfAccounts('t1', 'asset');
+    expect(getAccountTree).toHaveBeenCalledWith('t1', 'asset');
   });
 });
