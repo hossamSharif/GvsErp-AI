@@ -110,7 +110,7 @@ export class UserService {
 
     if (authError || !authData.user) {
       throw new UserError(
-        `Failed to create auth user: ${authError?.message}`,
+        'Failed to create auth user',
         'AUTH_CREATE_FAILED',
         500
       );
@@ -176,7 +176,7 @@ export class UserService {
 
       if (authError) {
         throw new UserError(
-          `Failed to update auth email: ${authError.message}`,
+          'Failed to update auth email',
           'AUTH_UPDATE_FAILED',
           500
         );
@@ -246,7 +246,7 @@ export class UserService {
     const { error: authError } = await this.supabase.auth.admin.deleteUser(id);
     if (authError) {
       throw new UserError(
-        `Failed to delete auth user: ${authError.message}`,
+        'Failed to delete auth user',
         'AUTH_DELETE_FAILED',
         500
       );
@@ -317,7 +317,7 @@ export class UserService {
 
     if (error) {
       throw new UserError(
-        `Failed to change password: ${error.message}`,
+        'Failed to change password',
         'PASSWORD_CHANGE_FAILED',
         500
       );
@@ -332,7 +332,7 @@ export class UserService {
 
     if (error) {
       throw new UserError(
-        `Failed to send password reset email: ${error.message}`,
+        'Failed to send password reset email',
         'PASSWORD_RESET_FAILED',
         500
       );
