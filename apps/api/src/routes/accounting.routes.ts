@@ -8,7 +8,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AccountingService } from '../services/accounting.service';
+import { AccountingService, AccountingError } from '../services/accounting.service';
 import {
   accountingActivationSchema,
   trialBalanceQuerySchema,
@@ -78,13 +78,13 @@ router.post(
           accounts,
         },
       });
-    } catch (error: any) {
-      if (error.message.includes('already exists')) {
-        res.status(400).json({
+    } catch (error: unknown) {
+      if (error instanceof AccountingError) {
+        res.status(error.statusCode).json({
           success: false,
           error: {
-            code: 'ALREADY_ACTIVATED',
-            message: 'Accounting module already activated',
+            code: error.code,
+            message: error.message,
           },
         });
         return;
@@ -236,12 +236,12 @@ router.get(
         success: true,
         data: generalLedger,
       });
-    } catch (error: any) {
-      if (error.message.includes('not found')) {
-        res.status(404).json({
+    } catch (error: unknown) {
+      if (error instanceof AccountingError) {
+        res.status(error.statusCode).json({
           success: false,
           error: {
-            code: 'ACCOUNT_NOT_FOUND',
+            code: error.code,
             message: error.message,
           },
         });
