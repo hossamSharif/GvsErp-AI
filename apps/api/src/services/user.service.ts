@@ -8,7 +8,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
-import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput } from '@erp/shared';
+import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput, Permission } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
 /**
@@ -376,7 +376,7 @@ export class UserService {
   /**
    * Map database user to API user type
    */
-  private mapUser(user: any): SharedUserWithRole {
+  private mapUser(user: UserWithRole): SharedUserWithRole {
     return {
       id: user.id,
       tenant_id: user.tenant_id,
@@ -387,11 +387,11 @@ export class UserService {
         id: user.role.id,
         tenant_id: user.role.tenant_id,
         name: user.role.name,
-        permissions: user.role.permissions,
+        permissions: (Array.isArray(user.role.permissions) ? user.role.permissions : []) as Permission[],
         is_system: user.role.is_system,
         created_at: user.role.created_at,
       } : null,
-      preferences: user.preferences || {},
+      preferences: (user.preferences || {}) as Record<string, unknown>,
       is_active: user.is_active,
       created_at: user.created_at,
       updated_at: user.updated_at,
