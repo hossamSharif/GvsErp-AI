@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 10; 514 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 16; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -312,6 +312,12 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 10; 514 tests across 2
 - **[Loop-5 C7]** Replaced 7 any return types with Role in RoleService, added mapRow for DB→shared type mapping (type safety)
 - **[Loop-5 C8]** Fixed responsive header on settings currencies page (UX)
 - **[Loop-5 C9]** Added 10 missing error code tests for PaymentService and AuditService — total 514 tests
+- **[Loop-5 C10]** Updated gap analysis: 514 tests, documented Loop 5 iterations 4-9
+- **[Loop-5 C11]** Added confirmation dialog before clearing POS cart to prevent accidental data loss (UX)
+- **[Loop-5 C12]** Removed Supabase auth error message interpolation from 5 UserService error throws — prevents internal detail leaking (security)
+- **[Loop-5 C13]** Replaced 7 any return types with Currency in CurrencyService, made updated_at optional in shared Currency type to match DB schema (type safety)
+- **[Loop-5 C14]** Fixed responsive header on settings exchange-rates page (UX)
+- **[Loop-5 C15]** QA clean pass — 514 tests pass, all 20 services have complete error code coverage, build 5/5 tasks pass
 
 ## Recommendations (Priority Order)
 
