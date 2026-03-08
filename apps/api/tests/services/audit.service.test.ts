@@ -33,6 +33,24 @@ describe('AuditError', () => {
 });
 
 // ==========================================================================
+// AuditError — all error codes used in service
+// ==========================================================================
+
+describe('AuditError specific codes', () => {
+  it('creates FETCH_FAILED error', () => {
+    const err = new AuditError('Failed to fetch audit logs', 'FETCH_FAILED', 500);
+    expect(err.code).toBe('FETCH_FAILED');
+    expect(err.statusCode).toBe(500);
+  });
+
+  it('creates COUNT_FAILED error', () => {
+    const err = new AuditError('Failed to count audit logs', 'COUNT_FAILED', 500);
+    expect(err.code).toBe('COUNT_FAILED');
+    expect(err.statusCode).toBe(500);
+  });
+});
+
+// ==========================================================================
 // sanitizeValues
 // ==========================================================================
 

@@ -33,6 +33,60 @@ describe('PaymentError', () => {
 });
 
 // ==========================================================================
+// PaymentError — all error codes used in service
+// ==========================================================================
+
+describe('PaymentError specific codes', () => {
+  it('creates PAYMENT_NOT_FOUND error', () => {
+    const err = new PaymentError('Payment not found', 'PAYMENT_NOT_FOUND', 404);
+    expect(err.code).toBe('PAYMENT_NOT_FOUND');
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('creates PARTY_NOT_FOUND error', () => {
+    const err = new PaymentError('Party not found', 'PARTY_NOT_FOUND', 404);
+    expect(err.code).toBe('PARTY_NOT_FOUND');
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('creates INVOICE_NOT_FOUND error', () => {
+    const err = new PaymentError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
+    expect(err.code).toBe('INVOICE_NOT_FOUND');
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('creates INVOICE_NOT_FINAL error', () => {
+    const err = new PaymentError('Invoice must be finalized', 'INVOICE_NOT_FINAL');
+    expect(err.code).toBe('INVOICE_NOT_FINAL');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates INVOICE_PARTY_MISMATCH error', () => {
+    const err = new PaymentError('Invoice does not belong to this party', 'INVOICE_PARTY_MISMATCH');
+    expect(err.code).toBe('INVOICE_PARTY_MISMATCH');
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('creates CREATE_FAILED error', () => {
+    const err = new PaymentError('Failed to create payment', 'CREATE_FAILED', 500);
+    expect(err.code).toBe('CREATE_FAILED');
+    expect(err.statusCode).toBe(500);
+  });
+
+  it('creates UPDATE_FAILED error', () => {
+    const err = new PaymentError('Failed to update payment', 'UPDATE_FAILED', 500);
+    expect(err.code).toBe('UPDATE_FAILED');
+    expect(err.statusCode).toBe(500);
+  });
+
+  it('creates DELETE_FAILED error', () => {
+    const err = new PaymentError('Failed to delete payment', 'DELETE_FAILED', 500);
+    expect(err.code).toBe('DELETE_FAILED');
+    expect(err.statusCode).toBe(500);
+  });
+});
+
+// ==========================================================================
 // validatePaymentType
 // ==========================================================================
 
