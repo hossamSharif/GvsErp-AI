@@ -50,3 +50,43 @@ describe('BaseRepository.escapeILike', () => {
     expect(BaseRepository.escapeILike('مرحبا')).toBe('مرحبا');
   });
 });
+
+// ==========================================================================
+// assertUuid
+// ==========================================================================
+
+describe('BaseRepository.assertUuid', () => {
+  const assertUuid = (BaseRepository as any).assertUuid.bind(BaseRepository);
+
+  it('accepts valid UUID v4', () => {
+    expect(assertUuid('550e8400-e29b-41d4-a716-446655440000')).toBe('550e8400-e29b-41d4-a716-446655440000');
+  });
+
+  it('accepts uppercase UUID', () => {
+    expect(assertUuid('550E8400-E29B-41D4-A716-446655440000')).toBe('550E8400-E29B-41D4-A716-446655440000');
+  });
+
+  it('rejects empty string', () => {
+    expect(() => assertUuid('')).toThrow('Invalid UUID format');
+  });
+
+  it('rejects non-UUID string', () => {
+    expect(() => assertUuid('not-a-uuid')).toThrow('Invalid UUID format');
+  });
+
+  it('rejects UUID with filter injection payload', () => {
+    expect(() => assertUuid('abc,status.eq.completed')).toThrow('Invalid UUID format');
+  });
+
+  it('rejects UUID-like string with extra characters', () => {
+    expect(() => assertUuid('550e8400-e29b-41d4-a716-446655440000-extra')).toThrow('Invalid UUID format');
+  });
+
+  it('rejects UUID without dashes', () => {
+    expect(() => assertUuid('550e8400e29b41d4a716446655440000')).toThrow('Invalid UUID format');
+  });
+
+  it('rejects UUID with wrong segment lengths', () => {
+    expect(() => assertUuid('550e840-0e29b-41d4-a716-446655440000')).toThrow('Invalid UUID format');
+  });
+});
