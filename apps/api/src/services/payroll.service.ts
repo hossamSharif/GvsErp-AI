@@ -10,7 +10,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
-import { PayrollRepository } from '../repositories/payroll.repository';
+import { PayrollRepository, type PayrollRunRow } from '../repositories/payroll.repository';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { AttendanceRepository } from '../repositories/attendance.repository';
 import { AccountingService } from './accounting.service';
@@ -306,7 +306,7 @@ export class PayrollService {
    * Post payroll to accounting module (auto-generate journal entry)
    */
   private async postPayrollToAccounting(
-    payrollRun: any,
+    payrollRun: PayrollRunRow,
     _payrollItems: PayrollItem[],
     userId: string
   ) {

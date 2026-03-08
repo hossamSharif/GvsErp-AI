@@ -8,7 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 
-type PayrollRunRow = Database['public']['Tables']['payroll_runs']['Row'];
+export type PayrollRunRow = Database['public']['Tables']['payroll_runs']['Row'];
 type PayrollRunInsert = Database['public']['Tables']['payroll_runs']['Insert'];
 type PayrollRunUpdate = Database['public']['Tables']['payroll_runs']['Update'];
 
