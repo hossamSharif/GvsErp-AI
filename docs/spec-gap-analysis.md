@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 28; 498 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 4; 504 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 28; 498 tests across 2
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 20 passing (API error middleware)
+- **Tests**: 504 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -144,7 +144,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 28; 498 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 498 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 504 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -303,6 +303,9 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 28; 498 tests across 2
 - **[Loop-4 C26]** Fixed responsive header on settings users page (UX)
 - **[Loop-4 C27]** QA clean pass — 498 tests pass, no issues found
 - **[Loop-4 C28]** PM clean pass — gap analysis updated, all iterative fixes complete
+- **[Loop-5 C1]** Replaced any[] with Account[] in accounting activation route (type safety)
+- **[Loop-5 C2]** Fixed responsive header on settings audit-logs page (UX)
+- **[Loop-5 C3]** Added 6 missing error code tests for PayrollService (CANNOT_DELETE) and InvoiceService (INVOICE_NOT_DRAFT, INVOICE_NO_ITEMS, INVOICE_NOT_FINAL, ITEMS_NOT_FOUND, INSUFFICIENT_STOCK) — total 504 tests
 
 ## Recommendations (Priority Order)
 
