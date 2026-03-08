@@ -163,7 +163,7 @@ export class TransferRepository extends BaseRepository<
       query = query.eq('to_warehouse_id', toWarehouseId);
     }
     if (search) {
-      query = query.ilike('transfer_number', `%${search}%`);
+      query = query.ilike('transfer_number', `%${BaseRepository.escapeILike(search)}%`);
     }
     if (dateFrom) {
       query = query.gte('created_at', dateFrom);

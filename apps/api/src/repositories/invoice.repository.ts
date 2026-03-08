@@ -100,7 +100,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
     }
 
     if (search) {
-      query = query.ilike('invoice_number', `%${search}%`);
+      query = query.ilike('invoice_number', `%${BaseRepository.escapeILike(search)}%`);
     }
 
     if (dateFrom) {

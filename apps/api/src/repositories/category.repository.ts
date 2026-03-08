@@ -265,7 +265,7 @@ export class CategoryRepository extends BaseRepository<'categories', CategoryRow
       .from('categories')
       .select('*')
       .eq('tenant_id', tenantId)
-      .ilike('name', `%${query}%`)
+      .ilike('name', `%${BaseRepository.escapeILike(query)}%`)
       .order('name')
       .limit(50);
 
