@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 4; 504 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 10; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 4; 504 tests across 26
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 504 passing across 26 suites
+- **Tests**: 514 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -144,7 +144,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 4; 504 tests across 26
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 504 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 514 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -306,6 +306,12 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 4; 504 tests across 26
 - **[Loop-5 C1]** Replaced any[] with Account[] in accounting activation route (type safety)
 - **[Loop-5 C2]** Fixed responsive header on settings audit-logs page (UX)
 - **[Loop-5 C3]** Added 6 missing error code tests for PayrollService (CANNOT_DELETE) and InvoiceService (INVOICE_NOT_DRAFT, INVOICE_NO_ITEMS, INVOICE_NOT_FINAL, ITEMS_NOT_FOUND, INSUFFICIENT_STOCK) — total 504 tests
+- **[Loop-5 C4]** Updated gap analysis: 504 tests, documented Loop 5 iterations 1-3
+- **[Loop-5 C5]** Clamped POS discount input to 0-100% — JS enforcement was missing despite HTML min/max attributes (UX/bug fix)
+- **[Loop-5 C6]** Added error handling to inventory mutations in applyStockMovements and reverseStockMovements — previously silent failures (bug fix)
+- **[Loop-5 C7]** Replaced 7 any return types with Role in RoleService, added mapRow for DB→shared type mapping (type safety)
+- **[Loop-5 C8]** Fixed responsive header on settings currencies page (UX)
+- **[Loop-5 C9]** Added 10 missing error code tests for PaymentService and AuditService — total 514 tests
 
 ## Recommendations (Priority Order)
 
