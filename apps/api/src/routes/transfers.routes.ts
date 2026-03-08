@@ -278,24 +278,13 @@ router.get(
       // Get transfers where warehouse is either source or destination
       const result = await service.getTransfers({
         ...params,
-        fromWarehouseId: undefined,
-        toWarehouseId: undefined,
+        warehouseId: req.params.warehouseId,
       });
-
-      // Filter to only include transfers involving this warehouse
-      const filteredData = result.data.filter(
-        t =>
-          t.fromWarehouseId === req.params.warehouseId ||
-          t.toWarehouseId === req.params.warehouseId
-      );
 
       res.json({
         success: true,
-        data: filteredData,
-        meta: {
-          ...result.meta,
-          total: filteredData.length,
-        },
+        data: result.data,
+        meta: result.meta,
       });
     } catch (error) {
       handleTransferError(error, res, next);

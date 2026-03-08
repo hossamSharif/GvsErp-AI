@@ -110,6 +110,7 @@ export class TransferRepository extends BaseRepository<
       status,
       fromWarehouseId,
       toWarehouseId,
+      warehouseId,
       search,
       dateFrom,
       dateTo,
@@ -155,6 +156,9 @@ export class TransferRepository extends BaseRepository<
     // Apply filters
     if (status) {
       query = query.eq('status', status);
+    }
+    if (warehouseId) {
+      query = query.or(`from_warehouse_id.eq.${warehouseId},to_warehouse_id.eq.${warehouseId}`);
     }
     if (fromWarehouseId) {
       query = query.eq('from_warehouse_id', fromWarehouseId);

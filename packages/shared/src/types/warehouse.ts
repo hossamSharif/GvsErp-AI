@@ -238,6 +238,8 @@ export interface TransferQueryParams {
   fromWarehouseId?: string;
   /** Filter by destination warehouse */
   toWarehouseId?: string;
+  /** Filter by warehouse as either source or destination */
+  warehouseId?: string;
   /** Search term for transfer number */
   search?: string;
   /** Filter by date range start */
