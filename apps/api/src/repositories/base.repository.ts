@@ -63,6 +63,17 @@ export abstract class BaseRepository<
   }
 
   /**
+   * Validate UUID format before use in PostgREST .or() filters.
+   * Prevents filter injection via malicious values containing commas or dots.
+   */
+  protected static assertUuid(value: string): string {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+      throw new Error(`Invalid UUID format: ${value}`);
+    }
+    return value;
+  }
+
+  /**
    * Find all records with pagination
    */
   async findAll(options: QueryOptions): Promise<QueryResult<TRow>> {

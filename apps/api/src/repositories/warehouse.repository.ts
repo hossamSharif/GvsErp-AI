@@ -244,7 +244,7 @@ export class WarehouseRepository extends BaseRepository<
       .from('transfers')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId)
-      .or(`from_warehouse_id.eq.${warehouseId},to_warehouse_id.eq.${warehouseId}`)
+      .or(`from_warehouse_id.eq.${BaseRepository.assertUuid(warehouseId)},to_warehouse_id.eq.${BaseRepository.assertUuid(warehouseId)}`)
       .in('status', ['pending', 'in_transit']);
 
     if (error) {

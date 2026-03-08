@@ -158,7 +158,8 @@ export class TransferRepository extends BaseRepository<
       query = query.eq('status', status);
     }
     if (warehouseId) {
-      query = query.or(`from_warehouse_id.eq.${warehouseId},to_warehouse_id.eq.${warehouseId}`);
+      const wid = BaseRepository.assertUuid(warehouseId);
+      query = query.or(`from_warehouse_id.eq.${wid},to_warehouse_id.eq.${wid}`);
     }
     if (fromWarehouseId) {
       query = query.eq('from_warehouse_id', fromWarehouseId);
@@ -478,7 +479,7 @@ export class TransferRepository extends BaseRepository<
       .from(this.tableName)
       .select('*')
       .eq('tenant_id', tenantId)
-      .or(`from_warehouse_id.eq.${warehouseId},to_warehouse_id.eq.${warehouseId}`);
+      .or(`from_warehouse_id.eq.${BaseRepository.assertUuid(warehouseId)},to_warehouse_id.eq.${BaseRepository.assertUuid(warehouseId)}`);
 
     if (status) {
       query = query.eq('status', status);
