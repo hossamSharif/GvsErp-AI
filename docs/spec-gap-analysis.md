@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 16; 514 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 22; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -318,6 +318,13 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 16; 514 tests across 2
 - **[Loop-5 C13]** Replaced 7 any return types with Currency in CurrencyService, made updated_at optional in shared Currency type to match DB schema (type safety)
 - **[Loop-5 C14]** Fixed responsive header on settings exchange-rates page (UX)
 - **[Loop-5 C15]** QA clean pass — 514 tests pass, all 20 services have complete error code coverage, build 5/5 tasks pass
+- **[Loop-5 C16]** Updated gap analysis: 514 tests, documented Loop 5 iterations 10-15
+- **[Loop-5 C17]** Added payment method selector (cash/card/transfer) to POS terminal — was stuck on cash only (UX)
+- **[Loop-5 C18]** Replaced any with PayrollRunRow in postPayrollToAccounting, exported type from repository (type safety)
+- **[Loop-5 C19]** Replaced 5 any return types with ExchangeRate in ExchangeRateService, made created_at/updated_at optional in shared type (type safety)
+- **[Loop-5 C20]** Fixed responsive header on POS locations page (UX)
+- **[Loop-5 C21]** QA clean pass — 514 tests, all error codes covered
+- **[Loop-5 C22]** PM update — documented iterations 16-21, remaining: 1 responsive header (transfers), few any types in mapRow params
 
 ## Recommendations (Priority Order)
 
