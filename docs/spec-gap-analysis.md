@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 16; 495 tests across 26 suites)
+Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 22; 498 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 16; 495 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 495 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 498 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -290,6 +290,12 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 4 iter 16; 495 tests across 2
 - **[Loop-4 C13]** Moved flattenTree from accounts route to AccountingService.getFlatChartOfAccounts — typed, eliminates last route-level business logic (architecture)
 - **[Loop-4 C14]** Fixed responsive headers on sales and purchases list pages (UX)
 - **[Loop-4 C15]** Added 8 unit tests for BaseRepository.assertUuid (valid, invalid, injection payloads) — total 495 tests across 26 suites
+- **[Loop-4 C16]** Updated gap analysis: 495 tests, documented iterations 11-15
+- **[Loop-4 C17]** Fixed non-responsive header on HR employees list page (UX)
+- **[Loop-4 C18]** Replaced fragile error.message.includes() with instanceof AccountingError — 2 catch blocks, error: any→unknown (code review)
+- **[Loop-4 C19]** Replaced 4 any types with Request and unknown in AuditService (type safety)
+- **[Loop-4 C20]** Fixed responsive headers on HR payroll and attendance pages (UX)
+- **[Loop-4 C21]** Added 3 unit tests for AccountingService.getFlatChartOfAccounts — total 498 tests across 26 suites
 
 ## Recommendations (Priority Order)
 
