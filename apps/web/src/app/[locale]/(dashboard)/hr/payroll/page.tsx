@@ -89,14 +89,14 @@ export default function PayrollPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payroll</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Payroll</h1>
           <p className="text-muted-foreground">
             Process and manage employee payroll
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
             Export
