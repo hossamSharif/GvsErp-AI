@@ -13,6 +13,8 @@ import {
   Minus,
   Trash2,
   DollarSign,
+  CreditCard,
+  Banknote,
   Users,
   Tag,
   Receipt,
@@ -372,6 +374,24 @@ export default function POSTerminalPage() {
                   <span>Total:</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
+              </div>
+
+              <div className="flex gap-2">
+                {[
+                  { value: 'cash', label: 'Cash', icon: Banknote },
+                  { value: 'card', label: 'Card', icon: CreditCard },
+                  { value: 'bank_transfer', label: 'Transfer', icon: DollarSign },
+                ].map(({ value, label, icon: Icon }) => (
+                  <Button
+                    key={value}
+                    variant={selectedPaymentMethod === value ? 'default' : 'outline'}
+                    className="flex-1"
+                    onClick={() => setSelectedPaymentMethod(value)}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {label}
+                  </Button>
+                ))}
               </div>
 
               <Button
