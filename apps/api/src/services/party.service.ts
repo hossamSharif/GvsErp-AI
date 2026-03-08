@@ -40,6 +40,33 @@ export class PartyError extends Error {
   }
 }
 
+/** DB row shape from the parties table */
+interface PartyRow {
+  id: string;
+  tenant_id: string;
+  type: PartyType;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  tax_number: string | null;
+  balance: number;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** RPC result from get_balance_summary */
+interface BalanceSummaryRow {
+  party_id: string;
+  party_name: string;
+  party_type: string;
+  balance: number;
+  total_invoiced: number;
+  total_paid: number;
+}
+
 /**
  * Service for Party business logic
  */
@@ -219,13 +246,13 @@ export class PartyService {
       throw new PartyError('Failed to get balance summary', 'SUMMARY_FAILED', 500);
     }
 
-    return (data || []).map((row: any) => ({
+    return (data || []).map((row: BalanceSummaryRow) => ({
       partyId: row.party_id,
       partyName: row.party_name,
-      partyType: row.party_type,
+      partyType: row.party_type as PartyType,
       totalInvoiced: Number(row.total_invoiced || 0),
       totalPaid: Number(row.total_paid || 0),
-      currentBalance: Number(row.current_balance || 0),
+      currentBalance: Number(row.balance || 0),
     }));
   }
 
@@ -540,7 +567,7 @@ export class PartyService {
   /**
    * Map a DB row to the camelCase Party type
    */
-  private mapRow(row: any): Party {
+  private mapRow(row: PartyRow): Party {
     return {
       id: row.id,
       tenantId: row.tenant_id,
