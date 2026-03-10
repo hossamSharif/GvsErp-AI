@@ -204,7 +204,7 @@ export class ExchangeRateService {
     type?: 'formal' | 'black_market';
     startDate: string;
     endDate: string;
-  }): Promise<any[]> {
+  }): Promise<ExchangeRate[]> {
     return this.repository.getRatesInRange(
       this.tenantId,
       params.from.toUpperCase(),
