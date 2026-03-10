@@ -210,7 +210,7 @@ export default function POSTerminalPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 grid grid-cols-2 gap-4 p-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 overflow-auto md:overflow-hidden">
         {/* Left: Item Search & Selection */}
         <div className="flex flex-col space-y-4">
           <Card>
