@@ -134,6 +134,65 @@ describe('errorHandler', () => {
     });
   });
 
+  it('handles domain service error with statusCode and code', () => {
+    class ItemError extends Error {
+      constructor(message: string, public readonly code: string, public readonly statusCode: number) {
+        super(message);
+        this.name = 'ItemError';
+      }
+    }
+
+    const err = new ItemError('Item not found', 'ITEM_NOT_FOUND', 404);
+    const req = mockRequest();
+    const res = mockResponse();
+    const next = vi.fn();
+
+    errorHandler(err, req, res, next);
+
+    expect(res._status).toBe(404);
+    expect(res._json).toMatchObject({
+      code: 'ITEM_NOT_FOUND',
+      message: 'Item not found',
+      request_id: 'test-req-id',
+    });
+  });
+
+  it('handles domain service error with default 400 status', () => {
+    class CategoryError extends Error {
+      public readonly code: string;
+      public readonly statusCode: number;
+      constructor(message: string) {
+        super(message);
+        this.name = 'CategoryError';
+        this.code = 'CATEGORY_INVALID';
+        this.statusCode = 400;
+      }
+    }
+
+    const err = new CategoryError('Invalid category');
+    const req = mockRequest();
+    const res = mockResponse();
+
+    errorHandler(err, req, res, vi.fn());
+
+    expect(res._status).toBe(400);
+    expect(res._json).toMatchObject({
+      code: 'CATEGORY_INVALID',
+      message: 'Invalid category',
+    });
+  });
+
+  it('does not treat plain Error as service error', () => {
+    const err = new Error('plain error');
+    const req = mockRequest();
+    const res = mockResponse();
+
+    errorHandler(err, req, res, vi.fn());
+
+    expect(res._status).toBe(500);
+    expect(res._json).toMatchObject({ code: 'INTERNAL_ERROR' });
+  });
+
   it('hides error message in production', () => {
     const original = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
