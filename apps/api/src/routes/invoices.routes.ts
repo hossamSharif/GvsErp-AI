@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { InvoiceService, InvoiceError } from '../services/invoice.service';
+import { InvoiceService } from '../services/invoice.service';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
@@ -29,23 +29,6 @@ router.use(requireAuth);
 function getInvoiceService(req: Request): InvoiceService {
   const { supabase, tenantId, userId } = getTenantContext(req);
   return new InvoiceService(supabase, tenantId, userId);
-}
-
-/**
- * Error handler for invoice-specific errors
- */
-function handleInvoiceError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof InvoiceError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -72,7 +55,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -95,7 +78,7 @@ router.post(
         data: invoice,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -116,7 +99,7 @@ router.get(
         data: invoice,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -139,7 +122,7 @@ router.put(
         data: invoice,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -162,7 +145,7 @@ router.delete(
         message: 'Invoice canceled successfully',
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -193,7 +176,7 @@ router.post(
         },
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -226,7 +209,7 @@ router.post(
         },
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -262,7 +245,7 @@ router.get(
         data: invoice,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -303,7 +286,7 @@ router.post(
         data: availability,
       });
     } catch (error) {
-      handleInvoiceError(error, res, next);
+      next(error);
     }
   }
 );
