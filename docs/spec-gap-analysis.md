@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 16; 514 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 7 iter 22; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -350,6 +350,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 16; 514 tests across 2
 - **[Loop-6 C14]** Added sr-only labels to dropdown menu triggers on warehouses and transfers pages (frontend designer)
 - **[Loop-6 C15]** QA clean pass — 514 tests, 0 TS errors, build 5/5
 - **[Loop-6 C16]** PM update — nearing completion; last 6 iterations: 3 clean passes (CR, Arch, QA), 3 minor fixes (BA, FD×2)
+- **[Loop-6 C17]** Replaced hardcoded mock attendance data with real useAttendance API hook — page was showing fake employees (business analyst)
+- **[Loop-7 C1]** Fixed bug: warehouse active count always 0 — filter used is_active (snake_case) instead of isActive (camelCase); eliminated any cast (code reviewer)
+- **[Loop-7 C2]** Replaced catch(err: any) with instanceof Error checks in warehouse report page — 2 instances (system architect)
+- **[Loop-7 C3]** Added aria-label to language selector in auth-shell — matched existing header.tsx pattern (frontend designer)
+- **[Loop-7 C4]** Fixed broken error display: 6 catch blocks used dead error.response?.data pattern (Axios-style) but API client throws ApiClientError — errors were never shown to users; fixed 8 instances across 5 files (QA engineer)
+- **[Loop-7 C5]** PM update — documented iterations 17-21; error display bug was critical UX issue affecting all accounting pages and activation wizards
 
 ## Recommendations (Priority Order)
 
