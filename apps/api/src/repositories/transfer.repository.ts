@@ -23,6 +23,22 @@ type TransferUpdate = Database['public']['Tables']['transfers']['Update'];
 type TransferItemRow = Database['public']['Tables']['transfer_items']['Row'];
 type TransferItemInsert = Database['public']['Tables']['transfer_items']['Insert'];
 
+interface TransferItemJoinRow extends TransferItemRow {
+  items: {
+    id: string;
+    name: string;
+    sku: string | null;
+    barcode: string | null;
+    unit_of_measure: string;
+  };
+}
+
+interface TransferWithJoinsRow extends TransferRow {
+  from_warehouse: { id: string; name: string };
+  to_warehouse: { id: string; name: string };
+  transfer_items: TransferItemJoinRow[];
+}
+
 /**
  * Transfer repository with stock movement operations
  */
@@ -188,8 +204,9 @@ export class TransferRepository extends BaseRepository<
       throw error;
     }
 
-    const transfers: TransferWithDetails[] = (data || []).map((row: any) => {
-      const items: TransferItemWithDetails[] = (row.transfer_items || []).map((ti: any) => ({
+    const rows = (data || []) as unknown as TransferWithJoinsRow[];
+    const transfers: TransferWithDetails[] = rows.map((row) => {
+      const items: TransferItemWithDetails[] = (row.transfer_items || []).map((ti) => ({
         id: ti.id,
         transferId: ti.transfer_id,
         tenantId: ti.tenant_id,
@@ -281,7 +298,8 @@ export class TransferRepository extends BaseRepository<
       throw error;
     }
 
-    const items: TransferItemWithDetails[] = (data.transfer_items || []).map((ti: any) => ({
+    const typedData = data as unknown as TransferWithJoinsRow;
+    const items: TransferItemWithDetails[] = (typedData.transfer_items || []).map((ti) => ({
       id: ti.id,
       transferId: ti.transfer_id,
       tenantId: ti.tenant_id,
@@ -299,24 +317,24 @@ export class TransferRepository extends BaseRepository<
     }));
 
     return {
-      id: data.id,
-      tenantId: data.tenant_id,
-      transferNumber: data.transfer_number,
-      fromWarehouseId: data.from_warehouse_id,
-      toWarehouseId: data.to_warehouse_id,
-      status: data.status as TransferStatus,
-      notes: data.notes,
-      createdBy: data.created_by,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      completedAt: data.completed_at,
+      id: typedData.id,
+      tenantId: typedData.tenant_id,
+      transferNumber: typedData.transfer_number,
+      fromWarehouseId: typedData.from_warehouse_id,
+      toWarehouseId: typedData.to_warehouse_id,
+      status: typedData.status as TransferStatus,
+      notes: typedData.notes,
+      createdBy: typedData.created_by,
+      createdAt: typedData.created_at,
+      updatedAt: typedData.updated_at,
+      completedAt: typedData.completed_at,
       fromWarehouse: {
-        id: data.from_warehouse.id,
-        name: data.from_warehouse.name,
+        id: typedData.from_warehouse.id,
+        name: typedData.from_warehouse.name,
       },
       toWarehouse: {
-        id: data.to_warehouse.id,
-        name: data.to_warehouse.name,
+        id: typedData.to_warehouse.id,
+        name: typedData.to_warehouse.name,
       },
       items,
       totalItems: items.length,
