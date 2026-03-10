@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useCreateJournalEntry } from '@/hooks/use-journal-entries';
 import { JournalEntryForm } from '@/components/forms/journal-entry-form';
 import { useToast } from '@/hooks/use-toast';
+import type { CreateJournalEntryInput } from '@erp/shared';
 
 export default function NewJournalEntryPage() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function NewJournalEntryPage() {
   const { toast } = useToast();
   const createMutation = useCreateJournalEntry();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: CreateJournalEntryInput) => {
     try {
       await createMutation.mutateAsync(data);
       toast({
