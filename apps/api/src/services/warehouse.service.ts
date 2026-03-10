@@ -8,6 +8,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { WarehouseRepository } from '../repositories/warehouse.repository';
 import { InventoryRepository } from '../repositories/inventory.repository';
+import { AlertsService } from './alerts.service';
+import type { LowStockAlertWithSeverity, AlertSeverity } from './alerts.service';
 import type {
   Warehouse,
   WarehouseWithSummary,
@@ -44,11 +46,13 @@ export class WarehouseError extends Error {
 export class WarehouseService {
   private readonly warehouseRepo: WarehouseRepository;
   private readonly inventoryRepo: InventoryRepository;
+  private readonly alertsService: AlertsService;
   private readonly tenantId: string;
 
   constructor(supabase: SupabaseClient<Database>, tenantId: string) {
     this.warehouseRepo = new WarehouseRepository(supabase);
     this.inventoryRepo = new InventoryRepository(supabase);
+    this.alertsService = new AlertsService(supabase, tenantId);
     this.tenantId = tenantId;
   }
 
@@ -278,6 +282,34 @@ export class WarehouseService {
         alertCount: data.count,
       })),
     };
+  }
+
+  // =============================================================================
+  // ALERTS WITH SEVERITY (delegates to AlertsService)
+  // =============================================================================
+
+  /**
+   * Get low stock alerts enriched with severity levels
+   */
+  async getLowStockAlertsWithSeverity(
+    warehouseId?: string,
+    severity?: AlertSeverity
+  ): Promise<LowStockAlertWithSeverity[]> {
+    return this.alertsService.getLowStockAlerts(warehouseId, severity);
+  }
+
+  /**
+   * Get critical alerts only (< 25% of threshold)
+   */
+  async getCriticalAlerts(warehouseId?: string): Promise<LowStockAlertWithSeverity[]> {
+    return this.alertsService.getCriticalAlerts(warehouseId);
+  }
+
+  /**
+   * Get suggested reorder quantities based on thresholds
+   */
+  async getSuggestedReorders(warehouseId?: string) {
+    return this.alertsService.getSuggestedReorders(warehouseId);
   }
 
   // =============================================================================

@@ -6,7 +6,6 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { WarehouseService, WarehouseError } from '../services/warehouse.service';
-import { AlertsService } from '../services/alerts.service';
 import {
   createWarehouseSchema,
   updateWarehouseSchema,
@@ -31,14 +30,6 @@ router.use(requireAuth);
 function getWarehouseService(req: Request): WarehouseService {
   const { supabase, tenantId } = getTenantContext(req);
   return new WarehouseService(supabase, tenantId);
-}
-
-/**
- * Helper to create AlertsService with tenant context
- */
-function getAlertsService(req: Request): AlertsService {
-  const { supabase, tenantId } = getTenantContext(req);
-  return new AlertsService(supabase, tenantId);
 }
 
 /**
@@ -307,13 +298,13 @@ router.get(
   validateRequest({ query: lowStockAlertQuerySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const alertsService = getAlertsService(req);
+      const service = getWarehouseService(req);
       const { warehouseId, severity } = req.query as {
         warehouseId?: string;
         severity?: 'critical' | 'warning' | 'low';
       };
 
-      const alerts = await alertsService.getLowStockAlerts(warehouseId, severity);
+      const alerts = await service.getLowStockAlertsWithSeverity(warehouseId, severity);
 
       res.json({
         success: true,
@@ -336,8 +327,8 @@ router.get(
   '/alerts/summary',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const alertsService = getAlertsService(req);
-      const summary = await alertsService.getLowStockSummary();
+      const service = getWarehouseService(req);
+      const summary = await service.getLowStockSummary();
 
       res.json({
         success: true,
@@ -357,9 +348,9 @@ router.get(
   '/alerts/critical',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const alertsService = getAlertsService(req);
+      const service = getWarehouseService(req);
       const warehouseId = req.query.warehouseId as string | undefined;
-      const alerts = await alertsService.getCriticalAlerts(warehouseId);
+      const alerts = await service.getCriticalAlerts(warehouseId);
 
       res.json({
         success: true,
@@ -382,9 +373,9 @@ router.get(
   '/alerts/reorder-suggestions',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const alertsService = getAlertsService(req);
+      const service = getWarehouseService(req);
       const warehouseId = req.query.warehouseId as string | undefined;
-      const suggestions = await alertsService.getSuggestedReorders(warehouseId);
+      const suggestions = await service.getSuggestedReorders(warehouseId);
 
       res.json({
         success: true,
@@ -407,8 +398,8 @@ router.get(
   '/:id/alerts',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const alertsService = getAlertsService(req);
-      const alerts = await alertsService.getLowStockAlerts(req.params.id);
+      const service = getWarehouseService(req);
+      const alerts = await service.getLowStockAlertsWithSeverity(req.params.id);
 
       res.json({
         success: true,
