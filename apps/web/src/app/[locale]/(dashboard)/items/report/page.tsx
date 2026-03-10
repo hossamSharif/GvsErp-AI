@@ -162,6 +162,7 @@ export default function ItemsReportPage() {
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Go back to items"
           onClick={() => router.push(`/${locale}/items`)}
         >
           <ArrowLeft className="h-4 w-4" />
