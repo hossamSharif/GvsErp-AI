@@ -134,8 +134,15 @@ const styles = StyleSheet.create({
   },
 });
 
+interface ReceiptLineItem {
+  description: string | null;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+}
+
 interface ReceiptProps {
-  invoice: Invoice & { items: any[] };
+  invoice: Invoice & { items: ReceiptLineItem[] };
   posLocation: {
     name: string;
     settings: POSLocationSettings;
@@ -271,7 +278,7 @@ export const ReceiptDocument: React.FC<ReceiptProps> = ({
  * Helper function to generate and download receipt PDF
  */
 export const generateReceipt = async (
-  invoice: Invoice & { items: any[] },
+  invoice: Invoice & { items: ReceiptLineItem[] },
   posLocation: { name: string; settings: POSLocationSettings },
   storeName?: string,
   storeAddress?: string,
