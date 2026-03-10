@@ -5,7 +5,7 @@
  * Phase 7: User Story 5 - Manage Point of Sale Locations
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ShoppingCart,
@@ -21,6 +21,7 @@ import {
   X,
   Check,
   Loader2,
+  Printer,
 } from 'lucide-react';
 import { usePOSLocation, useProcessQuickSale } from '@/hooks/use-pos';
 import { useItems } from '@/hooks/use-items';
@@ -40,6 +41,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { QuickSaleItem } from '@erp/shared';
 
@@ -60,6 +69,16 @@ export default function POSTerminalPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
+  const [completedSale, setCompletedSale] = useState<{
+    invoiceNumber: string;
+    items: CartItem[];
+    subtotal: number;
+    discountAmount: number;
+    taxAmount: number;
+    total: number;
+    paymentMethod: string;
+  } | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   // Queries
   const { data: locationResponse, isLoading: locationLoading } = usePOSLocation(posLocationId);
@@ -74,9 +93,17 @@ export default function POSTerminalPage() {
         title: 'Sale Completed',
         description: `Invoice ${response.data.invoice_number} created successfully`,
       });
+      setCompletedSale({
+        invoiceNumber: response.data.invoice_number,
+        items: [...cart],
+        subtotal,
+        discountAmount,
+        taxAmount,
+        total,
+        paymentMethod: selectedPaymentMethod,
+      });
       setCart([]);
       setDiscountPercent(0);
-      // TODO: Print receipt or show receipt dialog
     },
     onError: (error) => {
       toast({
@@ -418,6 +445,94 @@ export default function POSTerminalPage() {
           </Card>
         </div>
       </div>
+
+      {/* Receipt Dialog */}
+      <Dialog open={!!completedSale} onOpenChange={(open) => !open && setCompletedSale(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sale Complete</DialogTitle>
+            <DialogDescription>
+              Invoice {completedSale?.invoiceNumber} has been created.
+            </DialogDescription>
+          </DialogHeader>
+          {completedSale && (
+            <div ref={receiptRef} className="space-y-3 text-sm print:text-xs">
+              <div className="text-center border-b pb-2">
+                <p className="font-bold text-lg">{location?.name}</p>
+                <p className="text-muted-foreground print:text-black">
+                  {completedSale.invoiceNumber}
+                </p>
+                <p className="text-muted-foreground print:text-black">
+                  {new Date().toLocaleString()}
+                </p>
+              </div>
+              <div className="space-y-1">
+                {completedSale.items.map((item) => (
+                  <div key={item.item_id} className="flex justify-between">
+                    <span>
+                      {item.name} x{item.quantity}
+                    </span>
+                    <span>${(item.quantity * item.unit_price).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${completedSale.subtotal.toFixed(2)}</span>
+                </div>
+                {completedSale.discountAmount > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Discount</span>
+                    <span>-${completedSale.discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                {completedSale.taxAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax</span>
+                    <span>${completedSale.taxAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold text-base">
+                  <span>Total</span>
+                  <span>${completedSale.total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground print:text-black">
+                  <span>Payment</span>
+                  <span className="capitalize">{completedSale.paymentMethod.replace('_', ' ')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="print:hidden">
+            <Button variant="outline" onClick={() => setCompletedSale(null)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                const printContent = receiptRef.current;
+                if (!printContent) return;
+                const printWindow = window.open('', '_blank', 'width=400,height=600');
+                if (!printWindow) return;
+                printWindow.document.write(`
+                  <html><head><title>Receipt - ${completedSale?.invoiceNumber}</title>
+                  <style>body{font-family:monospace;padding:20px;max-width:300px;margin:0 auto}
+                  .flex{display:flex;justify-content:space-between}.bold{font-weight:bold}
+                  .center{text-align:center}.sep{border-top:1px dashed #000;margin:8px 0}
+                  .red{color:red}.text-base{font-size:16px}</style></head><body>`);
+                printWindow.document.write(printContent.innerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
+              }}
+            >
+              <Printer className="mr-2 h-4 w-4" />
+              Print Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
