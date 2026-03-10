@@ -90,7 +90,7 @@ export default function SalesListPage() {
   }), [searchQuery, statusFilter, page]);
 
   // Fetch invoices
-  const { data, isLoading, error } = useInvoices(queryParams);
+  const { data, isLoading, error, refetch } = useInvoices(queryParams);
 
   const invoices = data?.data || [];
   const meta = data?.meta;
@@ -221,8 +221,13 @@ export default function SalesListPage() {
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-destructive">
-                    Error loading invoices
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <div className="flex flex-col items-center gap-2 text-destructive">
+                      <p>Failed to load invoices. Please check your connection and try again.</p>
+                      <Button variant="outline" size="sm" onClick={() => refetch()}>
+                        Try again
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : invoices.length === 0 ? (
