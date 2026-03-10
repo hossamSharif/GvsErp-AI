@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 28; 514 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 4; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -331,6 +331,13 @@ Date: 2026-03-08 | Reviewer: Project Manager (Loop 5 iter 28; 514 tests across 2
 - **[Loop-5 C26]** Added aria-labels to POS terminal search and discount inputs (accessibility)
 - **[Loop-5 C27]** QA clean pass — 514 tests, 0 web TS errors, 2 pre-existing API audit errors only
 - **[Loop-5 C28]** PM update — documented iterations 22-27; only 1 remaining any in UserService.mapUser; all responsive headers, error codes, and type safety issues resolved
+- **[Loop-5 C29]** Replaced last any in UserService.mapUser with UserWithRole, added Permission cast (code reviewer)
+- **[Loop-5 C30]** Replaced any with JournalEntryWithLines in JournalEntryRepository.mapEntry (system architect)
+- **[Loop-5 C31]** Added aria-labels to tree expand/collapse buttons on categories and accounts pages (frontend designer)
+- **[Loop-6 C1]** Replaced 7 any types with typed interfaces (InventoryWithItemRow, ItemPriceRow) in InventoryRepository (system architect)
+- **[Loop-6 C2]** Added aria-labels to 13 icon-only buttons (back navigation + form delete) across 12 pages (frontend designer)
+- **[Loop-6 C3]** QA clean pass — 514 tests pass, build 5/5 tasks succeed, no actionable gaps found
+- **[Loop-6 C4]** PM update — gap analysis updated, remaining: 4 any types (3 in transfer.repository, 1 in pos.repository), all critical gaps unchanged
 
 ## Recommendations (Priority Order)
 
