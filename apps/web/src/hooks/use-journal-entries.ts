@@ -9,17 +9,9 @@ import type {
   JournalEntry,
   CreateJournalEntryInput,
   UpdateJournalEntryInput,
+  PaginationMeta,
 } from '@erp/shared';
 import { api } from '@/lib/api-client';
-
-// Query keys
-export const journalEntryKeys = {
-  all: ['journal-entries'] as const,
-  lists: () => [...journalEntryKeys.all, 'list'] as const,
-  list: (filters: any) => [...journalEntryKeys.lists(), filters] as const,
-  details: () => [...journalEntryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...journalEntryKeys.details(), id] as const,
-};
 
 interface JournalEntryFilters {
   start_date?: string;
@@ -30,6 +22,15 @@ interface JournalEntryFilters {
   page?: number;
   limit?: number;
 }
+
+// Query keys
+export const journalEntryKeys = {
+  all: ['journal-entries'] as const,
+  lists: () => [...journalEntryKeys.all, 'list'] as const,
+  list: (filters: JournalEntryFilters) => [...journalEntryKeys.lists(), filters] as const,
+  details: () => [...journalEntryKeys.all, 'detail'] as const,
+  detail: (id: string) => [...journalEntryKeys.details(), id] as const,
+};
 
 /**
  * Fetch all journal entries with filters
@@ -47,7 +48,7 @@ export function useJournalEntries(filters?: JournalEntryFilters) {
       if (filters?.page) queryParams.append('page', String(filters.page));
       if (filters?.limit) queryParams.append('limit', String(filters.limit));
 
-      const response = await api.get<{ data: JournalEntry[]; meta: any }>(
+      const response = await api.get<{ data: JournalEntry[]; meta: PaginationMeta }>(
         `/journal-entries?${queryParams.toString()}`
       );
       return response;
