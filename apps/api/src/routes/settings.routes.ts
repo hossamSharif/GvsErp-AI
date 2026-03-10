@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { SettingsService, SettingsError } from '../services/settings.service';
+import { AppError } from '../middleware/error';
 import { updateTenantSettingsSchema } from '@erp/shared';
 import type { TenantSettings } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
@@ -295,7 +296,7 @@ router.get(
     try {
       const key = req.params.key;
       if (!isValidSettingKey(key)) {
-        res.status(400).json({ success: false, error: `Invalid setting key: ${key}` });
+        next(AppError.badRequest(`Invalid setting key: ${key}`));
         return;
       }
       const service = getSettingsService(req);
@@ -330,7 +331,7 @@ router.put(
     try {
       const key = req.params.key;
       if (!isValidSettingKey(key)) {
-        res.status(400).json({ success: false, error: `Invalid setting key: ${key}` });
+        next(AppError.badRequest(`Invalid setting key: ${key}`));
         return;
       }
       const service = getSettingsService(req);

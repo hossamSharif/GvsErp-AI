@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuditService, AuditError } from '../services/audit.service';
+import { AppError } from '../middleware/error';
 import { auditLogQuerySchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
@@ -95,7 +96,7 @@ router.get(
       const service = getAuditService(req);
       const { entityType, entityId } = req.params;
       if (!validEntityTypes.has(entityType)) {
-        res.status(400).json({ success: false, error: `Invalid entity type: ${entityType}` });
+        next(AppError.badRequest(`Invalid entity type: ${entityType}`));
         return;
       }
       const limit = req.query.limit ? Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50)) : 50;
