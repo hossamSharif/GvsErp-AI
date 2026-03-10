@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WarehouseService, WarehouseError } from '../../src/services/warehouse.service';
 
 /**
@@ -124,5 +124,114 @@ describe('WarehouseService bulk threshold result shape', () => {
     });
 
     warehouseService.getWarehouse = original;
+  });
+});
+
+// ==========================================================================
+// deactivateWarehouse — guard logic
+// ==========================================================================
+
+describe('WarehouseService.deactivateWarehouse', () => {
+  const svc = new (WarehouseService as any)(null, 'tenant-1');
+  const mockWarehouse = { id: 'w-1', name: 'Main', isActive: true };
+
+  beforeEach(() => {
+    svc.warehouseRepo = {
+      getById: vi.fn().mockResolvedValue(mockWarehouse),
+      hasInventory: vi.fn().mockResolvedValue(false),
+      hasPendingTransfers: vi.fn().mockResolvedValue(false),
+      updateWarehouse: vi.fn().mockResolvedValue({ ...mockWarehouse, isActive: false }),
+    };
+  });
+
+  it('deactivates warehouse when no inventory or transfers', async () => {
+    const result = await svc.deactivateWarehouse('w-1');
+    expect(result.isActive).toBe(false);
+    expect(svc.warehouseRepo.updateWarehouse).toHaveBeenCalledWith('tenant-1', 'w-1', { isActive: false });
+  });
+
+  it('throws WAREHOUSE_HAS_INVENTORY when stock exists', async () => {
+    svc.warehouseRepo.hasInventory = vi.fn().mockResolvedValue(true);
+    await expect(svc.deactivateWarehouse('w-1')).rejects.toThrow('Cannot deactivate warehouse with inventory');
+    try {
+      await svc.deactivateWarehouse('w-1');
+    } catch (e) {
+      expect(e).toBeInstanceOf(WarehouseError);
+      expect((e as WarehouseError).code).toBe('WAREHOUSE_HAS_INVENTORY');
+    }
+  });
+
+  it('throws WAREHOUSE_HAS_PENDING_TRANSFERS when transfers pending', async () => {
+    svc.warehouseRepo.hasPendingTransfers = vi.fn().mockResolvedValue(true);
+    await expect(svc.deactivateWarehouse('w-1')).rejects.toThrow('Cannot deactivate warehouse with pending transfers');
+    try {
+      await svc.deactivateWarehouse('w-1');
+    } catch (e) {
+      expect(e).toBeInstanceOf(WarehouseError);
+      expect((e as WarehouseError).code).toBe('WAREHOUSE_HAS_PENDING_TRANSFERS');
+    }
+  });
+
+  it('checks inventory before transfers', async () => {
+    svc.warehouseRepo.hasInventory = vi.fn().mockResolvedValue(true);
+    await expect(svc.deactivateWarehouse('w-1')).rejects.toThrow();
+    expect(svc.warehouseRepo.hasPendingTransfers).not.toHaveBeenCalled();
+  });
+
+  it('throws WAREHOUSE_NOT_FOUND when warehouse missing', async () => {
+    svc.warehouseRepo.getById = vi.fn().mockResolvedValue(null);
+    await expect(svc.deactivateWarehouse('missing')).rejects.toThrow(WarehouseError);
+  });
+
+  it('throws WAREHOUSE_UPDATE_FAILED when update returns null', async () => {
+    svc.warehouseRepo.updateWarehouse = vi.fn().mockResolvedValue(null);
+    await expect(svc.deactivateWarehouse('w-1')).rejects.toThrow('Failed to deactivate warehouse');
+  });
+});
+
+// ==========================================================================
+// getLowStockSummary — counting logic
+// ==========================================================================
+
+describe('WarehouseService.getLowStockSummary', () => {
+  const svc = new (WarehouseService as any)(null, 'tenant-1');
+
+  it('counts severity levels correctly', async () => {
+    svc.inventoryRepo = {
+      getLowStockAlerts: vi.fn().mockResolvedValue([
+        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 10 },
+        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 30 },
+        { warehouseId: 'w2', warehouseName: 'WH2', percentOfThreshold: 80 },
+      ]),
+    };
+    const result = await svc.getLowStockSummary();
+    expect(result.totalAlerts).toBe(3);
+    expect(result.criticalCount).toBe(1);
+    expect(result.warningCount).toBe(1);
+    expect(result.lowCount).toBe(1);
+  });
+
+  it('groups alerts by warehouse', async () => {
+    svc.inventoryRepo = {
+      getLowStockAlerts: vi.fn().mockResolvedValue([
+        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 10 },
+        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 20 },
+        { warehouseId: 'w2', warehouseName: 'WH2', percentOfThreshold: 60 },
+      ]),
+    };
+    const result = await svc.getLowStockSummary();
+    expect(result.byWarehouse).toHaveLength(2);
+    expect(result.byWarehouse.find((w: { warehouseId: string }) => w.warehouseId === 'w1')?.alertCount).toBe(2);
+    expect(result.byWarehouse.find((w: { warehouseId: string }) => w.warehouseId === 'w2')?.alertCount).toBe(1);
+  });
+
+  it('returns empty summary when no alerts', async () => {
+    svc.inventoryRepo = {
+      getLowStockAlerts: vi.fn().mockResolvedValue([]),
+    };
+    const result = await svc.getLowStockSummary();
+    expect(result.totalAlerts).toBe(0);
+    expect(result.criticalCount).toBe(0);
+    expect(result.byWarehouse).toHaveLength(0);
   });
 });
