@@ -515,12 +515,26 @@ export default function POSTerminalPage() {
                 if (!printContent) return;
                 const printWindow = window.open('', '_blank', 'width=400,height=600');
                 if (!printWindow) return;
-                printWindow.document.write(`
-                  <html><head><title>Receipt - ${completedSale?.invoiceNumber}</title>
-                  <style>body{font-family:monospace;padding:20px;max-width:300px;margin:0 auto}
-                  .flex{display:flex;justify-content:space-between}.bold{font-weight:bold}
-                  .center{text-align:center}.sep{border-top:1px dashed #000;margin:8px 0}
-                  .red{color:red}.text-base{font-size:16px}</style></head><body>`);
+                printWindow.document.write(`<html><head><title>Receipt - ${completedSale?.invoiceNumber}</title>
+                  <style>
+                    body{font-family:monospace;padding:20px;max-width:300px;margin:0 auto;font-size:14px}
+                    .flex{display:flex;justify-content:space-between}
+                    .justify-between{justify-content:space-between}
+                    .font-bold{font-weight:bold}
+                    .font-medium{font-weight:500}
+                    .text-lg{font-size:18px}
+                    .text-sm{font-size:12px}
+                    .text-base{font-size:16px}
+                    .text-center{text-align:center}
+                    .text-red-600{color:#dc2626}
+                    .text-muted-foreground{color:#6b7280}
+                    .capitalize{text-transform:capitalize}
+                    .border-b{border-bottom:1px dashed #000}
+                    .pb-2{padding-bottom:8px}
+                    .space-y-1>*+*{margin-top:4px}
+                    .space-y-3>*+*{margin-top:12px}
+                    hr{border:none;border-top:1px dashed #000;margin:8px 0}
+                  </style></head><body>`);
                 printWindow.document.write(printContent.innerHTML);
                 printWindow.document.write('</body></html>');
                 printWindow.document.close();
