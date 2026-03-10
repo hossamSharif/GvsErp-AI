@@ -385,12 +385,13 @@ export class AuditService {
     const forwarded = req.headers?.['x-forwarded-for'];
     if (forwarded) {
       const value = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-      return value.split(',')[0].trim();
+      if (value) return value.split(',')[0].trim();
     }
 
     const realIp = req.headers?.['x-real-ip'];
     if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
+      const value = Array.isArray(realIp) ? realIp[0] : realIp;
+      if (value) return value;
     }
 
     return req.connection?.remoteAddress || req.socket?.remoteAddress || null;
