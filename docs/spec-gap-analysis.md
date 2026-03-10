@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 4; 526 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 10; 535 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 4; 526 tests across 26
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 526 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 535 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -370,6 +370,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 4; 526 tests across 26
 - **[Loop-8 C2]** Added scope=col to TableHead component for screen reader table navigation — affects all tables app-wide (frontend designer)
 - **[Loop-8 C3]** Added 11 tests for AlertsService: getLowStockAlerts severity filtering and getSuggestedReorders edge cases — total 526 tests (QA engineer)
 - **[Loop-8 C4]** PM update — gap analysis updated to 526 tests; task completion: 247/260 (95%); 3 HR tasks + 13 polish tasks remain
+- **[Loop-8 C5]** Disabled misleading audit export button — now visually disabled with tooltip instead of fake "Coming Soon" toast (business analyst)
+- **[Loop-8 C6]** Fixed potential crash in AuditService.getClientIp when X-Forwarded-For is empty array (code reviewer)
+- **[Loop-8 C7]** Replaced 3 `as any` casts + `z.any()` in settings routes with validated setting key guard (system architect)
+- **[Loop-8 C8]** Added aria-labels to 4 icon-only dropdown menu triggers on sales and purchases pages (frontend designer)
+- **[Loop-8 C9]** Added 9 tests for WarehouseService: deactivateWarehouse guards and getLowStockSummary — total 535 tests (QA engineer)
+- **[Loop-8 C10]** PM update — 535 tests; issues shrinking to polish-level; no critical bugs since iteration 6
 
 ## Recommendations (Priority Order)
 
