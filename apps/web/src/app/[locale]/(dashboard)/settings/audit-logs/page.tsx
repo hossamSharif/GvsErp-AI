@@ -139,10 +139,9 @@ export default function AuditLogsPage() {
 
   const handleExport = useCallback(() => {
     toast({
-      title: 'Export started',
-      description: 'Audit logs are being exported...',
+      title: 'Coming soon',
+      description: 'Audit log export is not yet available.',
     });
-    // TODO: Implement export functionality
   }, [toast]);
 
   // Table columns
