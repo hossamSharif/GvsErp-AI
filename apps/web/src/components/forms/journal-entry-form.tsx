@@ -103,7 +103,7 @@ export function JournalEntryForm({
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  const updateLine = (index: number, field: keyof CreateJournalLineInput, value: any) => {
+  const updateLine = (index: number, field: keyof CreateJournalLineInput, value: CreateJournalLineInput[keyof CreateJournalLineInput]) => {
     const newLines = [...lines];
     newLines[index] = { ...newLines[index], [field]: value };
     setLines(newLines);
