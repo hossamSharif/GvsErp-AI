@@ -59,10 +59,10 @@ export function HRActivationWizard({ open, onClose }: HRActivationWizardProps) {
       });
 
       setStep(3); // Success step
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to activate HR module',
+        description: error instanceof Error ? error.message : 'Failed to activate HR module',
         variant: 'destructive',
       });
     } finally {

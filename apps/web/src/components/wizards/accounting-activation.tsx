@@ -56,10 +56,10 @@ export function AccountingActivationWizard({
       });
 
       setStep(3); // Success step
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to activate accounting module',
+        description: error instanceof Error ? error.message : 'Failed to activate accounting module',
         variant: 'destructive',
       });
     }
@@ -235,8 +235,9 @@ export function AccountingActivationWizard({
                   Activation Failed
                 </h4>
                 <p className="text-sm text-red-800 dark:text-red-200 mt-1">
-                  {(activateMutation.error as any)?.response?.data?.error?.message ||
-                    'An error occurred while activating the accounting module'}
+                  {activateMutation.error instanceof Error
+                    ? activateMutation.error.message
+                    : 'An error occurred while activating the accounting module'}
                 </p>
               </div>
             </div>

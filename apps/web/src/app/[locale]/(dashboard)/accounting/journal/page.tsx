@@ -71,10 +71,10 @@ export default function JournalEntriesPage() {
         title: 'Success',
         description: 'Journal entry posted successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to post journal entry',
+        description: error instanceof Error ? error.message : 'Failed to post journal entry',
         variant: 'destructive',
       });
     }
@@ -96,10 +96,10 @@ export default function JournalEntriesPage() {
         title: 'Success',
         description: 'Journal entry deleted successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete journal entry',
+        description: error instanceof Error ? error.message : 'Failed to delete journal entry',
         variant: 'destructive',
       });
     }

@@ -19,10 +19,10 @@ export default function NewJournalEntryPage() {
         description: 'Journal entry created successfully',
       });
       router.push(`/${locale}/accounting/journal`);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to create journal entry',
+        description: error instanceof Error ? error.message : 'Failed to create journal entry',
         variant: 'destructive',
       });
     }

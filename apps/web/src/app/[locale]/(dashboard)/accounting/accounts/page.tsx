@@ -116,10 +116,10 @@ export default function ChartOfAccountsPage() {
         });
       }
       handleCloseDialog();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to save account',
+        description: error instanceof Error ? error.message : 'Failed to save account',
         variant: 'destructive',
       });
     }
@@ -134,10 +134,10 @@ export default function ChartOfAccountsPage() {
         title: 'Success',
         description: 'Account deleted successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete account',
+        description: error instanceof Error ? error.message : 'Failed to delete account',
         variant: 'destructive',
       });
     }
