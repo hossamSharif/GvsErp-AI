@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 10; 562 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 16; 562 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -397,6 +397,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 10; 562 tests across 2
 - **[Loop-9 C8]** Added role=alert to error messages in party-select and image-upload components (frontend designer)
 - **[Loop-9 C9]** Added 4 tests for getInventoryReportData: unitCost calculation, zero-quantity, filtering, aggregation — total 562 tests (QA engineer)
 - **[Loop-9 C10]** Updated gap analysis: 562 tests; fixes trending toward polish-level; unitCost bug was last significant finding (project manager)
+- **[Loop-9 C11]** Replaced native confirm() with AlertDialog on accounts delete action (business analyst)
+- **[Loop-9 C12]** Replaced 3 non-standard inline error responses with AppError.badRequest in audit and settings routes (code reviewer)
+- **[Loop-9 C13]** Removed redundant handleInvoiceError from invoices routes — delegate to global error handler (system architect)
+- **[Loop-9 C14]** Replaced native confirm() with AlertDialog on warehouse deactivate action (frontend designer)
+- **[Loop-9 C15]** QA clean pass — 562 tests, 0 TS errors, build 5/5 (QA engineer)
+- **[Loop-9 C16]** Updated gap analysis: 562 tests; first clean QA pass; remaining fixes are polish-level only (project manager)
 
 ## Recommendations (Priority Order)
 
