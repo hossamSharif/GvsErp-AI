@@ -82,6 +82,16 @@ export function notFoundHandler(
 }
 
 /**
+ * Type guard for domain service errors (ItemError, CategoryError, etc.)
+ * All domain errors share { code: string, statusCode: number } on an Error instance.
+ */
+function isServiceError(err: unknown): err is Error & { code: string; statusCode: number } {
+  if (!(err instanceof Error)) return false;
+  const obj = err as unknown as Record<string, unknown>;
+  return typeof obj.code === 'string' && typeof obj.statusCode === 'number';
+}
+
+/**
  * Global error handler
  */
 export function errorHandler(
@@ -115,6 +125,16 @@ export function errorHandler(
     }
 
     res.status(err.statusCode).json(response);
+    return;
+  }
+
+  // Handle domain service errors (ItemError, CategoryError, PaymentError, etc.)
+  if (isServiceError(err)) {
+    res.status(err.statusCode).json({
+      code: err.code,
+      message: err.message,
+      request_id: requestId,
+    } as ApiError);
     return;
   }
 
