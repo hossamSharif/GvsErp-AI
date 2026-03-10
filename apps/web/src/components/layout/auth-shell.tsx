@@ -49,6 +49,7 @@ export function AuthShell({ children }: AuthShellProps) {
           <select
             value={locale}
             onChange={(e) => handleLanguageChange(e.target.value as Locale)}
+            aria-label="Change language"
             className="px-3 py-1.5 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {locales.map((loc) => (
