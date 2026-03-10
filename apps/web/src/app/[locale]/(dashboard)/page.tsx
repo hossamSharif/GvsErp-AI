@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/stores/language-store';
+import { useLowStockSummary } from '@/hooks/use-warehouses';
 import { cn } from '@/lib/utils';
 import {
   DollarSign,
@@ -27,6 +28,8 @@ export default function DashboardPage() {
   const { isRtl } = useDirection();
   const params = useParams();
   const locale = params.locale as string;
+  const { data: alertSummaryResponse } = useLowStockSummary();
+  const alertSummary = alertSummaryResponse?.data;
 
   return (
     <div className="space-y-6">
@@ -143,13 +146,46 @@ export default function DashboardPage() {
         {/* Low Stock Alerts */}
         <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-semibold mb-4">Low Stock Alerts</h2>
-          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-            <AlertTriangle className="w-10 h-10 mb-2 opacity-50" />
-            <p className="text-sm">No alerts</p>
-            <Link href={`/${locale}/warehouses`} className="text-xs text-primary hover:underline mt-1">
-              Configure stock alerts
-            </Link>
-          </div>
+          {alertSummary && alertSummary.totalAlerts > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total Alerts</span>
+                <span className="text-lg font-bold">{alertSummary.totalAlerts}</span>
+              </div>
+              {alertSummary.criticalCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-red-600 font-medium">Critical</span>
+                  <span className="text-sm font-bold text-red-600">{alertSummary.criticalCount}</span>
+                </div>
+              )}
+              {alertSummary.warningCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-yellow-600 font-medium">Warning</span>
+                  <span className="text-sm font-bold text-yellow-600">{alertSummary.warningCount}</span>
+                </div>
+              )}
+              {alertSummary.lowCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Low</span>
+                  <span className="text-sm font-bold">{alertSummary.lowCount}</span>
+                </div>
+              )}
+              <Link
+                href={`/${locale}/warehouses`}
+                className="text-xs text-primary hover:underline block mt-2"
+              >
+                View all alerts
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+              <AlertTriangle className="w-10 h-10 mb-2 opacity-50" />
+              <p className="text-sm">No alerts</p>
+              <Link href={`/${locale}/warehouses`} className="text-xs text-primary hover:underline mt-1">
+                Configure stock alerts
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
