@@ -336,7 +336,7 @@ export function ImageUpload({
                 {upload.error ? (
                   <div className="text-center p-2">
                     <AlertCircle aria-hidden="true" className="mx-auto h-6 w-6 text-destructive mb-1" />
-                    <p className="text-xs text-destructive">{upload.error}</p>
+                    <p role="alert" className="text-xs text-destructive">{upload.error}</p>
                     <Button
                       type="button"
                       variant="ghost"
