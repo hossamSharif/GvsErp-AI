@@ -29,6 +29,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Account, AccountType, CreateAccountInput } from '@erp/shared';
@@ -41,6 +51,7 @@ export default function ChartOfAccountsPage() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<AccountType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<CreateAccountInput>({
@@ -125,11 +136,11 @@ export default function ChartOfAccountsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this account?')) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteAccountId) return;
 
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(deleteAccountId);
       toast({
         title: 'Success',
         description: 'Account deleted successfully',
@@ -140,6 +151,8 @@ export default function ChartOfAccountsPage() {
         description: error instanceof Error ? error.message : 'Failed to delete account',
         variant: 'destructive',
       });
+    } finally {
+      setDeleteAccountId(null);
     }
   };
 
@@ -214,7 +227,7 @@ export default function ChartOfAccountsPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleDelete(account.id)}
+                onClick={() => setDeleteAccountId(account.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -398,6 +411,22 @@ export default function ChartOfAccountsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteAccountId} onOpenChange={(open) => !open && setDeleteAccountId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this account? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
