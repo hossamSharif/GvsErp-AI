@@ -135,6 +135,7 @@ export default function InventoryReportPage() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Go back to warehouses"
             onClick={() => router.push(`/${locale}/warehouses`)}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -283,9 +284,9 @@ export default function InventoryReportPage() {
 
       {/* Error */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
           <CardContent className="pt-6">
-            <p className="text-red-600">{error}</p>
+            <p role="alert" className="text-red-600 dark:text-red-400">{error}</p>
           </CardContent>
         </Card>
       )}
