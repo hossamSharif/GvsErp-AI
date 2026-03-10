@@ -194,48 +194,44 @@ describe('WarehouseService.deactivateWarehouse', () => {
 });
 
 // ==========================================================================
-// getLowStockSummary — counting logic
+// getLowStockSummary — delegates to alertsService
 // ==========================================================================
 
 describe('WarehouseService.getLowStockSummary', () => {
   const svc = new (WarehouseService as any)(null, 'tenant-1');
 
-  it('counts severity levels correctly', async () => {
-    svc.inventoryRepo = {
-      getLowStockAlerts: vi.fn().mockResolvedValue([
-        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 10 },
-        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 30 },
-        { warehouseId: 'w2', warehouseName: 'WH2', percentOfThreshold: 80 },
-      ]),
+  it('delegates to alertsService and returns summary', async () => {
+    const mockSummary = {
+      totalAlerts: 3,
+      criticalCount: 1,
+      warningCount: 1,
+      lowCount: 1,
+      byWarehouse: [
+        { warehouseId: 'w1', warehouseName: 'WH1', alertCount: 2 },
+        { warehouseId: 'w2', warehouseName: 'WH2', alertCount: 1 },
+      ],
+    };
+    svc.alertsService = {
+      getLowStockSummary: vi.fn().mockResolvedValue(mockSummary),
     };
     const result = await svc.getLowStockSummary();
-    expect(result.totalAlerts).toBe(3);
-    expect(result.criticalCount).toBe(1);
-    expect(result.warningCount).toBe(1);
-    expect(result.lowCount).toBe(1);
-  });
-
-  it('groups alerts by warehouse', async () => {
-    svc.inventoryRepo = {
-      getLowStockAlerts: vi.fn().mockResolvedValue([
-        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 10 },
-        { warehouseId: 'w1', warehouseName: 'WH1', percentOfThreshold: 20 },
-        { warehouseId: 'w2', warehouseName: 'WH2', percentOfThreshold: 60 },
-      ]),
-    };
-    const result = await svc.getLowStockSummary();
-    expect(result.byWarehouse).toHaveLength(2);
-    expect(result.byWarehouse.find((w: { warehouseId: string }) => w.warehouseId === 'w1')?.alertCount).toBe(2);
-    expect(result.byWarehouse.find((w: { warehouseId: string }) => w.warehouseId === 'w2')?.alertCount).toBe(1);
+    expect(svc.alertsService.getLowStockSummary).toHaveBeenCalled();
+    expect(result).toEqual(mockSummary);
   });
 
   it('returns empty summary when no alerts', async () => {
-    svc.inventoryRepo = {
-      getLowStockAlerts: vi.fn().mockResolvedValue([]),
+    const emptySummary = {
+      totalAlerts: 0,
+      criticalCount: 0,
+      warningCount: 0,
+      lowCount: 0,
+      byWarehouse: [],
+    };
+    svc.alertsService = {
+      getLowStockSummary: vi.fn().mockResolvedValue(emptySummary),
     };
     const result = await svc.getLowStockSummary();
     expect(result.totalAlerts).toBe(0);
-    expect(result.criticalCount).toBe(0);
     expect(result.byWarehouse).toHaveLength(0);
   });
 });

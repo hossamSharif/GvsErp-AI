@@ -239,49 +239,10 @@ export class WarehouseService {
   }
 
   /**
-   * Get low stock summary for dashboard
+   * Get low stock summary for dashboard (delegates to AlertsService)
    */
   async getLowStockSummary(): Promise<LowStockSummary> {
-    const alerts = await this.inventoryRepo.getLowStockAlerts(this.tenantId);
-
-    // Calculate severity counts
-    let criticalCount = 0;
-    let warningCount = 0;
-    let lowCount = 0;
-
-    const byWarehouse = new Map<string, { name: string; count: number }>();
-
-    for (const alert of alerts) {
-      if (alert.percentOfThreshold < 25) {
-        criticalCount++;
-      } else if (alert.percentOfThreshold < 50) {
-        warningCount++;
-      } else {
-        lowCount++;
-      }
-
-      const existing = byWarehouse.get(alert.warehouseId);
-      if (existing) {
-        existing.count++;
-      } else {
-        byWarehouse.set(alert.warehouseId, {
-          name: alert.warehouseName,
-          count: 1,
-        });
-      }
-    }
-
-    return {
-      totalAlerts: alerts.length,
-      criticalCount,
-      warningCount,
-      lowCount,
-      byWarehouse: Array.from(byWarehouse.entries()).map(([id, data]) => ({
-        warehouseId: id,
-        warehouseName: data.name,
-        alertCount: data.count,
-      })),
-    };
+    return this.alertsService.getLowStockSummary();
   }
 
   // =============================================================================
