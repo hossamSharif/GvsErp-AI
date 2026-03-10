@@ -254,8 +254,6 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
             <div className="text-sm text-gray-600">
               <p>Please make payment to:</p>
               <p className="font-medium mt-1">{companyName}</p>
-              <p>Bank: Your Bank Name</p>
-              <p>Account: XXXX-XXXX-XXXX</p>
               <p className="mt-2">Reference: {invoice.invoiceNumber}</p>
             </div>
           </div>
