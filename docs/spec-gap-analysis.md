@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 10; 514 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 16; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -344,6 +344,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 10; 514 tests across 2
 - **[Loop-6 C8]** Added aria-labels to 5 search inputs on warehouse, accounts, and employees pages (frontend designer)
 - **[Loop-6 C9]** QA clean pass — 514 tests, 0 TS errors (API + web), build 5/5; only 1 acceptable any remains (Express Response.send signature)
 - **[Loop-6 C10]** PM update — **all any types eliminated from repositories and services**; 0 type errors; all search inputs have aria-labels
+- **[Loop-6 C11]** Removed placeholder bank details ("Your Bank Name", "XXXX-XXXX-XXXX") from invoice PDF (business analyst)
+- **[Loop-6 C12]** Code reviewer clean pass — all error handlers use instanceof, no unguarded error.message leaks
+- **[Loop-6 C13]** System architect clean pass — no circular deps, clean layer separation, packages don't import from apps
+- **[Loop-6 C14]** Added sr-only labels to dropdown menu triggers on warehouses and transfers pages (frontend designer)
+- **[Loop-6 C15]** QA clean pass — 514 tests, 0 TS errors, build 5/5
+- **[Loop-6 C16]** PM update — nearing completion; last 6 iterations: 3 clean passes (CR, Arch, QA), 3 minor fixes (BA, FD×2)
 
 ## Recommendations (Priority Order)
 
