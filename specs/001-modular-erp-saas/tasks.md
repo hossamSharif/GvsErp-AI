@@ -50,51 +50,51 @@
 
 ### Database Schema & Migrations
 
-- [ ] T013 Create initial migration with tenant, user, role tables in packages/database/migrations/001_core_schema.sql
-- [ ] T014 Create RLS policies for tenant isolation in packages/database/migrations/002_rls_policies.sql
-- [ ] T015 [P] Create database types generation script in packages/database/scripts/generate-types.ts
-- [ ] T016 Create Supabase client wrapper with auth in packages/database/src/client.ts
+- [X] T013 Create initial migration with tenant, user, role tables in packages/database/migrations/001_core_schema.sql
+- [X] T014 Create RLS policies for tenant isolation in packages/database/migrations/002_rls_policies.sql
+- [X] T015 [P] Create database types generation script in packages/database/scripts/generate-types.ts
+- [X] T016 Create Supabase client wrapper with auth in packages/database/src/client.ts
 
 ### Shared Types & Validation
 
-- [ ] T017 [P] Define core entity types (Tenant, User, Role) in packages/shared/src/types/core.ts
-- [ ] T018 [P] Define API response types (pagination, error) in packages/shared/src/types/api.ts
-- [ ] T019 [P] Create Zod validation schemas for auth in packages/shared/src/validation/auth.ts
-- [ ] T020 [P] Define permission constants and role defaults in packages/shared/src/constants/permissions.ts
+- [X] T017 [P] Define core entity types (Tenant, User, Role) in packages/shared/src/types/core.ts
+- [X] T018 [P] Define API response types (pagination, error) in packages/shared/src/types/api.ts
+- [X] T019 [P] Create Zod validation schemas for auth in packages/shared/src/validation/auth.ts
+- [X] T020 [P] Define permission constants and role defaults in packages/shared/src/constants/permissions.ts
 
 ### Backend Infrastructure
 
-- [ ] T021 Setup Express app with middleware (cors, helmet, json) in apps/api/src/index.ts
-- [ ] T022 Create auth middleware with Supabase JWT verification in apps/api/src/middleware/auth.ts
-- [ ] T023 Create tenant middleware for tenant_id injection in apps/api/src/middleware/tenant.ts
-- [ ] T024 [P] Create error handling middleware in apps/api/src/middleware/error.ts
-- [ ] T025 [P] Create request validation middleware using Zod in apps/api/src/middleware/validate.ts
-- [ ] T026 [P] Create rate limiting middleware in apps/api/src/middleware/rate-limit.ts
-- [ ] T027 Create base repository class with tenant filtering in apps/api/src/repositories/base.repository.ts
+- [X] T021 Setup Express app with middleware (cors, helmet, json) in apps/api/src/index.ts
+- [X] T022 Create auth middleware with Supabase JWT verification in apps/api/src/middleware/auth.ts
+- [X] T023 Create tenant middleware for tenant_id injection in apps/api/src/middleware/tenant.ts
+- [X] T024 [P] Create error handling middleware in apps/api/src/middleware/error.ts
+- [X] T025 [P] Create request validation middleware using Zod in apps/api/src/middleware/validate.ts
+- [X] T026 [P] Create rate limiting middleware in apps/api/src/middleware/rate-limit.ts
+- [X] T027 Create base repository class with tenant filtering in apps/api/src/repositories/base.repository.ts
 
 ### Frontend Infrastructure
 
-- [ ] T028 Setup TanStack Query provider in apps/web/src/providers/query-provider.tsx
-- [ ] T029 Create Supabase auth provider in apps/web/src/providers/auth-provider.tsx
-- [ ] T030 [P] Create API client with auth headers in apps/web/src/lib/api-client.ts
-- [ ] T031 [P] Configure next-intl with AR/EN locales in apps/web/src/i18n/
-- [ ] T032 Create theme provider (dark/light) with Zustand in apps/web/src/stores/theme-store.ts
-- [ ] T033 [P] Create language store with RTL support in apps/web/src/stores/language-store.ts
+- [X] T028 Setup TanStack Query provider in apps/web/src/providers/query-provider.tsx
+- [X] T029 Create Supabase auth provider in apps/web/src/providers/auth-provider.tsx
+- [X] T030 [P] Create API client with auth headers in apps/web/src/lib/api-client.ts
+- [X] T031 [P] Configure next-intl with AR/EN locales in apps/web/src/i18n/
+- [X] T032 Create theme provider (dark/light) with Zustand in apps/web/src/stores/theme-store.ts
+- [X] T033 [P] Create language store with RTL support in apps/web/src/stores/language-store.ts
 
 ### Auth Routes & Pages
 
-- [ ] T034 Implement POST /auth/login endpoint in apps/api/src/routes/auth.routes.ts
-- [ ] T035 Implement POST /auth/register endpoint with tenant creation in apps/api/src/routes/auth.routes.ts
-- [ ] T036 Create login page in apps/web/src/app/[locale]/(auth)/login/page.tsx
-- [ ] T037 Create register page in apps/web/src/app/[locale]/(auth)/register/page.tsx
-- [ ] T038 Create auth layout with language switcher in apps/web/src/app/[locale]/(auth)/layout.tsx
+- [X] T034 Implement POST /auth/login endpoint in apps/api/src/routes/auth.routes.ts
+- [X] T035 Implement POST /auth/register endpoint with tenant creation in apps/api/src/routes/auth.routes.ts
+- [X] T036 Create login page in apps/web/src/app/[locale]/(auth)/login/page.tsx
+- [X] T037 Create register page in apps/web/src/app/[locale]/(auth)/register/page.tsx
+- [X] T038 Create auth layout with language switcher in apps/web/src/app/[locale]/(auth)/layout.tsx
 
 ### Dashboard Layout
 
-- [ ] T039 Create dashboard layout with sidebar in apps/web/src/app/[locale]/(dashboard)/layout.tsx
-- [ ] T040 [P] Create sidebar navigation component in apps/web/src/components/layout/sidebar.tsx
-- [ ] T041 [P] Create header with user menu, theme toggle in apps/web/src/components/layout/header.tsx
-- [ ] T042 Create dashboard home page in apps/web/src/app/[locale]/(dashboard)/page.tsx
+- [X] T039 Create dashboard layout with sidebar in apps/web/src/app/[locale]/(dashboard)/layout.tsx
+- [X] T040 [P] Create sidebar navigation component in apps/web/src/components/layout/sidebar.tsx
+- [X] T041 [P] Create header with user menu, theme toggle in apps/web/src/components/layout/header.tsx
+- [X] T042 Create dashboard home page in apps/web/src/app/[locale]/(dashboard)/page.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
