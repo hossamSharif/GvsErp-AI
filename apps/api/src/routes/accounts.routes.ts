@@ -7,9 +7,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AccountingService, AccountingError } from '../services/accounting.service';
 import { createAccountSchema, updateAccountSchema } from '@erp/shared';
+import type { AccountType } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+
+const validAccountTypes = new Set<string>(['asset', 'liability', 'equity', 'revenue', 'expense']);
 
 const router: Router = Router();
 
@@ -64,12 +67,15 @@ router.get(
       const service = getAccountingService(req);
       const { tenantId } = getContext(req);
       const { type, tree } = req.query;
+      const accountType = typeof type === 'string' && validAccountTypes.has(type)
+        ? type as AccountType
+        : undefined;
 
       if (tree === 'true') {
-        const accounts = await service.getChartOfAccounts(tenantId, type as any);
+        const accounts = await service.getChartOfAccounts(tenantId, accountType);
         res.json({ success: true, data: accounts });
       } else {
-        const accounts = await service.getFlatChartOfAccounts(tenantId, type as any);
+        const accounts = await service.getFlatChartOfAccounts(tenantId, accountType);
         res.json({ success: true, data: accounts });
       }
     } catch (error) {
