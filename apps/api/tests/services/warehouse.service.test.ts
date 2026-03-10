@@ -103,6 +103,10 @@ describe('WarehouseService constructor', () => {
   it('initializes inventoryRepo', () => {
     expect(warehouseService.inventoryRepo).toBeDefined();
   });
+
+  it('initializes alertsService', () => {
+    expect(warehouseService.alertsService).toBeDefined();
+  });
 });
 
 // ==========================================================================
@@ -233,5 +237,63 @@ describe('WarehouseService.getLowStockSummary', () => {
     expect(result.totalAlerts).toBe(0);
     expect(result.criticalCount).toBe(0);
     expect(result.byWarehouse).toHaveLength(0);
+  });
+});
+
+// ==========================================================================
+// Alert delegation methods
+// ==========================================================================
+
+describe('WarehouseService alert delegation methods', () => {
+  const svc = new (WarehouseService as any)(null, 'tenant-1');
+  const mockAlerts = [
+    { itemId: 'i1', severity: 'critical', percentOfThreshold: 10 },
+    { itemId: 'i2', severity: 'warning', percentOfThreshold: 40 },
+  ];
+
+  beforeEach(() => {
+    svc.alertsService = {
+      getLowStockAlerts: vi.fn().mockResolvedValue(mockAlerts),
+      getCriticalAlerts: vi.fn().mockResolvedValue([mockAlerts[0]]),
+      getSuggestedReorders: vi.fn().mockResolvedValue([
+        { itemId: 'i1', suggestedQuantity: 50, severity: 'critical' },
+      ]),
+    };
+  });
+
+  it('getLowStockAlertsWithSeverity delegates to alertsService', async () => {
+    const result = await svc.getLowStockAlertsWithSeverity('w1', 'critical');
+    expect(svc.alertsService.getLowStockAlerts).toHaveBeenCalledWith('w1', 'critical');
+    expect(result).toEqual(mockAlerts);
+  });
+
+  it('getLowStockAlertsWithSeverity works without parameters', async () => {
+    const result = await svc.getLowStockAlertsWithSeverity();
+    expect(svc.alertsService.getLowStockAlerts).toHaveBeenCalledWith(undefined, undefined);
+    expect(result).toEqual(mockAlerts);
+  });
+
+  it('getCriticalAlerts delegates to alertsService', async () => {
+    const result = await svc.getCriticalAlerts('w1');
+    expect(svc.alertsService.getCriticalAlerts).toHaveBeenCalledWith('w1');
+    expect(result).toHaveLength(1);
+    expect(result[0].severity).toBe('critical');
+  });
+
+  it('getCriticalAlerts works without warehouseId', async () => {
+    await svc.getCriticalAlerts();
+    expect(svc.alertsService.getCriticalAlerts).toHaveBeenCalledWith(undefined);
+  });
+
+  it('getSuggestedReorders delegates to alertsService', async () => {
+    const result = await svc.getSuggestedReorders('w1');
+    expect(svc.alertsService.getSuggestedReorders).toHaveBeenCalledWith('w1');
+    expect(result).toHaveLength(1);
+    expect(result[0].suggestedQuantity).toBe(50);
+  });
+
+  it('getSuggestedReorders works without warehouseId', async () => {
+    await svc.getSuggestedReorders();
+    expect(svc.alertsService.getSuggestedReorders).toHaveBeenCalledWith(undefined);
   });
 });
