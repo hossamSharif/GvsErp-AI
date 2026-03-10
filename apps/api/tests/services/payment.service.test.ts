@@ -122,11 +122,12 @@ describe('PaymentService.validatePaymentType', () => {
   });
 
   it('sets INVALID_PAYMENT_TYPE error code on rejection', () => {
+    expect.assertions(2);
     try {
       paymentService.validatePaymentType('received', 'supplier');
-    } catch (err: any) {
-      expect(err.code).toBe('INVALID_PAYMENT_TYPE');
-      expect(err.statusCode).toBe(400);
+    } catch (err) {
+      expect((err as PaymentError).code).toBe('INVALID_PAYMENT_TYPE');
+      expect((err as PaymentError).statusCode).toBe(400);
     }
   });
 });
