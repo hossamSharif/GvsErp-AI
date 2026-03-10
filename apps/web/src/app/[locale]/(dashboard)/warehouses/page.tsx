@@ -36,6 +36,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import {
   useWarehouses,
@@ -51,6 +61,7 @@ export default function WarehousesPage() {
   const { locale } = useParams();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [deactivateId, setDeactivateId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [queryParams, setQueryParams] = useState<WarehouseQueryParams>({
     page: 1,
@@ -75,9 +86,12 @@ export default function WarehousesPage() {
     setQueryParams(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleDeactivate = async (id: string) => {
-    if (confirm(t('confirmDeactivate'))) {
-      await deactivateMutation.mutateAsync(id);
+  const handleDeactivateConfirm = async () => {
+    if (!deactivateId) return;
+    try {
+      await deactivateMutation.mutateAsync(deactivateId);
+    } finally {
+      setDeactivateId(null);
     }
   };
 
@@ -265,7 +279,7 @@ export default function WarehousesPage() {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeactivate(warehouse.id);
+                                setDeactivateId(warehouse.id);
                               }}
                               className="text-red-600"
                             >
@@ -319,6 +333,22 @@ export default function WarehousesPage() {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
       />
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog open={!!deactivateId} onOpenChange={(open) => !open && setDeactivateId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deactivate')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmDeactivate')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeactivateConfirm}>{t('deactivate')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
