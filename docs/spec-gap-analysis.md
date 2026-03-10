@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 7 iter 22; 514 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 4; 526 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 7 iter 22; 514 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 514 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 526 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -362,6 +362,14 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 7 iter 22; 514 tests across 2
 - **[Loop-7 C9]** Replaced 2 any types with Employee and EmployeeFormSubmitData in employee form props (frontend designer)
 - **[Loop-7 C10]** QA clean pass — 514 tests pass, 0 TS errors (API + web)
 - **[Loop-7 C11]** PM update — documented iterations 22-27; 7 more any types eliminated; stabilizing toward completion
+- **[Loop-7 C12]** Replaced 2 any[] types with ReceiptLineItem[] in receipt component (system architect)
+- **[Loop-7 C13]** Fixed dark mode colors and accessibility on inventory report page (frontend designer)
+- **[Loop-7 C14]** Fixed silent false-positive in payment validation test with expect.assertions (QA engineer)
+- **[Loop-7 C15]** Eliminated last any type in frontend: type warehouse report data with InventoryReportData (code reviewer)
+- **[Loop-8 C1]** Replaced Promise<any[]> with Promise<ExchangeRate[]> in exchange rate service getRatesInRange (system architect)
+- **[Loop-8 C2]** Added scope=col to TableHead component for screen reader table navigation — affects all tables app-wide (frontend designer)
+- **[Loop-8 C3]** Added 11 tests for AlertsService: getLowStockAlerts severity filtering and getSuggestedReorders edge cases — total 526 tests (QA engineer)
+- **[Loop-8 C4]** PM update — gap analysis updated to 526 tests; task completion: 247/260 (95%); 3 HR tasks + 13 polish tasks remain
 
 ## Recommendations (Priority Order)
 
