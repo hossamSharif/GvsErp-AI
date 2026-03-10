@@ -31,7 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { InventoryPdf } from '@/components/reports/inventory-pdf';
+import { InventoryPdf, type InventoryReportData } from '@/components/reports/inventory-pdf';
 import { useAuth } from '@/providers/auth-provider';
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useCategories } from '@/hooks/use-categories';
@@ -58,7 +58,7 @@ export default function InventoryReportPage() {
     includeZeroStock: false,
     groupBy: 'item',
   });
-  const [reportData, setReportData] = useState<any>(null);
+  const [reportData, setReportData] = useState<InventoryReportData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +86,7 @@ export default function InventoryReportPage() {
       params.append('groupBy', filters.groupBy);
       params.append('format', 'json');
 
-      const response = await api.get<{ data: { report: any } }>(
+      const response = await api.get<{ data: { report: InventoryReportData } }>(
         `/reports/inventory?${params.toString()}`
       );
       setReportData(response.data.report);

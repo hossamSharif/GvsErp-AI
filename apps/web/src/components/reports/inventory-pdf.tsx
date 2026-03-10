@@ -49,7 +49,7 @@ interface CategoryGroup {
   lowStockCount: number;
 }
 
-interface InventoryReportData {
+export interface InventoryReportData {
   generatedAt: string;
   filters: {
     warehouseId?: string;
