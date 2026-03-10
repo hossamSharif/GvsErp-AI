@@ -587,6 +587,7 @@ export function ItemForm({
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label="Remove price tier"
                         onClick={() => removePrice(index)}
                         className="text-destructive"
                       >
@@ -692,6 +693,7 @@ export function ItemForm({
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label="Remove packaging option"
                         onClick={() => removePackaging(index)}
                         className="text-destructive"
                       >

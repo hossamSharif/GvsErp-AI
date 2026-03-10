@@ -39,6 +39,7 @@ export default function NewTransferPage() {
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Go back to transfers"
           onClick={() => router.push(`/${locale}/warehouses/transfers`)}
         >
           <ArrowLeft className="h-4 w-4" />

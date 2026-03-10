@@ -274,6 +274,7 @@ export function TransferForm({
                           type="button"
                           variant="ghost"
                           size="icon"
+                          aria-label="Remove transfer item"
                           onClick={() => remove(index)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
