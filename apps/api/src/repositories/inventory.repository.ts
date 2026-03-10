@@ -18,6 +18,24 @@ type InventoryRow = Database['public']['Tables']['inventory']['Row'];
 type InventoryInsert = Database['public']['Tables']['inventory']['Insert'];
 type InventoryUpdate = Database['public']['Tables']['inventory']['Update'];
 
+interface ItemPriceRow {
+  price: number;
+  price_tier: string;
+}
+
+interface InventoryWithItemRow extends InventoryRow {
+  items: {
+    id: string;
+    name: string;
+    sku: string | null;
+    barcode: string | null;
+    unit_of_measure: string;
+    is_active: boolean;
+  };
+  item_prices: ItemPriceRow[];
+}
+
+
 /**
  * Inventory repository with stock management operations
  */
@@ -178,11 +196,12 @@ export class InventoryRepository extends BaseRepository<
     }
 
     // Transform and filter results
-    let entries: WarehouseInventoryEntry[] = (data || []).map((row: any) => {
+    const rows = (data || []) as unknown as InventoryWithItemRow[];
+    let entries: WarehouseInventoryEntry[] = rows.map((row) => {
       const quantity = Number(row.quantity);
       const reservedQuantity = Number(row.reserved_quantity) || 0;
       const threshold = row.low_stock_threshold ? Number(row.low_stock_threshold) : null;
-      const costPrice = row.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
+      const costPrice = row.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
 
       return {
         id: row.id,
@@ -376,8 +395,8 @@ export class InventoryRepository extends BaseRepository<
 
     // Filter and map to alerts
     return (data || [])
-      .filter((row: any) => Number(row.quantity) <= Number(row.low_stock_threshold))
-      .map((row: any) => {
+      .filter((row) => Number(row.quantity) <= Number(row.low_stock_threshold))
+      .map((row) => {
         const quantity = Number(row.quantity);
         const threshold = Number(row.low_stock_threshold);
         return {
@@ -417,8 +436,9 @@ export class InventoryRepository extends BaseRepository<
       throw error;
     }
 
-    return (data || []).reduce((total: number, row: any) => {
-      const costPrice = row.item_prices?.find((p: any) => p.price_tier === 'cost')?.price || 0;
+    const rows = (data || []) as unknown as Array<{ quantity: number; item_id: string; item_prices: ItemPriceRow[] }>;
+    return rows.reduce((total: number, row) => {
+      const costPrice = row.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
       return total + Number(row.quantity) * Number(costPrice);
     }, 0);
   }
