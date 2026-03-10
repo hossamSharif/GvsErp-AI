@@ -10,7 +10,15 @@ import { auditLogQuerySchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
-import type { AuditLogQueryParams } from '@erp/shared';
+import type { AuditLogQueryParams, AuditEntityType } from '@erp/shared';
+
+/** Valid entity types for audit log filtering */
+const validEntityTypes = new Set<string>([
+  'tenant', 'user', 'role', 'item', 'category', 'warehouse', 'inventory',
+  'invoice', 'invoice_item', 'party', 'payment', 'expense', 'expense_category',
+  'transfer', 'transfer_item', 'pos_location', 'currency', 'exchange_rate',
+  'settings', 'employee', 'attendance', 'payroll', 'account', 'journal_entry', 'accounting',
+]);
 
 const router: Router = Router();
 
@@ -86,10 +94,14 @@ router.get(
     try {
       const service = getAuditService(req);
       const { entityType, entityId } = req.params;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      if (!validEntityTypes.has(entityType)) {
+        res.status(400).json({ success: false, error: `Invalid entity type: ${entityType}` });
+        return;
+      }
+      const limit = req.query.limit ? Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50)) : 50;
 
       const logs = await service.getEntityAuditLogs(
-        entityType as any,
+        entityType as AuditEntityType,
         entityId,
         limit
       );
