@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 4; 558 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 10; 562 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 4; 558 tests across 26
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 558 passing across 26 suites
+- **Tests**: 562 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -391,6 +391,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 4; 558 tests across 26
 - **[Loop-9 C2]** Added aria-hidden to 9 decorative Search icons + aria-label to data-table search input (frontend designer)
 - **[Loop-9 C3]** Added 3 tests for domain service error handling in global errorHandler — total 558 tests (QA engineer)
 - **[Loop-9 C4]** Updated gap analysis: 558 tests, receipt printing marked done, POS FR-011 marked implemented (project manager)
+- **[Loop-9 C5]** Added guidance text to POS terminal empty search results area (business analyst)
+- **[Loop-9 C6]** Fixed incorrect unitCost calculation for zero-quantity inventory items — division fallback inflated values (code reviewer)
+- **[Loop-9 C7]** Removed redundant handleItemError from items routes — first route to delegate to global error handler (system architect)
+- **[Loop-9 C8]** Added role=alert to error messages in party-select and image-upload components (frontend designer)
+- **[Loop-9 C9]** Added 4 tests for getInventoryReportData: unitCost calculation, zero-quantity, filtering, aggregation — total 562 tests (QA engineer)
+- **[Loop-9 C10]** Updated gap analysis: 562 tests; fixes trending toward polish-level; unitCost bug was last significant finding (project manager)
 
 ## Recommendations (Priority Order)
 
