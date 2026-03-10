@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { PaymentService, PaymentError } from '../services/payment.service';
+import { PaymentService } from '../services/payment.service';
 import type { PaymentQueryParams } from '@erp/shared';
 import {
   createPaymentSchema,
@@ -28,23 +28,6 @@ router.use(requireAuth);
 function getPaymentService(req: Request): PaymentService {
   const { supabase, tenantId } = getTenantContext(req);
   return new PaymentService(supabase, tenantId);
-}
-
-/**
- * Error handler for payment-specific errors
- */
-function handlePaymentError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof PaymentError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -76,7 +59,7 @@ router.get(
         },
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
@@ -100,7 +83,7 @@ router.post(
         data: payment,
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
@@ -121,7 +104,7 @@ router.get(
         data: payment,
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
@@ -144,7 +127,7 @@ router.put(
         data: payment,
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
@@ -166,7 +149,7 @@ router.delete(
         message: 'Payment deleted successfully',
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
@@ -202,7 +185,7 @@ router.get(
         data: report,
       });
     } catch (error) {
-      handlePaymentError(error, res, next);
+      next(error);
     }
   }
 );
