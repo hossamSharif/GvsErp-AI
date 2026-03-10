@@ -356,6 +356,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 7 iter 22; 514 tests across 2
 - **[Loop-7 C3]** Added aria-label to language selector in auth-shell — matched existing header.tsx pattern (frontend designer)
 - **[Loop-7 C4]** Fixed broken error display: 6 catch blocks used dead error.response?.data pattern (Axios-style) but API client throws ApiClientError — errors were never shown to users; fixed 8 instances across 5 files (QA engineer)
 - **[Loop-7 C5]** PM update — documented iterations 17-21; error display bug was critical UX issue affecting all accounting pages and activation wizards
+- **[Loop-7 C6]** Fixed misleading audit export toast: "Export started" → honest "Coming soon" (business analyst)
+- **[Loop-7 C7]** Replaced any with CreateJournalEntryInput in journal entry new page (code reviewer)
+- **[Loop-7 C8]** Replaced 2 any types with JournalEntryFilters and PaginationMeta in journal entries hook (system architect)
+- **[Loop-7 C9]** Replaced 2 any types with Employee and EmployeeFormSubmitData in employee form props (frontend designer)
+- **[Loop-7 C10]** QA clean pass — 514 tests pass, 0 TS errors (API + web)
+- **[Loop-7 C11]** PM update — documented iterations 22-27; 7 more any types eliminated; stabilizing toward completion
 
 ## Recommendations (Priority Order)
 
