@@ -22,39 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Mock data
-const useAttendance = () => {
-  return {
-    data: {
-      data: [
-        {
-          id: '1',
-          date: '2025-01-15',
-          employee: { employee_number: 'EMP-0001', full_name: 'John Doe' },
-          check_in: '2025-01-15T09:00:00',
-          check_out: '2025-01-15T17:30:00',
-          status: 'present',
-          notes: null,
-        },
-        {
-          id: '2',
-          date: '2025-01-15',
-          employee: { employee_number: 'EMP-0002', full_name: 'Jane Smith' },
-          check_in: '2025-01-15T08:45:00',
-          check_out: null,
-          status: 'present',
-          notes: null,
-        },
-      ],
-      meta: { total: 2, page: 1, limit: 50 },
-    },
-    isLoading: false,
-  };
-};
+import { useAttendance } from '@/hooks/use-attendance';
+import type { Attendance } from '@erp/shared';
 
 const getStatusBadge = (status: string) => {
-  const variants: Record<string, any> = {
+  const variants: Record<string, { variant: 'default' | 'destructive' | 'secondary' | 'outline'; label: string }> = {
     present: { variant: 'default', label: 'Present' },
     absent: { variant: 'destructive', label: 'Absent' },
     leave: { variant: 'secondary', label: 'On Leave' },
@@ -65,7 +37,7 @@ const getStatusBadge = (status: string) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-const calculateHours = (checkIn: string | null, checkOut: string | null) => {
+const calculateHours = (checkIn: string | undefined, checkOut: string | undefined) => {
   if (!checkIn || !checkOut) return '-';
   const start = new Date(checkIn);
   const end = new Date(checkOut);
@@ -77,16 +49,23 @@ export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data, isLoading } = useAttendance();
+  const { data, isLoading } = useAttendance({
+    date: selectedDate,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+  });
 
-  const columns: ColumnDef<any>[] = [
+  const records = data?.data || [];
+
+  const columns: ColumnDef<Attendance>[] = [
     {
       accessorKey: 'employee.employee_number',
       header: 'Employee #',
+      cell: ({ row }) => row.original.employee?.employee_number || '-',
     },
     {
       accessorKey: 'employee.full_name',
       header: 'Name',
+      cell: ({ row }) => row.original.employee?.full_name || '-',
     },
     {
       accessorKey: 'date',
@@ -152,9 +131,9 @@ export default function AttendancePage() {
             <CardDescription>Showing</CardDescription>
             <CardTitle className="text-3xl flex items-center gap-2">
               <Users className="h-6 w-6" />
-              {data?.data?.length || 0}
+              {records.length}
               <span className="text-sm font-normal text-muted-foreground">
-                of {data?.meta?.total || 0}
+                records
               </span>
             </CardTitle>
           </CardHeader>
@@ -164,7 +143,7 @@ export default function AttendancePage() {
           <CardHeader className="pb-2">
             <CardDescription>Present</CardDescription>
             <CardTitle className="text-3xl text-green-600">
-              {data?.data?.filter((a) => a.status === 'present').length || 0}
+              {records.filter((a) => a.status === 'present').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -173,7 +152,7 @@ export default function AttendancePage() {
           <CardHeader className="pb-2">
             <CardDescription>Absent</CardDescription>
             <CardTitle className="text-3xl text-red-600">
-              {data?.data?.filter((a) => a.status === 'absent').length || 0}
+              {records.filter((a) => a.status === 'absent').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -182,7 +161,7 @@ export default function AttendancePage() {
           <CardHeader className="pb-2">
             <CardDescription>On Leave</CardDescription>
             <CardTitle className="text-3xl text-blue-600">
-              {data?.data?.filter((a) => a.status === 'leave').length || 0}
+              {records.filter((a) => a.status === 'leave').length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -199,6 +178,7 @@ export default function AttendancePage() {
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
               <Input
                 type="date"
+                aria-label="Select date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-[200px]"
@@ -221,7 +201,7 @@ export default function AttendancePage() {
 
           <DataTable
             columns={columns}
-            data={data?.data || []}
+            data={records}
             isLoading={isLoading}
           />
         </CardContent>
