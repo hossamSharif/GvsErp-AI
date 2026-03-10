@@ -170,7 +170,7 @@ export default function WarehousesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {warehouses.filter((w: any) => w.is_active).length}
+              {warehouses.filter((w: Warehouse) => w.isActive).length}
               <span className="text-xs font-normal text-muted-foreground ml-1">on this page</span>
             </div>
           </CardContent>
