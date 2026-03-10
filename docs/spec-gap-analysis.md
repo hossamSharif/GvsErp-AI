@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 4; 514 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 10; 514 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -338,6 +338,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 6 iter 4; 514 tests across 26
 - **[Loop-6 C2]** Added aria-labels to 13 icon-only buttons (back navigation + form delete) across 12 pages (frontend designer)
 - **[Loop-6 C3]** QA clean pass — 514 tests pass, build 5/5 tasks succeed, no actionable gaps found
 - **[Loop-6 C4]** PM update — gap analysis updated, remaining: 4 any types (3 in transfer.repository, 1 in pos.repository), all critical gaps unchanged
+- **[Loop-6 C5]** Made POS terminal layout responsive for tablet/mobile (grid-cols-1 md:grid-cols-2) (business analyst)
+- **[Loop-6 C6]** Replaced 3 any types with TransferWithJoinsRow and TransferItemJoinRow in TransferRepository (code reviewer)
+- **[Loop-6 C7]** Replaced last any in POSRepository with POSLocationUpdate; fixed 2 pre-existing audit.service header type errors (system architect)
+- **[Loop-6 C8]** Added aria-labels to 5 search inputs on warehouse, accounts, and employees pages (frontend designer)
+- **[Loop-6 C9]** QA clean pass — 514 tests, 0 TS errors (API + web), build 5/5; only 1 acceptable any remains (Express Response.send signature)
+- **[Loop-6 C10]** PM update — **all any types eliminated from repositories and services**; 0 type errors; all search inputs have aria-labels
 
 ## Recommendations (Priority Order)
 
