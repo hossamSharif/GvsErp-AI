@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Save, Loader2 } from 'lucide-react';
+import type { Employee } from '@erp/shared';
 
 // =============================================================================
 // FORM SCHEMA
@@ -60,15 +61,26 @@ const employeeFormSchema = z.object({
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
+interface EmployeeFormSubmitData {
+  employee_number: string;
+  full_name: string;
+  department?: string;
+  position?: string;
+  hire_date?: string;
+  salary?: number;
+  salary_currency: string;
+  is_active: boolean;
+}
+
 // =============================================================================
 // PROPS
 // =============================================================================
 
 interface EmployeeFormProps {
   /** Existing employee data for editing */
-  employee?: any;
-  /** Submit handler */
-  onSubmit: (data: any) => Promise<void>;
+  employee?: Employee;
+  /** Submit handler — receives transformed data with salary as number */
+  onSubmit: (data: EmployeeFormSubmitData) => Promise<void>;
   /** Cancel handler */
   onCancel?: () => void;
   /** Loading state */
