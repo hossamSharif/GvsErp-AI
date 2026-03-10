@@ -6,6 +6,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
+  Account,
+  JournalEntry,
   TrialBalance,
   IncomeStatement,
   BalanceSheet,
@@ -53,7 +55,7 @@ export function useActivateAccounting() {
   return useMutation({
     mutationFn: async (data: AccountingActivationInput) => {
       const response = await api.post<{
-        data: { accounts_created: number; accounts: any[] };
+        data: { accounts_created: number; accounts: Account[] };
       }>('/accounting/activate', data);
       return response.data;
     },
@@ -79,7 +81,7 @@ export function useAccountingSummary() {
           total_assets: number;
           total_liabilities: number;
           total_equity: number;
-          recent_entries: any[];
+          recent_entries: JournalEntry[];
         };
       }>('/accounting/summary');
       return response.data;
