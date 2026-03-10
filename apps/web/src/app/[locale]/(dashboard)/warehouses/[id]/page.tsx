@@ -245,6 +245,7 @@ export default function WarehouseDetailPage() {
             <div className="relative flex-1 max-w-sm">
               <Input
                 placeholder={t('searchItems')}
+                aria-label="Search inventory items"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
