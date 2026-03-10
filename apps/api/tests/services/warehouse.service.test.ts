@@ -293,3 +293,92 @@ describe('WarehouseService alert delegation methods', () => {
     expect(svc.alertsService.getSuggestedReorders).toHaveBeenCalledWith(undefined);
   });
 });
+
+// ==========================================================================
+// getInventoryReportData — unitCost calculation
+// ==========================================================================
+
+describe('WarehouseService.getInventoryReportData', () => {
+  const svc = new (WarehouseService as any)(null, 'tenant-1');
+  const mockWarehouse = { id: 'w-1', name: 'Main', isActive: true };
+
+  const makeInvItem = (overrides: Record<string, unknown> = {}) => ({
+    itemId: 'item-1',
+    itemName: 'Widget',
+    itemSku: 'WDG-001',
+    itemBarcode: '123456',
+    unitOfMeasure: 'pcs',
+    quantity: 10,
+    reservedQuantity: 0,
+    availableQuantity: 10,
+    lowStockThreshold: 5,
+    isLowStock: false,
+    estimatedValue: 100,
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    svc.warehouseRepo = {
+      getById: vi.fn().mockResolvedValue(mockWarehouse),
+      getActiveWarehouses: vi.fn().mockResolvedValue([mockWarehouse]),
+    };
+  });
+
+  it('calculates unitCost correctly for items with quantity', async () => {
+    svc.inventoryRepo = {
+      getWarehouseInventory: vi.fn().mockResolvedValue({
+        data: [makeInvItem({ quantity: 10, estimatedValue: 250 })],
+      }),
+    };
+
+    const result = await svc.getInventoryReportData({ warehouseId: 'w-1' });
+    expect(result.entries[0].unitCost).toBe(25); // 250 / 10
+  });
+
+  it('returns unitCost 0 for zero-quantity items', async () => {
+    svc.inventoryRepo = {
+      getWarehouseInventory: vi.fn().mockResolvedValue({
+        data: [makeInvItem({ quantity: 0, estimatedValue: 100 })],
+      }),
+    };
+
+    const result = await svc.getInventoryReportData({
+      warehouseId: 'w-1',
+      includeZeroQuantity: true,
+    });
+    expect(result.entries[0].unitCost).toBe(0);
+    expect(result.entries[0].totalValue).toBe(100);
+  });
+
+  it('filters out zero-quantity items by default', async () => {
+    svc.inventoryRepo = {
+      getWarehouseInventory: vi.fn().mockResolvedValue({
+        data: [
+          makeInvItem({ itemId: 'a', quantity: 5, estimatedValue: 50 }),
+          makeInvItem({ itemId: 'b', quantity: 0, estimatedValue: 0 }),
+        ],
+      }),
+    };
+
+    const result = await svc.getInventoryReportData({ warehouseId: 'w-1' });
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0].itemId).toBe('a');
+  });
+
+  it('aggregates totals correctly', async () => {
+    svc.inventoryRepo = {
+      getWarehouseInventory: vi.fn().mockResolvedValue({
+        data: [
+          makeInvItem({ itemId: 'a', quantity: 10, estimatedValue: 100, isLowStock: true }),
+          makeInvItem({ itemId: 'b', quantity: 5, estimatedValue: 75, isLowStock: false }),
+        ],
+      }),
+    };
+
+    const result = await svc.getInventoryReportData({ warehouseId: 'w-1' });
+    expect(result.summary.totalItems).toBe(2);
+    expect(result.summary.totalQuantity).toBe(15);
+    expect(result.summary.totalValue).toBe(175);
+    expect(result.summary.lowStockCount).toBe(1);
+  });
+});
