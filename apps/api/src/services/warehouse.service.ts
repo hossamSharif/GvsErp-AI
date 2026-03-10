@@ -334,7 +334,7 @@ export class WarehouseService {
           availableQuantity: inv.availableQuantity,
           lowStockThreshold: inv.lowStockThreshold,
           isLowStock: inv.isLowStock,
-          unitCost: inv.estimatedValue / (inv.quantity || 1),
+          unitCost: inv.quantity > 0 ? inv.estimatedValue / inv.quantity : 0,
           totalValue: inv.estimatedValue,
         });
 
