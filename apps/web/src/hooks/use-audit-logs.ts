@@ -77,13 +77,13 @@ export function useUserRecentAuditLogs(limit: number = 20) {
  * Calculate diff between old and new values
  */
 export function useAuditDiff(
-  oldValues: Record<string, any> | null,
-  newValues: Record<string, any> | null
+  oldValues: Record<string, unknown> | null,
+  newValues: Record<string, unknown> | null
 ) {
-  return useQuery<{ field: string; oldValue: any; newValue: any }[]>({
+  return useQuery<{ field: string; oldValue: unknown; newValue: unknown }[]>({
     queryKey: ['audit-logs', 'diff', oldValues, newValues],
     queryFn: async () => {
-      const response = await api.post<{ data: { field: string; oldValue: any; newValue: any }[] }>('/audit-logs/diff', {
+      const response = await api.post<{ data: { field: string; oldValue: unknown; newValue: unknown }[] }>('/audit-logs/diff', {
         oldValues,
         newValues,
       });
