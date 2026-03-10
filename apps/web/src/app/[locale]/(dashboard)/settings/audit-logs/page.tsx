@@ -137,13 +137,6 @@ export default function AuditLogsPage() {
     setDetailsDialogOpen(true);
   }, []);
 
-  const handleExport = useCallback(() => {
-    toast({
-      title: 'Coming soon',
-      description: 'Audit log export is not yet available.',
-    });
-  }, [toast]);
-
   // Table columns
   const columns = useMemo<ColumnDef<AuditLog>[]>(
     () => [
@@ -256,7 +249,7 @@ export default function AuditLogsPage() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" disabled title="Audit log export is not yet available">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
