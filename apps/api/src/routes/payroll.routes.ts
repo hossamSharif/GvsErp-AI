@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { PayrollService, PayrollError } from '../services/payroll.service';
+import { AppError } from '../middleware/error';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
@@ -109,13 +110,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const endDate = req.query.end_date as string;
 
     if (!startDate || !endDate) {
-      return void res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_PARAMS',
-          message: 'start_date and end_date are required',
-        },
-      });
+      return void next(AppError.badRequest('start_date and end_date are required'));
     }
 
     const summary = await service.getPayrollSummary(startDate, endDate);
@@ -158,13 +153,7 @@ router.post('/', requirePermission('payroll:write'), async (req: Request, res: R
     const { period_start, period_end } = req.body;
 
     if (!period_start || !period_end) {
-      return void res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_PARAMS',
-          message: 'period_start and period_end are required',
-        },
-      });
+      return void next(AppError.badRequest('period_start and period_end are required'));
     }
 
     const payrollRun = await service.createPayrollRun(userId, {
