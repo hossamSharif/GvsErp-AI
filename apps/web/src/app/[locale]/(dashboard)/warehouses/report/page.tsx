@@ -90,8 +90,8 @@ export default function InventoryReportPage() {
         `/reports/inventory?${params.toString()}`
       );
       setReportData(response.data.report);
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate report');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate report');
     } finally {
       setIsLoading(false);
     }
@@ -122,8 +122,8 @@ export default function InventoryReportPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
-      setError(err.message || 'Failed to export CSV');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export CSV');
     }
   };
 
