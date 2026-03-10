@@ -7,10 +7,25 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { SettingsService, SettingsError } from '../services/settings.service';
 import { updateTenantSettingsSchema } from '@erp/shared';
+import type { TenantSettings } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import { z } from 'zod';
+
+/** Valid top-level keys of TenantSettings for individual get/update */
+const validSettingKeys = new Set<string>([
+  'default_language', 'default_theme', 'default_currency',
+  'modules', 'limits',
+  'company_name', 'company_email', 'company_phone', 'company_address',
+  'tax_number', 'logo_url',
+  'accounting_module_enabled', 'hr_module_enabled',
+  'fiscal_year_start', 'time_zone', 'date_format', 'number_format',
+]);
+
+function isValidSettingKey(key: string): key is keyof TenantSettings {
+  return validSettingKeys.has(key);
+}
 
 const router: Router = Router();
 
@@ -278,13 +293,18 @@ router.get(
   '/:key',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const key = req.params.key;
+      if (!isValidSettingKey(key)) {
+        res.status(400).json({ success: false, error: `Invalid setting key: ${key}` });
+        return;
+      }
       const service = getSettingsService(req);
-      const value = await service.getSetting(req.params.key as any);
+      const value = await service.getSetting(key);
 
       res.json({
         success: true,
         data: {
-          key: req.params.key,
+          key,
           value,
         },
       });
@@ -303,13 +323,18 @@ router.put(
   requirePermission('settings:write'),
   validateRequest({
     body: z.object({
-      value: z.any(),
+      value: z.unknown(),
     }),
   }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const key = req.params.key;
+      if (!isValidSettingKey(key)) {
+        res.status(400).json({ success: false, error: `Invalid setting key: ${key}` });
+        return;
+      }
       const service = getSettingsService(req);
-      const settings = await service.updateSetting(req.params.key as any, req.body.value);
+      const settings = await service.updateSetting(key, req.body.value as TenantSettings[typeof key]);
 
       res.json({
         success: true,
