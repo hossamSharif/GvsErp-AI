@@ -384,13 +384,13 @@ export class AuditService {
   private static getClientIp(req: Request): string | null {
     const forwarded = req.headers?.['x-forwarded-for'];
     if (forwarded) {
-      const ips = forwarded.split(',');
-      return ips[0].trim();
+      const value = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+      return value.split(',')[0].trim();
     }
 
     const realIp = req.headers?.['x-real-ip'];
     if (realIp) {
-      return realIp;
+      return Array.isArray(realIp) ? realIp[0] : realIp;
     }
 
     return req.connection?.remoteAddress || req.socket?.remoteAddress || null;

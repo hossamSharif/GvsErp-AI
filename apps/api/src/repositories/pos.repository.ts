@@ -12,6 +12,8 @@ import type {
   UpdatePOSLocationRequest,
 } from '@erp/shared';
 
+type POSLocationUpdate = Database['public']['Tables']['pos_locations']['Update'];
+
 export class POSLocationRepository {
   protected readonly supabase: SupabaseClient<Database>;
 
@@ -123,13 +125,13 @@ export class POSLocationRepository {
     tenantId: string,
     data: UpdatePOSLocationRequest
   ): Promise<POSLocation> {
-    const updateData: any = {
+    const updateData: POSLocationUpdate = {
       updated_at: new Date().toISOString(),
     };
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.warehouse_id !== undefined) updateData.warehouse_id = data.warehouse_id;
-    if (data.settings !== undefined) updateData.settings = data.settings;
+    if (data.settings !== undefined) updateData.settings = data.settings as unknown as POSLocationUpdate['settings'];
     if (data.is_active !== undefined) updateData.is_active = data.is_active;
 
     const { data: updatedLocation, error } = await this.supabase
