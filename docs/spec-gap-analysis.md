@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 4; 558 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -9,7 +9,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 2
 |--------|-----|-------------|---------|---------|
 | Items Management | FR-001–004 | 4 | 0 | 0 |
 | Warehouse Management | FR-005–009 | 5 | 0 | 0 |
-| POS Management | FR-010–012 | 2 | 1 | 0 |
+| POS Management | FR-010–012 | 3 | 0 | 0 |
 | Sales Management | FR-013–019 | 5 | 2 | 0 |
 | Purchase Management | FR-020–025 | 4 | 2 | 0 |
 | Customers & Suppliers | FR-026–031 | 6 | 0 | 0 |
@@ -72,9 +72,9 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 2
 - **Status**: Partially implemented
 
 ### Receipt Printing (FR-011)
-- POS terminal exists
-- Receipt generation/printing not implemented (TODO in code)
-- **Status**: POS works but no receipts
+- POS terminal exists with receipt dialog and print support
+- Receipt dialog added in Loop 8 with browser print functionality
+- **Status**: Implemented (Loop 8 iter 17)
 
 ### Accounting Activation Wizard (FR-061)
 - Activation wizard component exists (`wizards/accounting-activation.tsx`)
@@ -95,7 +95,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 2
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 514 passing across 26 suites
+- **Tests**: 558 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -383,13 +383,22 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 2
 - **[Loop-8 C15]** Added 14 method-level tests for TransferService (createTransfer guards, completeTransfer, cancelTransfer stock release, startTransfer) — total 549 tests (QA engineer)
 - **[Loop-8 C16]** PM update — 549 tests; last 5 iterations: no critical bugs, only polish-level improvements; `as any` eliminated from audit and accounts routes
 
+- **[Loop-8 C17]** Added receipt dialog with print to POS terminal after sale completion (project manager)
+- **[Loop-8 C18]** Wired up live low stock alert summary on dashboard (business analyst)
+- **[Loop-8 C19]** Fixed POS receipt print window missing Tailwind CSS definitions (code reviewer)
+- **[Loop-8 C20]** Removed duplicated severity logic from WarehouseService.getLowStockSummary (system architect)
+- **[Loop-9 C1]** Added domain service error handling to global errorHandler — duck-typed isServiceError guard makes 17 per-route error handlers redundant (system architect)
+- **[Loop-9 C2]** Added aria-hidden to 9 decorative Search icons + aria-label to data-table search input (frontend designer)
+- **[Loop-9 C3]** Added 3 tests for domain service error handling in global errorHandler — total 558 tests (QA engineer)
+- **[Loop-9 C4]** Updated gap analysis: 558 tests, receipt printing marked done, POS FR-011 marked implemented (project manager)
+
 ## Recommendations (Priority Order)
 
 1. **P0**: ~~Fix type errors~~ **DONE** — 0 API errors, 0 web errors
 2. **P1**: ~~Fix Next.js SSG prerender errors~~ **DONE** — all pages prerender correctly
 3. **P2**: Implement Expenses module (FR-032–034) — only entirely missing user story
 4. **P3**: Implement Cash Flow Statement page
-5. **P3**: Add receipt printing to POS terminal
+5. ~~**P3**: Add receipt printing to POS terminal~~ **DONE** — receipt dialog with print in Loop 8
 6. **P3**: Add Bank & Cash Management module
 7. **P3**: ~~Add adjustable columns to data tables~~ **DONE** — column resize implemented via TanStack Table
 8. **P3**: Add adjustable row heights to data tables (FR-048 remaining gap)
