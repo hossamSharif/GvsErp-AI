@@ -134,6 +134,7 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7"
             onClick={() => onAddChild(category.id)}
+            aria-label={`Add subcategory to ${category.name}`}
             title="Add subcategory"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -143,6 +144,7 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7"
             onClick={() => onEdit(category)}
+            aria-label={`Edit ${category.name}`}
             title="Edit"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -152,6 +154,7 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7 text-destructive"
             onClick={() => onDelete(category)}
+            aria-label={`Delete ${category.name}`}
             title="Delete"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -310,6 +313,7 @@ export default function CategoriesPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.push(`/${locale}/items`)}
+            aria-label="Back to items"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
