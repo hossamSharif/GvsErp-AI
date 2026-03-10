@@ -55,6 +55,16 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import {
   useTransfers,
@@ -98,6 +108,7 @@ export default function TransfersPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');
+  const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'start' | 'complete' | 'quickComplete' | 'cancel' } | null>(null);
   const [queryParams, setQueryParams] = useState<TransferQueryParams>({
     page: 1,
     limit: 20,
@@ -129,28 +140,25 @@ export default function TransfersPage() {
     setQueryParams((prev) => ({ ...prev, page: 1 }));
   };
 
-  const handleStartTransfer = async (id: string) => {
-    if (confirm(t('confirmStart'))) {
-      await startMutation.mutateAsync(id);
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+    try {
+      switch (confirmAction.action) {
+        case 'start': await startMutation.mutateAsync(confirmAction.id); break;
+        case 'complete': await completeMutation.mutateAsync(confirmAction.id); break;
+        case 'quickComplete': await quickCompleteMutation.mutateAsync(confirmAction.id); break;
+        case 'cancel': await cancelMutation.mutateAsync(confirmAction.id); break;
+      }
+    } finally {
+      setConfirmAction(null);
     }
   };
 
-  const handleCompleteTransfer = async (id: string) => {
-    if (confirm(t('confirmComplete'))) {
-      await completeMutation.mutateAsync(id);
-    }
-  };
-
-  const handleQuickComplete = async (id: string) => {
-    if (confirm(t('confirmQuickComplete'))) {
-      await quickCompleteMutation.mutateAsync(id);
-    }
-  };
-
-  const handleCancelTransfer = async (id: string) => {
-    if (confirm(t('confirmCancel'))) {
-      await cancelMutation.mutateAsync(id);
-    }
+  const confirmMessages: Record<string, string> = {
+    start: t('confirmStart'),
+    complete: t('confirmComplete'),
+    quickComplete: t('confirmQuickComplete'),
+    cancel: t('confirmCancel'),
   };
 
   const formatNumber = (value: number) => {
@@ -356,7 +364,7 @@ export default function TransfersPage() {
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleStartTransfer(transfer.id);
+                                    setConfirmAction({ id: transfer.id, action: 'start' });
                                   }}
                                 >
                                   {t('startTransfer')}
@@ -364,7 +372,7 @@ export default function TransfersPage() {
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleQuickComplete(transfer.id);
+                                    setConfirmAction({ id: transfer.id, action: 'quickComplete' });
                                   }}
                                 >
                                   {t('quickComplete')}
@@ -372,7 +380,7 @@ export default function TransfersPage() {
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleCancelTransfer(transfer.id);
+                                    setConfirmAction({ id: transfer.id, action: 'cancel' });
                                   }}
                                   className="text-red-600"
                                 >
@@ -387,7 +395,7 @@ export default function TransfersPage() {
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleCompleteTransfer(transfer.id);
+                                    setConfirmAction({ id: transfer.id, action: 'complete' });
                                   }}
                                 >
                                   {t('completeTransfer')}
@@ -395,7 +403,7 @@ export default function TransfersPage() {
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleCancelTransfer(transfer.id);
+                                    setConfirmAction({ id: transfer.id, action: 'cancel' });
                                   }}
                                   className="text-red-600"
                                 >
@@ -449,6 +457,22 @@ export default function TransfersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Transfer Action Confirmation Dialog */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirmAction')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction ? confirmMessages[confirmAction.action] : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancelButton')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>{t('confirm')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
