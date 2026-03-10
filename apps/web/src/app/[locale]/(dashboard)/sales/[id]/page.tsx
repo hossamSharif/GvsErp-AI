@@ -263,7 +263,12 @@ export default function SaleDetailPage() {
           <CardContent>
             {invoice.party ? (
               <div className="space-y-1">
-                <p className="font-medium">{invoice.party.name}</p>
+                <Link
+                  href={`/${locale}/customers/${invoice.partyId}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {invoice.party.name}
+                </Link>
                 {invoice.party.email && (
                   <p className="text-sm text-muted-foreground">{invoice.party.email}</p>
                 )}
