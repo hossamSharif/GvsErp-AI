@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { ItemService, ItemError } from '../services/item.service';
+import { ItemService } from '../services/item.service';
 import {
   createItemSchema,
   updateItemSchema,
@@ -35,23 +35,6 @@ function getItemService(req: Request): ItemService {
   return new ItemService(supabase, tenantId);
 }
 
-/**
- * Error handler for item-specific errors
- */
-function handleItemError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof ItemError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
-}
-
 // =============================================================================
 // ITEM CRUD ENDPOINTS
 // =============================================================================
@@ -76,7 +59,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -99,7 +82,7 @@ router.post(
         data: item,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -120,7 +103,7 @@ router.get(
         data: item,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -143,7 +126,7 @@ router.put(
         data: item,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -165,7 +148,7 @@ router.delete(
         message: 'Item deleted successfully',
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -192,7 +175,7 @@ router.post(
         data: result,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -228,7 +211,7 @@ router.get(
         data: item,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -260,7 +243,7 @@ router.get(
         data: item,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -285,7 +268,7 @@ router.get(
         data: prices,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -308,7 +291,7 @@ router.post(
         data: price,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -331,7 +314,7 @@ router.put(
         data: price,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -353,7 +336,7 @@ router.delete(
         message: 'Price deleted successfully',
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -378,7 +361,7 @@ router.get(
         data: packagings,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -401,7 +384,7 @@ router.post(
         data: packaging,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -424,7 +407,7 @@ router.put(
         data: packaging,
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -446,7 +429,7 @@ router.delete(
         message: 'Packaging deleted successfully',
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
@@ -484,7 +467,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleItemError(error, res, next);
+      next(error);
     }
   }
 );
