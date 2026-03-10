@@ -258,6 +258,11 @@ export default function POSTerminalPage() {
           {/* Item Results */}
           <Card className="flex-1 overflow-auto">
             <CardContent className="p-4 space-y-2">
+              {!searchQuery && (
+                <p className="text-muted-foreground text-center py-8">
+                  Start typing to search items by name, SKU, or barcode
+                </p>
+              )}
               {searchQuery && items.length === 0 && (
                 <p className="text-muted-foreground text-center py-8">No items found</p>
               )}
