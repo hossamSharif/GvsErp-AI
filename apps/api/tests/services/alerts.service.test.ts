@@ -14,6 +14,10 @@ const alertsService = new (AlertsService as any)(null, 'test-tenant');
 // ==========================================================================
 
 describe('AlertsService.getSeverity', () => {
+  it('returns critical for negative percentage', () => {
+    expect(alertsService.getSeverity(-10)).toBe('critical');
+  });
+
   it('returns critical for 0%', () => {
     expect(alertsService.getSeverity(0)).toBe('critical');
   });
