@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 10; 535 tests across 26 suites)
+Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 16; 549 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 10; 535 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 535 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 549 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -376,6 +376,12 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 8 iter 10; 535 tests across 2
 - **[Loop-8 C8]** Added aria-labels to 4 icon-only dropdown menu triggers on sales and purchases pages (frontend designer)
 - **[Loop-8 C9]** Added 9 tests for WarehouseService: deactivateWarehouse guards and getLowStockSummary — total 535 tests (QA engineer)
 - **[Loop-8 C10]** PM update — 535 tests; issues shrinking to polish-level; no critical bugs since iteration 6
+- **[Loop-8 C11]** Added refetch retry button to sales page error state — actionable error UX (business analyst)
+- **[Loop-8 C12]** Validated entity types in audit routes with Set guard — eliminated `as any` cast (code reviewer)
+- **[Loop-8 C13]** Validated account types in accounts routes with Set guard — eliminated `as any` cast (system architect)
+- **[Loop-8 C14]** Added aria-label="Go back to items" to 3 icon-only back buttons on items pages (frontend designer)
+- **[Loop-8 C15]** Added 14 method-level tests for TransferService (createTransfer guards, completeTransfer, cancelTransfer stock release, startTransfer) — total 549 tests (QA engineer)
+- **[Loop-8 C16]** PM update — 549 tests; last 5 iterations: no critical bugs, only polish-level improvements; `as any` eliminated from audit and accounts routes
 
 ## Recommendations (Priority Order)
 

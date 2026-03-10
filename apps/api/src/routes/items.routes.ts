@@ -17,6 +17,7 @@ import {
   updateItemPackagingSchema,
   itemReportParamsSchema,
 } from '@erp/shared';
+import type { ItemQueryParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -65,17 +66,9 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getItemService(req);
-      const params = req.query as unknown as {
-        search?: string;
-        categoryId?: string;
-        isActive?: boolean;
-        page?: number;
-        limit?: number;
-        sortBy?: string;
-        sortDir?: 'asc' | 'desc';
-      };
+      const params = req.query as unknown as ItemQueryParams;
 
-      const result = await service.getItems(params as any);
+      const result = await service.getItems(params);
 
       res.json({
         success: true,

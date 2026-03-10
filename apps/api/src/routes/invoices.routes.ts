@@ -13,6 +13,7 @@ import {
   finalizeInvoiceSchema,
   returnInvoiceSchema,
 } from '@erp/shared';
+import type { InvoiceQueryParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -61,21 +62,9 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getInvoiceService(req);
-      const params = req.query as unknown as {
-        type?: 'sale' | 'purchase';
-        status?: string | string[];
-        partyId?: string;
-        warehouseId?: string;
-        search?: string;
-        dateFrom?: string;
-        dateTo?: string;
-        page?: number;
-        limit?: number;
-        sortBy?: string;
-        sortDir?: 'asc' | 'desc';
-      };
+      const params = req.query as unknown as InvoiceQueryParams;
 
-      const result = await service.getInvoices(params as any);
+      const result = await service.getInvoices(params);
 
       res.json({
         success: true,
