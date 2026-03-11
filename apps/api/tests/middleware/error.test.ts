@@ -207,6 +207,39 @@ describe('errorHandler', () => {
     process.env.NODE_ENV = original;
   });
 
+  it('rejects error with numeric code as non-service error', () => {
+    const err = Object.assign(new Error('bad'), { code: 123, statusCode: 400 });
+    const req = mockRequest();
+    const res = mockResponse();
+
+    errorHandler(err, req, res, vi.fn());
+
+    // Should fall through to generic handler since code is not a string
+    expect(res._status).toBe(500);
+    expect(res._json).toMatchObject({ code: 'INTERNAL_ERROR' });
+  });
+
+  it('rejects error with string statusCode as non-service error', () => {
+    const err = Object.assign(new Error('bad'), { code: 'SOME_CODE', statusCode: '400' });
+    const req = mockRequest();
+    const res = mockResponse();
+
+    errorHandler(err, req, res, vi.fn());
+
+    expect(res._status).toBe(500);
+    expect(res._json).toMatchObject({ code: 'INTERNAL_ERROR' });
+  });
+
+  it('rejects non-Error object with code and statusCode', () => {
+    const err = { message: 'not an error', code: 'FAKE', statusCode: 400 };
+    const req = mockRequest();
+    const res = mockResponse();
+
+    errorHandler(err as unknown as Error, req, res, vi.fn());
+
+    expect(res._status).toBe(500);
+  });
+
   it('generates request ID when missing', () => {
     const err = new Error('fail');
     const req = mockRequest({ headers: {} });
