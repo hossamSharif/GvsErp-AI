@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AccountingService, AccountingError } from '../services/accounting.service';
+import { AccountingService } from '../services/accounting.service';
 import { createAccountSchema, updateAccountSchema } from '@erp/shared';
 import type { AccountType } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
@@ -33,23 +33,6 @@ function getAccountingService(req: Request): AccountingService {
 function getContext(req: Request): { tenantId: string; userId: string } {
   const { tenantId, userId } = getTenantContext(req);
   return { tenantId, userId };
-}
-
-/**
- * Error handler for accounting-specific errors
- */
-function handleAccountingError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof AccountingError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -139,7 +122,7 @@ router.post(
         data: account,
       });
     } catch (error) {
-      handleAccountingError(error, res, next);
+      next(error);
     }
   }
 );
@@ -176,7 +159,7 @@ router.put(
         data: account,
       });
     } catch (error) {
-      handleAccountingError(error, res, next);
+      next(error);
     }
   }
 );
@@ -201,7 +184,7 @@ router.delete(
         message: 'Account deleted successfully',
       });
     } catch (error) {
-      handleAccountingError(error, res, next);
+      next(error);
     }
   }
 );
