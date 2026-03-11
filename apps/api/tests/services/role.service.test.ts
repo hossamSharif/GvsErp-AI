@@ -86,3 +86,117 @@ describe('RoleService constructor', () => {
     expect(roleService.repository).toBeDefined();
   });
 });
+
+// ==========================================================================
+// mapRow — permission normalization edge cases
+// ==========================================================================
+
+describe('RoleService.mapRow', () => {
+  const mapRow = (row: Record<string, unknown>) => roleService.mapRow(row);
+
+  it('maps a valid role row with array permissions', () => {
+    const row = {
+      id: 'role-1',
+      tenant_id: 'test-tenant',
+      name: 'Admin',
+      permissions: ['users:read', 'users:write'],
+      is_system: true,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result).toEqual({
+      id: 'role-1',
+      tenant_id: 'test-tenant',
+      name: 'Admin',
+      permissions: ['users:read', 'users:write'],
+      is_system: true,
+      created_at: '2025-01-01T00:00:00Z',
+    });
+  });
+
+  it('normalizes null permissions to empty array', () => {
+    const row = {
+      id: 'role-2',
+      tenant_id: 'test-tenant',
+      name: 'Empty',
+      permissions: null,
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result.permissions).toEqual([]);
+  });
+
+  it('normalizes undefined permissions to empty array', () => {
+    const row = {
+      id: 'role-3',
+      tenant_id: 'test-tenant',
+      name: 'NoPerms',
+      permissions: undefined,
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result.permissions).toEqual([]);
+  });
+
+  it('normalizes string permissions to empty array', () => {
+    const row = {
+      id: 'role-4',
+      tenant_id: 'test-tenant',
+      name: 'StringPerms',
+      permissions: 'not-an-array',
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result.permissions).toEqual([]);
+  });
+
+  it('normalizes object permissions to empty array', () => {
+    const row = {
+      id: 'role-5',
+      tenant_id: 'test-tenant',
+      name: 'ObjPerms',
+      permissions: { read: true },
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result.permissions).toEqual([]);
+  });
+
+  it('preserves empty array permissions', () => {
+    const row = {
+      id: 'role-6',
+      tenant_id: 'test-tenant',
+      name: 'EmptyArr',
+      permissions: [],
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const result = mapRow(row);
+    expect(result.permissions).toEqual([]);
+  });
+
+  it('preserves is_system flag correctly', () => {
+    const systemRow = {
+      id: 'role-sys',
+      tenant_id: 'test-tenant',
+      name: 'System',
+      permissions: [],
+      is_system: true,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    const customRow = {
+      id: 'role-custom',
+      tenant_id: 'test-tenant',
+      name: 'Custom',
+      permissions: [],
+      is_system: false,
+      created_at: '2025-01-01T00:00:00Z',
+    };
+    expect(mapRow(systemRow).is_system).toBe(true);
+    expect(mapRow(customRow).is_system).toBe(false);
+  });
+});
