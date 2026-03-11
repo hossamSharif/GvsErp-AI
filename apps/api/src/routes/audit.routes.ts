@@ -4,9 +4,9 @@
  * RESTful endpoints for audit log management and querying.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { AuditService } from '../services/audit.service';
-import { AppError } from '../middleware/error';
+import { AppError, asyncHandler } from '../middleware/error';
 import { auditLogQuerySchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
@@ -45,27 +45,23 @@ function getAuditService(req: Request): AuditService {
 router.get(
   '/',
   validateRequest({ query: auditLogQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAuditService(req);
-      const params = req.query as unknown as AuditLogQueryParams;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAuditService(req);
+    const params = req.query as unknown as AuditLogQueryParams;
 
-      const result = await service.getAuditLogs(params);
+    const result = await service.getAuditLogs(params);
 
-      res.json({
-        success: true,
-        data: result.items,
-        meta: {
-          total: result.total,
-          page: result.page,
-          limit: result.limit,
-          hasMore: result.hasMore,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.items,
+      meta: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        hasMore: result.hasMore,
+      },
+    });
+  })
 );
 
 /**
@@ -74,30 +70,25 @@ router.get(
  */
 router.get(
   '/entity/:entityType/:entityId',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAuditService(req);
-      const { entityType, entityId } = req.params;
-      if (!validEntityTypes.has(entityType)) {
-        next(AppError.badRequest(`Invalid entity type: ${entityType}`));
-        return;
-      }
-      const limit = req.query.limit ? Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50)) : 50;
-
-      const logs = await service.getEntityAuditLogs(
-        entityType as AuditEntityType,
-        entityId,
-        limit
-      );
-
-      res.json({
-        success: true,
-        data: logs,
-      });
-    } catch (error) {
-      next(error);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAuditService(req);
+    const { entityType, entityId } = req.params;
+    if (!validEntityTypes.has(entityType)) {
+      throw AppError.badRequest(`Invalid entity type: ${entityType}`);
     }
-  }
+    const limit = req.query.limit ? Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50)) : 50;
+
+    const logs = await service.getEntityAuditLogs(
+      entityType as AuditEntityType,
+      entityId,
+      limit
+    );
+
+    res.json({
+      success: true,
+      data: logs,
+    });
+  })
 );
 
 /**
@@ -106,21 +97,17 @@ router.get(
  */
 router.get(
   '/user/recent',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAuditService(req);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAuditService(req);
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
 
-      const logs = await service.getUserRecentLogs(limit);
+    const logs = await service.getUserRecentLogs(limit);
 
-      res.json({
-        success: true,
-        data: logs,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: logs,
+    });
+  })
 );
 
 /**
@@ -129,23 +116,19 @@ router.get(
  */
 router.post(
   '/diff',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { oldValues, newValues } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const { oldValues, newValues } = req.body;
 
-      const diff = AuditService.calculateDiff(
-        oldValues || null,
-        newValues || null
-      );
+    const diff = AuditService.calculateDiff(
+      oldValues || null,
+      newValues || null
+    );
 
-      res.json({
-        success: true,
-        data: diff,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: diff,
+    });
+  })
 );
 
 export default router;
