@@ -220,12 +220,13 @@ export function VirtualizedDataTable<TData, TValue>({
               value={searchValue}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-9"
+              aria-label={searchPlaceholder || 'Search'}
             />
           </div>
         )}
 
         {/* Row count */}
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground" role="status" aria-live="polite">
           {estimatedRowCount || data.length} rows
         </div>
 
