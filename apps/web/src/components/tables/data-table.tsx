@@ -181,6 +181,7 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   className,
 }: DataTableProps<TData, TValue>) {
+  const paginationLabelId = React.useId();
   // Merge shorthand pagination props into pagination object
   const pagination = paginationProp ?? (pageCount !== undefined ? {
     page: (pageIndex ?? 0) + 1,
@@ -394,8 +395,8 @@ export function DataTable<TData, TValue>({
                     colSpan={tableColumns.length}
                     className="h-24 text-center"
                   >
-                    <div className="flex items-center justify-center">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <div className="flex items-center justify-center" role="status" aria-live="polite">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
                       <span className="ml-2">Loading...</span>
                     </div>
                   </TableCell>
@@ -437,9 +438,9 @@ export function DataTable<TData, TValue>({
 
       {/* Pagination */}
       {showPagination && (
-        <div className="flex items-center justify-between">
+        <nav aria-label="Table pagination" className="flex items-center justify-between">
           {/* Selection info */}
-          <div className="flex-1 text-sm text-muted-foreground">
+          <div className="flex-1 text-sm text-muted-foreground" role="status" aria-live="polite">
             {selectable && (
               <>
                 {table.getFilteredSelectedRowModel().rows.length} of{' '}
@@ -451,7 +452,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center gap-6 lg:gap-8">
             {/* Page size selector */}
             <div className="flex items-center gap-2">
-              <label id="rows-per-page-label" className="text-sm font-medium">Rows per page</label>
+              <label id={paginationLabelId} className="text-sm font-medium">Rows per page</label>
               <Select
                 value={String(pagination?.limit || table.getState().pagination.pageSize)}
                 onValueChange={(value) => {
@@ -462,7 +463,7 @@ export function DataTable<TData, TValue>({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-[70px]" aria-labelledby="rows-per-page-label">
+                <SelectTrigger className="h-8 w-[70px]" aria-labelledby={paginationLabelId}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent side="top">
@@ -487,6 +488,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label="Go to first page"
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(1, pagination.limit);
@@ -496,13 +498,13 @@ export function DataTable<TData, TValue>({
                 }}
                 disabled={pagination ? pagination.page <= 1 : !table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label="Go to previous page"
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.page - 1, pagination.limit);
@@ -512,13 +514,13 @@ export function DataTable<TData, TValue>({
                 }}
                 disabled={pagination ? pagination.page <= 1 : !table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label="Go to next page"
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.page + 1, pagination.limit);
@@ -532,13 +534,13 @@ export function DataTable<TData, TValue>({
                     : !table.getCanNextPage()
                 }
               >
-                <span className="sr-only">Go to next page</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label="Go to last page"
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.totalPages, pagination.limit);
@@ -552,12 +554,11 @@ export function DataTable<TData, TValue>({
                     : !table.getCanNextPage()
                 }
               >
-                <span className="sr-only">Go to last page</span>
                 <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
-        </div>
+        </nav>
       )}
     </div>
   );
