@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 16; 562 tests across 26 suites)
+Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 4; 569 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 16; 562 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 549 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 569 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -403,6 +403,10 @@ Date: 2026-03-10 | Reviewer: Project Manager (Loop 9 iter 16; 562 tests across 2
 - **[Loop-9 C14]** Replaced native confirm() with AlertDialog on warehouse deactivate action (frontend designer)
 - **[Loop-9 C15]** QA clean pass — 562 tests, 0 TS errors, build 5/5 (QA engineer)
 - **[Loop-9 C16]** Updated gap analysis: 562 tests; first clean QA pass; remaining fixes are polish-level only (project manager)
+- **[Loop-10 C1]** Removed remaining 15 redundant handleXxxError functions from routes — all routes now delegate to global error handler via isServiceError(); -259 lines (system architect)
+- **[Loop-10 C2]** Improved DataTable accessibility: React.useId() for unique label IDs, `<nav>` pagination landmark, aria-label on icon buttons, role="status" on loading/selection (frontend designer)
+- **[Loop-10 C3]** Added 7 mapRow edge case tests for RoleService permissions normalization (null, undefined, string, object → empty array) — total 569 tests (QA engineer)
+- **[Loop-10 C4]** Updated gap analysis: 569 tests across 26 suites; all route error handlers now unified; DataTable a11y improved (project manager)
 
 ## Recommendations (Priority Order)
 
