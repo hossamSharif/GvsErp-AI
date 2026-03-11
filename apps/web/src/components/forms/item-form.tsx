@@ -411,9 +411,11 @@ export function ItemForm({
                             min="0"
                             max="100"
                             step="0.01"
+                            placeholder="e.g. 15 for 15%"
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription>Enter the tax percentage (0-100)</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
