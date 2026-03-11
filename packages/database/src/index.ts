@@ -17,3 +17,5 @@ export type {
   InsertRow,
   UpdateRow,
 } from './client';
+
+export type { Json } from './types/database.types';

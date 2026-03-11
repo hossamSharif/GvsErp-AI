@@ -6,7 +6,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@erp/database';
+import type { Database, Json } from '@erp/database';
 import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
 
 /**
@@ -83,7 +83,7 @@ export class SettingsService {
     // Update in database
     const { data, error } = await this.supabase
       .from('tenants')
-      .update({ settings: updatedSettings as any })
+      .update({ settings: updatedSettings as unknown as Json })
       .eq('id', this.tenantId)
       .select('settings')
       .maybeSingle();
@@ -121,7 +121,7 @@ export class SettingsService {
 
     const { data, error } = await this.supabase
       .from('tenants')
-      .update({ settings: defaultSettings as any })
+      .update({ settings: defaultSettings as unknown as Json })
       .eq('id', this.tenantId)
       .select('settings')
       .maybeSingle();
