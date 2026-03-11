@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 10; 572 tests across 26 suites)
+Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 16; 575 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 10; 572 tests across 
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 562 passing across 26 suites
+- **Tests**: 575 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -144,7 +144,7 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 10; 572 tests across 
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 572 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 575 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -413,6 +413,12 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 10; 572 tests across 
 - **[Loop-10 C8]** Made invoice item delete button visible to touch/keyboard users: opacity-0→opacity-40 (frontend designer)
 - **[Loop-10 C9]** Added 3 isServiceError type guard edge case tests (numeric code, string statusCode, non-Error) — total 572 tests (QA engineer)
 - **[Loop-10 C10]** Updated gap analysis: 572 tests; 10 iterations completed; error handling fully unified; auth refresh rate-limited (project manager)
+- **[Loop-10 C11]** Added "(Optional)" labels to payment method and notes fields in payment form — reduces user confusion (business analyst)
+- **[Loop-10 C12]** Replaced `as any` with `as unknown as Json` in settings service; exported Json type from @erp/database (type safety)
+- **[Loop-10 C13]** Converted audit routes from manual try/catch to asyncHandler pattern — eliminates 4 manual try/catch blocks (system architect)
+- **[Loop-10 C14]** Added aria-label to virtualized data-table search input; live-region row count (frontend designer)
+- **[Loop-10 C15]** Added 3 updateSettings tests: number_format merge, DB error, tenant-not-found — total 575 tests (QA engineer)
+- **[Loop-10 C16]** Updated gap analysis: 575 tests, Loop 10 iterations 11-16 documented (project manager)
 
 ## Recommendations (Priority Order)
 
