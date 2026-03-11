@@ -8,7 +8,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AccountingService, AccountingError } from '../services/accounting.service';
+import { AccountingService } from '../services/accounting.service';
 import {
   accountingActivationSchema,
   trialBalanceQuerySchema,
@@ -79,17 +79,7 @@ router.post(
           accounts,
         },
       });
-    } catch (error: unknown) {
-      if (error instanceof AccountingError) {
-        res.status(error.statusCode).json({
-          success: false,
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        });
-        return;
-      }
+    } catch (error) {
       next(error);
     }
   }
@@ -237,17 +227,7 @@ router.get(
         success: true,
         data: generalLedger,
       });
-    } catch (error: unknown) {
-      if (error instanceof AccountingError) {
-        res.status(error.statusCode).json({
-          success: false,
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        });
-        return;
-      }
+    } catch (error) {
       next(error);
     }
   }
