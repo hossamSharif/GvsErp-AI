@@ -220,6 +220,7 @@ router.post(
  */
 router.post(
   '/refresh',
+  authRateLimiter,
   asyncHandler(async (req, res) => {
     const { refresh_token } = req.body;
 
