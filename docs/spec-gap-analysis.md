@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 4; 569 tests across 26 suites)
+Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 10; 572 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -144,7 +144,7 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 4; 569 tests across 2
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 569 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 572 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -407,6 +407,12 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 4; 569 tests across 2
 - **[Loop-10 C2]** Improved DataTable accessibility: React.useId() for unique label IDs, `<nav>` pagination landmark, aria-label on icon buttons, role="status" on loading/selection (frontend designer)
 - **[Loop-10 C3]** Added 7 mapRow edge case tests for RoleService permissions normalization (null, undefined, string, object → empty array) — total 569 tests (QA engineer)
 - **[Loop-10 C4]** Updated gap analysis: 569 tests across 26 suites; all route error handlers now unified; DataTable a11y improved (project manager)
+- **[Loop-10 C5]** Added confirmation dialog before POS sale completion — prevents accidental high-value transactions (business analyst)
+- **[Loop-10 C6]** Added authRateLimiter to /auth/refresh endpoint — was unprotected unlike login/register (code reviewer — security)
+- **[Loop-10 C7]** Removed last 2 inline instanceof AccountingError handlers — zero instanceof checks remain in any route file (system architect)
+- **[Loop-10 C8]** Made invoice item delete button visible to touch/keyboard users: opacity-0→opacity-40 (frontend designer)
+- **[Loop-10 C9]** Added 3 isServiceError type guard edge case tests (numeric code, string statusCode, non-Error) — total 572 tests (QA engineer)
+- **[Loop-10 C10]** Updated gap analysis: 572 tests; 10 iterations completed; error handling fully unified; auth refresh rate-limited (project manager)
 
 ## Recommendations (Priority Order)
 
