@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { SettingsService, SettingsError } from '../services/settings.service';
+import { SettingsService } from '../services/settings.service';
 import { AppError } from '../middleware/error';
 import { updateTenantSettingsSchema } from '@erp/shared';
 import type { TenantSettings } from '@erp/shared';
@@ -41,23 +41,6 @@ function getSettingsService(req: Request): SettingsService {
   return new SettingsService(supabase, tenantId);
 }
 
-/**
- * Error handler for settings-specific errors
- */
-function handleSettingsError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof SettingsError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
-}
-
 // =============================================================================
 // SETTINGS ENDPOINTS
 // =============================================================================
@@ -78,7 +61,7 @@ router.get(
         data: settings,
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -101,7 +84,7 @@ router.put(
         data: settings,
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -124,7 +107,7 @@ router.post(
         message: 'Settings reset to defaults',
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -149,7 +132,7 @@ router.get(
         data: companyInfo,
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -181,7 +164,7 @@ router.put(
         data: settings,
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -208,7 +191,7 @@ router.post(
         message: 'Accounting module enabled',
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -231,7 +214,7 @@ router.post(
         message: 'Accounting module disabled',
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -254,7 +237,7 @@ router.post(
         message: 'HR module enabled',
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -277,7 +260,7 @@ router.post(
         message: 'HR module disabled',
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -310,7 +293,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );
@@ -342,7 +325,7 @@ router.put(
         data: settings,
       });
     } catch (error) {
-      handleSettingsError(error, res, next);
+      next(error);
     }
   }
 );

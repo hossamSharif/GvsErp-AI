@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { ExchangeRateService, ExchangeRateError } from '../services/exchange-rate.service';
+import { ExchangeRateService } from '../services/exchange-rate.service';
 import {
   createExchangeRateSchema,
   updateExchangeRateSchema,
@@ -26,23 +26,6 @@ router.use(requireAuth);
 function getExchangeRateService(req: Request): ExchangeRateService {
   const { supabase, tenantId } = getTenantContext(req);
   return new ExchangeRateService(supabase, tenantId);
-}
-
-/**
- * Error handler for exchange rate-specific errors
- */
-function handleExchangeRateError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof ExchangeRateError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -71,7 +54,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -94,7 +77,7 @@ router.post(
         data: rate,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -115,7 +98,7 @@ router.get(
         data: rate,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -138,7 +121,7 @@ router.put(
         data: rate,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -160,7 +143,7 @@ router.delete(
         message: 'Exchange rate deleted successfully',
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -198,7 +181,7 @@ router.get(
         data: rate,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );
@@ -234,7 +217,7 @@ router.get(
         data: rates,
       });
     } catch (error) {
-      handleExchangeRateError(error, res, next);
+      next(error);
     }
   }
 );

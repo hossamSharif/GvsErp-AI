@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { UserService, UserError } from '../services/user.service';
+import { UserService } from '../services/user.service';
 import {
   createUserSchema,
   updateUserSchema,
@@ -26,23 +26,6 @@ router.use(requireAuth);
 function getUserService(req: Request): UserService {
   const { supabase, tenantId } = getTenantContext(req);
   return new UserService(supabase, tenantId);
-}
-
-/**
- * Error handler for user-specific errors
- */
-function handleUserError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof UserError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -74,7 +57,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -97,7 +80,7 @@ router.post(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -118,7 +101,7 @@ router.get(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -141,7 +124,7 @@ router.put(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -163,7 +146,7 @@ router.delete(
         message: 'User deleted successfully',
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -189,7 +172,7 @@ router.post(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -211,7 +194,7 @@ router.post(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -242,7 +225,7 @@ router.patch(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -273,7 +256,7 @@ router.post(
         message: 'Password changed successfully',
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -299,7 +282,7 @@ router.post(
         message: 'Password reset email sent',
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );
@@ -330,7 +313,7 @@ router.put(
         data: user,
       });
     } catch (error) {
-      handleUserError(error, res, next);
+      next(error);
     }
   }
 );

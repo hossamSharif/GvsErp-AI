@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { EmployeeService, EmployeeError } from '../services/employee.service';
+import { EmployeeService } from '../services/employee.service';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
@@ -20,23 +20,6 @@ router.use(requireAuth);
 function getEmployeeService(req: Request): EmployeeService {
   const { supabase, tenantId } = getTenantContext(req);
   return new EmployeeService(supabase, tenantId);
-}
-
-/**
- * Error handler for employee-specific errors
- */
-function handleEmployeeError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof EmployeeError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -72,7 +55,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       meta: result.meta,
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -90,7 +73,7 @@ router.get('/statistics', async (req: Request, res: Response, next: NextFunction
       data: statistics,
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -108,7 +91,7 @@ router.get('/departments', async (req: Request, res: Response, next: NextFunctio
       data: departments,
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -126,7 +109,7 @@ router.get('/positions', async (req: Request, res: Response, next: NextFunction)
       data: positions,
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -146,7 +129,7 @@ router.get(
         data: { employee_number: employeeNumber },
       });
     } catch (error) {
-      handleEmployeeError(error, res, next);
+      next(error);
     }
   }
 );
@@ -165,7 +148,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       data: employee,
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -184,7 +167,7 @@ router.post('/', requirePermission('employees:write'), async (req: Request, res:
       message: 'Employee created successfully',
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -203,7 +186,7 @@ router.put('/:id', requirePermission('employees:write'), async (req: Request, re
       message: 'Employee updated successfully',
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 
@@ -225,7 +208,7 @@ router.post(
         message: 'Employee deactivated successfully',
       });
     } catch (error) {
-      handleEmployeeError(error, res, next);
+      next(error);
     }
   }
 );
@@ -248,7 +231,7 @@ router.post(
         message: 'Employee reactivated successfully',
       });
     } catch (error) {
-      handleEmployeeError(error, res, next);
+      next(error);
     }
   }
 );
@@ -267,7 +250,7 @@ router.delete('/:id', requirePermission('employees:delete'), async (req: Request
       message: 'Employee deleted successfully',
     });
   } catch (error) {
-    handleEmployeeError(error, res, next);
+    next(error);
   }
 });
 

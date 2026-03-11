@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { PayrollService, PayrollError } from '../services/payroll.service';
+import { PayrollService } from '../services/payroll.service';
 import { AppError } from '../middleware/error';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -29,23 +29,6 @@ function getPayrollService(req: Request): PayrollService {
 function getUserId(req: Request): string {
   const { userId } = getTenantContext(req);
   return userId;
-}
-
-/**
- * Error handler for payroll-specific errors
- */
-function handlePayrollError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof PayrollError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -77,7 +60,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       meta: result.meta,
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 
@@ -95,7 +78,7 @@ router.get('/latest', async (req: Request, res: Response, next: NextFunction) =>
       data: payrollRun,
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 
@@ -120,7 +103,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       data: summary,
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 
@@ -138,7 +121,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       data: payrollRun,
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 
@@ -167,7 +150,7 @@ router.post('/', requirePermission('payroll:write'), async (req: Request, res: R
       message: 'Payroll run created successfully',
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 
@@ -189,7 +172,7 @@ router.post(
         message: 'Payroll calculated successfully',
       });
     } catch (error) {
-      handlePayrollError(error, res, next);
+      next(error);
     }
   }
 );
@@ -213,7 +196,7 @@ router.post(
         message: 'Payroll processed successfully',
       });
     } catch (error) {
-      handlePayrollError(error, res, next);
+      next(error);
     }
   }
 );
@@ -232,7 +215,7 @@ router.delete('/:id', requirePermission('payroll:delete'), async (req: Request, 
       message: 'Payroll run deleted successfully',
     });
   } catch (error) {
-    handlePayrollError(error, res, next);
+    next(error);
   }
 });
 

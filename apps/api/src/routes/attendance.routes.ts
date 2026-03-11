@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AttendanceService, AttendanceError } from '../services/attendance.service';
+import { AttendanceService } from '../services/attendance.service';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 
@@ -20,27 +20,6 @@ router.use(requireAuth);
 function getAttendanceService(req: Request): AttendanceService {
   const { supabase, tenantId } = getTenantContext(req);
   return new AttendanceService(supabase, tenantId);
-}
-
-/**
- * Error handler for attendance-specific errors
- */
-function handleAttendanceError(
-  error: unknown,
-  res: Response,
-  next: NextFunction
-): void {
-  if (error instanceof AttendanceError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -73,7 +52,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       meta: result.meta,
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -104,7 +83,7 @@ router.get('/statistics', async (req: Request, res: Response, next: NextFunction
       data: statistics,
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -122,7 +101,7 @@ router.get('/daily/:date', async (req: Request, res: Response, next: NextFunctio
       data: report,
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -160,7 +139,7 @@ router.get(
         data: records,
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -199,7 +178,7 @@ router.get(
         data: summary,
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -234,7 +213,7 @@ router.get(
         data: { total_hours: hours },
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -253,7 +232,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       data: record,
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -272,7 +251,7 @@ router.post('/', requirePermission('attendance:write'), async (req: Request, res
       message: 'Attendance recorded successfully',
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -303,7 +282,7 @@ router.post('/check-in', requirePermission('attendance:write'), async (req: Requ
       message: 'Checked in successfully',
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -334,7 +313,7 @@ router.post('/check-out', requirePermission('attendance:write'), async (req: Req
       message: 'Checked out successfully',
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -368,7 +347,7 @@ router.post(
         message: 'Marked as absent successfully',
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -403,7 +382,7 @@ router.post(
         message: 'Marked as on leave successfully',
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -438,7 +417,7 @@ router.post(
         message: 'Holiday marked successfully for all employees',
       });
     } catch (error) {
-      handleAttendanceError(error, res, next);
+      next(error);
     }
   }
 );
@@ -458,7 +437,7 @@ router.put('/:id', requirePermission('attendance:write'), async (req: Request, r
       message: 'Attendance updated successfully',
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 
@@ -476,7 +455,7 @@ router.delete('/:id', requirePermission('attendance:delete'), async (req: Reques
       message: 'Attendance record deleted successfully',
     });
   } catch (error) {
-    handleAttendanceError(error, res, next);
+    next(error);
   }
 });
 

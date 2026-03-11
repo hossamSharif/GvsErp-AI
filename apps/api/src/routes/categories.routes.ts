@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { CategoryService, CategoryError } from '../services/category.service';
+import { CategoryService } from '../services/category.service';
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -26,23 +26,6 @@ router.use(requireAuth);
 function getCategoryService(req: Request): CategoryService {
   const { supabase, tenantId } = getTenantContext(req);
   return new CategoryService(supabase, tenantId);
-}
-
-/**
- * Error handler for category-specific errors
- */
-function handleCategoryError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof CategoryError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -71,7 +54,7 @@ router.get(
         data,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -96,7 +79,7 @@ router.post(
         data: category,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -117,7 +100,7 @@ router.get(
         data: category,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -138,7 +121,7 @@ router.get(
         data: category,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -159,7 +142,7 @@ router.get(
         data: path,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -184,7 +167,7 @@ router.put(
         data: category,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -206,7 +189,7 @@ router.delete(
         message: 'Category deleted successfully',
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );
@@ -233,7 +216,7 @@ router.get(
         data: categories,
       });
     } catch (error) {
-      handleCategoryError(error, res, next);
+      next(error);
     }
   }
 );

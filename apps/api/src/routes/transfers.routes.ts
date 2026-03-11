@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { TransferService, TransferError } from '../services/transfer.service';
+import { TransferService } from '../services/transfer.service';
 import {
   createTransferSchema,
   updateTransferSchema,
@@ -26,23 +26,6 @@ router.use(requireAuth);
 function getTransferService(req: Request): TransferService {
   const { supabase, tenantId } = getTenantContext(req);
   return new TransferService(supabase, tenantId);
-}
-
-/**
- * Error handler for transfer-specific errors
- */
-function handleTransferError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof TransferError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -80,7 +63,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -104,7 +87,7 @@ router.post(
         data: transfer,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -125,7 +108,7 @@ router.get(
         data: transfer,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -148,7 +131,7 @@ router.put(
         data: transfer,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -176,7 +159,7 @@ router.post(
         message: 'Transfer started, stock reserved at source warehouse',
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -200,7 +183,7 @@ router.post(
         message: 'Transfer completed, stock moved to destination warehouse',
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -224,7 +207,7 @@ router.post(
         message: 'Transfer completed immediately',
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -248,7 +231,7 @@ router.post(
         message: 'Transfer canceled',
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -287,7 +270,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -309,7 +292,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -331,7 +314,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );
@@ -368,7 +351,7 @@ router.get(
         data: availability,
       });
     } catch (error) {
-      handleTransferError(error, res, next);
+      next(error);
     }
   }
 );

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { WarehouseService, WarehouseError } from '../services/warehouse.service';
+import { WarehouseService } from '../services/warehouse.service';
 import {
   createWarehouseSchema,
   updateWarehouseSchema,
@@ -30,23 +30,6 @@ router.use(requireAuth);
 function getWarehouseService(req: Request): WarehouseService {
   const { supabase, tenantId } = getTenantContext(req);
   return new WarehouseService(supabase, tenantId);
-}
-
-/**
- * Error handler for warehouse-specific errors
- */
-function handleWarehouseError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof WarehouseError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -80,7 +63,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -101,7 +84,7 @@ router.get(
         data: warehouses,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -124,7 +107,7 @@ router.post(
         data: warehouse,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -145,7 +128,7 @@ router.get(
         data: warehouse,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -168,7 +151,7 @@ router.put(
         data: warehouse,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -190,7 +173,7 @@ router.delete(
         message: 'Warehouse deactivated successfully',
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -226,7 +209,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -255,7 +238,7 @@ router.put(
         data: result,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -280,7 +263,7 @@ router.post(
         data: result,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -314,7 +297,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -335,7 +318,7 @@ router.get(
         data: summary,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -360,7 +343,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -385,7 +368,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -409,7 +392,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -436,7 +419,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );
@@ -457,7 +440,7 @@ router.get(
         data: values,
       });
     } catch (error) {
-      handleWarehouseError(error, res, next);
+      next(error);
     }
   }
 );

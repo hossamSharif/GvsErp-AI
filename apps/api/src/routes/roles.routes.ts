@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { RoleService, RoleError } from '../services/role.service';
+import { RoleService } from '../services/role.service';
 import {
   createRoleSchema,
   updateRoleSchema,
@@ -25,23 +25,6 @@ router.use(requireAuth);
 function getRoleService(req: Request): RoleService {
   const { supabase, tenantId } = getTenantContext(req);
   return new RoleService(supabase, tenantId);
-}
-
-/**
- * Error handler for role-specific errors
- */
-function handleRoleError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof RoleError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -69,7 +52,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -95,7 +78,7 @@ router.post(
         data: role,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -116,7 +99,7 @@ router.get(
         data: role,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -142,7 +125,7 @@ router.put(
         data: role,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -164,7 +147,7 @@ router.delete(
         message: 'Role deleted successfully',
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -193,7 +176,7 @@ router.put(
         data: role,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -218,7 +201,7 @@ router.get(
         data: roles,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -239,7 +222,7 @@ router.get(
         data: roles,
       });
     } catch (error) {
-      handleRoleError(error, res, next);
+      next(error);
     }
   }
 );

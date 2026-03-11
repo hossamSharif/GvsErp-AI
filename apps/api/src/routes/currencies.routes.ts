@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { CurrencyService, CurrencyError } from '../services/currency.service';
+import { CurrencyService } from '../services/currency.service';
 import {
   createCurrencySchema,
   updateCurrencySchema,
@@ -25,23 +25,6 @@ router.use(requireAuth);
 function getCurrencyService(req: Request): CurrencyService {
   const { supabase, tenantId } = getTenantContext(req);
   return new CurrencyService(supabase, tenantId);
-}
-
-/**
- * Error handler for currency-specific errors
- */
-function handleCurrencyError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof CurrencyError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -68,7 +51,7 @@ router.get(
         meta: result.meta,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -91,7 +74,7 @@ router.post(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -112,7 +95,7 @@ router.get(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -133,7 +116,7 @@ router.get(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -156,7 +139,7 @@ router.put(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -178,7 +161,7 @@ router.delete(
         message: 'Currency deleted successfully',
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -203,7 +186,7 @@ router.get(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -225,7 +208,7 @@ router.post(
         data: currency,
       });
     } catch (error) {
-      handleCurrencyError(error, res, next);
+      next(error);
     }
   }
 );

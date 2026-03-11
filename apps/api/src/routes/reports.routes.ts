@@ -7,7 +7,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { InvoiceService, InvoiceError } from '../services/invoice.service';
+import { InvoiceService } from '../services/invoice.service';
 import { ReportService } from '../services/report.service';
 import type { SalesReportParams, PurchaseReportParams } from '@erp/shared';
 import { salesReportParamsSchema, purchaseReportParamsSchema } from '@erp/shared';
@@ -34,23 +34,6 @@ function getInvoiceService(req: Request): InvoiceService {
 function getReportService(req: Request): ReportService {
   const { supabase, tenantId } = getTenantContext(req);
   return new ReportService(supabase, tenantId);
-}
-
-/**
- * Error handler
- */
-function handleError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof InvoiceError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -81,7 +64,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleError(error, res, next);
+      next(error);
     }
   }
 );
@@ -114,7 +97,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleError(error, res, next);
+      next(error);
     }
   }
 );

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { PartyService, PartyError } from '../services/party.service';
+import { PartyService } from '../services/party.service';
 import type { PartyQueryParams } from '@erp/shared';
 import {
   createPartySchema,
@@ -29,23 +29,6 @@ router.use(requireAuth);
 function getPartyService(req: Request): PartyService {
   const { supabase, tenantId } = getTenantContext(req);
   return new PartyService(supabase, tenantId);
-}
-
-/**
- * Error handler for party-specific errors
- */
-function handlePartyError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof PartyError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -77,7 +60,7 @@ router.get(
         },
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -100,7 +83,7 @@ router.post(
         data: party,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -121,7 +104,7 @@ router.get(
         data: party,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -144,7 +127,7 @@ router.put(
         data: party,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -166,7 +149,7 @@ router.delete(
         message: 'Party deleted successfully',
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -191,7 +174,7 @@ router.get(
         data: { balance },
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -212,7 +195,7 @@ router.post(
         data: { balance },
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -234,7 +217,7 @@ router.get(
         data: summary,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -266,7 +249,7 @@ router.get(
         data: statement,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );
@@ -299,7 +282,7 @@ router.get(
         data: report,
       });
     } catch (error) {
-      handlePartyError(error, res, next);
+      next(error);
     }
   }
 );

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AuditService, AuditError } from '../services/audit.service';
+import { AuditService } from '../services/audit.service';
 import { AppError } from '../middleware/error';
 import { auditLogQuerySchema } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
@@ -32,23 +32,6 @@ router.use(requireAuth);
 function getAuditService(req: Request): AuditService {
   const { supabase, tenantId, userId } = getTenantContext(req);
   return new AuditService(supabase, tenantId, userId);
-}
-
-/**
- * Error handler for audit-specific errors
- */
-function handleAuditError(error: unknown, res: Response, next: NextFunction): void {
-  if (error instanceof AuditError) {
-    res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    });
-    return;
-  }
-  next(error);
 }
 
 // =============================================================================
@@ -80,7 +63,7 @@ router.get(
         },
       });
     } catch (error) {
-      handleAuditError(error, res, next);
+      next(error);
     }
   }
 );
@@ -112,7 +95,7 @@ router.get(
         data: logs,
       });
     } catch (error) {
-      handleAuditError(error, res, next);
+      next(error);
     }
   }
 );
@@ -135,7 +118,7 @@ router.get(
         data: logs,
       });
     } catch (error) {
-      handleAuditError(error, res, next);
+      next(error);
     }
   }
 );
@@ -160,7 +143,7 @@ router.post(
         data: diff,
       });
     } catch (error) {
-      handleAuditError(error, res, next);
+      next(error);
     }
   }
 );
