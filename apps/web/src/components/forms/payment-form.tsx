@@ -350,7 +350,7 @@ export function PaymentForm({
               name="paymentMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Method</FormLabel>
+                  <FormLabel>Payment Method <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
@@ -398,7 +398,7 @@ export function PaymentForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Additional notes about this payment"
