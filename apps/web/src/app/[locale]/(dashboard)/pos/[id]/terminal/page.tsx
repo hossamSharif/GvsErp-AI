@@ -428,24 +428,39 @@ export default function POSTerminalPage() {
                 ))}
               </div>
 
-              <Button
-                className="w-full h-12 text-lg"
-                size="lg"
-                onClick={handleCheckout}
-                disabled={cart.length === 0 || processSaleMutation.isPending}
-              >
-                {processSaleMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-2 h-5 w-5" />
-                    Complete Sale
-                  </>
-                )}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    className="w-full h-12 text-lg"
+                    size="lg"
+                    disabled={cart.length === 0 || processSaleMutation.isPending}
+                  >
+                    {processSaleMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-5 w-5" />
+                        Complete Sale
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Sale</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {cart.length} item{cart.length !== 1 ? 's' : ''} &middot; Total: ${total.toFixed(2)} &middot; Payment: {selectedPaymentMethod}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCheckout}>Complete Sale</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </div>
