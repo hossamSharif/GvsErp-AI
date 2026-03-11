@@ -236,6 +236,67 @@ describe('SettingsService.getCompanyInfo', () => {
   });
 });
 
+describe('SettingsService.updateSettings', () => {
+  it('merges number_format without losing existing keys', async () => {
+    const currentSettings = {
+      default_language: 'en',
+      number_format: { decimal_separator: '.', thousands_separator: ',' },
+    };
+    const updatedReturn = {
+      settings: {
+        default_language: 'en',
+        number_format: { decimal_separator: ',', thousands_separator: ',' },
+      },
+    };
+
+    const svc = new (SettingsService as any)(null, 'tenant-1');
+    // Mock getSettings
+    svc.getSettings = vi.fn().mockResolvedValue(currentSettings);
+
+    // Mock supabase update chain
+    const updateMaybeSingle = vi.fn().mockResolvedValue({ data: updatedReturn, error: null });
+    const updateSelect = vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle });
+    const updateEq = vi.fn().mockReturnValue({ select: updateSelect });
+    const update = vi.fn().mockReturnValue({ eq: updateEq });
+    svc.supabase = { from: vi.fn().mockReturnValue({ update }) };
+
+    await svc.updateSettings({ number_format: { decimal_separator: ',' } });
+
+    // Verify the merged settings passed to update
+    const passedSettings = update.mock.calls[0][0].settings;
+    expect(passedSettings.number_format).toEqual({
+      decimal_separator: ',',
+      thousands_separator: ',',
+    });
+  });
+
+  it('throws UPDATE_FAILED on database error', async () => {
+    const svc = new (SettingsService as any)(null, 'tenant-1');
+    svc.getSettings = vi.fn().mockResolvedValue({ default_language: 'en' });
+
+    const updateMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: { message: 'err' } });
+    const updateSelect = vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle });
+    const updateEq = vi.fn().mockReturnValue({ select: updateSelect });
+    const update = vi.fn().mockReturnValue({ eq: updateEq });
+    svc.supabase = { from: vi.fn().mockReturnValue({ update }) };
+
+    await expect(svc.updateSettings({ default_language: 'ar' })).rejects.toThrow('Failed to update settings');
+  });
+
+  it('throws TENANT_NOT_FOUND when update returns no data', async () => {
+    const svc = new (SettingsService as any)(null, 'tenant-1');
+    svc.getSettings = vi.fn().mockResolvedValue({ default_language: 'en' });
+
+    const updateMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const updateSelect = vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle });
+    const updateEq = vi.fn().mockReturnValue({ select: updateSelect });
+    const update = vi.fn().mockReturnValue({ eq: updateEq });
+    svc.supabase = { from: vi.fn().mockReturnValue({ update }) };
+
+    await expect(svc.updateSettings({ default_language: 'ar' })).rejects.toThrow('Tenant not found');
+  });
+});
+
 describe('SettingsService.toggleAccountingModule', () => {
   it('delegates to updateSettings with accounting_module_enabled', async () => {
     const svc = new (SettingsService as any)(null, 'tenant-1');
