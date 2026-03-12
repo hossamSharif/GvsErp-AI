@@ -545,6 +545,7 @@ export function InvoiceForm({
               value={itemSearchQuery}
               onChange={(e) => setItemSearchQuery(e.target.value)}
               autoFocus
+              aria-label="Search items by name or SKU"
             />
             <div className="max-h-48 overflow-auto border rounded-md">
               {filteredItems.length === 0 ? (
@@ -626,6 +627,7 @@ export function InvoiceForm({
                 min={0}
                 step={0.01}
                 disabled={readOnly}
+                aria-label="Discount amount"
               />
             </div>
             <div className="flex justify-between text-lg font-semibold pt-3 border-t">
