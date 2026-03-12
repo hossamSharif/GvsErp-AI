@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 4; 582 tests across 26 suites)
+Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 10; 586 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 4; 582 tests across 2
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 582 passing across 26 suites
+- **Tests**: 586 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -424,6 +424,12 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 4; 582 tests across 2
 - **[Loop-11 C2]** Made employee form grid layouts responsive — grid-cols-2/3 → md:grid-cols-2/3 for mobile stacking (frontend designer)
 - **[Loop-11 C3]** Added 7 generateEmployeeNumber tests — increment, padding, large numbers, fallback, DB error — total 582 tests (QA engineer)
 - **[Loop-11 C4]** Updated gap analysis: 582 tests, Loop 11 iterations 1-4 documented (project manager)
+- **[Loop-11 C5]** Added (Optional) labels to party form non-required fields — email, phone, address, tax number, notes (business analyst)
+- **[Loop-11 C6]** Added missing payroll_items check to hasEmployeeRecords — prevents hard-deleting employees with payroll history; reverted to comment due to missing DB types (code reviewer)
+- **[Loop-11 C7]** Converted items routes to asyncHandler pattern — eliminates 17 manual try/catch blocks; largest route file (system architect)
+- **[Loop-11 C8]** Made journal-entry and payment form grids responsive — last 2 non-responsive form grids fixed (frontend designer)
+- **[Loop-11 C9]** Added 4 getAttendanceStatistics tests — percentage calculations, empty data, repeating decimals — total 586 tests (QA engineer)
+- **[Loop-11 C10]** Updated gap analysis: 586 tests, Loop 11 iterations 5-10 documented (project manager)
 
 ## Recommendations (Priority Order)
 
