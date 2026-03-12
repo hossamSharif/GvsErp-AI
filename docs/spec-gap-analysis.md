@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 10; 586 tests across 26 suites)
+Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 16; 590 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 10; 586 tests across 
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 586 passing across 26 suites
+- **Tests**: 590 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -430,6 +430,12 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 10; 586 tests across 
 - **[Loop-11 C8]** Made journal-entry and payment form grids responsive — last 2 non-responsive form grids fixed (frontend designer)
 - **[Loop-11 C9]** Added 4 getAttendanceStatistics tests — percentage calculations, empty data, repeating decimals — total 586 tests (QA engineer)
 - **[Loop-11 C10]** Updated gap analysis: 586 tests, Loop 11 iterations 5-10 documented (project manager)
+- **[Loop-11 C11]** Renamed ambiguous 'From Date' to 'Effective From' with description on item price tiers (business analyst)
+- **[Loop-11 C12]** Removed Supabase error.message interpolation from 8 POS repository throws — prevents internal detail leaking (code reviewer)
+- **[Loop-11 C13]** Converted warehouses routes to asyncHandler pattern — eliminates 16 manual try/catch blocks (system architect)
+- **[Loop-11 C14]** Added aria-labels to low-stock badge compact mode and config table controls (frontend designer)
+- **[Loop-11 C15]** Added 4 getPayrollSummary tests — totals calculation, null amounts, field mapping — total 590 tests (QA engineer)
+- **[Loop-11 C16]** Updated gap analysis: 590 tests, Loop 11 iterations 11-16 documented (project manager)
 
 ## Recommendations (Priority Order)
 
