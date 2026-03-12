@@ -174,7 +174,7 @@ export function PartyForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -197,7 +197,7 @@ export function PartyForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
@@ -226,7 +226,7 @@ export function PartyForm({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Address <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Street address, city, country"
@@ -246,7 +246,7 @@ export function PartyForm({
               name="taxNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax Number / VAT ID</FormLabel>
+                  <FormLabel>Tax Number / VAT ID <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Tax identification number"
@@ -268,7 +268,7 @@ export function PartyForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Additional notes or comments"
