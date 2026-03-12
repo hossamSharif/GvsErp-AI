@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { AttendanceService, AttendanceError } from '../../src/services/attendance.service';
 
 /**
@@ -97,5 +97,80 @@ describe('AttendanceService constructor', () => {
 
   it('initializes employeeRepository', () => {
     expect(attendanceService.employeeRepository).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// getAttendanceStatistics — percentage calculations
+// ==========================================================================
+
+describe('AttendanceService.getAttendanceStatistics', () => {
+  it('calculates correct percentages for mixed statuses', async () => {
+    const svc = new (AttendanceService as any)(null, 'tenant-1');
+    svc.attendanceRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [
+          { status: 'present' },
+          { status: 'present' },
+          { status: 'present' },
+          { status: 'absent' },
+          { status: 'leave' },
+          { status: 'holiday' },
+          { status: 'present' },
+          { status: 'absent' },
+          { status: 'present' },
+          { status: 'present' },
+        ],
+      }),
+    };
+
+    const stats = await svc.getAttendanceStatistics('2026-03-01', '2026-03-31');
+    expect(stats.total_records).toBe(10);
+    expect(stats.present).toBe(6);
+    expect(stats.absent).toBe(2);
+    expect(stats.leave).toBe(1);
+    expect(stats.holiday).toBe(1);
+    expect(stats.present_percentage).toBe('60.00');
+    expect(stats.absent_percentage).toBe('20.00');
+  });
+
+  it('returns 0.00 percentages when no records exist', async () => {
+    const svc = new (AttendanceService as any)(null, 'tenant-1');
+    svc.attendanceRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({ data: [] }),
+    };
+
+    const stats = await svc.getAttendanceStatistics('2026-03-01', '2026-03-31');
+    expect(stats.total_records).toBe(0);
+    expect(stats.present).toBe(0);
+    expect(stats.absent).toBe(0);
+    expect(stats.present_percentage).toBe('0.00');
+    expect(stats.absent_percentage).toBe('0.00');
+  });
+
+  it('handles all-present scenario', async () => {
+    const svc = new (AttendanceService as any)(null, 'tenant-1');
+    svc.attendanceRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [{ status: 'present' }, { status: 'present' }, { status: 'present' }],
+      }),
+    };
+
+    const stats = await svc.getAttendanceStatistics('2026-03-01', '2026-03-31');
+    expect(stats.present_percentage).toBe('100.00');
+    expect(stats.absent_percentage).toBe('0.00');
+  });
+
+  it('handles repeating decimal percentages correctly', async () => {
+    const svc = new (AttendanceService as any)(null, 'tenant-1');
+    svc.attendanceRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [{ status: 'present' }, { status: 'absent' }, { status: 'leave' }],
+      }),
+    };
+
+    const stats = await svc.getAttendanceStatistics('2026-03-01', '2026-03-31');
+    expect(stats.present_percentage).toBe('33.33');
+    expect(stats.absent_percentage).toBe('33.33');
   });
 });
