@@ -43,7 +43,7 @@ export class POSLocationRepository {
     const { data, error } = await query;
 
     if (error) {
-      throw new Error(`Failed to fetch POS locations: ${error.message}`);
+      throw new Error('Failed to fetch POS locations');
     }
 
     return data as POSLocationWithWarehouse[];
@@ -70,7 +70,7 @@ export class POSLocationRepository {
       if (error.code === 'PGRST116') {
         return null;
       }
-      throw new Error(`Failed to fetch POS location: ${error.message}`);
+      throw new Error('Failed to fetch POS location');
     }
 
     return data as POSLocationWithWarehouse;
@@ -89,7 +89,7 @@ export class POSLocationRepository {
       .order('name', { ascending: true });
 
     if (error) {
-      throw new Error(`Failed to fetch POS locations by warehouse: ${error.message}`);
+      throw new Error('Failed to fetch POS locations by warehouse');
     }
 
     return data as POSLocation[];
@@ -111,7 +111,7 @@ export class POSLocationRepository {
       .single();
 
     if (error) {
-      throw new Error(`Failed to create POS location: ${error.message}`);
+      throw new Error('Failed to create POS location');
     }
 
     return newLocation as POSLocation;
@@ -143,7 +143,7 @@ export class POSLocationRepository {
       .single();
 
     if (error) {
-      throw new Error(`Failed to update POS location: ${error.message}`);
+      throw new Error('Failed to update POS location');
     }
 
     return updatedLocation as POSLocation;
@@ -160,7 +160,7 @@ export class POSLocationRepository {
       .eq('tenant_id', tenantId);
 
     if (error) {
-      throw new Error(`Failed to delete POS location: ${error.message}`);
+      throw new Error('Failed to delete POS location');
     }
   }
 
@@ -175,7 +175,7 @@ export class POSLocationRepository {
       .eq('tenant_id', tenantId);
 
     if (error) {
-      throw new Error(`Failed to permanently delete POS location: ${error.message}`);
+      throw new Error('Failed to permanently delete POS location');
     }
   }
 
@@ -192,7 +192,7 @@ export class POSLocationRepository {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      throw new Error(`Failed to check POS location existence: ${error.message}`);
+      throw new Error('Failed to check POS location existence');
     }
 
     return !!data;
