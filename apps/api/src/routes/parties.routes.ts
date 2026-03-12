@@ -4,7 +4,7 @@
  * RESTful endpoints for party (customer/supplier) management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { PartyService } from '../services/party.service';
 import type { PartyQueryParams } from '@erp/shared';
 import {
@@ -17,6 +17,7 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -42,27 +43,23 @@ function getPartyService(req: Request): PartyService {
 router.get(
   '/',
   validateRequest({ query: partyQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const params = req.query as unknown as PartyQueryParams;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const params = req.query as unknown as PartyQueryParams;
 
-      const result = await service.getParties(params);
+    const result = await service.getParties(params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: {
-          total: result.meta.total,
-          page: result.meta.page,
-          limit: result.meta.limit,
-          hasMore: result.meta.page < result.meta.total_pages,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: {
+        total: result.meta.total,
+        page: result.meta.page,
+        limit: result.meta.limit,
+        hasMore: result.meta.page < result.meta.total_pages,
+      },
+    });
+  })
 );
 
 /**
@@ -73,19 +70,15 @@ router.post(
   '/',
   requirePermission('parties:write'),
   validateRequest({ body: createPartySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const party = await service.createParty(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const party = await service.createParty(req.body);
 
-      res.status(201).json({
-        success: true,
-        data: party,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: party,
+    });
+  })
 );
 
 /**
@@ -94,19 +87,15 @@ router.post(
  */
 router.get(
   '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const party = await service.getParty(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const party = await service.getParty(req.params.id);
 
-      res.json({
-        success: true,
-        data: party,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: party,
+    });
+  })
 );
 
 /**
@@ -117,19 +106,15 @@ router.put(
   '/:id',
   requirePermission('parties:write'),
   validateRequest({ body: updatePartySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const party = await service.updateParty(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const party = await service.updateParty(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: party,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: party,
+    });
+  })
 );
 
 /**
@@ -139,19 +124,15 @@ router.put(
 router.delete(
   '/:id',
   requirePermission('parties:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      await service.deleteParty(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    await service.deleteParty(req.params.id);
 
-      res.json({
-        success: true,
-        message: 'Party deleted successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Party deleted successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -164,19 +145,15 @@ router.delete(
  */
 router.get(
   '/:id/balance',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const balance = await service.getPartyBalance(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const balance = await service.getPartyBalance(req.params.id);
 
-      res.json({
-        success: true,
-        data: { balance },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: { balance },
+    });
+  })
 );
 
 /**
@@ -185,19 +162,15 @@ router.get(
  */
 router.post(
   '/:id/recalculate-balance',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const balance = await service.recalculateBalance(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const balance = await service.recalculateBalance(req.params.id);
 
-      res.json({
-        success: true,
-        data: { balance },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: { balance },
+    });
+  })
 );
 
 /**
@@ -206,20 +179,16 @@ router.post(
  */
 router.get(
   '/summary/balances',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const partyType = req.query.type as 'customer' | 'supplier' | undefined;
-      const summary = await service.getBalanceSummary(partyType);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const partyType = req.query.type as 'customer' | 'supplier' | undefined;
+    const summary = await service.getBalanceSummary(partyType);
 
-      res.json({
-        success: true,
-        data: summary,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: summary,
+    });
+  })
 );
 
 // =============================================================================
@@ -233,25 +202,21 @@ router.get(
 router.get(
   '/:id/statement',
   validateRequest({ query: partyStatementParamsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const params = {
-        partyId: req.params.id,
-        dateFrom: req.query.dateFrom as string | undefined,
-        dateTo: req.query.dateTo as string | undefined,
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const params = {
+      partyId: req.params.id,
+      dateFrom: req.query.dateFrom as string | undefined,
+      dateTo: req.query.dateTo as string | undefined,
+    };
 
-      const statement = await service.getPartyStatement(params);
+    const statement = await service.getPartyStatement(params);
 
-      res.json({
-        success: true,
-        data: statement,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: statement,
+    });
+  })
 );
 
 // =============================================================================
@@ -265,26 +230,22 @@ router.get(
 router.get(
   '/reports/customer-balances',
   validateRequest({ query: customerBalanceReportParamsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getPartyService(req);
-      const params = req.query as unknown as {
-        hasBalance?: boolean;
-        minBalance?: number;
-        maxBalance?: number;
-        includeInactive?: boolean;
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getPartyService(req);
+    const params = req.query as unknown as {
+      hasBalance?: boolean;
+      minBalance?: number;
+      maxBalance?: number;
+      includeInactive?: boolean;
+    };
 
-      const report = await service.getCustomerBalanceReport(params);
+    const report = await service.getCustomerBalanceReport(params);
 
-      res.json({
-        success: true,
-        data: report,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: report,
+    });
+  })
 );
 
 export default router;
