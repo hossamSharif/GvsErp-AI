@@ -303,6 +303,17 @@ export class EmployeeService {
       return true;
     }
 
+    // Check payroll records
+    const { count: payrollCount } = await this.supabase
+      .from('payroll_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', this.tenantId)
+      .eq('employee_id', employeeId);
+
+    if (payrollCount && payrollCount > 0) {
+      return true;
+    }
+
     return false;
   }
 
