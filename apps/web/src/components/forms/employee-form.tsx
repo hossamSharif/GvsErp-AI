@@ -204,7 +204,7 @@ export function EmployeeForm({
                 name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
+                    <FormLabel>Department <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                     <FormControl>
                       {departments.length > 0 ? (
                         <Select
@@ -236,7 +236,7 @@ export function EmployeeForm({
                 name="position"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position</FormLabel>
+                    <FormLabel>Position <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                     <FormControl>
                       {positions.length > 0 ? (
                         <Select
@@ -269,7 +269,7 @@ export function EmployeeForm({
               name="hire_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hire Date</FormLabel>
+                  <FormLabel>Hire Date <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                   <FormControl>
                     <Input {...field} value={field.value ?? ''} type="date" />
                   </FormControl>
@@ -296,7 +296,7 @@ export function EmployeeForm({
                   name="salary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Monthly Salary</FormLabel>
+                      <FormLabel>Monthly Salary <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                       <FormControl>
                         <Input
                           {...field}
