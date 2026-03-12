@@ -4,7 +4,7 @@
  * RESTful endpoints for user management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import {
   createUserSchema,
@@ -13,6 +13,7 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 import { z } from 'zod';
 
 const router: Router = Router();
@@ -38,28 +39,24 @@ function getUserService(req: Request): UserService {
  */
 router.get(
   '/',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const params = {
-        page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
-        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 50,
-        roleId: req.query.roleId as string | undefined,
-        search: req.query.search as string | undefined,
-        includeInactive: req.query.includeInactive === 'true',
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const params = {
+      page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 50,
+      roleId: req.query.roleId as string | undefined,
+      search: req.query.search as string | undefined,
+      includeInactive: req.query.includeInactive === 'true',
+    };
 
-      const result = await service.getUsers(params);
+    const result = await service.getUsers(params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -70,19 +67,15 @@ router.post(
   '/',
   requirePermission('users:write'),
   validateRequest({ body: createUserSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.createUser(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.createUser(req.body);
 
-      res.status(201).json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 /**
@@ -91,19 +84,15 @@ router.post(
  */
 router.get(
   '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.getUser(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.getUser(req.params.id);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 /**
@@ -114,19 +103,15 @@ router.put(
   '/:id',
   requirePermission('users:write'),
   validateRequest({ body: updateUserSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.updateUser(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.updateUser(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 /**
@@ -136,19 +121,15 @@ router.put(
 router.delete(
   '/:id',
   requirePermission('users:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      await service.deleteUser(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    await service.deleteUser(req.params.id);
 
-      res.json({
-        success: true,
-        message: 'User deleted successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -162,19 +143,15 @@ router.delete(
 router.post(
   '/:id/activate',
   requirePermission('users:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.setUserActive(req.params.id, true);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.setUserActive(req.params.id, true);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 /**
@@ -184,19 +161,15 @@ router.post(
 router.post(
   '/:id/deactivate',
   requirePermission('users:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.setUserActive(req.params.id, false);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.setUserActive(req.params.id, false);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 // =============================================================================
@@ -215,19 +188,15 @@ router.patch(
       theme: z.enum(['light', 'dark']).optional(),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.updatePreferences(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.updatePreferences(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 // =============================================================================
@@ -246,19 +215,15 @@ router.post(
       password: z.string().min(8).max(100),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      await service.changePassword(req.params.id, req.body.password);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    await service.changePassword(req.params.id, req.body.password);
 
-      res.json({
-        success: true,
-        message: 'Password changed successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  })
 );
 
 /**
@@ -272,19 +237,15 @@ router.post(
       email: z.string().email(),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      await service.sendPasswordResetEmail(req.body.email);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    await service.sendPasswordResetEmail(req.body.email);
 
-      res.json({
-        success: true,
-        message: 'Password reset email sent',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Password reset email sent',
+    });
+  })
 );
 
 // =============================================================================
@@ -303,19 +264,15 @@ router.put(
       role_id: z.string().uuid(),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getUserService(req);
-      const user = await service.updateUserRole(req.params.id, req.body.role_id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    const user = await service.updateUserRole(req.params.id, req.body.role_id);
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: user,
+    });
+  })
 );
 
 export default router;
