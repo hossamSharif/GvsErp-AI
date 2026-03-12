@@ -571,7 +571,7 @@ export function ItemForm({
                         name={`prices.${index}.effectiveFrom`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>From Date</FormLabel>
+                            <FormLabel>Effective From <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -579,6 +579,7 @@ export function ItemForm({
                                 value={field.value || ''}
                               />
                             </FormControl>
+                            <FormDescription>Date this price tier becomes active</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
