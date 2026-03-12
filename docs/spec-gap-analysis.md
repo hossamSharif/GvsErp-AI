@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 16; 575 tests across 26 suites)
+Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 4; 582 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 16; 575 tests across 
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 575 passing across 26 suites
+- **Tests**: 582 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -144,7 +144,7 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 16; 575 tests across 
 - **API build**: Succeeds (CJS + DTS)
 - **Web type-check**: 0 errors
 - **Web build**: Succeeds (all pages prerender correctly)
-- **Tests**: 575 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
+- **Tests**: 582 passing (26 test suites: all 20 services + error middleware + auth middleware + validate middleware + tenant middleware + rate-limit middleware + base repository)
 
 ### Fixes Applied (Iterations 1–27, Cycle 2 Iterations 1–4)
 - Package naming: `@erp-saas/*` → `@erp/*` (142+ imports aligned)
@@ -419,6 +419,11 @@ Date: 2026-03-11 | Reviewer: Project Manager (Loop 10 iter 16; 575 tests across 
 - **[Loop-10 C14]** Added aria-label to virtualized data-table search input; live-region row count (frontend designer)
 - **[Loop-10 C15]** Added 3 updateSettings tests: number_format merge, DB error, tenant-not-found — total 575 tests (QA engineer)
 - **[Loop-10 C16]** Updated gap analysis: 575 tests, Loop 10 iterations 11-16 documented (project manager)
+- **[Loop-10 C17]** Added placeholder and description to tax rate field — clarifies percentage input format (business analyst)
+- **[Loop-11 C1]** Converted settings routes from manual try/catch to asyncHandler pattern — eliminates 9 manual try/catch blocks (system architect)
+- **[Loop-11 C2]** Made employee form grid layouts responsive — grid-cols-2/3 → md:grid-cols-2/3 for mobile stacking (frontend designer)
+- **[Loop-11 C3]** Added 7 generateEmployeeNumber tests — increment, padding, large numbers, fallback, DB error — total 582 tests (QA engineer)
+- **[Loop-11 C4]** Updated gap analysis: 582 tests, Loop 11 iterations 1-4 documented (project manager)
 
 ## Recommendations (Priority Order)
 
