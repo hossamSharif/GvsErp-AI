@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { PayrollService, PayrollError } from '../../src/services/payroll.service';
 
 /**
@@ -95,5 +95,79 @@ describe('PayrollService constructor', () => {
 
   it('initializes attendanceRepository', () => {
     expect(payrollService.attendanceRepository).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// getPayrollSummary — data transformation
+// ==========================================================================
+
+describe('PayrollService.getPayrollSummary', () => {
+  it('calculates totals from multiple completed runs', async () => {
+    const svc = new (PayrollService as any)(null, 'tenant-1');
+    svc.payrollRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [
+          { id: 'r1', period_start: '2026-01-01', period_end: '2026-01-31', total_amount: '5000', status: 'completed' },
+          { id: 'r2', period_start: '2026-02-01', period_end: '2026-02-28', total_amount: '7500', status: 'completed' },
+        ],
+      }),
+    };
+
+    const summary = await svc.getPayrollSummary('2026-01-01', '2026-02-28');
+    expect(summary.total_runs).toBe(2);
+    expect(summary.total_gross).toBe(12500);
+    expect(summary.total_net).toBe(12500);
+    expect(summary.runs).toHaveLength(2);
+    expect(summary.runs[0].total_gross).toBe(5000);
+    expect(summary.runs[1].total_net).toBe(7500);
+  });
+
+  it('returns zero totals when no runs exist', async () => {
+    const svc = new (PayrollService as any)(null, 'tenant-1');
+    svc.payrollRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({ data: [] }),
+    };
+
+    const summary = await svc.getPayrollSummary('2026-01-01', '2026-01-31');
+    expect(summary.total_runs).toBe(0);
+    expect(summary.total_gross).toBe(0);
+    expect(summary.total_net).toBe(0);
+    expect(summary.runs).toHaveLength(0);
+  });
+
+  it('handles null total_amount gracefully', async () => {
+    const svc = new (PayrollService as any)(null, 'tenant-1');
+    svc.payrollRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [
+          { id: 'r1', period_start: '2026-03-01', period_end: '2026-03-31', total_amount: null, status: 'completed' },
+        ],
+      }),
+    };
+
+    const summary = await svc.getPayrollSummary('2026-03-01', '2026-03-31');
+    expect(summary.total_gross).toBe(0);
+    expect(summary.total_net).toBe(0);
+    expect(summary.runs[0].total_gross).toBe(0);
+  });
+
+  it('maps run fields correctly', async () => {
+    const svc = new (PayrollService as any)(null, 'tenant-1');
+    svc.payrollRepository = {
+      findWithFilters: vi.fn().mockResolvedValue({
+        data: [
+          { id: 'run-abc', period_start: '2026-04-01', period_end: '2026-04-30', total_amount: '3200.50', status: 'completed' },
+        ],
+      }),
+    };
+
+    const summary = await svc.getPayrollSummary('2026-04-01', '2026-04-30');
+    const run = summary.runs[0];
+    expect(run.id).toBe('run-abc');
+    expect(run.period_start).toBe('2026-04-01');
+    expect(run.period_end).toBe('2026-04-30');
+    expect(run.status).toBe('completed');
+    expect(run.total_gross).toBeCloseTo(3200.50);
   });
 });
