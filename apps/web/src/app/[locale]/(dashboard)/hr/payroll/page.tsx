@@ -147,11 +147,13 @@ export default function PayrollPage() {
           <CardDescription>View and manage past payroll runs</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={[]}
-            isLoading={false}
-          />
+          <div className="text-center py-12 text-muted-foreground">
+            <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="font-medium">No payroll runs yet</p>
+            <p className="text-sm mt-1">
+              Create your first payroll run to start processing employee salaries.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
