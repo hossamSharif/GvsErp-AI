@@ -4,10 +4,11 @@
  * RESTful endpoints for attendance management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { AttendanceService } from '../services/attendance.service';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -30,8 +31,9 @@ function getAttendanceService(req: Request): AttendanceService {
  * GET /attendance
  * List attendance records with pagination and filters
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const params = {
       page: req.query.page ? parseInt(req.query.page as string) : 1,
@@ -51,17 +53,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       data: result.data,
       meta: result.meta,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /attendance/statistics
  * Get attendance statistics for a period
  */
-router.get('/statistics', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/statistics',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const startDate = req.query.start_date as string;
     const endDate = req.query.end_date as string;
@@ -82,17 +83,16 @@ router.get('/statistics', async (req: Request, res: Response, next: NextFunction
       success: true,
       data: statistics,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /attendance/daily/:date
  * Get daily attendance report for a specific date
  */
-router.get('/daily/:date', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/daily/:date',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const report = await service.getDailyAttendanceReport(req.params.date);
 
@@ -100,10 +100,8 @@ router.get('/daily/:date', async (req: Request, res: Response, next: NextFunctio
       success: true,
       data: report,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /attendance/employee/:employeeId
@@ -111,37 +109,33 @@ router.get('/daily/:date', async (req: Request, res: Response, next: NextFunctio
  */
 router.get(
   '/employee/:employeeId',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { employeeId } = req.params;
-      const startDate = req.query.start_date as string;
-      const endDate = req.query.end_date as string;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { employeeId } = req.params;
+    const startDate = req.query.start_date as string;
+    const endDate = req.query.end_date as string;
 
-      if (!startDate || !endDate) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'start_date and end_date are required',
-          },
-        });
-      }
-
-      const records = await service.getEmployeeAttendance(
-        employeeId,
-        startDate,
-        endDate
-      );
-
-      res.json({
-        success: true,
-        data: records,
+    if (!startDate || !endDate) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'start_date and end_date are required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const records = await service.getEmployeeAttendance(
+      employeeId,
+      startDate,
+      endDate
+    );
+
+    res.json({
+      success: true,
+      data: records,
+    });
+  })
 );
 
 /**
@@ -150,37 +144,33 @@ router.get(
  */
 router.get(
   '/employee/:employeeId/summary',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { employeeId } = req.params;
-      const startDate = req.query.start_date as string;
-      const endDate = req.query.end_date as string;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { employeeId } = req.params;
+    const startDate = req.query.start_date as string;
+    const endDate = req.query.end_date as string;
 
-      if (!startDate || !endDate) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'start_date and end_date are required',
-          },
-        });
-      }
-
-      const summary = await service.getEmployeeAttendanceSummary(
-        employeeId,
-        startDate,
-        endDate
-      );
-
-      res.json({
-        success: true,
-        data: summary,
+    if (!startDate || !endDate) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'start_date and end_date are required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const summary = await service.getEmployeeAttendanceSummary(
+      employeeId,
+      startDate,
+      endDate
+    );
+
+    res.json({
+      success: true,
+      data: summary,
+    });
+  })
 );
 
 /**
@@ -189,41 +179,38 @@ router.get(
  */
 router.get(
   '/employee/:employeeId/work-hours',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { employeeId } = req.params;
-      const startDate = req.query.start_date as string;
-      const endDate = req.query.end_date as string;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { employeeId } = req.params;
+    const startDate = req.query.start_date as string;
+    const endDate = req.query.end_date as string;
 
-      if (!startDate || !endDate) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'start_date and end_date are required',
-          },
-        });
-      }
-
-      const hours = await service.calculateWorkHours(employeeId, startDate, endDate);
-
-      res.json({
-        success: true,
-        data: { total_hours: hours },
+    if (!startDate || !endDate) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'start_date and end_date are required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const hours = await service.calculateWorkHours(employeeId, startDate, endDate);
+
+    res.json({
+      success: true,
+      data: { total_hours: hours },
+    });
+  })
 );
 
 /**
  * GET /attendance/:id
  * Get attendance record by ID
  */
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const record = await service.getAttendanceRecord(req.params.id);
 
@@ -231,17 +218,17 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       success: true,
       data: record,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /attendance
  * Record attendance
  */
-router.post('/', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.post(
+  '/',
+  requirePermission('attendance:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const record = await service.recordAttendance(req.body);
 
@@ -250,17 +237,17 @@ router.post('/', requirePermission('attendance:write'), async (req: Request, res
       data: record,
       message: 'Attendance recorded successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /attendance/check-in
  * Check in an employee
  */
-router.post('/check-in', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.post(
+  '/check-in',
+  requirePermission('attendance:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const { employee_id, check_in } = req.body;
 
@@ -281,17 +268,17 @@ router.post('/check-in', requirePermission('attendance:write'), async (req: Requ
       data: record,
       message: 'Checked in successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /attendance/check-out
  * Check out an employee
  */
-router.post('/check-out', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.post(
+  '/check-out',
+  requirePermission('attendance:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const { employee_id, check_out } = req.body;
 
@@ -312,10 +299,8 @@ router.post('/check-out', requirePermission('attendance:write'), async (req: Req
       data: record,
       message: 'Checked out successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /attendance/mark-absent
@@ -324,32 +309,28 @@ router.post('/check-out', requirePermission('attendance:write'), async (req: Req
 router.post(
   '/mark-absent',
   requirePermission('attendance:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { employee_id, date, notes } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { employee_id, date, notes } = req.body;
 
-      if (!employee_id || !date) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'employee_id and date are required',
-          },
-        });
-      }
-
-      const record = await service.markAbsent(employee_id, date, notes);
-
-      res.json({
-        success: true,
-        data: record,
-        message: 'Marked as absent successfully',
+    if (!employee_id || !date) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'employee_id and date are required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const record = await service.markAbsent(employee_id, date, notes);
+
+    res.json({
+      success: true,
+      data: record,
+      message: 'Marked as absent successfully',
+    });
+  })
 );
 
 /**
@@ -359,32 +340,28 @@ router.post(
 router.post(
   '/mark-leave',
   requirePermission('attendance:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { employee_id, date, notes } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { employee_id, date, notes } = req.body;
 
-      if (!employee_id || !date) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'employee_id and date are required',
-          },
-        });
-      }
-
-      const record = await service.markOnLeave(employee_id, date, notes);
-
-      res.json({
-        success: true,
-        data: record,
-        message: 'Marked as on leave successfully',
+    if (!employee_id || !date) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'employee_id and date are required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const record = await service.markOnLeave(employee_id, date, notes);
+
+    res.json({
+      success: true,
+      data: record,
+      message: 'Marked as on leave successfully',
+    });
+  })
 );
 
 /**
@@ -394,40 +371,38 @@ router.post(
 router.post(
   '/mark-holiday',
   requirePermission('attendance:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getAttendanceService(req);
-      const { date, notes } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getAttendanceService(req);
+    const { date, notes } = req.body;
 
-      if (!date) {
-        return void res.status(400).json({
-          success: false,
-          error: {
-            code: 'MISSING_PARAMS',
-            message: 'date is required',
-          },
-        });
-      }
-
-      const records = await service.markHoliday(date, notes);
-
-      res.json({
-        success: true,
-        data: records,
-        message: 'Holiday marked successfully for all employees',
+    if (!date) {
+      return void res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_PARAMS',
+          message: 'date is required',
+        },
       });
-    } catch (error) {
-      next(error);
     }
-  }
+
+    const records = await service.markHoliday(date, notes);
+
+    res.json({
+      success: true,
+      data: records,
+      message: 'Holiday marked successfully for all employees',
+    });
+  })
 );
 
 /**
  * PUT /attendance/:id
  * Update attendance record
  */
-router.put('/:id', requirePermission('attendance:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.put(
+  '/:id',
+  requirePermission('attendance:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     const record = await service.updateAttendance(req.params.id, req.body);
 
@@ -436,17 +411,17 @@ router.put('/:id', requirePermission('attendance:write'), async (req: Request, r
       data: record,
       message: 'Attendance updated successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * DELETE /attendance/:id
  * Delete attendance record
  */
-router.delete('/:id', requirePermission('attendance:delete'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.delete(
+  '/:id',
+  requirePermission('attendance:delete'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getAttendanceService(req);
     await service.deleteAttendance(req.params.id);
 
@@ -454,9 +429,7 @@ router.delete('/:id', requirePermission('attendance:delete'), async (req: Reques
       success: true,
       message: 'Attendance record deleted successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 export default router;
