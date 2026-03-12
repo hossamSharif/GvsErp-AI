@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CurrencyService, CurrencyError } from '../../src/services/currency.service';
 
 /**
@@ -97,5 +97,69 @@ describe('CurrencyService constructor', () => {
 
   it('initializes repository', () => {
     expect(currencyService.repository).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// createCurrency — code uppercasing and duplicate check
+// ==========================================================================
+
+describe('CurrencyService.createCurrency', () => {
+  it('uppercases currency code before creating', async () => {
+    const svc = new (CurrencyService as any)(null, 'tenant-1');
+    const createSpy = vi.fn().mockResolvedValue({ id: '1', code: 'USD', name: 'US Dollar' });
+    svc.repository = {
+      codeExists: vi.fn().mockResolvedValue(false),
+      create: createSpy,
+    };
+
+    await svc.createCurrency({ code: 'usd', name: 'US Dollar' });
+    expect(createSpy).toHaveBeenCalledWith('tenant-1', expect.objectContaining({ code: 'USD' }));
+  });
+
+  it('throws CURRENCY_CODE_EXISTS when code is taken', async () => {
+    const svc = new (CurrencyService as any)(null, 'tenant-1');
+    svc.repository = {
+      codeExists: vi.fn().mockResolvedValue(true),
+    };
+
+    await expect(svc.createCurrency({ code: 'USD', name: 'US Dollar' }))
+      .rejects.toThrow(CurrencyError);
+  });
+
+  it('defaults is_default to false', async () => {
+    const svc = new (CurrencyService as any)(null, 'tenant-1');
+    const createSpy = vi.fn().mockResolvedValue({ id: '1', code: 'EUR', name: 'Euro' });
+    svc.repository = {
+      codeExists: vi.fn().mockResolvedValue(false),
+      create: createSpy,
+    };
+
+    await svc.createCurrency({ code: 'EUR', name: 'Euro' });
+    expect(createSpy).toHaveBeenCalledWith('tenant-1', expect.objectContaining({ is_default: false }));
+  });
+});
+
+// ==========================================================================
+// deleteCurrency — default currency guard
+// ==========================================================================
+
+describe('CurrencyService.deleteCurrency', () => {
+  it('throws CANNOT_DELETE_DEFAULT for default currency', async () => {
+    const svc = new (CurrencyService as any)(null, 'tenant-1');
+    svc.repository = {
+      findById: vi.fn().mockResolvedValue({ id: '1', code: 'USD', is_default: true }),
+    };
+
+    await expect(svc.deleteCurrency('1')).rejects.toThrow('Cannot delete the default currency');
+  });
+
+  it('throws CURRENCY_NOT_FOUND when currency does not exist', async () => {
+    const svc = new (CurrencyService as any)(null, 'tenant-1');
+    svc.repository = {
+      findById: vi.fn().mockResolvedValue(null),
+    };
+
+    await expect(svc.deleteCurrency('nonexistent')).rejects.toThrow(CurrencyError);
   });
 });
