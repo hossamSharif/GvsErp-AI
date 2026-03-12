@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 16; 590 tests across 26 suites)
+Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 22; 595 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -95,7 +95,7 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 16; 590 tests across 
 - **API type-check**: 0 TypeScript errors (down from 435 at start, 100% reduction)
 - **Web type-check**: 0 TypeScript errors (down from 188 first measured, 100% reduction)
 - **Web build**: SSG prerender errors from useAuth (not TS errors — pages need dynamic rendering)
-- **Tests**: 590 passing across 26 suites
+- **Tests**: 595 passing across 26 suites
 
 ### Error Progression
 | Iteration | API Errors | Web Errors | Fix Applied |
@@ -436,6 +436,12 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 16; 590 tests across 
 - **[Loop-11 C14]** Added aria-labels to low-stock badge compact mode and config table controls (frontend designer)
 - **[Loop-11 C15]** Added 4 getPayrollSummary tests — totals calculation, null amounts, field mapping — total 590 tests (QA engineer)
 - **[Loop-11 C16]** Updated gap analysis: 590 tests, Loop 11 iterations 11-16 documented (project manager)
+- **[Loop-11 C17]** Improved transfer quantity placeholder from '0' to 'e.g. 10' (business analyst)
+- **[Loop-11 C18]** Converted attendance routes to asyncHandler — eliminates 15 manual try/catch blocks (code reviewer)
+- **[Loop-11 C19]** Converted transfers routes to asyncHandler — eliminates 12 manual try/catch blocks (system architect)
+- **[Loop-11 C20]** Added aria-labels to invoice form search input and discount field (frontend designer)
+- **[Loop-11 C21]** Added 5 CurrencyService method tests — code uppercasing, duplicate guard, default delete guard — total 595 tests (QA engineer)
+- **[Loop-11 C22]** Updated gap analysis: 595 tests, Loop 11 iterations 17-22 documented (project manager)
 
 ## Recommendations (Priority Order)
 
