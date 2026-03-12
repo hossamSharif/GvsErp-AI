@@ -102,8 +102,9 @@ export function LowStockBadge({
     <Badge
       variant={config.variant}
       className={cn('gap-1', config.className, className)}
+      {...(compact ? { 'aria-label': config.label } : {})}
     >
-      <Icon className={cn('h-3 w-3', compact && 'h-2.5 w-2.5')} />
+      <Icon className={cn('h-3 w-3', compact && 'h-2.5 w-2.5')} aria-hidden="true" />
       {!compact && <span>{config.shortLabel}</span>}
     </Badge>
   );

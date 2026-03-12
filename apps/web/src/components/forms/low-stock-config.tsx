@@ -192,6 +192,7 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
+                  aria-label={t('searchItems')}
                 />
               </div>
             )}
@@ -279,6 +280,7 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                           selectedItems.size === inventory.length
                         }
                         onCheckedChange={handleSelectAll}
+                        aria-label={t('selectAll')}
                       />
                     </TableHead>
                     <TableHead>{t('item')}</TableHead>
@@ -298,6 +300,7 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                           onCheckedChange={(checked) =>
                             handleSelectItem(item.itemId, checked as boolean)
                           }
+                          aria-label={`${t('select')} ${item.itemName}`}
                         />
                       </TableCell>
                       <TableCell className="font-medium">{item.itemName}</TableCell>
@@ -329,6 +332,7 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                               variant="ghost"
                               onClick={() => handleInlineEdit(item)}
                               disabled={updateThresholdMutation.isPending}
+                              aria-label={`${t('save')} ${item.itemName}`}
                             >
                               <Check className="h-4 w-4" />
                             </Button>
@@ -372,6 +376,7 @@ export function LowStockConfig({ warehouseId: initialWarehouseId, onClose }: Low
                           variant="ghost"
                           size="sm"
                           onClick={() => startEditing(item)}
+                          aria-label={`${t('editThreshold')} ${item.itemName}`}
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
