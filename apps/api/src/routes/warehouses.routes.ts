@@ -4,7 +4,7 @@
  * RESTful endpoints for warehouse and inventory management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { WarehouseService } from '../services/warehouse.service';
 import {
   createWarehouseSchema,
@@ -18,6 +18,7 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -43,29 +44,25 @@ function getWarehouseService(req: Request): WarehouseService {
 router.get(
   '/',
   validateRequest({ query: warehouseQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const params = req.query as unknown as {
-        search?: string;
-        isActive?: boolean;
-        page?: number;
-        limit?: number;
-        sortBy?: 'name' | 'createdAt' | 'updatedAt';
-        sortDir?: 'asc' | 'desc';
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const params = req.query as unknown as {
+      search?: string;
+      isActive?: boolean;
+      page?: number;
+      limit?: number;
+      sortBy?: 'name' | 'createdAt' | 'updatedAt';
+      sortDir?: 'asc' | 'desc';
+    };
 
-      const result = await service.getWarehouses(params);
+    const result = await service.getWarehouses(params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -74,19 +71,15 @@ router.get(
  */
 router.get(
   '/active',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouses = await service.getActiveWarehouses();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouses = await service.getActiveWarehouses();
 
-      res.json({
-        success: true,
-        data: warehouses,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: warehouses,
+    });
+  })
 );
 
 /**
@@ -97,19 +90,15 @@ router.post(
   '/',
   requirePermission('warehouses:write'),
   validateRequest({ body: createWarehouseSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouse = await service.createWarehouse(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouse = await service.createWarehouse(req.body);
 
-      res.status(201).json({
-        success: true,
-        data: warehouse,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: warehouse,
+    });
+  })
 );
 
 /**
@@ -118,19 +107,15 @@ router.post(
  */
 router.get(
   '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouse = await service.getWarehouseWithSummary(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouse = await service.getWarehouseWithSummary(req.params.id);
 
-      res.json({
-        success: true,
-        data: warehouse,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: warehouse,
+    });
+  })
 );
 
 /**
@@ -141,19 +126,15 @@ router.put(
   '/:id',
   requirePermission('warehouses:write'),
   validateRequest({ body: updateWarehouseSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouse = await service.updateWarehouse(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouse = await service.updateWarehouse(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: warehouse,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: warehouse,
+    });
+  })
 );
 
 /**
@@ -163,19 +144,15 @@ router.put(
 router.delete(
   '/:id',
   requirePermission('warehouses:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      await service.deactivateWarehouse(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    await service.deactivateWarehouse(req.params.id);
 
-      res.json({
-        success: true,
-        message: 'Warehouse deactivated successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Warehouse deactivated successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -189,29 +166,25 @@ router.delete(
 router.get(
   '/:id/inventory',
   validateRequest({ query: inventoryQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const params = req.query as unknown as {
-        search?: string;
-        lowStockOnly?: boolean;
-        page?: number;
-        limit?: number;
-        sortBy?: 'itemName' | 'quantity' | 'updatedAt';
-        sortDir?: 'asc' | 'desc';
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const params = req.query as unknown as {
+      search?: string;
+      lowStockOnly?: boolean;
+      page?: number;
+      limit?: number;
+      sortBy?: 'itemName' | 'quantity' | 'updatedAt';
+      sortDir?: 'asc' | 'desc';
+    };
 
-      const result = await service.getWarehouseInventory(req.params.id, params);
+    const result = await service.getWarehouseInventory(req.params.id, params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -222,25 +195,21 @@ router.put(
   '/:id/inventory/thresholds',
   requirePermission('warehouses:write'),
   validateRequest({ body: updateInventoryThresholdSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const { itemId, lowStockThreshold } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const { itemId, lowStockThreshold } = req.body;
 
-      const result = await service.updateLowStockThreshold(
-        itemId,
-        req.params.id,
-        lowStockThreshold
-      );
+    const result = await service.updateLowStockThreshold(
+      itemId,
+      req.params.id,
+      lowStockThreshold
+    );
 
-      res.json({
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result,
+    });
+  })
 );
 
 /**
@@ -251,21 +220,17 @@ router.post(
   '/:id/inventory/thresholds/bulk',
   requirePermission('warehouses:write'),
   validateRequest({ body: bulkUpdateInventoryThresholdSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const { thresholds } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const { thresholds } = req.body;
 
-      const result = await service.bulkUpdateLowStockThresholds(req.params.id, thresholds);
+    const result = await service.bulkUpdateLowStockThresholds(req.params.id, thresholds);
 
-      res.json({
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result,
+    });
+  })
 );
 
 // =============================================================================
@@ -279,27 +244,23 @@ router.post(
 router.get(
   '/alerts/low-stock',
   validateRequest({ query: lowStockAlertQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const { warehouseId, severity } = req.query as {
-        warehouseId?: string;
-        severity?: 'critical' | 'warning' | 'low';
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const { warehouseId, severity } = req.query as {
+      warehouseId?: string;
+      severity?: 'critical' | 'warning' | 'low';
+    };
 
-      const alerts = await service.getLowStockAlertsWithSeverity(warehouseId, severity);
+    const alerts = await service.getLowStockAlertsWithSeverity(warehouseId, severity);
 
-      res.json({
-        success: true,
-        data: alerts,
-        meta: {
-          total: alerts.length,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: alerts,
+      meta: {
+        total: alerts.length,
+      },
+    });
+  })
 );
 
 /**
@@ -308,19 +269,15 @@ router.get(
  */
 router.get(
   '/alerts/summary',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const summary = await service.getLowStockSummary();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const summary = await service.getLowStockSummary();
 
-      res.json({
-        success: true,
-        data: summary,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: summary,
+    });
+  })
 );
 
 /**
@@ -329,23 +286,19 @@ router.get(
  */
 router.get(
   '/alerts/critical',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouseId = req.query.warehouseId as string | undefined;
-      const alerts = await service.getCriticalAlerts(warehouseId);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouseId = req.query.warehouseId as string | undefined;
+    const alerts = await service.getCriticalAlerts(warehouseId);
 
-      res.json({
-        success: true,
-        data: alerts,
-        meta: {
-          total: alerts.length,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: alerts,
+      meta: {
+        total: alerts.length,
+      },
+    });
+  })
 );
 
 /**
@@ -354,23 +307,19 @@ router.get(
  */
 router.get(
   '/alerts/reorder-suggestions',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const warehouseId = req.query.warehouseId as string | undefined;
-      const suggestions = await service.getSuggestedReorders(warehouseId);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const warehouseId = req.query.warehouseId as string | undefined;
+    const suggestions = await service.getSuggestedReorders(warehouseId);
 
-      res.json({
-        success: true,
-        data: suggestions,
-        meta: {
-          total: suggestions.length,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: suggestions,
+      meta: {
+        total: suggestions.length,
+      },
+    });
+  })
 );
 
 /**
@@ -379,22 +328,18 @@ router.get(
  */
 router.get(
   '/:id/alerts',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const alerts = await service.getLowStockAlertsWithSeverity(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const alerts = await service.getLowStockAlertsWithSeverity(req.params.id);
 
-      res.json({
-        success: true,
-        data: alerts,
-        meta: {
-          total: alerts.length,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: alerts,
+      meta: {
+        total: alerts.length,
+      },
+    });
+  })
 );
 
 // =============================================================================
@@ -407,21 +352,17 @@ router.get(
  */
 router.get(
   '/value/total',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const value = await service.getTotalInventoryValue();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const value = await service.getTotalInventoryValue();
 
-      res.json({
-        success: true,
-        data: {
-          totalValue: value,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: {
+        totalValue: value,
+      },
+    });
+  })
 );
 
 /**
@@ -430,19 +371,15 @@ router.get(
  */
 router.get(
   '/value/by-warehouse',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getWarehouseService(req);
-      const values = await service.getInventoryValueByWarehouse();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getWarehouseService(req);
+    const values = await service.getInventoryValueByWarehouse();
 
-      res.json({
-        success: true,
-        data: values,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: values,
+    });
+  })
 );
 
 export default router;
