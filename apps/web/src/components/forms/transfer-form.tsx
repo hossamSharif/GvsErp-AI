@@ -234,6 +234,7 @@ export function TransferForm({
                                       value={itemSearch}
                                       onChange={(e) => setItemSearch(e.target.value)}
                                       className="mb-2"
+                                      aria-label={t('searchItems')}
                                     />
                                   </div>
                                   {items.map((item) => (
