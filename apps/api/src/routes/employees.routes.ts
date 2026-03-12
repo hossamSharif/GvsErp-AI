@@ -4,10 +4,11 @@
  * RESTful endpoints for employee management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { EmployeeService } from '../services/employee.service';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -30,8 +31,9 @@ function getEmployeeService(req: Request): EmployeeService {
  * GET /employees
  * List employees with pagination, search, and filters
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const params = {
       page: req.query.page ? parseInt(req.query.page as string) : 1,
@@ -54,17 +56,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       data: result.data,
       meta: result.meta,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /employees/statistics
  * Get employee statistics
  */
-router.get('/statistics', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/statistics',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const statistics = await service.getEmployeeStatistics();
 
@@ -72,17 +73,16 @@ router.get('/statistics', async (req: Request, res: Response, next: NextFunction
       success: true,
       data: statistics,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /employees/departments
  * Get unique departments
  */
-router.get('/departments', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/departments',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const departments = await service.getDepartments();
 
@@ -90,17 +90,16 @@ router.get('/departments', async (req: Request, res: Response, next: NextFunctio
       success: true,
       data: departments,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /employees/positions
  * Get unique positions
  */
-router.get('/positions', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/positions',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const positions = await service.getPositions();
 
@@ -108,10 +107,8 @@ router.get('/positions', async (req: Request, res: Response, next: NextFunction)
       success: true,
       data: positions,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * GET /employees/generate-number
@@ -119,27 +116,24 @@ router.get('/positions', async (req: Request, res: Response, next: NextFunction)
  */
 router.get(
   '/generate-number',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getEmployeeService(req);
-      const employeeNumber = await service.generateEmployeeNumber();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getEmployeeService(req);
+    const employeeNumber = await service.generateEmployeeNumber();
 
-      res.json({
-        success: true,
-        data: { employee_number: employeeNumber },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: { employee_number: employeeNumber },
+    });
+  })
 );
 
 /**
  * GET /employees/:id
  * Get employee by ID
  */
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.get(
+  '/:id',
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const employee = await service.getEmployee(req.params.id);
 
@@ -147,17 +141,17 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       success: true,
       data: employee,
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /employees
  * Create a new employee
  */
-router.post('/', requirePermission('employees:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.post(
+  '/',
+  requirePermission('employees:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const employee = await service.createEmployee(req.body);
 
@@ -166,17 +160,17 @@ router.post('/', requirePermission('employees:write'), async (req: Request, res:
       data: employee,
       message: 'Employee created successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * PUT /employees/:id
  * Update an existing employee
  */
-router.put('/:id', requirePermission('employees:write'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.put(
+  '/:id',
+  requirePermission('employees:write'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     const employee = await service.updateEmployee(req.params.id, req.body);
 
@@ -185,10 +179,8 @@ router.put('/:id', requirePermission('employees:write'), async (req: Request, re
       data: employee,
       message: 'Employee updated successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 /**
  * POST /employees/:id/deactivate
@@ -197,20 +189,16 @@ router.put('/:id', requirePermission('employees:write'), async (req: Request, re
 router.post(
   '/:id/deactivate',
   requirePermission('employees:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getEmployeeService(req);
-      const employee = await service.deactivateEmployee(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getEmployeeService(req);
+    const employee = await service.deactivateEmployee(req.params.id);
 
-      res.json({
-        success: true,
-        data: employee,
-        message: 'Employee deactivated successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: employee,
+      message: 'Employee deactivated successfully',
+    });
+  })
 );
 
 /**
@@ -220,28 +208,26 @@ router.post(
 router.post(
   '/:id/reactivate',
   requirePermission('employees:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getEmployeeService(req);
-      const employee = await service.reactivateEmployee(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getEmployeeService(req);
+    const employee = await service.reactivateEmployee(req.params.id);
 
-      res.json({
-        success: true,
-        data: employee,
-        message: 'Employee reactivated successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: employee,
+      message: 'Employee reactivated successfully',
+    });
+  })
 );
 
 /**
  * DELETE /employees/:id
  * Delete an employee (hard delete, only if no records)
  */
-router.delete('/:id', requirePermission('employees:delete'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
+router.delete(
+  '/:id',
+  requirePermission('employees:delete'),
+  asyncHandler(async (req: Request, res: Response) => {
     const service = getEmployeeService(req);
     await service.deleteEmployee(req.params.id);
 
@@ -249,9 +235,7 @@ router.delete('/:id', requirePermission('employees:delete'), async (req: Request
       success: true,
       message: 'Employee deleted successfully',
     });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 export default router;
