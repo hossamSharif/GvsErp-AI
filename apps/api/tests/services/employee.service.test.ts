@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { EmployeeService, EmployeeError } from '../../src/services/employee.service';
 
 /**
@@ -82,5 +82,89 @@ describe('EmployeeService constructor', () => {
 
   it('initializes employeeRepository', () => {
     expect(employeeService.employeeRepository).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// generateEmployeeNumber
+// ==========================================================================
+
+function createMockSupabaseForGenerate(result: { data: any; error: any }) {
+  const limit = vi.fn().mockResolvedValue(result);
+  const order = vi.fn().mockReturnValue({ limit });
+  const eq = vi.fn().mockReturnValue({ order });
+  const select = vi.fn().mockReturnValue({ eq });
+  return { from: vi.fn().mockReturnValue({ select }) };
+}
+
+describe('EmployeeService.generateEmployeeNumber', () => {
+  it('returns EMP-0001 when no employees exist', async () => {
+    const mock = createMockSupabaseForGenerate({ data: [], error: null });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-0001');
+  });
+
+  it('returns EMP-0001 when data is null', async () => {
+    const mock = createMockSupabaseForGenerate({ data: null, error: null });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-0001');
+  });
+
+  it('increments from the last employee number', async () => {
+    const mock = createMockSupabaseForGenerate({
+      data: [{ employee_number: 'EMP-0042' }],
+      error: null,
+    });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-0043');
+  });
+
+  it('pads number to 4 digits', async () => {
+    const mock = createMockSupabaseForGenerate({
+      data: [{ employee_number: 'EMP-0009' }],
+      error: null,
+    });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-0010');
+  });
+
+  it('handles large employee numbers', async () => {
+    const mock = createMockSupabaseForGenerate({
+      data: [{ employee_number: 'EMP-9999' }],
+      error: null,
+    });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-10000');
+  });
+
+  it('falls back to EMP-0001 for non-matching format', async () => {
+    const mock = createMockSupabaseForGenerate({
+      data: [{ employee_number: 'CUSTOM-ID-123' }],
+      error: null,
+    });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    const result = await svc.generateEmployeeNumber();
+    expect(result).toBe('EMP-0001');
+  });
+
+  it('throws on database error', async () => {
+    const mock = createMockSupabaseForGenerate({
+      data: null,
+      error: { message: 'db error' },
+    });
+    const svc = new (EmployeeService as any)(mock, 'tenant-1');
+
+    await expect(svc.generateEmployeeNumber()).rejects.toThrow();
   });
 });
