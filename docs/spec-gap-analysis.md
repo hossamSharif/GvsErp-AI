@@ -1,7 +1,7 @@
 # Spec Gap Analysis — 001-modular-erp-saas
 
 Reviewed against: `specs/001-modular-erp-saas/spec.md`
-Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 22; 595 tests across 26 suites)
+Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 28; 595 tests across 26 suites)
 
 ## Coverage Summary
 
@@ -442,6 +442,12 @@ Date: 2026-03-12 | Reviewer: Project Manager (Loop 11 iter 22; 595 tests across 
 - **[Loop-11 C20]** Added aria-labels to invoice form search input and discount field (frontend designer)
 - **[Loop-11 C21]** Added 5 CurrencyService method tests — code uppercasing, duplicate guard, default delete guard — total 595 tests (QA engineer)
 - **[Loop-11 C22]** Updated gap analysis: 595 tests, Loop 11 iterations 17-22 documented (project manager)
+- **[Loop-11 C23]** Replaced empty payroll table with descriptive empty state — guides user to create first run (business analyst)
+- **[Loop-11 C24]** Converted employees routes to asyncHandler — eliminates 11 manual try/catch blocks (code reviewer)
+- **[Loop-11 C25]** Converted users routes to asyncHandler — eliminates 11 manual try/catch blocks (system architect)
+- **[Loop-11 C26]** Added aria-label to transfer form item search input (frontend designer)
+- **[Loop-11 C27]** QA clean pass — 595 tests, 0 TS errors, no actionable gaps (QA engineer)
+- **[Loop-11 C28]** Updated gap analysis: 595 tests, Loop 11 iterations 23-28 documented (project manager)
 
 ## Recommendations (Priority Order)
 
