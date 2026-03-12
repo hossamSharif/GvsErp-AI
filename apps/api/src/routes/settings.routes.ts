@@ -4,9 +4,9 @@
  * RESTful endpoints for tenant settings management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { SettingsService } from '../services/settings.service';
-import { AppError } from '../middleware/error';
+import { AppError, asyncHandler } from '../middleware/error';
 import { updateTenantSettingsSchema } from '@erp/shared';
 import type { TenantSettings } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
@@ -51,19 +51,15 @@ function getSettingsService(req: Request): SettingsService {
  */
 router.get(
   '/',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.getSettings();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.getSettings();
 
-      res.json({
-        success: true,
-        data: settings,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
 );
 
 /**
@@ -74,19 +70,15 @@ router.put(
   '/',
   requirePermission('settings:write'),
   validateRequest({ body: updateTenantSettingsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.updateSettings(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.updateSettings(req.body);
 
-      res.json({
-        success: true,
-        data: settings,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
 );
 
 /**
@@ -96,20 +88,16 @@ router.put(
 router.post(
   '/reset',
   requirePermission('settings:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.resetSettings();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.resetSettings();
 
-      res.json({
-        success: true,
-        data: settings,
-        message: 'Settings reset to defaults',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+      message: 'Settings reset to defaults',
+    });
+  })
 );
 
 // =============================================================================
@@ -122,19 +110,15 @@ router.post(
  */
 router.get(
   '/company',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const companyInfo = await service.getCompanyInfo();
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const companyInfo = await service.getCompanyInfo();
 
-      res.json({
-        success: true,
-        data: companyInfo,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: companyInfo,
+    });
+  })
 );
 
 /**
@@ -154,19 +138,15 @@ router.put(
       logo_url: z.string().url().optional(),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.updateCompanyInfo(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.updateCompanyInfo(req.body);
 
-      res.json({
-        success: true,
-        data: settings,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
 );
 
 // =============================================================================
@@ -180,20 +160,16 @@ router.put(
 router.post(
   '/modules/accounting/enable',
   requirePermission('settings:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.toggleAccountingModule(true);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.toggleAccountingModule(true);
 
-      res.json({
-        success: true,
-        data: settings,
-        message: 'Accounting module enabled',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+      message: 'Accounting module enabled',
+    });
+  })
 );
 
 /**
@@ -203,20 +179,16 @@ router.post(
 router.post(
   '/modules/accounting/disable',
   requirePermission('settings:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.toggleAccountingModule(false);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.toggleAccountingModule(false);
 
-      res.json({
-        success: true,
-        data: settings,
-        message: 'Accounting module disabled',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+      message: 'Accounting module disabled',
+    });
+  })
 );
 
 /**
@@ -226,20 +198,16 @@ router.post(
 router.post(
   '/modules/hr/enable',
   requirePermission('settings:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.toggleHRModule(true);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.toggleHRModule(true);
 
-      res.json({
-        success: true,
-        data: settings,
-        message: 'HR module enabled',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+      message: 'HR module enabled',
+    });
+  })
 );
 
 /**
@@ -249,20 +217,16 @@ router.post(
 router.post(
   '/modules/hr/disable',
   requirePermission('settings:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getSettingsService(req);
-      const settings = await service.toggleHRModule(false);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getSettingsService(req);
+    const settings = await service.toggleHRModule(false);
 
-      res.json({
-        success: true,
-        data: settings,
-        message: 'HR module disabled',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: settings,
+      message: 'HR module disabled',
+    });
+  })
 );
 
 // =============================================================================
@@ -275,27 +239,23 @@ router.post(
  */
 router.get(
   '/:key',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const key = req.params.key;
-      if (!isValidSettingKey(key)) {
-        next(AppError.badRequest(`Invalid setting key: ${key}`));
-        return;
-      }
-      const service = getSettingsService(req);
-      const value = await service.getSetting(key);
-
-      res.json({
-        success: true,
-        data: {
-          key,
-          value,
-        },
-      });
-    } catch (error) {
-      next(error);
+  asyncHandler(async (req: Request, res: Response, next) => {
+    const key = req.params.key;
+    if (!isValidSettingKey(key)) {
+      next(AppError.badRequest(`Invalid setting key: ${key}`));
+      return;
     }
-  }
+    const service = getSettingsService(req);
+    const value = await service.getSetting(key);
+
+    res.json({
+      success: true,
+      data: {
+        key,
+        value,
+      },
+    });
+  })
 );
 
 /**
@@ -310,24 +270,20 @@ router.put(
       value: z.unknown(),
     }),
   }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const key = req.params.key;
-      if (!isValidSettingKey(key)) {
-        next(AppError.badRequest(`Invalid setting key: ${key}`));
-        return;
-      }
-      const service = getSettingsService(req);
-      const settings = await service.updateSetting(key, req.body.value as TenantSettings[typeof key]);
-
-      res.json({
-        success: true,
-        data: settings,
-      });
-    } catch (error) {
-      next(error);
+  asyncHandler(async (req: Request, res: Response, next) => {
+    const key = req.params.key;
+    if (!isValidSettingKey(key)) {
+      next(AppError.badRequest(`Invalid setting key: ${key}`));
+      return;
     }
-  }
+    const service = getSettingsService(req);
+    const settings = await service.updateSetting(key, req.body.value as TenantSettings[typeof key]);
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
 );
 
 export default router;
