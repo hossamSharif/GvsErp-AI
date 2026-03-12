@@ -4,7 +4,7 @@
  * RESTful endpoints for stock transfer management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { TransferService } from '../services/transfer.service';
 import {
   createTransferSchema,
@@ -14,6 +14,7 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -39,33 +40,29 @@ function getTransferService(req: Request): TransferService {
 router.get(
   '/',
   validateRequest({ query: transferQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const params = req.query as unknown as {
-        status?: 'pending' | 'in_transit' | 'completed' | 'canceled';
-        fromWarehouseId?: string;
-        toWarehouseId?: string;
-        search?: string;
-        dateFrom?: string;
-        dateTo?: string;
-        page?: number;
-        limit?: number;
-        sortBy?: 'transferNumber' | 'status' | 'createdAt' | 'completedAt';
-        sortDir?: 'asc' | 'desc';
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const params = req.query as unknown as {
+      status?: 'pending' | 'in_transit' | 'completed' | 'canceled';
+      fromWarehouseId?: string;
+      toWarehouseId?: string;
+      search?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      page?: number;
+      limit?: number;
+      sortBy?: 'transferNumber' | 'status' | 'createdAt' | 'completedAt';
+      sortDir?: 'asc' | 'desc';
+    };
 
-      const result = await service.getTransfers(params);
+    const result = await service.getTransfers(params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -76,20 +73,16 @@ router.post(
   '/',
   requirePermission('transfers:write'),
   validateRequest({ body: createTransferSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const { userId } = getTenantContext(req);
-      const transfer = await service.createTransfer(req.body, userId);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const { userId } = getTenantContext(req);
+    const transfer = await service.createTransfer(req.body, userId);
 
-      res.status(201).json({
-        success: true,
-        data: transfer,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: transfer,
+    });
+  })
 );
 
 /**
@@ -98,19 +91,15 @@ router.post(
  */
 router.get(
   '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.getTransfer(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.getTransfer(req.params.id);
 
-      res.json({
-        success: true,
-        data: transfer,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+    });
+  })
 );
 
 /**
@@ -121,19 +110,15 @@ router.put(
   '/:id',
   requirePermission('transfers:write'),
   validateRequest({ body: updateTransferSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.updateTransfer(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.updateTransfer(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: transfer,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+    });
+  })
 );
 
 // =============================================================================
@@ -148,20 +133,16 @@ router.put(
 router.post(
   '/:id/start',
   requirePermission('transfers:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.startTransfer(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.startTransfer(req.params.id);
 
-      res.json({
-        success: true,
-        data: transfer,
-        message: 'Transfer started, stock reserved at source warehouse',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+      message: 'Transfer started, stock reserved at source warehouse',
+    });
+  })
 );
 
 /**
@@ -172,20 +153,16 @@ router.post(
 router.post(
   '/:id/complete',
   requirePermission('transfers:complete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.completeTransfer(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.completeTransfer(req.params.id);
 
-      res.json({
-        success: true,
-        data: transfer,
-        message: 'Transfer completed, stock moved to destination warehouse',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+      message: 'Transfer completed, stock moved to destination warehouse',
+    });
+  })
 );
 
 /**
@@ -196,20 +173,16 @@ router.post(
 router.post(
   '/:id/quick-complete',
   requirePermission('transfers:complete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.quickComplete(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.quickComplete(req.params.id);
 
-      res.json({
-        success: true,
-        data: transfer,
-        message: 'Transfer completed immediately',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+      message: 'Transfer completed immediately',
+    });
+  })
 );
 
 /**
@@ -220,20 +193,16 @@ router.post(
 router.post(
   '/:id/cancel',
   requirePermission('transfers:write'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const transfer = await service.cancelTransfer(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const transfer = await service.cancelTransfer(req.params.id);
 
-      res.json({
-        success: true,
-        data: transfer,
-        message: 'Transfer canceled',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: transfer,
+      message: 'Transfer canceled',
+    });
+  })
 );
 
 // =============================================================================
@@ -247,32 +216,28 @@ router.post(
 router.get(
   '/warehouse/:warehouseId',
   validateRequest({ query: transferQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const params = req.query as unknown as {
-        status?: 'pending' | 'in_transit' | 'completed' | 'canceled';
-        page?: number;
-        limit?: number;
-        sortBy?: 'transferNumber' | 'status' | 'createdAt' | 'completedAt';
-        sortDir?: 'asc' | 'desc';
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const params = req.query as unknown as {
+      status?: 'pending' | 'in_transit' | 'completed' | 'canceled';
+      page?: number;
+      limit?: number;
+      sortBy?: 'transferNumber' | 'status' | 'createdAt' | 'completedAt';
+      sortDir?: 'asc' | 'desc';
+    };
 
-      // Get transfers where warehouse is either source or destination
-      const result = await service.getTransfers({
-        ...params,
-        warehouseId: req.params.warehouseId,
-      });
+    // Get transfers where warehouse is either source or destination
+    const result = await service.getTransfers({
+      ...params,
+      warehouseId: req.params.warehouseId,
+    });
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -281,20 +246,16 @@ router.get(
  */
 router.get(
   '/status/pending',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const result = await service.getTransfers({ status: 'pending' });
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const result = await service.getTransfers({ status: 'pending' });
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -303,20 +264,16 @@ router.get(
  */
 router.get(
   '/status/in-transit',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const result = await service.getTransfers({ status: 'in_transit' });
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const result = await service.getTransfers({ status: 'in_transit' });
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -325,35 +282,31 @@ router.get(
  */
 router.get(
   '/item/:itemId/availability',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getTransferService(req);
-      const warehouseId = req.query.warehouseId as string;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getTransferService(req);
+    const warehouseId = req.query.warehouseId as string;
 
-      if (!warehouseId) {
-        res.status(400).json({
-          success: false,
-          error: {
-            code: 'WAREHOUSE_ID_REQUIRED',
-            message: 'warehouseId query parameter is required',
-          },
-        });
-        return;
-      }
-
-      const availability = await service.getAvailableWithPending(
-        req.params.itemId,
-        warehouseId
-      );
-
-      res.json({
-        success: true,
-        data: availability,
+    if (!warehouseId) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'WAREHOUSE_ID_REQUIRED',
+          message: 'warehouseId query parameter is required',
+        },
       });
-    } catch (error) {
-      next(error);
+      return;
     }
-  }
+
+    const availability = await service.getAvailableWithPending(
+      req.params.itemId,
+      warehouseId
+    );
+
+    res.json({
+      success: true,
+      data: availability,
+    });
+  })
 );
 
 export default router;
