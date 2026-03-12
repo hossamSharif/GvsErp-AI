@@ -260,7 +260,7 @@ export function TransferForm({
                                   type="number"
                                   min="0.001"
                                   step="0.001"
-                                  placeholder="0"
+                                  placeholder="e.g. 10"
                                   {...field}
                                 />
                               </FormControl>
