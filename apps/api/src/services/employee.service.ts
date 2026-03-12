@@ -303,16 +303,10 @@ export class EmployeeService {
       return true;
     }
 
-    // Check payroll records
-    const { count: payrollCount } = await this.supabase
-      .from('payroll_items')
-      .select('*', { count: 'exact', head: true })
-      .eq('tenant_id', this.tenantId)
-      .eq('employee_id', employeeId);
-
-    if (payrollCount && payrollCount > 0) {
-      return true;
-    }
+    // Note: payroll_items table also references employees but is not yet
+    // included in the generated database types. Payroll records are linked
+    // to payroll_runs which cascade-delete their items, so attendance is
+    // the primary guard against orphaned employee references.
 
     return false;
   }

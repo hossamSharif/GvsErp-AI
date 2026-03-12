@@ -4,7 +4,7 @@
  * RESTful endpoints for item management.
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { ItemService } from '../services/item.service';
 import {
   createItemSchema,
@@ -21,6 +21,7 @@ import type { ItemQueryParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { asyncHandler } from '../middleware/error';
 
 const router: Router = Router();
 
@@ -46,22 +47,18 @@ function getItemService(req: Request): ItemService {
 router.get(
   '/',
   validateRequest({ query: itemQuerySchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const params = req.query as unknown as ItemQueryParams;
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const params = req.query as unknown as ItemQueryParams;
 
-      const result = await service.getItems(params);
+    const result = await service.getItems(params);
 
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
 );
 
 /**
@@ -72,19 +69,15 @@ router.post(
   '/',
   requirePermission('items:write'),
   validateRequest({ body: createItemSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.createItem(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const item = await service.createItem(req.body);
 
-      res.status(201).json({
-        success: true,
-        data: item,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: item,
+    });
+  })
 );
 
 /**
@@ -93,19 +86,15 @@ router.post(
  */
 router.get(
   '/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.getItem(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const item = await service.getItem(req.params.id);
 
-      res.json({
-        success: true,
-        data: item,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: item,
+    });
+  })
 );
 
 /**
@@ -116,19 +105,15 @@ router.put(
   '/:id',
   requirePermission('items:write'),
   validateRequest({ body: updateItemSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.updateItem(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const item = await service.updateItem(req.params.id, req.body);
 
-      res.json({
-        success: true,
-        data: item,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: item,
+    });
+  })
 );
 
 /**
@@ -138,19 +123,15 @@ router.put(
 router.delete(
   '/:id',
   requirePermission('items:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      await service.deleteItem(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    await service.deleteItem(req.params.id);
 
-      res.json({
-        success: true,
-        message: 'Item deleted successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Item deleted successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -165,19 +146,15 @@ router.post(
   '/bulk-price-update',
   requirePermission('items:write'),
   validateRequest({ body: bulkPriceUpdateSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const result = await service.bulkUpdatePrices(req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const result = await service.bulkUpdatePrices(req.body);
 
-      res.json({
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: result,
+    });
+  })
 );
 
 // =============================================================================
@@ -190,30 +167,26 @@ router.post(
  */
 router.get(
   '/by-sku/:sku',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.getItemBySku(req.params.sku);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const item = await service.getItemBySku(req.params.sku);
 
-      if (!item) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ITEM_NOT_FOUND',
-            message: 'Item with this SKU not found',
-          },
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: item,
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'ITEM_NOT_FOUND',
+          message: 'Item with this SKU not found',
+        },
       });
-    } catch (error) {
-      next(error);
+      return;
     }
-  }
+
+    res.json({
+      success: true,
+      data: item,
+    });
+  })
 );
 
 /**
@@ -222,30 +195,26 @@ router.get(
  */
 router.get(
   '/by-barcode/:barcode',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const item = await service.getItemByBarcode(req.params.barcode);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const item = await service.getItemByBarcode(req.params.barcode);
 
-      if (!item) {
-        res.status(404).json({
-          success: false,
-          error: {
-            code: 'ITEM_NOT_FOUND',
-            message: 'Item with this barcode not found',
-          },
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: item,
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'ITEM_NOT_FOUND',
+          message: 'Item with this barcode not found',
+        },
       });
-    } catch (error) {
-      next(error);
+      return;
     }
-  }
+
+    res.json({
+      success: true,
+      data: item,
+    });
+  })
 );
 
 // =============================================================================
@@ -258,19 +227,15 @@ router.get(
  */
 router.get(
   '/:id/prices',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const prices = await service.getItemPrices(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const prices = await service.getItemPrices(req.params.id);
 
-      res.json({
-        success: true,
-        data: prices,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: prices,
+    });
+  })
 );
 
 /**
@@ -281,19 +246,15 @@ router.post(
   '/:id/prices',
   requirePermission('items:write'),
   validateRequest({ body: createItemPriceSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const price = await service.addItemPrice(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const price = await service.addItemPrice(req.params.id, req.body);
 
-      res.status(201).json({
-        success: true,
-        data: price,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: price,
+    });
+  })
 );
 
 /**
@@ -304,19 +265,15 @@ router.put(
   '/:id/prices/:priceId',
   requirePermission('items:write'),
   validateRequest({ body: updateItemPriceSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const price = await service.updateItemPrice(req.params.priceId, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const price = await service.updateItemPrice(req.params.priceId, req.body);
 
-      res.json({
-        success: true,
-        data: price,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: price,
+    });
+  })
 );
 
 /**
@@ -326,19 +283,15 @@ router.put(
 router.delete(
   '/:id/prices/:priceId',
   requirePermission('items:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      await service.deleteItemPrice(req.params.priceId);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    await service.deleteItemPrice(req.params.priceId);
 
-      res.json({
-        success: true,
-        message: 'Price deleted successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Price deleted successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -351,19 +304,15 @@ router.delete(
  */
 router.get(
   '/:id/packagings',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const packagings = await service.getItemPackagings(req.params.id);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const packagings = await service.getItemPackagings(req.params.id);
 
-      res.json({
-        success: true,
-        data: packagings,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: packagings,
+    });
+  })
 );
 
 /**
@@ -374,19 +323,15 @@ router.post(
   '/:id/packagings',
   requirePermission('items:write'),
   validateRequest({ body: createItemPackagingSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const packaging = await service.addItemPackaging(req.params.id, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const packaging = await service.addItemPackaging(req.params.id, req.body);
 
-      res.status(201).json({
-        success: true,
-        data: packaging,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.status(201).json({
+      success: true,
+      data: packaging,
+    });
+  })
 );
 
 /**
@@ -397,19 +342,15 @@ router.put(
   '/:id/packagings/:packagingId',
   requirePermission('items:write'),
   validateRequest({ body: updateItemPackagingSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const packaging = await service.updateItemPackaging(req.params.packagingId, req.body);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const packaging = await service.updateItemPackaging(req.params.packagingId, req.body);
 
-      res.json({
-        success: true,
-        data: packaging,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data: packaging,
+    });
+  })
 );
 
 /**
@@ -419,19 +360,15 @@ router.put(
 router.delete(
   '/:id/packagings/:packagingId',
   requirePermission('items:delete'),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      await service.deleteItemPackaging(req.params.packagingId);
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    await service.deleteItemPackaging(req.params.packagingId);
 
-      res.json({
-        success: true,
-        message: 'Packaging deleted successfully',
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      message: 'Packaging deleted successfully',
+    });
+  })
 );
 
 // =============================================================================
@@ -445,31 +382,27 @@ router.delete(
 router.get(
   '/report',
   validateRequest({ query: itemReportParamsSchema }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const service = getItemService(req);
-      const params = req.query as unknown as {
-        categoryId?: string;
-        isActive?: boolean;
-        includePrices?: boolean;
-        priceTier?: string;
-        currency?: string;
-      };
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const params = req.query as unknown as {
+      categoryId?: string;
+      isActive?: boolean;
+      includePrices?: boolean;
+      priceTier?: string;
+      currency?: string;
+    };
 
-      const data = await service.getItemsForReport(params);
+    const data = await service.getItemsForReport(params);
 
-      res.json({
-        success: true,
-        data,
-        meta: {
-          total: data.length,
-          generatedAt: new Date().toISOString(),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    res.json({
+      success: true,
+      data,
+      meta: {
+        total: data.length,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+  })
 );
 
 export default router;
