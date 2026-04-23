@@ -263,18 +263,37 @@ export class InvoiceService {
     // Apply stock movements
     const stockMovements = await this.applyStockMovements(invoice);
 
-    // Update party balance
-    let partyBalanceUpdate: FinalizeInvoiceResult['partyBalanceUpdate'];
+    // Read party balance before status flip (trigger_update_party_balance_on_invoice
+    // will add the invoice total when status transitions to 'final').
+    let previousBalance: number | undefined;
     if (invoice.partyId) {
-      partyBalanceUpdate = await this.updatePartyBalance(
-        invoice.partyId,
-        invoice.total,
-        invoice.type
-      );
+      const { data: partyBefore } = await this.supabase
+        .from('parties')
+        .select('balance')
+        .eq('id', invoice.partyId)
+        .maybeSingle();
+      previousBalance = partyBefore ? Number(partyBefore.balance) : undefined;
     }
 
-    // Update invoice status to final
+    // Update invoice status to final (DB trigger updates party balance)
     await this.invoiceRepository.updateStatus(this.tenantId, id, 'final');
+
+    // Re-read party balance after the trigger fires for the response payload
+    let partyBalanceUpdate: FinalizeInvoiceResult['partyBalanceUpdate'];
+    if (invoice.partyId && previousBalance !== undefined) {
+      const { data: partyAfter } = await this.supabase
+        .from('parties')
+        .select('balance')
+        .eq('id', invoice.partyId)
+        .maybeSingle();
+      const newBalance = partyAfter ? Number(partyAfter.balance) : previousBalance;
+      partyBalanceUpdate = {
+        partyId: invoice.partyId,
+        previousBalance,
+        newBalance,
+        change: newBalance - previousBalance,
+      };
+    }
 
     // Get updated invoice
     const finalizedInvoice = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
@@ -369,17 +388,18 @@ export class InvoiceService {
     // Reverse stock movements
     const stockMovements = await this.reverseStockMovements(returnInvoice, original.type);
 
-    // Reverse party balance
+    // Reverse party balance for the returned amount (supports partial returns).
+    // The original invoice stays 'final'; the return is a separate 'returned' row
+    // linked via returned_from_id. We must NOT flip the original's status to
+    // 'returned' here, or the trigger_update_party_balance_on_invoice would
+    // subtract the full original total (wrong for partial returns).
     if (original.partyId) {
       await this.updatePartyBalance(
         original.partyId,
-        -returnInvoice.total, // Negative to reverse
+        -returnInvoice.total,
         original.type
       );
     }
-
-    // Mark original invoice as returned
-    await this.invoiceRepository.updateStatus(this.tenantId, originalInvoiceId, 'returned');
 
     // Get updated invoices
     const updatedOriginal = await this.invoiceRepository.findByIdWithRelations(this.tenantId, originalInvoiceId);
