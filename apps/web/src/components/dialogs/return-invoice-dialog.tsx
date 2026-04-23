@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertCircle, Undo2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,8 @@ export function ReturnInvoiceDialog({
   invoice,
   onSuccess,
 }: ReturnInvoiceDialogProps) {
+  const t = useTranslations('sales.return');
+
   // Initialize return items from invoice
   const [returnItems, setReturnItems] = useState<ReturnItem[]>(() =>
     invoice.items.map((item) => ({
@@ -76,7 +79,7 @@ export function ReturnInvoiceDialog({
     }))
   );
 
-  const [notes, setNotes] = useState(`Return for invoice ${invoice.invoiceNumber}`);
+  const [notes, setNotes] = useState(t('notesDefault', { number: invoice.invoiceNumber }));
   const [error, setError] = useState<string | null>(null);
 
   // Mutation
@@ -124,7 +127,7 @@ export function ReturnInvoiceDialog({
   // Handle submit
   const handleSubmit = useCallback(async () => {
     if (selectedItems.length === 0) {
-      setError('Please select at least one item to return');
+      setError(t('errorSelectOne'));
       return;
     }
 
@@ -133,7 +136,7 @@ export function ReturnInvoiceDialog({
       (item) => item.returnQuantity <= 0 || item.returnQuantity > item.originalQuantity
     );
     if (invalidItems.length > 0) {
-      setError('Please check return quantities. They must be between 0 and the original quantity.');
+      setError(t('errorQuantity'));
       return;
     }
 
@@ -156,9 +159,9 @@ export function ReturnInvoiceDialog({
       onSuccess?.();
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create return');
+      setError(err instanceof Error ? err.message : t('errorGeneric'));
     }
-  }, [selectedItems, notes, invoice.id, createReturn, onSuccess, onOpenChange]);
+  }, [selectedItems, notes, invoice.id, createReturn, onSuccess, onOpenChange, t]);
 
   const allSelected = returnItems.length > 0 && returnItems.every((item) => item.selected);
   const someSelected = returnItems.some((item) => item.selected);
@@ -169,10 +172,10 @@ export function ReturnInvoiceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Undo2 aria-hidden="true" className="h-5 w-5" />
-            Create Return
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Select items and quantities to return from invoice {invoice.invoiceNumber}
+            {t('description', { number: invoice.invoiceNumber })}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,14 +197,14 @@ export function ReturnInvoiceDialog({
                     <Checkbox
                       checked={allSelected}
                       onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                      aria-label="Select all items"
+                      aria-label={t('selectAll')}
                     />
                   </TableHead>
-                  <TableHead>Item</TableHead>
-                  <TableHead className="text-right w-24">Original</TableHead>
-                  <TableHead className="w-32">Return Qty</TableHead>
-                  <TableHead className="text-right w-28">Unit Price</TableHead>
-                  <TableHead className="text-right w-28">Return Value</TableHead>
+                  <TableHead>{t('columns.item')}</TableHead>
+                  <TableHead className="text-right w-24">{t('columns.original')}</TableHead>
+                  <TableHead className="w-32">{t('columns.returnQty')}</TableHead>
+                  <TableHead className="text-right w-28">{t('columns.unitPrice')}</TableHead>
+                  <TableHead className="text-right w-28">{t('columns.returnValue')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -214,7 +217,7 @@ export function ReturnInvoiceDialog({
                       <Checkbox
                         checked={item.selected}
                         onCheckedChange={() => handleToggleItem(item.invoiceItemId)}
-                        aria-label={`Select ${item.itemName}`}
+                        aria-label={t('selectItem', { name: item.itemName })}
                       />
                     </TableCell>
                     <TableCell className="font-medium">{item.itemName}</TableCell>
@@ -231,7 +234,7 @@ export function ReturnInvoiceDialog({
                         step={0.001}
                         disabled={!item.selected}
                         className="h-8 w-24"
-                        aria-label={`Return quantity for ${item.itemName}`}
+                        aria-label={t('returnQtyAriaLabel', { name: item.itemName })}
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -252,12 +255,12 @@ export function ReturnInvoiceDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="return-notes">Notes</Label>
+            <Label htmlFor="return-notes">{t('notesLabel')}</Label>
             <Textarea
               id="return-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Reason for return..."
+              placeholder={t('notesPlaceholder')}
               rows={2}
             />
           </div>
@@ -265,24 +268,25 @@ export function ReturnInvoiceDialog({
           {/* Summary */}
           <div className="flex justify-between items-center p-4 bg-muted/50 rounded-md">
             <div className="text-sm text-muted-foreground">
-              {selectedItems.length} of {returnItems.length} items selected
+              {t('selectedSummary', { selected: selectedItems.length, total: returnItems.length })}
             </div>
             <div className="text-lg font-semibold">
-              Return Total:{' '}
-              {returnTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {t('returnTotal', {
+                amount: returnTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+              })}
             </div>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!someSelected || createReturn.isPending}
           >
-            {createReturn.isPending ? 'Creating Return...' : 'Create Return'}
+            {createReturn.isPending ? t('submitting') : t('submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,6 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Save, Send, FileText, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -106,6 +107,8 @@ export function InvoiceForm({
 }: InvoiceFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations('sales.form');
+  const tCommon = useTranslations('common');
 
   // Draft store
   const {
@@ -118,6 +121,7 @@ export function InvoiceForm({
     removeItem,
     reorderItems,
     deleteDraft,
+    listDrafts,
   } = useDraftStore();
 
   // Current draft
@@ -141,13 +145,32 @@ export function InvoiceForm({
     itemIds
   );
 
-  // Initialize draft
+  // Initialize draft — rehydrate most recent non-empty draft, else create new
   useEffect(() => {
-    if (!currentDraftId && !existingInvoice) {
-      const newDraftId = createDraft(type, defaultWarehouseId);
-      setCurrentDraftId(newDraftId);
+    if (currentDraftId || existingInvoice) return;
+
+    const existingDrafts = listDrafts(type);
+    const hasContent = (d: typeof existingDrafts[number]) =>
+      d.partyId !== null ||
+      d.items.length > 0 ||
+      (d.notes ?? '') !== '' ||
+      d.discountAmount !== 0;
+
+    const recoverable = existingDrafts
+      .filter(hasContent)
+      .sort((a, b) => new Date(b.lastSavedAt).getTime() - new Date(a.lastSavedAt).getTime())[0];
+
+    if (recoverable) {
+      setCurrentDraftId(recoverable.id);
+      return;
     }
-  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft]);
+
+    // Purge empty orphan drafts so we don't leak them across sessions
+    existingDrafts.filter((d) => !hasContent(d)).forEach((d) => deleteDraft(d.id));
+
+    const newDraftId = createDraft(type, defaultWarehouseId);
+    setCurrentDraftId(newDraftId);
+  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft, listDrafts, deleteDraft]);
 
   // Sync existing invoice to draft
   useEffect(() => {
@@ -272,8 +295,8 @@ export function InvoiceForm({
     if (!draft || !draft.warehouseId) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Please select a warehouse',
+        title: tCommon('error'),
+        description: t('toasts.selectWarehouse'),
       });
       return;
     }
@@ -281,8 +304,8 @@ export function InvoiceForm({
     if (draft.items.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Please add at least one item',
+        title: tCommon('error'),
+        description: t('toasts.addOneItem'),
       });
       return;
     }
@@ -313,27 +336,27 @@ export function InvoiceForm({
       }
 
       toast({
-        title: 'Draft Saved',
-        description: `Invoice ${result.data.invoiceNumber} saved as draft`,
+        title: t('toasts.draftSaved'),
+        description: t('toasts.draftSavedDescription', { number: result.data.invoiceNumber }),
       });
 
       onSaved?.(result.data);
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save draft',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('toasts.saveFailed'),
       });
     }
-  }, [draft, currentDraftId, createInvoice, deleteDraft, toast, onSaved]);
+  }, [draft, currentDraftId, createInvoice, deleteDraft, toast, onSaved, t, tCommon]);
 
   // Finalize invoice
   const handleFinalize = useCallback(async () => {
     if (!draft || !draft.warehouseId) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Please select a warehouse',
+        title: tCommon('error'),
+        description: t('toasts.selectWarehouse'),
       });
       return;
     }
@@ -341,8 +364,8 @@ export function InvoiceForm({
     if (draft.items.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Please add at least one item',
+        title: tCommon('error'),
+        description: t('toasts.addOneItem'),
       });
       return;
     }
@@ -379,19 +402,19 @@ export function InvoiceForm({
       }
 
       toast({
-        title: 'Invoice Finalized',
-        description: `Invoice ${finalizeResult.data.invoiceNumber} has been finalized`,
+        title: t('toasts.finalized'),
+        description: t('toasts.finalizedDescription', { number: finalizeResult.data.invoiceNumber }),
       });
 
       onSaved?.(finalizeResult.data);
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to finalize invoice',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('toasts.finalizeFailed'),
       });
     }
-  }, [draft, currentDraftId, createInvoice, finalizeInvoice, deleteDraft, toast, onSaved]);
+  }, [draft, currentDraftId, createInvoice, finalizeInvoice, deleteDraft, toast, onSaved, t, tCommon]);
 
   // Filtered items for selection
   const filteredItems = useMemo(() => {
@@ -418,7 +441,7 @@ export function InvoiceForm({
   if (!draft && !existingInvoice) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t('loading')}</p>
       </div>
     );
   }
@@ -431,7 +454,7 @@ export function InvoiceForm({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">
-              {type === 'sale' ? 'Customer' : 'Supplier'}
+              {type === 'sale' ? t('customer') : t('supplier')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -440,7 +463,7 @@ export function InvoiceForm({
               onChange={handlePartyChange}
               parties={filteredParties}
               partyType={type === 'sale' ? 'customer' : 'supplier'}
-              placeholder={`Select ${type === 'sale' ? 'customer' : 'supplier'}...`}
+              placeholder={type === 'sale' ? t('selectCustomer') : t('selectSupplier')}
               disabled={readOnly}
             />
           </CardContent>
@@ -449,7 +472,7 @@ export function InvoiceForm({
         {/* Warehouse Selection */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Warehouse</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('warehouse')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Select
@@ -458,7 +481,7 @@ export function InvoiceForm({
               disabled={readOnly}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select warehouse..." />
+                <SelectValue placeholder={t('selectWarehouse')} />
               </SelectTrigger>
               <SelectContent>
                 {warehouses.map((warehouse) => (
@@ -474,16 +497,16 @@ export function InvoiceForm({
         {/* Currency & Date */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Details</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label className="text-xs text-muted-foreground">Currency</Label>
+                <Label className="text-xs text-muted-foreground">{t('currency')}</Label>
                 <p className="font-medium">{draft?.currency || 'USD'}</p>
               </div>
               <div className="flex-1">
-                <Label className="text-xs text-muted-foreground">Date</Label>
+                <Label className="text-xs text-muted-foreground">{t('date')}</Label>
                 <p className="font-medium">
                   {new Date().toLocaleDateString()}
                 </p>
@@ -500,19 +523,19 @@ export function InvoiceForm({
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             {!draft?.warehouseId && (draft?.items?.length || 0) === 0
-              ? 'Select a warehouse and add at least one item to create this invoice.'
+              ? t('validation.warehouseAndItems')
               : !draft?.warehouseId
-                ? 'Please select a warehouse to continue.'
-                : 'Add at least one item to continue.'}
+                ? t('validation.warehouseOnly')
+                : t('validation.itemsOnly')}
           </AlertDescription>
         </Alert>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Items</CardTitle>
+          <CardTitle>{t('items')}</CardTitle>
           <CardDescription>
-            Add items to your {type === 'sale' ? 'sales' : 'purchase'} invoice
+            {t('addItemsHint', { type: type === 'sale' ? t('saleType') : t('purchaseType') })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -537,20 +560,20 @@ export function InvoiceForm({
       {showItemSelect && (
         <Card className="border-primary">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Add Item</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('addItem')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input
-              placeholder="Search items by name or SKU..."
+              placeholder={t('searchItems')}
               value={itemSearchQuery}
               onChange={(e) => setItemSearchQuery(e.target.value)}
               autoFocus
-              aria-label="Search items by name or SKU"
+              aria-label={t('searchItems')}
             />
             <div className="max-h-48 overflow-auto border rounded-md">
               {filteredItems.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
-                  No items found
+                  {t('noItemsFound')}
                 </div>
               ) : (
                 filteredItems.slice(0, 20).map((item) => (
@@ -558,7 +581,7 @@ export function InvoiceForm({
                     key={item.id}
                     className="w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b last:border-b-0"
                     onClick={() => handleSelectItem(item)}
-                    aria-label={`Select ${item.name}${item.sku ? ` (${item.sku})` : ''} - ${item.unitPrice.toLocaleString()}`}
+                    aria-label={`${item.name}${item.sku ? ` (${item.sku})` : ''} - ${item.unitPrice.toLocaleString()}`}
                   >
                     <div>
                       <p className="font-medium">{item.name}</p>
@@ -581,7 +604,7 @@ export function InvoiceForm({
                 setItemSearchQuery('');
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
           </CardContent>
         </Card>
@@ -591,13 +614,13 @@ export function InvoiceForm({
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Notes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               value={draft?.notes || ''}
               onChange={(e) => handleNotesChange(e.target.value)}
-              placeholder="Add notes..."
+              placeholder={t('notesPlaceholder')}
               rows={3}
               disabled={readOnly}
             />
@@ -606,19 +629,19 @@ export function InvoiceForm({
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Summary</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('summary')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">{t('subtotal')}</span>
               <span>{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax:</span>
+              <span className="text-muted-foreground">{t('tax')}</span>
               <span>{taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Discount:</span>
+              <span className="text-muted-foreground">{t('discount')}</span>
               <Input
                 type="number"
                 value={draft?.discountAmount || 0}
@@ -627,11 +650,11 @@ export function InvoiceForm({
                 min={0}
                 step={0.01}
                 disabled={readOnly}
-                aria-label="Discount amount"
+                aria-label={t('discountAriaLabel')}
               />
             </div>
             <div className="flex justify-between text-lg font-semibold pt-3 border-t">
-              <span>Total:</span>
+              <span>{t('total')}</span>
               <span>{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
           </CardContent>
@@ -644,7 +667,7 @@ export function InvoiceForm({
           {draft?.lastSavedAt && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Check className="h-3 w-3 text-green-500" />
-              Draft saved locally {new Date(draft.lastSavedAt).toLocaleTimeString()}
+              {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
             </span>
           )}
           <Button
@@ -653,14 +676,14 @@ export function InvoiceForm({
             disabled={!isValid || createInvoice.isPending}
           >
             <Save className="h-4 w-4 mr-2" />
-            Save as Draft
+            {t('saveDraft')}
           </Button>
           <Button
             onClick={() => setShowFinalizeConfirm(true)}
             disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
           >
             <Send className="h-4 w-4 mr-2" />
-            Finalize
+            {t('finalize')}
           </Button>
         </div>
       )}
@@ -669,22 +692,20 @@ export function InvoiceForm({
       <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Finalize this invoice?</AlertDialogTitle>
+            <AlertDialogTitle>{t('finalizeConfirm.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Finalizing locks the invoice and updates stock quantities and party balances.
-              This action cannot be undone. If you need to make changes later, you will
-              need to create a return invoice.
+              {t('finalizeConfirm.body')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('finalizeConfirm.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setShowFinalizeConfirm(false);
                 handleFinalize();
               }}
             >
-              Finalize Invoice
+              {t('finalizeConfirm.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

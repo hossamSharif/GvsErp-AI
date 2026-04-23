@@ -7,6 +7,7 @@
  */
 
 import React, { forwardRef } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { InvoiceWithRelations, InvoiceStatus } from '@erp/shared';
 
@@ -26,17 +27,6 @@ interface InvoicePdfProps {
 }
 
 // =============================================================================
-// STATUS CONFIG
-// =============================================================================
-
-const STATUS_LABELS: Record<InvoiceStatus, string> = {
-  draft: 'DRAFT',
-  final: 'INVOICE',
-  returned: 'RETURN',
-  canceled: 'CANCELED',
-};
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
@@ -44,7 +34,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
   function InvoicePdf(
     {
       invoice,
-      companyName = 'Your Company',
+      companyName,
       companyAddress = '123 Business St, City, Country',
       companyPhone = '+1 234 567 8900',
       companyEmail = 'info@company.com',
@@ -54,8 +44,20 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
     },
     ref
   ) {
+    const t = useTranslations('sales.pdf');
+    const locale = useLocale();
+    const resolvedCompanyName = companyName ?? t('defaultCompanyName');
+    const intlLocale = locale === 'ar' ? 'ar-EG' : 'en-US';
+
+    const STATUS_LABELS: Record<InvoiceStatus, string> = {
+      draft: t('labels.draft'),
+      final: t('labels.invoice'),
+      returned: t('labels.return'),
+      canceled: t('labels.canceled'),
+    };
+
     const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat(intlLocale, {
         style: 'currency',
         currency: invoice.currency,
         minimumFractionDigits: 2,
@@ -63,7 +65,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
     };
 
     const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
+      return new Date(dateString).toLocaleDateString(intlLocale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -71,7 +73,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
     };
 
     const isSale = invoice.type === 'sale';
-    const documentTitle = isSale ? 'Sales Invoice' : 'Purchase Invoice';
+    const documentTitle = isSale ? t('documentSale') : t('documentPurchase');
 
     return (
       <div
@@ -96,9 +98,9 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
           {/* Company Info */}
           <div>
             {companyLogo ? (
-              <img src={companyLogo} alt={companyName} className="h-12 mb-2" />
+              <img src={companyLogo} alt={resolvedCompanyName} className="h-12 mb-2" />
             ) : (
-              <h1 className="text-2xl font-bold text-gray-900">{companyName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{resolvedCompanyName}</h1>
             )}
             <div className="text-sm text-gray-600 mt-2">
               <p>{companyAddress}</p>
@@ -113,21 +115,21 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
             <table className="text-sm ml-auto">
               <tbody>
                 <tr>
-                  <td className="text-gray-600 pr-4">Invoice No:</td>
+                  <td className="text-gray-600 pr-4">{t('invoiceNo')}</td>
                   <td className="font-bold">{invoice.invoiceNumber}</td>
                 </tr>
                 <tr>
-                  <td className="text-gray-600 pr-4">Date:</td>
+                  <td className="text-gray-600 pr-4">{t('date')}</td>
                   <td>{formatDate(invoice.createdAt)}</td>
                 </tr>
                 {invoice.finalizedAt && (
                   <tr>
-                    <td className="text-gray-600 pr-4">Finalized:</td>
+                    <td className="text-gray-600 pr-4">{t('finalized')}</td>
                     <td>{formatDate(invoice.finalizedAt)}</td>
                   </tr>
                 )}
                 <tr>
-                  <td className="text-gray-600 pr-4">Status:</td>
+                  <td className="text-gray-600 pr-4">{t('status')}</td>
                   <td>
                     <span
                       className={cn(
@@ -151,7 +153,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">
-              {isSale ? 'Bill To' : 'Supplier'}
+              {isSale ? t('billTo') : t('supplier')}
             </h3>
             {invoice.party ? (
               <div className="text-sm">
@@ -161,11 +163,11 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
                 {invoice.party.email && <p className="text-gray-600">{invoice.party.email}</p>}
               </div>
             ) : (
-              <p className="text-gray-500 italic">Walk-in Customer</p>
+              <p className="text-gray-500 italic">{t('walkInCustomer')}</p>
             )}
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">Warehouse</h3>
+            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">{t('warehouse')}</h3>
             <div className="text-sm">
               <p className="font-bold">{invoice.warehouse.name}</p>
             </div>
@@ -176,14 +178,14 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         <table className="w-full mb-8 text-sm">
           <thead>
             <tr className="bg-gray-100">
-              <th className="text-left py-3 px-4 font-bold">#</th>
-              <th className="text-left py-3 px-4 font-bold">Item</th>
-              <th className="text-left py-3 px-4 font-bold">Description</th>
-              <th className="text-right py-3 px-4 font-bold">Qty</th>
-              <th className="text-right py-3 px-4 font-bold">Unit Price</th>
-              <th className="text-right py-3 px-4 font-bold">Disc %</th>
-              <th className="text-right py-3 px-4 font-bold">Tax %</th>
-              <th className="text-right py-3 px-4 font-bold">Total</th>
+              <th className="text-left py-3 px-4 font-bold">{t('columnRow')}</th>
+              <th className="text-left py-3 px-4 font-bold">{t('columnItem')}</th>
+              <th className="text-left py-3 px-4 font-bold">{t('columnDescription')}</th>
+              <th className="text-right py-3 px-4 font-bold">{t('columnQty')}</th>
+              <th className="text-right py-3 px-4 font-bold">{t('columnUnitPrice')}</th>
+              <th className="text-right py-3 px-4 font-bold">{t('columnDisc')}</th>
+              <th className="text-right py-3 px-4 font-bold">{t('columnTax')}</th>
+              <th className="text-right py-3 px-4 font-bold">{t('columnTotal')}</th>
             </tr>
           </thead>
           <tbody>
@@ -193,7 +195,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
                 <td className="py-3 px-4">
                   <p className="font-medium">{item.item.name}</p>
                   {item.item.sku && (
-                    <p className="text-xs text-gray-500">SKU: {item.item.sku}</p>
+                    <p className="text-xs text-gray-500">{t('skuPrefix')} {item.item.sku}</p>
                   )}
                 </td>
                 <td className="py-3 px-4 text-gray-600">{item.description || '-'}</td>
@@ -219,21 +221,21 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         <div className="flex justify-end mb-8">
           <div className="w-72">
             <div className="flex justify-between py-2 text-sm">
-              <span className="text-gray-600">Subtotal:</span>
+              <span className="text-gray-600">{t('subtotal')}</span>
               <span>{formatCurrency(invoice.subtotal)}</span>
             </div>
             <div className="flex justify-between py-2 text-sm">
-              <span className="text-gray-600">Tax:</span>
+              <span className="text-gray-600">{t('tax')}</span>
               <span>{formatCurrency(invoice.taxAmount)}</span>
             </div>
             {invoice.discountAmount > 0 && (
               <div className="flex justify-between py-2 text-sm">
-                <span className="text-gray-600">Discount:</span>
+                <span className="text-gray-600">{t('discount')}</span>
                 <span className="text-red-600">-{formatCurrency(invoice.discountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between py-3 text-lg font-bold border-t-2 border-gray-900 mt-2">
-              <span>Total:</span>
+              <span>{t('total')}</span>
               <span>{formatCurrency(invoice.total)}</span>
             </div>
           </div>
@@ -242,7 +244,7 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         {/* Notes */}
         {invoice.notes && (
           <div className="mb-8 p-4 bg-gray-50 rounded">
-            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">Notes</h3>
+            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">{t('notesTitle')}</h3>
             <p className="text-sm whitespace-pre-wrap">{invoice.notes}</p>
           </div>
         )}
@@ -250,11 +252,11 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         {/* Payment Info */}
         {showPaymentInfo && invoice.status === 'final' && (
           <div className="mb-8 p-4 border border-gray-200 rounded">
-            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">Payment Information</h3>
+            <h3 className="text-sm font-bold text-gray-600 uppercase mb-2">{t('paymentTitle')}</h3>
             <div className="text-sm text-gray-600">
-              <p>Please make payment to:</p>
-              <p className="font-medium mt-1">{companyName}</p>
-              <p className="mt-2">Reference: {invoice.invoiceNumber}</p>
+              <p>{t('paymentBody')}</p>
+              <p className="font-medium mt-1">{resolvedCompanyName}</p>
+              <p className="mt-2">{t('paymentReference', { number: invoice.invoiceNumber })}</p>
             </div>
           </div>
         )}
@@ -262,9 +264,9 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         {/* Return Reference */}
         {invoice.returnedFromId && invoice.returnedFrom && (
           <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <h3 className="text-sm font-bold text-yellow-800 uppercase mb-2">Return Information</h3>
+            <h3 className="text-sm font-bold text-yellow-800 uppercase mb-2">{t('returnTitle')}</h3>
             <p className="text-sm text-yellow-700">
-              This is a return invoice for original invoice:{' '}
+              {t('returnBody')}{' '}
               <strong>{invoice.returnedFrom.invoiceNumber}</strong>
             </p>
           </div>
@@ -274,12 +276,12 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
         <div className="absolute bottom-8 left-8 right-8 border-t pt-4">
           <div className="flex justify-between text-xs text-gray-500">
             <div>
-              <p>Thank you for your business!</p>
-              <p>{companyName}</p>
+              <p>{t('thankYou')}</p>
+              <p>{resolvedCompanyName}</p>
             </div>
             <div className="text-right">
-              <p>Invoice: {invoice.invoiceNumber}</p>
-              <p>Page 1 of 1</p>
+              <p>{t('footerInvoice', { number: invoice.invoiceNumber })}</p>
+              <p>{t('footerPage')}</p>
             </div>
           </div>
         </div>
@@ -289,11 +291,11 @@ export const InvoicePdf = forwardRef<HTMLDivElement, InvoicePdfProps>(
           <div className="grid grid-cols-2 gap-16">
             <div>
               <div className="border-b border-gray-400 mb-2 h-16"></div>
-              <p className="text-sm text-gray-600">Authorized Signature</p>
+              <p className="text-sm text-gray-600">{t('authorizedSignature')}</p>
             </div>
             <div>
               <div className="border-b border-gray-400 mb-2 h-16"></div>
-              <p className="text-sm text-gray-600">Customer Signature</p>
+              <p className="text-sm text-gray-600">{t('customerSignature')}</p>
             </div>
           </div>
         </div>

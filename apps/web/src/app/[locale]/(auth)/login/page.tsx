@@ -10,7 +10,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
-import { useDirection } from '@/stores/language-store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,7 +20,6 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const { isRtl } = useDirection();
   const locale = params.locale as string;
 
   const handleSubmit = async (e: React.FormEvent) => {

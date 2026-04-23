@@ -8,6 +8,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useCreateItem } from '@/hooks/use-items';
 import { ItemForm } from '@/components/forms/item-form';
@@ -27,6 +28,21 @@ export default function NewItemPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('items.new');
+  const tCommon = useTranslations('common');
+  const tErrors = useTranslations('items.errors');
+
+  const translateApiError = (error: Error & { code?: string }, fallback: string) => {
+    const code = error?.code;
+    if (code) {
+      try {
+        return tErrors(code as 'DUPLICATE_SKU' | 'DUPLICATE_BARCODE' | 'ITEM_NOT_FOUND' | 'CATEGORY_NOT_FOUND');
+      } catch {
+        // unknown code — fall through
+      }
+    }
+    return error?.message || fallback;
+  };
 
   // Fetch categories for the form
   const { data: categoriesData } = useQuery({
@@ -41,15 +57,15 @@ export default function NewItemPage() {
   const createMutation = useCreateItem({
     onSuccess: (response) => {
       toast({
-        title: 'Item created',
-        description: `${response.data.name} has been created successfully.`,
+        title: t('toasts.created'),
+        description: t('toasts.createdDescription', { name: response.data.name }),
       });
       router.push(`/${locale}/items`);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create item',
+        title: tCommon('error'),
+        description: translateApiError(error, t('toasts.createFailed')),
         variant: 'destructive',
       });
     },
@@ -75,16 +91,14 @@ export default function NewItemPage() {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Go back to items"
+          aria-label={t('backAriaLabel')}
           onClick={() => router.push(`/${locale}/items`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">New Item</h1>
-          <p className="text-muted-foreground">
-            Create a new inventory item with pricing and packaging options.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </div>
 

@@ -327,12 +327,24 @@ export const bulkPriceUpdateSchema = z.object({
 );
 
 /**
+ * Parse a querystring value as a boolean. z.coerce.boolean() uses JS Boolean(),
+ * which treats the string "false" as truthy — use this helper instead.
+ */
+const qsBool = z
+  .union([z.boolean(), z.string(), z.undefined()])
+  .transform((v) => {
+    if (typeof v === 'boolean') return v;
+    if (v === undefined) return undefined;
+    return v === 'true' || v === '1';
+  });
+
+/**
  * Schema for item report parameters
  */
 export const itemReportParamsSchema = z.object({
   categoryId: z.string().uuid('Invalid category ID').optional(),
-  isActive: z.coerce.boolean().optional(),
-  includePrices: z.coerce.boolean().default(true),
+  isActive: qsBool.optional(),
+  includePrices: qsBool.default(true),
   priceTier: z.string().default('retail'),
   currency: currencySchema,
 });

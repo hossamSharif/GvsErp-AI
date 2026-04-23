@@ -10,7 +10,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
-import { useDirection } from '@/stores/language-store';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -26,7 +25,6 @@ export default function RegisterPage() {
   const { signUp } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const { isRtl } = useDirection();
   const locale = params.locale as string;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

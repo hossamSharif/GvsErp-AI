@@ -32,6 +32,8 @@ type ItemPackagingInsert = Database['public']['Tables']['item_packagings']['Inse
 interface ItemQueryOptions extends QueryOptions {
   search?: string;
   categoryId?: string;
+  /** If set, filter to exactly this is_active value. Overrides includeInactive. */
+  isActive?: boolean;
 }
 
 /**
@@ -57,6 +59,7 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       sort_by = 'name',
       sort_order = 'asc',
       includeInactive = false,
+      isActive,
       search,
       categoryId,
     } = options;
@@ -71,8 +74,10 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       `, { count: 'exact' })
       .eq('tenant_id', tenantId);
 
-    // Apply filters
-    if (!includeInactive) {
+    // Apply filters — precise isActive wins over the includeInactive toggle.
+    if (typeof isActive === 'boolean') {
+      query = query.eq('is_active', isActive);
+    } else if (!includeInactive) {
       query = query.eq('is_active', true);
     }
 
@@ -274,6 +279,60 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
     }
 
     return (data || []).map(this.mapItemPrice);
+  }
+
+  /**
+   * Batch-fetch current effective prices for all items of a tenant in one query.
+   * Returns a map of itemId → tier → price for the given currency.
+   * Used by the items report to avoid N+1 queries.
+   * We fetch by tenant (not IN (...ids)) to avoid PostgREST URL-length limits,
+   * then narrow to the requested item set in memory.
+   */
+  async getCurrentPricesForItems(
+    tenantId: string,
+    itemIds: string[],
+    currency: string = 'USD'
+  ): Promise<Map<string, Record<string, number>>> {
+    const result = new Map<string, Record<string, number>>();
+    if (itemIds.length === 0) return result;
+
+    const today = new Date().toISOString().split('T')[0];
+    const idSet = new Set(itemIds);
+
+    const { data, error } = await this.supabase
+      .from('item_prices')
+      .select('item_id, price_tier, price, effective_from, effective_to')
+      .eq('tenant_id', tenantId)
+      .eq('currency', currency)
+      .or(`effective_from.is.null,effective_from.lte.${today}`)
+      .or(`effective_to.is.null,effective_to.gte.${today}`);
+
+    if (error) throw error;
+
+    // For each (item, tier), keep the latest effective_from (nulls treated as earliest).
+    const best = new Map<string, { price: number; from: string | null }>();
+    for (const row of data || []) {
+      if (!idSet.has(row.item_id)) continue;
+      const key = `${row.item_id}::${row.price_tier}`;
+      const prev = best.get(key);
+      const priceNum = typeof row.price === 'string' ? Number(row.price) : row.price;
+      if (
+        !prev ||
+        (row.effective_from !== null &&
+          (prev.from === null || row.effective_from > prev.from))
+      ) {
+        best.set(key, { price: priceNum, from: row.effective_from });
+      }
+    }
+
+    for (const [key, { price }] of best) {
+      const [itemId, tier] = key.split('::');
+      const tiers = result.get(itemId) || {};
+      tiers[tier] = price;
+      result.set(itemId, tiers);
+    }
+
+    return result;
   }
 
   /**

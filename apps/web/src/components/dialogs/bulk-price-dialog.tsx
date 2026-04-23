@@ -10,6 +10,7 @@
 import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import {
   Dialog,
@@ -47,48 +48,52 @@ import type { ItemWithCategory, BulkPriceUpdateResult } from '@erp/shared';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 // =============================================================================
-// FORM SCHEMA
-// =============================================================================
-
-const bulkPriceFormSchema = z.object({
-  adjustmentType: z.enum(['percentage', 'fixed']),
-  adjustmentValue: z.coerce.number(),
-  priceTier: z.string().min(1, 'Price tier is required'),
-  currency: z.string().min(1, 'Currency is required'),
-}).refine(
-  (data) => {
-    if (data.adjustmentType === 'percentage') {
-      return data.adjustmentValue >= -100 && data.adjustmentValue <= 1000;
-    }
-    return true;
-  },
-  {
-    message: 'Percentage must be between -100% and 1000%',
-    path: ['adjustmentValue'],
-  }
-);
-
-type BulkPriceFormData = z.infer<typeof bulkPriceFormSchema>;
-
-// =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const PRICE_TIERS = [
-  { value: 'retail', label: 'Retail' },
-  { value: 'wholesale', label: 'Wholesale' },
-  { value: 'vip', label: 'VIP' },
-  { value: 'cost', label: 'Cost' },
-];
+const TIER_KEYS = ['retail', 'wholesale', 'vip', 'cost'] as const;
 
-const CURRENCIES = [
-  { value: 'USD', label: 'US Dollar ($)' },
-  { value: 'EUR', label: 'Euro' },
-  { value: 'GBP', label: 'British Pound' },
-  { value: 'EGP', label: 'Egyptian Pound' },
-  { value: 'SAR', label: 'Saudi Riyal' },
-  { value: 'AED', label: 'UAE Dirham' },
-];
+const CURRENCY_KEYS = ['usd', 'eur', 'gbp', 'egp', 'sar', 'aed'] as const;
+const CURRENCY_VALUES: Record<(typeof CURRENCY_KEYS)[number], string> = {
+  usd: 'USD',
+  eur: 'EUR',
+  gbp: 'GBP',
+  egp: 'EGP',
+  sar: 'SAR',
+  aed: 'AED',
+};
+
+// =============================================================================
+// FORM SCHEMA
+// =============================================================================
+
+type BulkValidationMessages = {
+  tierRequired: string;
+  currencyRequired: string;
+  percentageRange: string;
+};
+
+function createBulkPriceSchema(messages: BulkValidationMessages) {
+  return z.object({
+    adjustmentType: z.enum(['percentage', 'fixed']),
+    adjustmentValue: z.coerce.number(),
+    priceTier: z.string().min(1, messages.tierRequired),
+    currency: z.string().min(1, messages.currencyRequired),
+  }).refine(
+    (data) => {
+      if (data.adjustmentType === 'percentage') {
+        return data.adjustmentValue >= -100 && data.adjustmentValue <= 1000;
+      }
+      return true;
+    },
+    {
+      message: messages.percentageRange,
+      path: ['adjustmentValue'],
+    }
+  );
+}
+
+type BulkPriceFormData = z.infer<ReturnType<typeof createBulkPriceSchema>>;
 
 // =============================================================================
 // PROPS
@@ -117,6 +122,16 @@ export function BulkPriceDialog({
 }: BulkPriceDialogProps) {
   const { toast } = useToast();
   const [result, setResult] = useState<BulkPriceUpdateResult | null>(null);
+  const t = useTranslations('items.bulkPrice');
+  const tCommon = useTranslations('common');
+  const tTiers = useTranslations('items.priceTiers');
+  const tCurrencies = useTranslations('items.currencies');
+
+  const bulkPriceFormSchema = createBulkPriceSchema({
+    tierRequired: t('validation.tierRequired'),
+    currencyRequired: t('validation.currencyRequired'),
+    percentageRange: t('validation.percentageRange'),
+  });
 
   // Form
   const form = useForm<BulkPriceFormData>({
@@ -135,8 +150,8 @@ export function BulkPriceDialog({
       setResult(response.data);
       if (response.data.updatedCount > 0) {
         toast({
-          title: 'Prices updated',
-          description: `Successfully updated ${response.data.updatedCount} item(s).`,
+          title: t('toasts.pricesUpdated'),
+          description: t('successDescription', { count: response.data.updatedCount }),
         });
       }
       if (onComplete) {
@@ -145,8 +160,8 @@ export function BulkPriceDialog({
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update prices',
+        title: tCommon('error'),
+        description: error.message || t('toasts.updateFailed'),
         variant: 'destructive',
       });
     },
@@ -183,10 +198,9 @@ export function BulkPriceDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Bulk Price Update</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Update prices for {items.length} selected item(s). This will apply
-            the adjustment to the specified price tier.
+            {t('description', { count: items.length })}
           </DialogDescription>
         </DialogHeader>
 
@@ -199,7 +213,7 @@ export function BulkPriceDialog({
           ))}
           {items.length > 10 && (
             <Badge variant="outline" className="text-xs">
-              +{items.length - 10} more
+              {t('moreItems', { count: items.length - 10 })}
             </Badge>
           )}
         </div>
@@ -212,7 +226,7 @@ export function BulkPriceDialog({
               name="adjustmentType"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Adjustment Type</FormLabel>
+                  <FormLabel>{t('adjustmentType')}</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -221,11 +235,11 @@ export function BulkPriceDialog({
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="percentage" id="percentage" />
-                        <Label htmlFor="percentage">Percentage (%)</Label>
+                        <Label htmlFor="percentage">{t('percentage')}</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="fixed" id="fixed" />
-                        <Label htmlFor="fixed">Fixed Amount</Label>
+                        <Label htmlFor="fixed">{t('fixed')}</Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -242,8 +256,8 @@ export function BulkPriceDialog({
                 <FormItem>
                   <FormLabel>
                     {adjustmentType === 'percentage'
-                      ? 'Percentage Change'
-                      : 'Amount to Add/Subtract'}
+                      ? t('percentageLabel')
+                      : t('fixedLabel')}
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
@@ -262,8 +276,8 @@ export function BulkPriceDialog({
                   </FormControl>
                   <FormDescription>
                     {adjustmentType === 'percentage'
-                      ? 'Enter positive value to increase, negative to decrease (e.g., 10 for +10%, -5 for -5%)'
-                      : 'Enter positive value to add, negative to subtract from current price'}
+                      ? t('percentageDescription')
+                      : t('fixedDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -277,17 +291,17 @@ export function BulkPriceDialog({
                 name="priceTier"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price Tier</FormLabel>
+                    <FormLabel>{t('priceTier')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select tier" />
+                          <SelectValue placeholder={t('priceTierPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PRICE_TIERS.map((tier) => (
-                          <SelectItem key={tier.value} value={tier.value}>
-                            {tier.label}
+                        {TIER_KEYS.map((key) => (
+                          <SelectItem key={key} value={key}>
+                            {tTiers(key)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -303,17 +317,17 @@ export function BulkPriceDialog({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{t('currency')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t('currencyPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CURRENCIES.map((currency) => (
-                          <SelectItem key={currency.value} value={currency.value}>
-                            {currency.label}
+                        {CURRENCY_KEYS.map((key) => (
+                          <SelectItem key={key} value={CURRENCY_VALUES[key]}>
+                            {tCurrencies(`${key}Short`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -330,23 +344,23 @@ export function BulkPriceDialog({
                 {result.updatedCount > 0 && (
                   <Alert>
                     <CheckCircle2 className="h-4 w-4" />
-                    <AlertTitle>Success</AlertTitle>
+                    <AlertTitle>{t('successTitle')}</AlertTitle>
                     <AlertDescription>
-                      Updated {result.updatedCount} item(s) successfully.
+                      {t('successDescription', { count: result.updatedCount })}
                     </AlertDescription>
                   </Alert>
                 )}
                 {result.errors.length > 0 && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Some items failed</AlertTitle>
+                    <AlertTitle>{t('failedTitle')}</AlertTitle>
                     <AlertDescription>
                       <ul className="list-disc list-inside text-sm mt-1">
                         {result.errors.slice(0, 5).map((err, idx) => (
                           <li key={idx}>{err.error}</li>
                         ))}
                         {result.errors.length > 5 && (
-                          <li>...and {result.errors.length - 5} more errors</li>
+                          <li>{t('moreErrors', { count: result.errors.length - 5 })}</li>
                         )}
                       </ul>
                     </AlertDescription>
@@ -362,17 +376,17 @@ export function BulkPriceDialog({
                 onClick={handleClose}
                 disabled={bulkUpdateMutation.isPending}
               >
-                {result ? 'Close' : 'Cancel'}
+                {result ? t('close') : t('cancel')}
               </Button>
               {!result && (
                 <Button type="submit" disabled={bulkUpdateMutation.isPending}>
                   {bulkUpdateMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
+                      {t('updating')}
                     </>
                   ) : (
-                    'Update Prices'
+                    t('submit')
                   )}
                 </Button>
               )}

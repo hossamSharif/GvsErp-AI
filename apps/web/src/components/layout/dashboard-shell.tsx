@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
-import { useDirection } from '@/stores/language-store';
+import { useDirection } from '@/hooks/use-direction';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';

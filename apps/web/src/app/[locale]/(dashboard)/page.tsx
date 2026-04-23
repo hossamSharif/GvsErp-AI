@@ -9,7 +9,6 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
-import { useDirection } from '@/stores/language-store';
 import { useLowStockSummary } from '@/hooks/use-warehouses';
 import { cn } from '@/lib/utils';
 import {
@@ -25,7 +24,6 @@ import {
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
-  const { isRtl } = useDirection();
   const params = useParams();
   const locale = params.locale as string;
   const { data: alertSummaryResponse } = useLowStockSummary();

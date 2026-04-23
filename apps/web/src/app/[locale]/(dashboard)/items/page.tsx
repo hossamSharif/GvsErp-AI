@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useItems, useDeleteItem } from '@/hooks/use-items';
 import { BulkPriceDialog } from '@/components/dialogs/bulk-price-dialog';
@@ -62,6 +63,9 @@ export default function ItemsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('items.list');
+  const tCommon = useTranslations('common');
+  const tStatus = useTranslations('items.status');
 
   // Query state
   const [queryParams, setQueryParams] = useState<ItemQueryParams>({
@@ -85,16 +89,16 @@ export default function ItemsPage() {
   const deleteMutation = useDeleteItem({
     onSuccess: () => {
       toast({
-        title: 'Item deleted',
-        description: 'The item has been deleted successfully.',
+        title: t('toasts.deleted'),
+        description: t('toasts.deletedDescription'),
       });
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete item',
+        title: tCommon('error'),
+        description: error.message || t('toasts.deleteFailed'),
         variant: 'destructive',
       });
     },
@@ -154,7 +158,7 @@ export default function ItemsPage() {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('columns.name'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.name}</span>
@@ -169,7 +173,7 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'sku',
-        header: 'SKU',
+        header: t('columns.sku'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.sku || '-'}</span>
         ),
@@ -177,7 +181,7 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'barcode',
-        header: 'Barcode',
+        header: t('columns.barcode'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.barcode || '-'}</span>
         ),
@@ -185,36 +189,36 @@ export default function ItemsPage() {
       },
       {
         accessorKey: 'brand',
-        header: 'Brand',
+        header: t('columns.brand'),
         cell: ({ row }) => row.original.brand || '-',
         size: 120,
       },
       {
         accessorKey: 'category',
-        header: 'Category',
+        header: t('columns.category'),
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original.category?.name || 'Uncategorized'}</Badge>
+          <Badge variant="outline">{row.original.category?.name || t('uncategorized')}</Badge>
         ),
         size: 150,
       },
       {
         accessorKey: 'unitOfMeasure',
-        header: 'Unit',
+        header: t('columns.unit'),
         cell: ({ row }) => row.original.unitOfMeasure,
         size: 80,
       },
       {
         accessorKey: 'taxRate',
-        header: 'Tax %',
+        header: t('columns.tax'),
         cell: ({ row }) => `${row.original.taxRate}%`,
         size: 80,
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('columns.status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? tStatus('active') : tStatus('inactive')}
           </Badge>
         ),
         size: 100,
@@ -226,16 +230,16 @@ export default function ItemsPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t('menuOpen')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t('actions.viewDetails')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -243,7 +247,7 @@ export default function ItemsPage() {
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -253,15 +257,15 @@ export default function ItemsPage() {
         enableHiding: false,
       },
     ],
-    [handleViewItem, handleDeleteItem]
+    [handleViewItem, handleDeleteItem, t, tCommon, tStatus]
   );
 
   // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
-        <p className="text-destructive">Failed to load items</p>
-        <Button onClick={() => window.location.reload()}>Retry</Button>
+        <p className="text-destructive">{t('errorLoading')}</p>
+        <Button onClick={() => window.location.reload()}>{tCommon('retry')}</Button>
       </div>
     );
   }
@@ -271,25 +275,23 @@ export default function ItemsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Items</h1>
-          <p className="text-muted-foreground">
-            Manage your inventory items, categories, and pricing.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex items-center gap-2">
           {selectedItems.length > 0 && (
             <Button variant="outline" onClick={handleBulkPriceUpdate}>
               <DollarSign className="mr-2 h-4 w-4" />
-              Update Prices ({selectedItems.length})
+              {t('updatePricesButton', { count: selectedItems.length })}
             </Button>
           )}
           <Button variant="outline" onClick={handleExportPdf}>
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t('exportButton')}
           </Button>
           <Button onClick={handleAddItem}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Item
+            {t('addButton')}
           </Button>
         </div>
       </div>
@@ -309,10 +311,10 @@ export default function ItemsPage() {
             }
           >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="All Categories" />
+              <SelectValue placeholder={t('filterAllCategories')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">{t('filterAllCategories')}</SelectItem>
               {categoriesData.data.map((cat: { id: string; name: string }) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
@@ -333,8 +335,8 @@ export default function ItemsPage() {
         showSearch
         showColumnToggle
         showPagination
-        searchPlaceholder="Search items..."
-        emptyMessage="No items found. Create your first item to get started."
+        searchPlaceholder={t('searchPlaceholder')}
+        emptyMessage={t('emptyMessage')}
         onSelectionChange={setSelectedItems}
         pagination={
           data?.meta
@@ -359,19 +361,18 @@ export default function ItemsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This
-              action cannot be undone.
+              {t('deleteDialog.description', { name: itemToDelete?.name ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? tCommon('deleting') : tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

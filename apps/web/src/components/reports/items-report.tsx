@@ -162,6 +162,54 @@ const styles = StyleSheet.create({
 // TYPES
 // =============================================================================
 
+export interface ItemsReportLabels {
+  filter: string;
+  generated: string;
+  totalItems: string;
+  columnName: string;
+  columnSku: string;
+  columnBarcode: string;
+  columnCategory: string;
+  columnUnit: string;
+  columnRetail: string;
+  columnWholesale: string;
+  columnStatus: string;
+  summary: string;
+  activeItems: string;
+  inactiveItems: string;
+  itemsWithRetailPrice: string;
+  avgRetailPrice: string;
+  footerLabel: string;
+  pageNumberTemplate: string;
+  statusActive: string;
+  statusInactive: string;
+  locale?: string;
+}
+
+const DEFAULT_LABELS: ItemsReportLabels = {
+  filter: 'Filter',
+  generated: 'Generated',
+  totalItems: 'Total Items',
+  columnName: 'Name',
+  columnSku: 'SKU',
+  columnBarcode: 'Barcode',
+  columnCategory: 'Category',
+  columnUnit: 'Unit',
+  columnRetail: 'Retail',
+  columnWholesale: 'Wholesale',
+  columnStatus: 'Status',
+  summary: 'Summary',
+  activeItems: 'Active Items',
+  inactiveItems: 'Inactive Items',
+  itemsWithRetailPrice: 'Items with Retail Price',
+  avgRetailPrice: 'Average Retail Price',
+  footerLabel: 'Inventory Report',
+  pageNumberTemplate: 'Page {current} of {total}',
+  statusActive: 'Active',
+  statusInactive: 'Inactive',
+  locale: 'en-US',
+};
+
 interface ItemsReportProps {
   /** Report title */
   title?: string;
@@ -175,6 +223,8 @@ interface ItemsReportProps {
   filterDescription?: string;
   /** Generation timestamp */
   generatedAt?: Date;
+  /** Localized labels (overrides English defaults) */
+  labels?: Partial<ItemsReportLabels>;
 }
 
 // =============================================================================
@@ -186,14 +236,18 @@ function formatPrice(price: number | null, symbol: string): string {
   return `${symbol}${price.toFixed(2)}`;
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+function formatDate(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function renderPageNumber(template: string, current: number, total: number): string {
+  return template.replace('{current}', String(current)).replace('{total}', String(total));
 }
 
 // =============================================================================
@@ -207,7 +261,10 @@ export function ItemsReportDocument({
   currencySymbol = '$',
   filterDescription,
   generatedAt = new Date(),
+  labels,
 }: ItemsReportProps) {
+  const L: ItemsReportLabels = { ...DEFAULT_LABELS, ...labels };
+  const dateLocale = L.locale === 'ar' ? 'ar-EG' : 'en-US';
   // Calculate summary stats
   const totalItems = items.length;
   const activeItems = items.filter((i) => i.isActive).length;
@@ -226,13 +283,13 @@ export function ItemsReportDocument({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{companyName}</Text>
           {filterDescription && (
-            <Text style={styles.subtitle}>Filter: {filterDescription}</Text>
+            <Text style={styles.subtitle}>{L.filter}: {filterDescription}</Text>
           )}
           <View style={styles.metadata}>
             <Text style={styles.metaItem}>
-              Generated: {formatDate(generatedAt)}
+              {L.generated}: {formatDate(generatedAt, dateLocale)}
             </Text>
-            <Text style={styles.metaItem}>Total Items: {totalItems}</Text>
+            <Text style={styles.metaItem}>{L.totalItems}: {totalItems}</Text>
           </View>
         </View>
 
@@ -240,14 +297,14 @@ export function ItemsReportDocument({
         <View style={styles.table}>
           {/* Table Header */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderCell, styles.colName]}>Name</Text>
-            <Text style={[styles.tableHeaderCell, styles.colSku]}>SKU</Text>
-            <Text style={[styles.tableHeaderCell, styles.colBarcode]}>Barcode</Text>
-            <Text style={[styles.tableHeaderCell, styles.colCategory]}>Category</Text>
-            <Text style={[styles.tableHeaderCell, styles.colUnit]}>Unit</Text>
-            <Text style={[styles.tableHeaderCell, styles.colRetail]}>Retail</Text>
-            <Text style={[styles.tableHeaderCell, styles.colWholesale]}>Wholesale</Text>
-            <Text style={[styles.tableHeaderCell, styles.colStatus]}>Status</Text>
+            <Text style={[styles.tableHeaderCell, styles.colName]}>{L.columnName}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colSku]}>{L.columnSku}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colBarcode]}>{L.columnBarcode}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colCategory]}>{L.columnCategory}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colUnit]}>{L.columnUnit}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colRetail]}>{L.columnRetail}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colWholesale]}>{L.columnWholesale}</Text>
+            <Text style={[styles.tableHeaderCell, styles.colStatus]}>{L.columnStatus}</Text>
           </View>
 
           {/* Table Rows */}
@@ -282,7 +339,7 @@ export function ItemsReportDocument({
                     item.isActive ? styles.badgeActive : styles.badgeInactive,
                   ]}
                 >
-                  {item.isActive ? 'Active' : 'Inactive'}
+                  {item.isActive ? L.statusActive : L.statusInactive}
                 </Text>
               </View>
             </View>
@@ -291,25 +348,25 @@ export function ItemsReportDocument({
 
         {/* Summary */}
         <View style={styles.summary}>
-          <Text style={styles.summaryTitle}>Summary</Text>
+          <Text style={styles.summaryTitle}>{L.summary}</Text>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Items</Text>
+            <Text style={styles.summaryLabel}>{L.totalItems}</Text>
             <Text style={styles.summaryValue}>{totalItems}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Active Items</Text>
+            <Text style={styles.summaryLabel}>{L.activeItems}</Text>
             <Text style={styles.summaryValue}>{activeItems}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Inactive Items</Text>
+            <Text style={styles.summaryLabel}>{L.inactiveItems}</Text>
             <Text style={styles.summaryValue}>{inactiveItems}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Items with Retail Price</Text>
+            <Text style={styles.summaryLabel}>{L.itemsWithRetailPrice}</Text>
             <Text style={styles.summaryValue}>{itemsWithRetailPrice}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Average Retail Price</Text>
+            <Text style={styles.summaryLabel}>{L.avgRetailPrice}</Text>
             <Text style={styles.summaryValue}>
               {formatPrice(avgRetailPrice, currencySymbol)}
             </Text>
@@ -319,12 +376,12 @@ export function ItemsReportDocument({
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            {companyName} - Inventory Report
+            {companyName} - {L.footerLabel}
           </Text>
           <Text
             style={styles.pageNumber}
             render={({ pageNumber, totalPages }) =>
-              `Page ${pageNumber} of ${totalPages}`
+              renderPageNumber(L.pageNumberTemplate, pageNumber, totalPages)
             }
           />
         </View>

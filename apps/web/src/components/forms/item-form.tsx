@@ -14,6 +14,7 @@
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import {
   Form,
@@ -55,73 +56,88 @@ import type {
 import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
 
 // =============================================================================
-// FORM SCHEMA
-// =============================================================================
-
-const priceSchema = z.object({
-  priceTier: z.string().min(1, 'Price tier is required'),
-  price: z.coerce.number().min(0, 'Price must be positive'),
-  currency: z.string().default('USD'),
-  effectiveFrom: z.string().nullable().optional(),
-  effectiveTo: z.string().nullable().optional(),
-});
-
-const packagingSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  quantity: z.coerce.number().int().min(1, 'Quantity must be at least 1'),
-  barcode: z.string().nullable().optional(),
-});
-
-const itemFormSchema = z.object({
-  name: z.string().min(1, 'Item name is required').max(255),
-  nameAlias: z.string().max(255).nullable().optional(),
-  sku: z.string().max(100).nullable().optional(),
-  barcode: z.string().max(100).nullable().optional(),
-  brand: z.string().max(255).nullable().optional(),
-  categoryId: z.string().uuid().nullable().optional(),
-  unitOfMeasure: z.string().min(1, 'Unit is required').default('piece'),
-  taxRate: z.coerce.number().min(0).max(100).default(0),
-  isActive: z.boolean().default(true),
-  images: z.array(z.string()).default([]),
-  prices: z.array(priceSchema).optional(),
-  packagings: z.array(packagingSchema).optional(),
-});
-
-type ItemFormData = z.infer<typeof itemFormSchema>;
-
-// =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const UNITS_OF_MEASURE = [
-  { value: 'piece', label: 'Piece' },
-  { value: 'kg', label: 'Kilogram (kg)' },
-  { value: 'gram', label: 'Gram (g)' },
-  { value: 'liter', label: 'Liter (L)' },
-  { value: 'ml', label: 'Milliliter (mL)' },
-  { value: 'meter', label: 'Meter (m)' },
-  { value: 'cm', label: 'Centimeter (cm)' },
-  { value: 'box', label: 'Box' },
-  { value: 'carton', label: 'Carton' },
-  { value: 'pack', label: 'Pack' },
-  { value: 'dozen', label: 'Dozen' },
-];
+const UNIT_KEYS = [
+  'piece',
+  'kg',
+  'gram',
+  'liter',
+  'ml',
+  'meter',
+  'cm',
+  'box',
+  'carton',
+  'pack',
+  'dozen',
+] as const;
 
-const PRICE_TIERS = [
-  { value: 'retail', label: 'Retail' },
-  { value: 'wholesale', label: 'Wholesale' },
-  { value: 'vip', label: 'VIP' },
-  { value: 'cost', label: 'Cost' },
-];
+const TIER_KEYS = ['retail', 'wholesale', 'vip', 'cost'] as const;
 
-const CURRENCIES = [
-  { value: 'USD', label: 'US Dollar ($)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'GBP', label: 'British Pound (£)' },
-  { value: 'EGP', label: 'Egyptian Pound (E£)' },
-  { value: 'SAR', label: 'Saudi Riyal (﷼)' },
-  { value: 'AED', label: 'UAE Dirham (د.إ)' },
-];
+const CURRENCY_KEYS = ['usd', 'eur', 'gbp', 'egp', 'sar', 'aed'] as const;
+const CURRENCY_VALUES: Record<(typeof CURRENCY_KEYS)[number], string> = {
+  usd: 'USD',
+  eur: 'EUR',
+  gbp: 'GBP',
+  egp: 'EGP',
+  sar: 'SAR',
+  aed: 'AED',
+};
+
+// =============================================================================
+// FORM SCHEMA
+// =============================================================================
+
+type ValidationMessages = {
+  nameRequired: string;
+  unitRequired: string;
+  priceTierRequired: string;
+  pricePositive: string;
+  packagingNameRequired: string;
+  packagingQuantityMin: string;
+  taxRateRange: string;
+  nameMaxLength: string;
+  skuMaxLength: string;
+  barcodeMaxLength: string;
+};
+
+function createItemFormSchema(messages: ValidationMessages) {
+  const priceSchema = z.object({
+    priceTier: z.string().min(1, messages.priceTierRequired),
+    price: z.coerce.number().min(0, messages.pricePositive),
+    currency: z.string().default('USD'),
+    effectiveFrom: z.string().nullable().optional(),
+    effectiveTo: z.string().nullable().optional(),
+  });
+
+  const packagingSchema = z.object({
+    name: z.string().min(1, messages.packagingNameRequired),
+    quantity: z.coerce.number().int().min(1, messages.packagingQuantityMin),
+    barcode: z.string().nullable().optional(),
+  });
+
+  return z.object({
+    name: z.string().min(1, messages.nameRequired).max(255, messages.nameMaxLength),
+    nameAlias: z.string().max(255, messages.nameMaxLength).nullable().optional(),
+    sku: z.string().max(100, messages.skuMaxLength).nullable().optional(),
+    barcode: z.string().max(100, messages.barcodeMaxLength).nullable().optional(),
+    brand: z.string().max(255, messages.nameMaxLength).nullable().optional(),
+    categoryId: z.string().uuid().nullable().optional(),
+    unitOfMeasure: z.string().min(1, messages.unitRequired).default('piece'),
+    taxRate: z.coerce
+      .number()
+      .min(0, messages.taxRateRange)
+      .max(100, messages.taxRateRange)
+      .default(0),
+    isActive: z.boolean().default(true),
+    images: z.array(z.string()).default([]),
+    prices: z.array(priceSchema).optional(),
+    packagings: z.array(packagingSchema).optional(),
+  });
+}
+
+type ItemFormData = z.infer<ReturnType<typeof createItemFormSchema>>;
 
 // =============================================================================
 // PROPS
@@ -155,6 +171,31 @@ export function ItemForm({
   mode = 'create',
 }: ItemFormProps) {
   const [activeTab, setActiveTab] = useState('basic');
+  const t = useTranslations('items.form');
+  const tFields = useTranslations('items.form.fields');
+  const tTabs = useTranslations('items.form.tabs');
+  const tBasic = useTranslations('items.form.basicInfo');
+  const tPricing = useTranslations('items.form.pricing');
+  const tPackaging = useTranslations('items.form.packaging');
+  const tImages = useTranslations('items.form.images');
+  const tActions = useTranslations('items.form.actions');
+  const tCommon = useTranslations('common');
+  const tUnits = useTranslations('items.units');
+  const tTiers = useTranslations('items.priceTiers');
+  const tCurrencies = useTranslations('items.currencies');
+
+  const itemFormSchema = createItemFormSchema({
+    nameRequired: t('validation.nameRequired'),
+    unitRequired: t('validation.unitRequired'),
+    priceTierRequired: t('validation.priceTierRequired'),
+    pricePositive: t('validation.pricePositive'),
+    packagingNameRequired: t('validation.packagingNameRequired'),
+    packagingQuantityMin: t('validation.packagingQuantityMin'),
+    taxRateRange: t('validation.taxRateRange'),
+    nameMaxLength: t('validation.nameMaxLength'),
+    skuMaxLength: t('validation.skuMaxLength'),
+    barcodeMaxLength: t('validation.barcodeMaxLength'),
+  });
 
   // Initialize form with default values or existing item data
   const form = useForm<ItemFormData>({
@@ -224,20 +265,18 @@ export function ItemForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="pricing">Pricing</TabsTrigger>
-            <TabsTrigger value="packaging">Packaging</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="basic">{tTabs('basic')}</TabsTrigger>
+            <TabsTrigger value="pricing">{tTabs('pricing')}</TabsTrigger>
+            <TabsTrigger value="packaging">{tTabs('packaging')}</TabsTrigger>
+            <TabsTrigger value="images">{tTabs('images')}</TabsTrigger>
           </TabsList>
 
           {/* Basic Info Tab */}
           <TabsContent value="basic" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Enter the basic details of the item.
-                </CardDescription>
+                <CardTitle>{tBasic('title')}</CardTitle>
+                <CardDescription>{tBasic('description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Name */}
@@ -246,9 +285,9 @@ export function ItemForm({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name *</FormLabel>
+                      <FormLabel>{tFields('nameRequired')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter item name" {...field} />
+                        <Input placeholder={tFields('namePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -261,16 +300,16 @@ export function ItemForm({
                   name="nameAlias"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Alternative Name</FormLabel>
+                      <FormLabel>{tFields('nameAlias')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter alternative name"
+                          placeholder={tFields('nameAliasPlaceholder')}
                           {...field}
                           value={field.value || ''}
                         />
                       </FormControl>
                       <FormDescription>
-                        An alternative name for searching
+                        {tFields('nameAliasDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -284,10 +323,10 @@ export function ItemForm({
                     name="sku"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>SKU</FormLabel>
+                        <FormLabel>{tFields('sku')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter SKU"
+                            placeholder={tFields('skuPlaceholder')}
                             {...field}
                             value={field.value || ''}
                           />
@@ -303,10 +342,10 @@ export function ItemForm({
                     name="barcode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Barcode</FormLabel>
+                        <FormLabel>{tFields('barcode')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter barcode"
+                            placeholder={tFields('barcodePlaceholder')}
                             {...field}
                             value={field.value || ''}
                           />
@@ -324,10 +363,10 @@ export function ItemForm({
                     name="brand"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Brand</FormLabel>
+                        <FormLabel>{tFields('brand')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter brand"
+                            placeholder={tFields('brandPlaceholder')}
                             {...field}
                             value={field.value || ''}
                           />
@@ -343,18 +382,20 @@ export function ItemForm({
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>{tFields('category')}</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value || ''}
+                          onValueChange={(value) =>
+                            field.onChange(value === '__none__' ? null : value)
+                          }
+                          value={field.value || '__none__'}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder={tFields('categoryPlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">No category</SelectItem>
+                            <SelectItem value="__none__">{tFields('categoryNone')}</SelectItem>
                             {categories.map((cat) => (
                               <SelectItem key={cat.id} value={cat.id}>
                                 {cat.name}
@@ -375,20 +416,20 @@ export function ItemForm({
                     name="unitOfMeasure"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unit of Measure *</FormLabel>
+                        <FormLabel>{tFields('unit')}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select unit" />
+                              <SelectValue placeholder={tFields('unitPlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {UNITS_OF_MEASURE.map((unit) => (
-                              <SelectItem key={unit.value} value={unit.value}>
-                                {unit.label}
+                            {UNIT_KEYS.map((key) => (
+                              <SelectItem key={key} value={key}>
+                                {tUnits(key)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -404,18 +445,18 @@ export function ItemForm({
                     name="taxRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tax Rate (%)</FormLabel>
+                        <FormLabel>{tFields('taxRate')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min="0"
                             max="100"
                             step="0.01"
-                            placeholder="e.g. 15 for 15%"
+                            placeholder={tFields('taxRatePlaceholder')}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Enter the tax percentage (0-100)</FormDescription>
+                        <FormDescription>{tFields('taxRateDescription')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -429,9 +470,9 @@ export function ItemForm({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Active</FormLabel>
+                        <FormLabel className="text-base">{tFields('active')}</FormLabel>
                         <FormDescription>
-                          Inactive items won&apos;t appear in search results
+                          {tFields('activeDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -452,10 +493,8 @@ export function ItemForm({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Pricing Tiers</CardTitle>
-                  <CardDescription>
-                    Set different prices for different customer types.
-                  </CardDescription>
+                  <CardTitle>{tPricing('title')}</CardTitle>
+                  <CardDescription>{tPricing('description')}</CardDescription>
                 </div>
                 <Button
                   type="button"
@@ -472,14 +511,13 @@ export function ItemForm({
                   }
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Price
+                  {tPricing('addButton')}
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {priceFields.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No prices added yet. Click &quot;Add Price&quot; to create a
-                    pricing tier.
+                    {tPricing('empty')}
                   </div>
                 ) : (
                   priceFields.map((field, index) => (
@@ -493,7 +531,7 @@ export function ItemForm({
                         name={`prices.${index}.priceTier`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tier</FormLabel>
+                            <FormLabel>{tPricing('tier')}</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
@@ -504,9 +542,9 @@ export function ItemForm({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {PRICE_TIERS.map((tier) => (
-                                  <SelectItem key={tier.value} value={tier.value}>
-                                    {tier.label}
+                                {TIER_KEYS.map((key) => (
+                                  <SelectItem key={key} value={key}>
+                                    {tTiers(key)}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -522,7 +560,7 @@ export function ItemForm({
                         name={`prices.${index}.price`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Price</FormLabel>
+                            <FormLabel>{tPricing('price')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -542,7 +580,7 @@ export function ItemForm({
                         name={`prices.${index}.currency`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Currency</FormLabel>
+                            <FormLabel>{tPricing('currency')}</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               value={field.value}
@@ -553,9 +591,9 @@ export function ItemForm({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {CURRENCIES.map((curr) => (
-                                  <SelectItem key={curr.value} value={curr.value}>
-                                    {curr.label}
+                                {CURRENCY_KEYS.map((key) => (
+                                  <SelectItem key={key} value={CURRENCY_VALUES[key]}>
+                                    {tCurrencies(key)}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -571,7 +609,7 @@ export function ItemForm({
                         name={`prices.${index}.effectiveFrom`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Effective From <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                            <FormLabel>{tPricing('effectiveFrom')} <span className="text-muted-foreground font-normal">({tCommon('optional')})</span></FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -579,7 +617,7 @@ export function ItemForm({
                                 value={field.value || ''}
                               />
                             </FormControl>
-                            <FormDescription>Date this price tier becomes active</FormDescription>
+                            <FormDescription>{tPricing('effectiveFromDescription')}</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -590,7 +628,7 @@ export function ItemForm({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label="Remove price tier"
+                        aria-label={tPricing('removeAriaLabel')}
                         onClick={() => removePrice(index)}
                         className="text-destructive"
                       >
@@ -608,11 +646,8 @@ export function ItemForm({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Packaging Options</CardTitle>
-                  <CardDescription>
-                    Define different packaging units (e.g., box of 12, carton of
-                    24).
-                  </CardDescription>
+                  <CardTitle>{tPackaging('title')}</CardTitle>
+                  <CardDescription>{tPackaging('description')}</CardDescription>
                 </div>
                 <Button
                   type="button"
@@ -627,14 +662,13 @@ export function ItemForm({
                   }
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Packaging
+                  {tPackaging('addButton')}
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {packagingFields.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No packaging options added yet. Click &quot;Add
-                    Packaging&quot; to create one.
+                    {tPackaging('empty')}
                   </div>
                 ) : (
                   packagingFields.map((field, index) => (
@@ -648,9 +682,9 @@ export function ItemForm({
                         name={`packagings.${index}.name`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Name</FormLabel>
+                            <FormLabel>{tPackaging('name')}</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Box" {...field} />
+                              <Input placeholder={tPackaging('namePlaceholder')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -663,7 +697,7 @@ export function ItemForm({
                         name={`packagings.${index}.quantity`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Units per Package</FormLabel>
+                            <FormLabel>{tPackaging('quantity')}</FormLabel>
                             <FormControl>
                               <Input type="number" min="1" {...field} />
                             </FormControl>
@@ -678,10 +712,10 @@ export function ItemForm({
                         name={`packagings.${index}.barcode`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Package Barcode</FormLabel>
+                            <FormLabel>{tPackaging('barcode')}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Optional"
+                                placeholder={tPackaging('barcodeOptional')}
                                 {...field}
                                 value={field.value || ''}
                               />
@@ -696,7 +730,7 @@ export function ItemForm({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label="Remove packaging option"
+                        aria-label={tPackaging('removeAriaLabel')}
                         onClick={() => removePackaging(index)}
                         className="text-destructive"
                       >
@@ -713,18 +747,13 @@ export function ItemForm({
           <TabsContent value="images" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Product Images</CardTitle>
-                <CardDescription>
-                  Upload images of your product. The first image will be the
-                  primary image.
-                </CardDescription>
+                <CardTitle>{tImages('title')}</CardTitle>
+                <CardDescription>{tImages('description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12 border-2 border-dashed rounded-lg text-muted-foreground">
-                  <p>Image upload component will be added here.</p>
-                  <p className="text-sm mt-2">
-                    Drag and drop or click to upload images.
-                  </p>
+                  <p>{tImages('placeholder')}</p>
+                  <p className="text-sm mt-2">{tImages('hint')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -735,19 +764,19 @@ export function ItemForm({
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              {tActions('cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                {tCommon('saving')}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {mode === 'create' ? 'Create Item' : 'Save Changes'}
+                {mode === 'create' ? tActions('create') : tActions('save')}
               </>
             )}
           </Button>

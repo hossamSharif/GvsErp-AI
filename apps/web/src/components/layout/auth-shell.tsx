@@ -8,10 +8,9 @@
  * can be a server component with dynamic rendering.
  */
 
-import { useLanguageStore, useDirection } from '@/stores/language-store';
+import { useDirection } from '@/hooks/use-direction';
 import { useThemeStore } from '@/stores/theme-store';
-import { locales, localeNames, type Locale } from '@/i18n/config';
-import { useRouter, usePathname } from 'next/navigation';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { type ReactNode } from 'react';
 
 interface AuthShellProps {
@@ -19,18 +18,8 @@ interface AuthShellProps {
 }
 
 export function AuthShell({ children }: AuthShellProps) {
-  const { locale, setLocale } = useLanguageStore();
   const { direction } = useDirection();
   const { theme, setTheme } = useThemeStore();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const handleLanguageChange = (newLocale: Locale) => {
-    setLocale(newLocale);
-    const segments = pathname.split('/');
-    segments[1] = newLocale;
-    router.push(segments.join('/'));
-  };
 
   return (
     <div
@@ -46,18 +35,7 @@ export function AuthShell({ children }: AuthShellProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          <select
-            value={locale}
-            onChange={(e) => handleLanguageChange(e.target.value as Locale)}
-            aria-label="Change language"
-            className="px-3 py-1.5 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            {locales.map((loc) => (
-              <option key={loc} value={loc}>
-                {localeNames[loc]}
-              </option>
-            ))}
-          </select>
+          <LanguageSwitcher className="px-3" />
 
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

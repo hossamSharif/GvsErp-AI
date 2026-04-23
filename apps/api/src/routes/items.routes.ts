@@ -81,6 +81,37 @@ router.post(
 );
 
 /**
+ * GET /items/report
+ * Get items data for report generation.
+ * Registered BEFORE /:id so the literal path is not captured by the param route.
+ */
+router.get(
+  '/report',
+  validateRequest({ query: itemReportParamsSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const params = req.query as unknown as {
+      categoryId?: string;
+      isActive?: boolean;
+      includePrices?: boolean;
+      priceTier?: string;
+      currency?: string;
+    };
+
+    const data = await service.getItemsForReport(params);
+
+    res.json({
+      success: true,
+      data,
+      meta: {
+        total: data.length,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+/**
  * GET /items/:id
  * Get a single item by ID with all relations
  */
@@ -367,40 +398,6 @@ router.delete(
     res.json({
       success: true,
       message: 'Packaging deleted successfully',
-    });
-  })
-);
-
-// =============================================================================
-// REPORT ENDPOINTS
-// =============================================================================
-
-/**
- * GET /items/report
- * Get items data for report generation
- */
-router.get(
-  '/report',
-  validateRequest({ query: itemReportParamsSchema }),
-  asyncHandler(async (req: Request, res: Response) => {
-    const service = getItemService(req);
-    const params = req.query as unknown as {
-      categoryId?: string;
-      isActive?: boolean;
-      includePrices?: boolean;
-      priceTier?: string;
-      currency?: string;
-    };
-
-    const data = await service.getItemsForReport(params);
-
-    res.json({
-      success: true,
-      data,
-      meta: {
-        total: data.length,
-        generatedAt: new Date().toISOString(),
-      },
     });
   })
 );

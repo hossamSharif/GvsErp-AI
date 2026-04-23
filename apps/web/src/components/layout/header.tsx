@@ -7,11 +7,11 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter, usePathname, useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
-import { useLanguageStore, useDirection } from '@/stores/language-store';
-import { locales, localeNames, type Locale } from '@/i18n/config';
+import { useDirection } from '@/hooks/use-direction';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { cn, getInitials } from '@/lib/utils';
 
 interface HeaderProps {
@@ -24,10 +24,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const { user, currentUser, signOut } = useAuth();
   const { theme, setTheme } = useThemeStore();
-  const { locale, setLocale } = useLanguageStore();
   const { isRtl } = useDirection();
   const router = useRouter();
-  const pathname = usePathname();
   const params = useParams();
 
   const currentLocale = params.locale as string;
@@ -91,13 +89,6 @@ export function Header({ onMenuClick }: HeaderProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isUserMenuOpen, closeMenu]);
 
-  const handleLanguageChange = (newLocale: Locale) => {
-    setLocale(newLocale);
-    const segments = pathname.split('/');
-    segments[1] = newLocale;
-    router.push(segments.join('/'));
-  };
-
   const handleSignOut = async () => {
     await signOut();
     router.push(`/${currentLocale}/login`);
@@ -131,18 +122,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       {/* Right side */}
       <div className="flex items-center gap-2">
         {/* Language Switcher */}
-        <select
-          value={locale}
-          onChange={(e) => handleLanguageChange(e.target.value as Locale)}
-          className="px-2 py-1.5 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          aria-label="Change language"
-        >
-          {locales.map((loc) => (
-            <option key={loc} value={loc}>
-              {localeNames[loc]}
-            </option>
-          ))}
-        </select>
+        <LanguageSwitcher />
 
         {/* Theme Toggle */}
         <button

@@ -11,6 +11,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   useCategories,
   useCategoryTree,
@@ -90,6 +91,7 @@ function CategoryTreeItem({
 }: CategoryTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(level === 0);
   const hasChildren = category.children && category.children.length > 0;
+  const tActions = useTranslations('items.categories.itemActions');
 
   return (
     <div className="select-none">
@@ -104,7 +106,11 @@ function CategoryTreeItem({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          aria-label={isExpanded ? `Collapse ${category.name}` : `Expand ${category.name}`}
+          aria-label={
+            isExpanded
+              ? tActions('collapse', { name: category.name })
+              : tActions('expand', { name: category.name })
+          }
           className={cn(
             'p-0.5 rounded hover:bg-muted',
             !hasChildren && 'invisible'
@@ -134,8 +140,8 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7"
             onClick={() => onAddChild(category.id)}
-            aria-label={`Add subcategory to ${category.name}`}
-            title="Add subcategory"
+            aria-label={tActions('addSubcategoryAria', { name: category.name })}
+            title={tActions('addSubcategory')}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -144,8 +150,8 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7"
             onClick={() => onEdit(category)}
-            aria-label={`Edit ${category.name}`}
-            title="Edit"
+            aria-label={tActions('editAria', { name: category.name })}
+            title={tActions('edit')}
           >
             <Pencil className="h-3.5 w-3.5" />
           </Button>
@@ -154,8 +160,8 @@ function CategoryTreeItem({
             size="icon"
             className="h-7 w-7 text-destructive"
             onClick={() => onDelete(category)}
-            aria-label={`Delete ${category.name}`}
-            title="Delete"
+            aria-label={tActions('deleteAria', { name: category.name })}
+            title={tActions('delete')}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -190,6 +196,8 @@ export default function CategoriesPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('items.categories');
+  const tCommon = useTranslations('common');
 
   // UI State
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -207,13 +215,13 @@ export default function CategoriesPage() {
   // Mutations
   const createMutation = useCreateCategory({
     onSuccess: () => {
-      toast({ title: 'Category created', description: 'The category has been created.' });
+      toast({ title: t('toasts.created'), description: t('toasts.createdDescription') });
       closeDialog();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create category',
+        title: tCommon('error'),
+        description: error.message || t('toasts.createFailed'),
         variant: 'destructive',
       });
     },
@@ -221,13 +229,13 @@ export default function CategoriesPage() {
 
   const updateMutation = useUpdateCategory({
     onSuccess: () => {
-      toast({ title: 'Category updated', description: 'The category has been updated.' });
+      toast({ title: t('toasts.updated'), description: t('toasts.updatedDescription') });
       closeDialog();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update category',
+        title: tCommon('error'),
+        description: error.message || t('toasts.updateFailed'),
         variant: 'destructive',
       });
     },
@@ -235,14 +243,14 @@ export default function CategoriesPage() {
 
   const deleteMutation = useDeleteCategory({
     onSuccess: () => {
-      toast({ title: 'Category deleted', description: 'The category has been deleted.' });
+      toast({ title: t('toasts.deleted'), description: t('toasts.deletedDescription') });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete category',
+        title: tCommon('error'),
+        description: error.message || t('toasts.deleteFailed'),
         variant: 'destructive',
       });
     },
@@ -313,30 +321,26 @@ export default function CategoriesPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.push(`/${locale}/items`)}
-            aria-label="Back to items"
+            aria-label={t('backAriaLabel')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-            <p className="text-muted-foreground">
-              Organize your items into categories and subcategories.
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('description')}</p>
           </div>
         </div>
         <Button onClick={() => openCreateDialog(null)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Category
+          {t('addButton')}
         </Button>
       </div>
 
       {/* Category Tree */}
       <Card>
         <CardHeader>
-          <CardTitle>Category Tree</CardTitle>
-          <CardDescription>
-            Click on a category to expand/collapse. Hover to see actions.
-          </CardDescription>
+          <CardTitle>{t('treeTitle')}</CardTitle>
+          <CardDescription>{t('treeDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -348,8 +352,8 @@ export default function CategoriesPage() {
           ) : !treeData?.data || treeData.data.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Folder className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>No categories yet.</p>
-              <p className="text-sm">Click &quot;Add Category&quot; to create your first category.</p>
+              <p>{t('emptyTitle')}</p>
+              <p className="text-sm">{t('emptyHint')}</p>
             </div>
           ) : (
             <div className="border rounded-md">
@@ -373,22 +377,20 @@ export default function CategoriesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Edit Category' : 'New Category'}
+              {editingCategory ? t('editTitle') : t('newTitle')}
             </DialogTitle>
             <DialogDescription>
-              {editingCategory
-                ? 'Update the category details.'
-                : 'Create a new category to organize your items.'}
+              {editingCategory ? t('editDescription') : t('newDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {/* Category Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('nameLabel')}</Label>
               <Input
                 id="name"
-                placeholder="Enter category name"
+                placeholder={t('namePlaceholder')}
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
                 autoFocus
@@ -397,7 +399,7 @@ export default function CategoriesPage() {
 
             {/* Parent Category */}
             <div className="space-y-2">
-              <Label htmlFor="parent">Parent Category</Label>
+              <Label htmlFor="parent">{t('parentLabel')}</Label>
               <Select
                 value={selectedParentId || 'none'}
                 onValueChange={(value) =>
@@ -405,10 +407,10 @@ export default function CategoriesPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select parent category" />
+                  <SelectValue placeholder={t('parentPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No parent (root category)</SelectItem>
+                  <SelectItem value="none">{t('parentNone')}</SelectItem>
                   {flatData?.data
                     ?.filter((cat) => cat.id !== editingCategory?.id)
                     .map((category) => (
@@ -423,18 +425,18 @@ export default function CategoriesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog} disabled={isSubmitting}>
-              Cancel
+              {t('cancelButton')}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting || !categoryName.trim()}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {tCommon('saving')}
                 </>
               ) : editingCategory ? (
-                'Save Changes'
+                t('saveButton')
               ) : (
-                'Create Category'
+                t('createButton')
               )}
             </Button>
           </DialogFooter>
@@ -445,23 +447,22 @@ export default function CategoriesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{categoryToDelete?.name}&quot;?
-              This action cannot be undone.
+              {t('deleteDialog.description', { name: categoryToDelete?.name ?? '' })}
               <br />
               <br />
-              <strong>Note:</strong> You can only delete categories that have no
-              subcategories and no items.
+              <strong>{t('deleteDialog.note')}</strong>{' '}
+              {t('deleteDialog.noteBody')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? tCommon('deleting') : tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

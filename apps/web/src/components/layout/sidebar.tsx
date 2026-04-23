@@ -10,11 +10,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { useDirection } from '@/stores/language-store';
+import { useTranslations } from 'next-intl';
+import { useDirection } from '@/hooks/use-direction';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   href: string;
   icon: React.ReactNode;
   permission?: string;
@@ -24,80 +25,80 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    label: 'Dashboard',
+    labelKey: 'dashboard',
     href: '',
     icon: <HomeIcon className="w-5 h-5" />,
   },
   {
-    label: 'Sales',
+    labelKey: 'sales',
     href: '/sales',
     icon: <TrendingUpIcon className="w-5 h-5" />,
     permission: 'invoices:read',
   },
   {
-    label: 'Purchases',
+    labelKey: 'purchases',
     href: '/purchases',
     icon: <ShoppingCartIcon className="w-5 h-5" />,
     permission: 'invoices:read',
   },
   {
-    label: 'Items',
+    labelKey: 'items',
     href: '/items',
     icon: <BoxIcon className="w-5 h-5" />,
     permission: 'items:read',
   },
   {
-    label: 'Customers',
+    labelKey: 'customers',
     href: '/customers',
     icon: <UsersIcon className="w-5 h-5" />,
     permission: 'parties:read',
   },
   {
-    label: 'Suppliers',
+    labelKey: 'suppliers',
     href: '/suppliers',
     icon: <TruckIcon className="w-5 h-5" />,
     permission: 'parties:read',
   },
   {
-    label: 'Payments',
+    labelKey: 'payments',
     href: '/payments',
     icon: <CreditCardIcon className="w-5 h-5" />,
     permission: 'payments:read',
   },
   {
-    label: 'Warehouses',
+    labelKey: 'warehouses',
     href: '/warehouses',
     icon: <WarehouseIcon className="w-5 h-5" />,
     permission: 'warehouses:read',
   },
   {
-    label: 'POS',
+    labelKey: 'pos',
     href: '/pos',
     icon: <StoreIcon className="w-5 h-5" />,
     permission: 'pos:read',
   },
   {
-    label: 'Accounting',
+    labelKey: 'accounting',
     href: '/accounting/accounts',
     icon: <CalculatorIcon className="w-5 h-5" />,
     permission: 'accounting:read',
     activePrefix: '/accounting',
   },
   {
-    label: 'HR',
+    labelKey: 'hr',
     href: '/hr/employees',
     icon: <BadgeIcon className="w-5 h-5" />,
     permission: 'hr:read',
     activePrefix: '/hr',
   },
   {
-    label: 'Expenses',
+    labelKey: 'expenses',
     href: '/expenses',
     icon: <ReceiptIcon className="w-5 h-5" />,
     permission: 'expenses:read',
   },
   {
-    label: 'Settings',
+    labelKey: 'settings',
     href: '/settings',
     icon: <SettingsIcon className="w-5 h-5" />,
   },
@@ -112,6 +113,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const params = useParams();
   const { isRtl } = useDirection();
+  const t = useTranslations('nav');
   const locale = params.locale as string;
 
   const basePath = `/${locale}`;
@@ -162,6 +164,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 ? pathname === basePath || pathname === `${basePath}/`
                 : pathname.startsWith(matchPath);
 
+            const label = t(item.labelKey);
             return (
               <li key={item.href}>
                 <Link
@@ -173,12 +176,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                       : 'hover:bg-muted text-foreground',
                     isCollapsed && 'justify-center'
                   )}
-                  title={isCollapsed ? item.label : undefined}
+                  title={isCollapsed ? label : undefined}
                   aria-current={isActive ? 'page' : undefined}
-                  aria-label={isCollapsed ? item.label : undefined}
+                  aria-label={isCollapsed ? label : undefined}
                 >
                   <span aria-hidden="true">{item.icon}</span>
-                  {!isCollapsed && <span>{item.label}</span>}
+                  {!isCollapsed && <span>{label}</span>}
                 </Link>
               </li>
             );

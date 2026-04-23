@@ -8,6 +8,7 @@
 
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { useItem, useUpdateItem } from '@/hooks/use-items';
 import { ItemForm } from '@/components/forms/item-form';
@@ -29,6 +30,21 @@ export default function EditItemPage() {
   const locale = params.locale as string;
   const itemId = params.id as string;
   const { toast } = useToast();
+  const t = useTranslations('items.edit');
+  const tCommon = useTranslations('common');
+  const tErrors = useTranslations('items.errors');
+
+  const translateApiError = (error: Error & { code?: string }, fallback: string) => {
+    const code = error?.code;
+    if (code) {
+      try {
+        return tErrors(code as 'DUPLICATE_SKU' | 'DUPLICATE_BARCODE' | 'ITEM_NOT_FOUND' | 'CATEGORY_NOT_FOUND');
+      } catch {
+        // unknown code — fall through
+      }
+    }
+    return error?.message || fallback;
+  };
 
   // Fetch item data
   const {
@@ -50,14 +66,14 @@ export default function EditItemPage() {
   const updateMutation = useUpdateItem({
     onSuccess: (response) => {
       toast({
-        title: 'Item updated',
-        description: `${response.data.name} has been updated successfully.`,
+        title: t('toasts.updated'),
+        description: t('toasts.updatedDescription', { name: response.data.name }),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update item',
+        title: tCommon('error'),
+        description: translateApiError(error, t('toasts.updateFailed')),
         variant: 'destructive',
       });
     },
@@ -100,10 +116,10 @@ export default function EditItemPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
         <p className="text-destructive">
-          {itemError?.message || 'Item not found'}
+          {itemError?.message || t('notFound')}
         </p>
         <Button onClick={() => router.push(`/${locale}/items`)}>
-          Back to Items
+          {t('backToItems')}
         </Button>
       </div>
     );
@@ -118,16 +134,14 @@ export default function EditItemPage() {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Go back to items"
+          aria-label={t('backAriaLabel')}
           onClick={() => router.push(`/${locale}/items`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
-          <p className="text-muted-foreground">
-            Edit item details, pricing, and packaging options.
-          </p>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </div>
 

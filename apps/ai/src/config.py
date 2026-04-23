@@ -38,6 +38,16 @@ class Settings(BaseSettings):
 
     erp_api_base_url: str = "http://localhost:3001/api/v1"
 
+    # Phase 4: RAG store backend. "chroma" = in-memory (Phase 3 default).
+    # "pgvector" = Supabase ai_embeddings table (requires migration 014).
+    rag_backend: str = "chroma"
+
+    # Standalone scheduler config (only consumed by src/pipelines/scheduler.py).
+    pipeline_tenant_id: str = ""
+    pipeline_user_jwt: str = ""
+    pipeline_reembed_interval_min: int = 1440  # 24h
+    pipeline_balance_interval_min: int = 60
+
     def api_key_for(self, provider: str) -> str:
         return {
             "google": self.google_api_key,

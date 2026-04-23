@@ -420,24 +420,26 @@ export class ItemService {
       sort_by: 'name',
       sort_order: 'asc',
       categoryId: params.categoryId,
-      includeInactive: params.isActive === false ? true : params.isActive === true ? false : true,
+      // When isActive is explicitly set, narrow to exactly that value.
+      // Otherwise include everything (active + inactive).
+      isActive: typeof params.isActive === 'boolean' ? params.isActive : undefined,
+      includeInactive: true,
     });
 
-    const entries: ItemReportEntry[] = [];
+    // Batch-fetch current prices to avoid N+1 — one query instead of items × tiers.
+    let priceMap = new Map<string, Record<string, number>>();
+    if (params.includePrices !== false && queryResult.data.length > 0) {
+      const currency = params.currency || 'USD';
+      priceMap = await this.itemRepository.getCurrentPricesForItems(
+        this.tenantId,
+        queryResult.data.map((i) => i.id),
+        currency
+      );
+    }
 
-    for (const item of queryResult.data) {
-      let retailPrice: number | null = null;
-      let wholesalePrice: number | null = null;
-      let costPrice: number | null = null;
-
-      if (params.includePrices !== false) {
-        const currency = params.currency || 'USD';
-        retailPrice = await this.getCurrentPrice(item.id, 'retail', currency);
-        wholesalePrice = await this.getCurrentPrice(item.id, 'wholesale', currency);
-        costPrice = await this.getCurrentPrice(item.id, 'cost', currency);
-      }
-
-      entries.push({
+    return queryResult.data.map((item) => {
+      const tiers = priceMap.get(item.id) || {};
+      return {
         id: item.id,
         name: item.name,
         sku: item.sku,
@@ -445,14 +447,12 @@ export class ItemService {
         brand: item.brand,
         category: item.category?.name || null,
         unitOfMeasure: item.unitOfMeasure,
-        retailPrice,
-        wholesalePrice,
-        costPrice,
+        retailPrice: tiers.retail ?? null,
+        wholesalePrice: tiers.wholesale ?? null,
+        costPrice: tiers.cost ?? null,
         isActive: item.isActive,
-      });
-    }
-
-    return entries;
+      };
+    });
   }
 
   // ==========================================================================

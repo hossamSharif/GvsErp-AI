@@ -8,6 +8,7 @@
  */
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   DndContext,
   closestCenter,
@@ -187,6 +188,7 @@ function SortableRow({
   stockAvailable,
   readOnly,
 }: SortableRowProps) {
+  const t = useTranslations('sales.items');
   const {
     attributes,
     listeners,
@@ -222,7 +224,7 @@ function SortableRow({
             {...attributes}
             {...listeners}
             className="cursor-grab touch-none p-1 opacity-50 hover:opacity-100"
-            aria-label={`Reorder ${item.itemName}`}
+            aria-label={t('ariaReorder', { name: item.itemName })}
           >
             <GripVertical className="h-4 w-4" />
           </button>
@@ -250,7 +252,7 @@ function SortableRow({
           value={item.description}
           onChange={(v) => onUpdate(item.localId, 'description', String(v))}
           readOnly={readOnly}
-          aria-label={`Description for ${item.itemName}`}
+          aria-label={t('ariaDescription', { name: item.itemName })}
         />
       </TableCell>
 
@@ -265,7 +267,7 @@ function SortableRow({
             step={0.001}
             readOnly={readOnly}
             className="w-20"
-            aria-label={`Quantity for ${item.itemName}`}
+            aria-label={t('ariaQuantity', { name: item.itemName })}
           />
           {stockAvailable !== undefined && (
             <span
@@ -274,7 +276,7 @@ function SortableRow({
                 hasInsufficientStock ? 'text-destructive' : 'text-muted-foreground'
               )}
             >
-              Stock: {stockAvailable}
+              {t('stock', { count: stockAvailable })}
             </span>
           )}
         </div>
@@ -290,7 +292,7 @@ function SortableRow({
           step={0.01}
           readOnly={readOnly}
           className="w-24"
-          aria-label={`Unit price for ${item.itemName}`}
+          aria-label={t('ariaUnitPrice', { name: item.itemName })}
         />
       </TableCell>
 
@@ -305,7 +307,7 @@ function SortableRow({
           step={0.1}
           readOnly={readOnly}
           className="w-16"
-          aria-label={`Discount percent for ${item.itemName}`}
+          aria-label={t('ariaDiscountPercent', { name: item.itemName })}
         />
       </TableCell>
 
@@ -320,7 +322,7 @@ function SortableRow({
           step={0.1}
           readOnly={readOnly}
           className="w-16"
-          aria-label={`Tax rate for ${item.itemName}`}
+          aria-label={t('ariaTaxRate', { name: item.itemName })}
         />
       </TableCell>
 
@@ -340,7 +342,7 @@ function SortableRow({
             size="icon"
             className="h-8 w-8 opacity-40 hover:opacity-100 focus-visible:opacity-100"
             onClick={() => onRemove(item.localId)}
-            aria-label={`Remove ${item.itemName}`}
+            aria-label={t('ariaRemove', { name: item.itemName })}
           >
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -365,6 +367,7 @@ export function InvoiceItemsTable({
   readOnly = false,
   className,
 }: InvoiceItemsTableProps) {
+  const t = useTranslations('sales.items');
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -410,14 +413,14 @@ export function InvoiceItemsTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10"></TableHead>
-                <TableHead className="w-12 text-center">#</TableHead>
-                <TableHead className="min-w-[200px]">Item</TableHead>
-                <TableHead className="min-w-[150px]">Description</TableHead>
-                <TableHead className="w-24">Qty</TableHead>
-                <TableHead className="w-28">Unit Price</TableHead>
-                <TableHead className="w-20">Disc %</TableHead>
-                <TableHead className="w-20">Tax %</TableHead>
-                <TableHead className="w-32 text-right">Total</TableHead>
+                <TableHead className="w-12 text-center">{t('columns.row')}</TableHead>
+                <TableHead className="min-w-[200px]">{t('columns.item')}</TableHead>
+                <TableHead className="min-w-[150px]">{t('columns.description')}</TableHead>
+                <TableHead className="w-24">{t('columns.qty')}</TableHead>
+                <TableHead className="w-28">{t('columns.unitPrice')}</TableHead>
+                <TableHead className="w-20">{t('columns.discountPercent')}</TableHead>
+                <TableHead className="w-20">{t('columns.taxPercent')}</TableHead>
+                <TableHead className="w-32 text-right">{t('columns.total')}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -444,11 +447,11 @@ export function InvoiceItemsTable({
                   <TableCell colSpan={10} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Search className="h-8 w-8" />
-                      <p>No items added yet</p>
+                      <p>{t('empty')}</p>
                       {!readOnly && (
                         <Button variant="outline" size="sm" onClick={onAddItem}>
                           <Plus className="h-4 w-4 mr-2" />
-                          Add Item
+                          {t('addItem')}
                         </Button>
                       )}
                     </div>
@@ -464,7 +467,7 @@ export function InvoiceItemsTable({
       {!readOnly && items.length > 0 && (
         <Button variant="outline" onClick={onAddItem}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Item
+          {t('addItem')}
         </Button>
       )}
 
@@ -473,7 +476,7 @@ export function InvoiceItemsTable({
         <div className="flex justify-end">
           <div className="w-64 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">{t('subtotal')}</span>
               <span>
                 {subtotal.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -482,7 +485,7 @@ export function InvoiceItemsTable({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tax:</span>
+              <span className="text-muted-foreground">{t('tax')}</span>
               <span>
                 {taxTotal.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -491,7 +494,7 @@ export function InvoiceItemsTable({
               </span>
             </div>
             <div className="flex justify-between border-t pt-2 font-medium">
-              <span>Total:</span>
+              <span>{t('total')}</span>
               <span>
                 {grandTotal.toLocaleString(undefined, {
                   minimumFractionDigits: 2,

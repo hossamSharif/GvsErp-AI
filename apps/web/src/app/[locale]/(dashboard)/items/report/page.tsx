@@ -9,6 +9,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { useItemsReport } from '@/hooks/use-items';
 import { useCategories } from '@/hooks/use-categories';
@@ -54,14 +55,16 @@ const ItemsReportDocument = dynamic(
 // CONSTANTS
 // =============================================================================
 
-const CURRENCIES = [
-  { value: 'USD', label: 'US Dollar ($)', symbol: '$' },
-  { value: 'EUR', label: 'Euro', symbol: '€' },
-  { value: 'GBP', label: 'British Pound', symbol: '£' },
-  { value: 'EGP', label: 'Egyptian Pound', symbol: 'E£' },
-  { value: 'SAR', label: 'Saudi Riyal', symbol: 'SAR ' },
-  { value: 'AED', label: 'UAE Dirham', symbol: 'AED ' },
-];
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  EGP: 'E£',
+  SAR: 'SAR ',
+  AED: 'AED ',
+};
+
+const CURRENCY_CODES = ['USD', 'EUR', 'GBP', 'EGP', 'SAR', 'AED'] as const;
 
 // =============================================================================
 // COMPONENT
@@ -73,7 +76,11 @@ export default function ItemsReportPage() {
   const locale = params.locale as string;
   const { toast } = useToast();
   const { currentUser } = useAuth();
-  const companyName = currentUser?.tenant?.name || 'Your Company';
+  const t = useTranslations('items.report');
+  const tCommon = useTranslations('common');
+  const tCurrencies = useTranslations('items.currencies');
+  const tPdf = useTranslations('items.report.pdf');
+  const companyName = currentUser?.tenant?.name || t('defaultCompanyName');
 
   // Filter state
   const [reportParams, setReportParams] = useState<ItemReportParams>({
@@ -97,7 +104,22 @@ export default function ItemsReportPage() {
 
   // Get currency symbol
   const currencySymbol =
-    CURRENCIES.find((c) => c.value === reportParams.currency)?.symbol || '$';
+    CURRENCY_SYMBOLS[reportParams.currency || 'USD'] || '$';
+
+  // Localized currency label
+  const getCurrencyLabel = useCallback(
+    (code: string) => {
+      const key = code.toLowerCase() as
+        | 'usd'
+        | 'eur'
+        | 'gbp'
+        | 'egp'
+        | 'sar'
+        | 'aed';
+      return tCurrencies(key);
+    },
+    [tCurrencies]
+  );
 
   // Generate filter description
   const getFilterDescription = useCallback(() => {
@@ -107,20 +129,54 @@ export default function ItemsReportPage() {
         (c) => c.id === reportParams.categoryId
       );
       if (category) {
-        parts.push(`Category: ${category.name}`);
+        parts.push(t('filterCategory', { name: category.name }));
       }
     }
     if (reportParams.isActive !== undefined) {
-      parts.push(`Status: ${reportParams.isActive ? 'Active' : 'Inactive'}`);
+      parts.push(
+        t('filterStatus', {
+          value: reportParams.isActive
+            ? t('filterStatusActive')
+            : t('filterStatusInactive'),
+        })
+      );
     }
-    return parts.length > 0 ? parts.join(', ') : 'All items';
-  }, [reportParams, categoriesData]);
+    return parts.length > 0 ? parts.join(', ') : t('filterAllItems');
+  }, [reportParams, categoriesData, t]);
 
   // Handle preview
   const handlePreview = useCallback(async () => {
     await refetch();
     setShowPreview(true);
   }, [refetch]);
+
+  // Build localized PDF labels bundle
+  const getPdfLabels = useCallback(
+    () => ({
+      filter: tPdf('filter'),
+      generated: tPdf('generated'),
+      totalItems: tPdf('totalItems'),
+      columnName: tPdf('columnName'),
+      columnSku: tPdf('columnSku'),
+      columnBarcode: tPdf('columnBarcode'),
+      columnCategory: tPdf('columnCategory'),
+      columnUnit: tPdf('columnUnit'),
+      columnRetail: tPdf('columnRetail'),
+      columnWholesale: tPdf('columnWholesale'),
+      columnStatus: tPdf('columnStatus'),
+      summary: tPdf('summary'),
+      activeItems: tPdf('activeItems'),
+      inactiveItems: tPdf('inactiveItems'),
+      itemsWithRetailPrice: tPdf('itemsWithRetailPrice'),
+      avgRetailPrice: tPdf('avgRetailPrice'),
+      footerLabel: tPdf('footerLabel'),
+      pageNumberTemplate: tPdf.raw('pageNumber') as string,
+      statusActive: tPdf('statusActive'),
+      statusInactive: tPdf('statusInactive'),
+      locale,
+    }),
+    [tPdf, locale]
+  );
 
   // Handle download
   const handleDownload = useCallback(async () => {
@@ -130,30 +186,31 @@ export default function ItemsReportPage() {
       if (result.data?.data) {
         await downloadItemsReport(
           {
-            title: 'Inventory Items Report',
+            title: t('documentTitle'),
             companyName,
             items: result.data.data,
             currencySymbol,
             filterDescription: getFilterDescription(),
             generatedAt: new Date(),
+            labels: getPdfLabels(),
           },
-          `items-report-${new Date().toISOString().split('T')[0]}.pdf`
+          `${t('fileNamePrefix')}-${new Date().toISOString().split('T')[0]}.pdf`
         );
         toast({
-          title: 'Report downloaded',
-          description: 'The PDF report has been downloaded successfully.',
+          title: t('toasts.downloaded'),
+          description: t('toasts.downloadedDescription'),
         });
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to generate report',
+        title: tCommon('error'),
+        description: t('toasts.generateFailed'),
         variant: 'destructive',
       });
     } finally {
       setIsDownloading(false);
     }
-  }, [refetch, currencySymbol, getFilterDescription, toast]);
+  }, [refetch, currencySymbol, getFilterDescription, toast, companyName, getPdfLabels, t, tCommon]);
 
   return (
     <div className="space-y-6">
@@ -162,16 +219,14 @@ export default function ItemsReportPage() {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Go back to items"
+          aria-label={t('backAriaLabel')}
           onClick={() => router.push(`/${locale}/items`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Items Report</h1>
-          <p className="text-muted-foreground">
-            Generate and download inventory reports as PDF.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </div>
 
@@ -179,15 +234,13 @@ export default function ItemsReportPage() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Report Options</CardTitle>
-            <CardDescription>
-              Configure filters and options for the report.
-            </CardDescription>
+            <CardTitle>{t('optionsTitle')}</CardTitle>
+            <CardDescription>{t('optionsDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Category Filter */}
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>{t('category')}</Label>
               <Select
                 value={reportParams.categoryId || 'all'}
                 onValueChange={(value) =>
@@ -198,10 +251,10 @@ export default function ItemsReportPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="All categories" />
+                  <SelectValue placeholder={t('categoryAll')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="all">{t('categoryAll')}</SelectItem>
                   {categoriesData?.data?.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -213,7 +266,7 @@ export default function ItemsReportPage() {
 
             {/* Status Filter */}
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t('status')}</Label>
               <Select
                 value={
                   reportParams.isActive === undefined
@@ -238,16 +291,16 @@ export default function ItemsReportPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All items</SelectItem>
-                  <SelectItem value="active">Active only</SelectItem>
-                  <SelectItem value="inactive">Inactive only</SelectItem>
+                  <SelectItem value="all">{t('statusAll')}</SelectItem>
+                  <SelectItem value="active">{t('statusActive')}</SelectItem>
+                  <SelectItem value="inactive">{t('statusInactive')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Currency */}
             <div className="space-y-2">
-              <Label>Currency</Label>
+              <Label>{t('currency')}</Label>
               <Select
                 value={reportParams.currency}
                 onValueChange={(value) =>
@@ -258,9 +311,9 @@ export default function ItemsReportPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CURRENCIES.map((currency) => (
-                    <SelectItem key={currency.value} value={currency.value}>
-                      {currency.label}
+                  {CURRENCY_CODES.map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {getCurrencyLabel(code)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -270,9 +323,9 @@ export default function ItemsReportPage() {
             {/* Include Prices */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Include Prices</Label>
+                <Label>{t('includePrices')}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Show retail and wholesale prices
+                  {t('includePricesDescription')}
                 </p>
               </div>
               <Switch
@@ -289,12 +342,12 @@ export default function ItemsReportPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
+                    {t('loading')}
                   </>
                 ) : (
                   <>
                     <Eye className="mr-2 h-4 w-4" />
-                    Preview Report
+                    {t('previewButton')}
                   </>
                 )}
               </Button>
@@ -306,12 +359,12 @@ export default function ItemsReportPage() {
                 {isDownloading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Download PDF
+                    {t('downloadButton')}
                   </>
                 )}
               </Button>
@@ -322,37 +375,36 @@ export default function ItemsReportPage() {
         {/* Preview */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Preview</CardTitle>
-            <CardDescription>
-              Preview the report before downloading.
-            </CardDescription>
+            <CardTitle>{t('preview')}</CardTitle>
+            <CardDescription>{t('previewDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {error ? (
               <div className="flex flex-col items-center justify-center h-[600px] text-center">
                 <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <p className="text-destructive">Failed to load report data</p>
+                <p className="text-destructive">{t('errorLoading')}</p>
                 <Button variant="link" onClick={() => refetch()}>
-                  Try again
+                  {tCommon('tryAgain')}
                 </Button>
               </div>
             ) : !showPreview || !reportData?.data ? (
               <div className="flex flex-col items-center justify-center h-[600px] text-center">
                 <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
-                  Click &quot;Preview Report&quot; to see the report
+                  {t('clickToPreview')}
                 </p>
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden">
                 <PDFViewer width="100%" height={600} showToolbar={false}>
                   <ItemsReportDocument
-                    title="Inventory Items Report"
+                    title={t('documentTitle')}
                     companyName={companyName}
                     items={reportData.data}
                     currencySymbol={currencySymbol}
                     filterDescription={getFilterDescription()}
                     generatedAt={new Date()}
+                    labels={getPdfLabels()}
                   />
                 </PDFViewer>
               </div>

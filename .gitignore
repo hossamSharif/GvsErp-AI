@@ -42,6 +42,8 @@ coverage/
 
 # Supabase
 .supabase/
+# Local Supabase credential notes — contains live keys, never commit
+docs/supabaseNew.md
 
 # Temporary files
 *.tmp

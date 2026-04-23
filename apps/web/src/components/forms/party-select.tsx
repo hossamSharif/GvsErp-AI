@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, ChevronsUpDown, Search, User, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -71,11 +72,13 @@ export function PartySelect({
   partyType,
   parties,
   isLoading = false,
-  placeholder = 'Select party...',
+  placeholder,
   disabled = false,
   error,
   className,
 }: PartySelectProps) {
+  const t = useTranslations('sales.party');
+  const placeholderText = placeholder ?? t('selectPlaceholder');
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -131,9 +134,9 @@ export function PartySelect({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    if (balance > 0) return `Owes: ${formatted}`;
-    if (balance < 0) return `Credit: ${formatted}`;
-    return 'Balance: 0.00';
+    if (balance > 0) return t('owes', { amount: formatted });
+    if (balance < 0) return t('credit', { amount: formatted });
+    return t('balanceZero');
   };
 
   return (
@@ -174,12 +177,20 @@ export function PartySelect({
                   </span>
                 </div>
                 {value && (
-                  <button
-                    type="button"
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t('clear')}
                     onClick={handleClear}
-                    className="ml-auto shrink-0 text-muted-foreground hover:text-foreground"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleClear(e as unknown as React.MouseEvent);
+                      }
+                    }}
+                    className="ml-auto shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    <span className="sr-only">Clear</span>
+                    <span className="sr-only">{t('clear')}</span>
                     <svg
                       className="h-4 w-4"
                       fill="none"
@@ -193,11 +204,11 @@ export function PartySelect({
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                  </button>
+                  </span>
                 )}
               </div>
             ) : (
-              <span>{placeholder}</span>
+              <span>{placeholderText}</span>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -208,8 +219,8 @@ export function PartySelect({
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input
                 className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 focus:ring-2 focus:ring-ring focus:ring-offset-1"
-                placeholder="Search by name, email, or phone..."
-                aria-label="Search parties"
+                placeholder={t('search')}
+                aria-label={t('searchAriaLabel')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -217,10 +228,10 @@ export function PartySelect({
             <CommandList>
               {isLoading ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
-                  Loading...
+                  {t('loading')}
                 </div>
               ) : filteredParties.length === 0 ? (
-                <CommandEmpty>No parties found.</CommandEmpty>
+                <CommandEmpty>{t('empty')}</CommandEmpty>
               ) : (
                 <CommandGroup>
                   {filteredParties.map((party) => (
@@ -248,7 +259,7 @@ export function PartySelect({
                                   : 'border-purple-500 text-purple-500'
                               )}
                             >
-                              {party.type}
+                              {party.type === 'customer' ? t('typeCustomer') : t('typeSupplier')}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
