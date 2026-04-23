@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+*.log
+.DS_Store
+
+# Build artefacts
+dist/
+build/
+*.egg-info/
+
+# Local generated files (PDFs/Excel during dev)
+generated/
