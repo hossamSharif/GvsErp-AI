@@ -2,8 +2,8 @@
 
 ## Progress
 
-**Last session:** 2026-04-23 — Phase 3 complete (Chroma in-memory + LangChain utilities, `search_knowledge` tool, `generate_party_summary_pdf` with RAG-grounded narrative, Streamlit re-index button).
-**Next up:** Phase 4 — Pipelines + pgvector migration (APScheduler daily re-embed, Supabase `ai_embeddings` table + RLS + ivfflat, swap Chroma → `SupabaseVectorStore`, Excel export tool).
+**Last session:** 2026-04-23 — Phase 4 complete (pgvector migration `014_ai_embeddings.sql` with JWT-claim RLS + `match_ai_embeddings` RPC, backend-aware vector store, hash-aware idempotent ingest with delete-stale, parity check, APScheduler daily re-embed + hourly balance snapshot, Excel export tool with matplotlib chart embed).
+**Next up:** Phase 5 — MCP fundamentals: install the Python `mcp` SDK, wrap the Phase 2 ERP tools as a stdio MCP server (`src/mcp_server/erp_tools.py`), refactor the agent to be an MCP client of its own server, register in Claude Desktop and verify external call works.
 
 ### Phase 0 — Bootstrap ✅ (2026-04-19)
 - [x] uv installed (0.8.17)
@@ -42,13 +42,14 @@
 - [x] Learning note `03-rag-chroma-langchain.md`
 - **Notes:** LangChain 1.x split Chroma into its own `langchain-chroma` package — added it alongside `langchain-community`. In-memory `Chroma(...)` with no `persist_directory`; `reset_store()` drops the collection so every re-ingest is a full refresh (idempotent upsert deferred to Phase 4). `ToolContext` extended with `provider`/`model` so tools that need their own LLM call (narrative synthesis) use the user's chosen backend. Metadata filtering on `party_id` is what makes the narrative trustworthy — semantic search alone pulls in other parties. Streamlit sidebar gets a "Re-index ERP" button + chunk-count status line.
 
-### Phase 4 — Pipelines + pgvector migration
-- [ ] `src/pipelines/scheduler.py` — APScheduler (daily re-embed, hourly balance snapshot)
-- [ ] Supabase migration: `CREATE EXTENSION vector` + `ai_embeddings` table + RLS + ivfflat index
-- [ ] Swap vector store: Chroma → `SupabaseVectorStore` (same retriever interface)
-- [ ] Backfill + parity test
-- [ ] Excel export tool (openpyxl + matplotlib chart embed)
-- [ ] Learning note `04-pipelines-pgvector-migration.md`
+### Phase 4 — Pipelines + pgvector migration ✅ (2026-04-23)
+- [x] `src/pipelines/scheduler.py` — APScheduler (daily re-embed, hourly balance snapshot)
+- [x] Supabase migration: `CREATE EXTENSION vector` + `ai_embeddings` table + RLS + ivfflat index
+- [x] Swap vector store: Chroma → `SupabaseVectorStore` (same retriever interface)
+- [x] Backfill + parity test
+- [x] Excel export tool (openpyxl + matplotlib chart embed)
+- [x] Learning note `04-pipelines-pgvector-migration.md`
+- **Notes:** Migration `packages/database/migrations/014_ai_embeddings.sql` adds `ai_embeddings` (id, tenant_id, source_table, source_id, content, content_hash, embedding vector(768), metadata jsonb, embedded_at) + ivfflat index + JWT-claim RLS (NOT the broken `current_setting('app.current_tenant_id')` pattern — see `013_fix_sales_rls_jwt.sql`). Same migration adds `ai_balance_snapshots` for the hourly job and a `match_ai_embeddings(query_embedding, match_count, filter)` PL/pgSQL RPC that LangChain's `SupabaseVectorStore` reads through. `src/rag/store.py` is now backend-aware (`settings.rag_backend = "chroma" | "pgvector"`) — same `VectorStore` interface to callers; `retrieve.py` + `search_knowledge` + `generate_party_summary_pdf` all thread `client=ctx.supabase` through. Writes to pgvector go through `src/rag/store_pg.py:upsert_embeddings`, which hashes content (sha256) and skips rows whose hash matches the prior insert — re-running the pipeline on unchanged data reports `inserted=0 updated=0 skipped=N`. `delete_stale` drops source_ids that disappeared from the latest ERP pull. `src/rag/parity.py` constructs both stores in one process and reports Jaccard overlap of top-k source_ids per probe query. `src/pipelines/scheduler.py` is single-tenant per process (PIPELINE_TENANT_ID + PIPELINE_USER_JWT in env) with `coalesce=True` + `max_instances=1` and a priming run on startup; multi-tenant loop deferred to Phase 7+. Excel tool uses `matplotlib.use("Agg")` for headless chart rendering, embeds a PNG on a second worksheet via `openpyxl.drawing.image.Image`. Streamlit sidebar surfaces the active backend label + tenant_id (from `user.user_metadata`); the same authenticated supabase client is reused for chat tools and pgvector ingest.
 
 ### Phase 5 — MCP fundamentals: build your own server
 - [ ] Install official `mcp` Python SDK
