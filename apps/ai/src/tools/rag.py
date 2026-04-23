@@ -29,7 +29,7 @@ class SearchKnowledgeArgs(BaseModel):
 async def search_knowledge(
     args: SearchKnowledgeArgs, ctx: ToolContext
 ) -> dict[str, Any]:
-    docs = search(args.query, k=args.k)
+    docs = search(args.query, k=args.k, client=ctx.supabase)
     return {
         "query": args.query,
         "count": len(docs),

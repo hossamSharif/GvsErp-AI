@@ -114,7 +114,7 @@ def _render_pdf_bytes(
 async def generate_party_summary_pdf(
     args: GeneratePartySummaryPdfArgs, ctx: ToolContext
 ) -> dict[str, Any]:
-    docs = search_by_party(args.party_id, k=args.k)
+    docs = search_by_party(args.party_id, k=args.k, client=ctx.supabase)
 
     display_name = args.party_name or next(
         (d.metadata.get("party_name") for d in docs if d.metadata.get("party_name")),

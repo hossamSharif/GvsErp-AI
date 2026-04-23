@@ -1,15 +1,14 @@
-"""Phase 2 — Streamlit chat with tool-calling, auth, and doc generation.
+"""Streamlit chat shell — wires the handwritten agent loop into a UI.
 
 Run:
     uv run streamlit run app.py
 
-What's new vs Phase 1:
-- Supabase email/password sign-in → JWT lives in session state.
-- The chat calls a handwritten agent loop (src/agent/loop.py) that can dispatch
-  ERP tools + a PDF-report tool.
-- Dry-run toggle: mutating ERP calls are echoed instead of executed.
-- Every tool call is rendered in the chat so the learner can see what the
-  agent decided to do.
+Highlights by phase:
+- Ph 2: Supabase sign-in → JWT, agent loop with ERP tools + PDF tool, dry-run toggle.
+- Ph 3: RAG sidebar (Re-index button), chunk count, search_knowledge / party-summary tools.
+- Ph 4: backend label (chroma | pgvector), tenant_id surfaced from user_metadata,
+  shared supabase client used for both chat-tool dispatch and pgvector ingest;
+  ingest report shows inserted/updated/skipped/deleted when on pgvector.
 """
 
 from __future__ import annotations
@@ -29,11 +28,11 @@ from src.agent.loop import AgentRun, run_agent
 from src.config import DEFAULT_MODELS, settings
 from src.erp_client import ErpClient
 from src.rag.ingest import ingest_all
-from src.rag.store import collection_size
+from src.rag.store import backend_label, collection_size
 from src.tools.context import ToolContext
 
 st.set_page_config(page_title="ERP AI Companion", page_icon="🤖", layout="wide")
-st.title("ERP AI Companion — Phase 3")
+st.title("ERP AI Companion — Phase 4")
 
 configured = settings.configured_providers()
 if not configured:
@@ -59,6 +58,7 @@ with st.sidebar:
     if "jwt" not in st.session_state:
         st.session_state.jwt = ""
         st.session_state.user_email = ""
+        st.session_state.tenant_id = ""
 
     if not st.session_state.jwt:
         with st.form("signin"):
@@ -79,14 +79,22 @@ with st.sidebar:
                     else:
                         st.session_state.jwt = res.session.access_token
                         st.session_state.user_email = email
+                        # tenant_id lives in user_metadata (set at signup); RLS reads
+                        # it via auth.jwt() server-side, but the pgvector ingest
+                        # path needs it client-side too.
+                        meta = (res.user.user_metadata or {}) if res.user else {}
+                        st.session_state.tenant_id = str(meta.get("tenant_id") or "")
                         st.rerun()
                 except Exception as e:  # supabase raises on bad creds
                     st.error(f"Sign-in failed: {e}")
     else:
         st.success(f"Signed in as {st.session_state.user_email}")
+        if st.session_state.tenant_id:
+            st.caption(f"Tenant: {st.session_state.tenant_id[:8]}…")
         if st.button("Sign out"):
             st.session_state.jwt = ""
             st.session_state.user_email = ""
+            st.session_state.tenant_id = ""
             st.session_state.messages = []
             st.rerun()
 
@@ -100,21 +108,54 @@ with st.sidebar:
 
     st.divider()
     st.header("RAG index")
-    st.caption(f"Indexed chunks: {collection_size()}")
-    if st.session_state.jwt and st.button("Re-index ERP"):
-        with st.spinner("Pulling ERP data + embedding..."):
-            async def _ingest() -> Any:
-                async with ErpClient(jwt=st.session_state.jwt) as erp:
-                    return await ingest_all(erp)
+    st.caption(f"Backend: `{backend_label()}`")
 
-            try:
-                report = asyncio.run(_ingest())
-                st.success(
-                    f"Indexed {report.parties} parties + {report.invoices} invoices "
-                    f"→ {report.chunks_embedded} chunks."
-                )
-            except Exception as e:
-                st.error(f"Ingest failed: {e}")
+    # Build a supabase client up-front so the sidebar can show the count + the
+    # ingest path can pass it through. None until signed in.
+    sb_client = None
+    if (
+        st.session_state.jwt
+        and settings.supabase_url
+        and settings.supabase_anon_key
+        and create_client is not None
+    ):
+        sb_client = create_client(settings.supabase_url, settings.supabase_anon_key)
+        sb_client.postgrest.auth(st.session_state.jwt)
+
+    st.caption(f"Indexed chunks: {collection_size(sb_client)}")
+    if st.session_state.jwt and st.button("Re-index ERP"):
+        if settings.rag_backend == "pgvector" and not st.session_state.tenant_id:
+            st.error(
+                "tenant_id missing from your user_metadata — re-sign-in or check signup."
+            )
+        else:
+            with st.spinner("Pulling ERP data + embedding..."):
+
+                async def _ingest() -> Any:
+                    async with ErpClient(jwt=st.session_state.jwt) as erp:
+                        return await ingest_all(
+                            erp,
+                            supabase=sb_client,
+                            tenant_id=st.session_state.tenant_id or None,
+                        )
+
+                try:
+                    report = asyncio.run(_ingest())
+                    summary = (
+                        f"Indexed {report.parties} parties + {report.invoices} invoices "
+                        f"→ {report.chunks_embedded} chunks."
+                    )
+                    if settings.rag_backend == "pgvector":
+                        summary += (
+                            f" (inserted {report.inserted}, updated {report.updated}, "
+                            f"skipped {report.skipped}, deleted {report.deleted})"
+                        )
+                    st.success(summary)
+                    if report.errors:
+                        for err in report.errors:
+                            st.warning(err)
+                except Exception as e:
+                    st.error(f"Ingest failed: {e}")
 
     if st.button("Clear chat"):
         st.session_state.messages = []
@@ -179,10 +220,7 @@ def _agent_history_for(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 async def _run_once(user_prompt: str) -> AgentRun:
     async with ErpClient(jwt=st.session_state.jwt, dry_run=st.session_state.dry_run) as erp:
-        supabase = None
-        if settings.supabase_url and settings.supabase_anon_key and create_client is not None:
-            supabase = create_client(settings.supabase_url, settings.supabase_anon_key)
-            supabase.postgrest.auth(st.session_state.jwt)
+        supabase = sb_client  # built once in the sidebar; re-use it here
         ctx = ToolContext(
             erp=erp,
             supabase=supabase,

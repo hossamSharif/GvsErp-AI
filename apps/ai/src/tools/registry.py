@@ -12,6 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from src.docs.excel import GenerateExcelReportArgs, generate_excel_report
 from src.docs.party_summary import (
     GeneratePartySummaryPdfArgs,
     generate_party_summary_pdf,
@@ -72,6 +73,19 @@ _SPECS: list[ToolSpec] = [
         ),
         args_model=GeneratePartySummaryPdfArgs,
         handler=generate_party_summary_pdf,
+    ),
+    ToolSpec(
+        name="generate_excel_report",
+        description=(
+            "Render an Excel (.xlsx) workbook from rows the agent already retrieved. "
+            "Pass `columns` (header order), `rows` (list of dicts), and optionally a "
+            "`chart` spec (kind: bar|line|none, label_column, value_column, title) to "
+            "embed a chart on a second sheet. Returns a URL (signed Supabase URL when "
+            "configured, otherwise a local file URI). Use for tabular exports a finance "
+            "user wants to slice in Excel — not for official ERP reports."
+        ),
+        args_model=GenerateExcelReportArgs,
+        handler=generate_excel_report,
     ),
 ]
 
