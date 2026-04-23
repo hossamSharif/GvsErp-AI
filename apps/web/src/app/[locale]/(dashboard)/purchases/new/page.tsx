@@ -10,6 +10,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
@@ -21,6 +22,8 @@ import type { InvoiceWithRelations } from '@erp/shared';
 export default function NewPurchasePage() {
   const router = useRouter();
   const { locale } = useParams();
+  const t = useTranslations('purchases.new');
+  const tActions = useTranslations('purchases.actions');
 
   // Fetch real data from API
   const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
@@ -65,16 +68,14 @@ export default function NewPurchasePage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Go back to purchases">
+        <Button variant="ghost" size="icon" asChild aria-label={tActions('back')}>
           <Link href={`/${locale}/purchases`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">New Purchase Order</h1>
-          <p className="text-muted-foreground">
-            Create a new purchase order from a supplier
-          </p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </div>
 

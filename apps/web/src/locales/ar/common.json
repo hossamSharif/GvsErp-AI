@@ -11,6 +11,10 @@
     "purchases": "المشتريات",
     "customers": "العملاء",
     "suppliers": "الموردين",
+    "payments": "المدفوعات",
+    "pos": "نقطة البيع",
+    "accounting": "المحاسبة",
+    "hr": "الموارد البشرية",
     "expenses": "المصروفات",
     "reports": "التقارير",
     "settings": "الإعدادات"
@@ -39,7 +43,721 @@
     "export": "تصدير",
     "import": "استيراد",
     "loading": "جاري التحميل...",
+    "saving": "جاري الحفظ...",
+    "deleting": "جاري الحذف...",
+    "generating": "جاري الإنشاء...",
+    "updating": "جاري التحديث...",
     "noResults": "لا توجد نتائج",
-    "actions": "إجراءات"
+    "actions": "الإجراءات",
+    "close": "إغلاق",
+    "back": "رجوع",
+    "optional": "اختياري",
+    "retry": "إعادة المحاولة",
+    "tryAgain": "حاول مرة أخرى",
+    "error": "خطأ",
+    "success": "تم بنجاح"
+  },
+  "items": {
+    "list": {
+      "title": "الأصناف",
+      "description": "إدارة أصناف المخزون والفئات والأسعار.",
+      "addButton": "إضافة صنف",
+      "exportButton": "تصدير",
+      "updatePricesButton": "تحديث الأسعار ({count})",
+      "searchPlaceholder": "ابحث عن الأصناف...",
+      "emptyMessage": "لا توجد أصناف. أنشئ صنفك الأول للبدء.",
+      "errorLoading": "فشل تحميل الأصناف",
+      "filterAllCategories": "كل الفئات",
+      "uncategorized": "بدون فئة",
+      "menuOpen": "فتح القائمة",
+      "columns": {
+        "name": "الاسم",
+        "sku": "رمز المنتج",
+        "barcode": "الباركود",
+        "brand": "العلامة التجارية",
+        "category": "الفئة",
+        "unit": "الوحدة",
+        "tax": "الضريبة %",
+        "status": "الحالة"
+      },
+      "actions": {
+        "viewDetails": "عرض التفاصيل",
+        "delete": "حذف"
+      },
+      "deleteDialog": {
+        "title": "حذف الصنف",
+        "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء."
+      },
+      "toasts": {
+        "deleted": "تم حذف الصنف",
+        "deletedDescription": "تم حذف الصنف بنجاح.",
+        "deleteFailed": "فشل حذف الصنف"
+      }
+    },
+    "new": {
+      "title": "صنف جديد",
+      "description": "أنشئ صنف مخزون جديد مع خيارات التسعير والتعبئة.",
+      "backAriaLabel": "العودة إلى الأصناف",
+      "toasts": {
+        "created": "تم إنشاء الصنف",
+        "createdDescription": "تم إنشاء {name} بنجاح.",
+        "createFailed": "فشل إنشاء الصنف"
+      }
+    },
+    "errors": {
+      "DUPLICATE_SKU": "يوجد صنف بنفس رمز المنتج بالفعل",
+      "DUPLICATE_BARCODE": "يوجد صنف بنفس الباركود بالفعل",
+      "ITEM_NOT_FOUND": "الصنف غير موجود",
+      "CATEGORY_NOT_FOUND": "الفئة غير موجودة"
+    },
+    "edit": {
+      "description": "تعديل تفاصيل الصنف والأسعار وخيارات التعبئة.",
+      "backAriaLabel": "العودة إلى الأصناف",
+      "notFound": "الصنف غير موجود",
+      "backToItems": "العودة إلى الأصناف",
+      "toasts": {
+        "updated": "تم تحديث الصنف",
+        "updatedDescription": "تم تحديث {name} بنجاح.",
+        "updateFailed": "فشل تحديث الصنف"
+      }
+    },
+    "form": {
+      "tabs": {
+        "basic": "المعلومات الأساسية",
+        "pricing": "الأسعار",
+        "packaging": "التعبئة",
+        "images": "الصور"
+      },
+      "basicInfo": {
+        "title": "المعلومات الأساسية",
+        "description": "أدخل التفاصيل الأساسية للصنف."
+      },
+      "fields": {
+        "name": "الاسم",
+        "nameRequired": "الاسم *",
+        "namePlaceholder": "أدخل اسم الصنف",
+        "nameAlias": "الاسم البديل",
+        "nameAliasPlaceholder": "أدخل اسمًا بديلاً",
+        "nameAliasDescription": "اسم بديل يساعد في البحث",
+        "sku": "رمز المنتج (SKU)",
+        "skuPlaceholder": "أدخل رمز المنتج",
+        "barcode": "الباركود",
+        "barcodePlaceholder": "أدخل الباركود",
+        "brand": "العلامة التجارية",
+        "brandPlaceholder": "أدخل العلامة التجارية",
+        "category": "الفئة",
+        "categoryPlaceholder": "اختر الفئة",
+        "categoryNone": "بدون فئة",
+        "unit": "وحدة القياس *",
+        "unitPlaceholder": "اختر الوحدة",
+        "taxRate": "نسبة الضريبة (%)",
+        "taxRatePlaceholder": "مثال: 15 تعني 15%",
+        "taxRateDescription": "أدخل نسبة الضريبة (0-100)",
+        "active": "نشط",
+        "activeDescription": "الأصناف غير النشطة لن تظهر في نتائج البحث"
+      },
+      "pricing": {
+        "title": "فئات الأسعار",
+        "description": "حدد أسعارًا مختلفة لأنواع العملاء المختلفة.",
+        "addButton": "إضافة سعر",
+        "empty": "لم تُضف أسعار بعد. اضغط \"إضافة سعر\" لإنشاء فئة تسعير.",
+        "tier": "الفئة",
+        "price": "السعر",
+        "currency": "العملة",
+        "effectiveFrom": "ساري من",
+        "effectiveFromDescription": "التاريخ الذي يصبح فيه هذا السعر فعالاً",
+        "removeAriaLabel": "حذف فئة السعر"
+      },
+      "packaging": {
+        "title": "خيارات التعبئة",
+        "description": "حدد وحدات تعبئة مختلفة (مثال: صندوق 12، كرتون 24).",
+        "addButton": "إضافة تعبئة",
+        "empty": "لم تُضف خيارات تعبئة بعد. اضغط \"إضافة تعبئة\" لإنشاء واحد.",
+        "name": "الاسم",
+        "namePlaceholder": "مثال: صندوق",
+        "quantity": "الوحدات في العبوة",
+        "barcode": "باركود العبوة",
+        "barcodeOptional": "اختياري",
+        "removeAriaLabel": "حذف خيار التعبئة"
+      },
+      "images": {
+        "title": "صور المنتج",
+        "description": "ارفع صور المنتج. الصورة الأولى ستكون الصورة الرئيسية.",
+        "placeholder": "ستتم إضافة مكوّن رفع الصور هنا.",
+        "hint": "اسحب وأفلت أو اضغط لرفع الصور."
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "create": "إنشاء الصنف",
+        "save": "حفظ التغييرات"
+      },
+      "validation": {
+        "nameRequired": "اسم الصنف مطلوب",
+        "unitRequired": "الوحدة مطلوبة",
+        "priceTierRequired": "فئة السعر مطلوبة",
+        "pricePositive": "يجب أن يكون السعر موجبًا",
+        "packagingNameRequired": "الاسم مطلوب",
+        "packagingQuantityMin": "يجب أن تكون الكمية 1 على الأقل",
+        "taxRateRange": "يجب أن تكون نسبة الضريبة بين 0 و 100",
+        "nameMaxLength": "يجب ألا يتجاوز الاسم 255 حرفًا",
+        "skuMaxLength": "يجب ألا يتجاوز رمز المنتج 100 حرف",
+        "barcodeMaxLength": "يجب ألا يتجاوز الباركود 100 حرف"
+      }
+    },
+    "bulkPrice": {
+      "title": "تحديث الأسعار بالجملة",
+      "description": "تحديث أسعار {count} صنفًا محددًا. سيتم تطبيق التعديل على فئة السعر المحددة.",
+      "moreItems": "+{count} أخرى",
+      "adjustmentType": "نوع التعديل",
+      "percentage": "نسبة مئوية (%)",
+      "fixed": "مبلغ ثابت",
+      "percentageLabel": "نسبة التغيير",
+      "fixedLabel": "المبلغ المضاف/المخصوم",
+      "percentageDescription": "أدخل قيمة موجبة للزيادة، سالبة للنقص (مثال: 10 يعني +10%، -5 يعني -5%)",
+      "fixedDescription": "أدخل قيمة موجبة للإضافة، سالبة للخصم من السعر الحالي",
+      "priceTier": "فئة السعر",
+      "priceTierPlaceholder": "اختر الفئة",
+      "currency": "العملة",
+      "currencyPlaceholder": "اختر العملة",
+      "successTitle": "تم بنجاح",
+      "successDescription": "تم تحديث {count} صنفًا بنجاح.",
+      "failedTitle": "فشلت بعض الأصناف",
+      "moreErrors": "...و{count} أخطاء أخرى",
+      "close": "إغلاق",
+      "cancel": "إلغاء",
+      "submit": "تحديث الأسعار",
+      "updating": "جاري التحديث...",
+      "validation": {
+        "tierRequired": "فئة السعر مطلوبة",
+        "currencyRequired": "العملة مطلوبة",
+        "percentageRange": "يجب أن تكون النسبة بين -100% و 1000%"
+      },
+      "toasts": {
+        "pricesUpdated": "تم تحديث الأسعار",
+        "updateFailed": "فشل تحديث الأسعار"
+      }
+    },
+    "report": {
+      "title": "تقرير الأصناف",
+      "description": "إنشاء وتنزيل تقارير المخزون بصيغة PDF.",
+      "backAriaLabel": "العودة إلى الأصناف",
+      "optionsTitle": "خيارات التقرير",
+      "optionsDescription": "حدد الفلاتر والخيارات للتقرير.",
+      "category": "الفئة",
+      "categoryAll": "كل الفئات",
+      "status": "الحالة",
+      "statusAll": "كل الأصناف",
+      "statusActive": "النشطة فقط",
+      "statusInactive": "غير النشطة فقط",
+      "currency": "العملة",
+      "includePrices": "تضمين الأسعار",
+      "includePricesDescription": "إظهار أسعار التجزئة والجملة",
+      "preview": "معاينة",
+      "previewDescription": "عاين التقرير قبل التنزيل.",
+      "previewButton": "معاينة التقرير",
+      "downloadButton": "تنزيل PDF",
+      "loading": "جاري التحميل...",
+      "generating": "جاري الإنشاء...",
+      "errorLoading": "فشل تحميل بيانات التقرير",
+      "clickToPreview": "اضغط \"معاينة التقرير\" لعرض التقرير",
+      "filterCategory": "الفئة: {name}",
+      "filterStatus": "الحالة: {value}",
+      "filterAllItems": "كل الأصناف",
+      "filterStatusActive": "نشط",
+      "filterStatusInactive": "غير نشط",
+      "defaultCompanyName": "شركتك",
+      "documentTitle": "تقرير أصناف المخزون",
+      "fileNamePrefix": "items-report",
+      "toasts": {
+        "downloaded": "تم تنزيل التقرير",
+        "downloadedDescription": "تم تنزيل تقرير PDF بنجاح.",
+        "generateFailed": "فشل إنشاء التقرير"
+      },
+      "pdf": {
+        "filter": "الفلتر",
+        "generated": "تاريخ الإصدار",
+        "totalItems": "إجمالي الأصناف",
+        "columnName": "الاسم",
+        "columnSku": "رمز المنتج",
+        "columnBarcode": "الباركود",
+        "columnCategory": "الفئة",
+        "columnUnit": "الوحدة",
+        "columnRetail": "تجزئة",
+        "columnWholesale": "جملة",
+        "columnStatus": "الحالة",
+        "summary": "الملخص",
+        "activeItems": "الأصناف النشطة",
+        "inactiveItems": "الأصناف غير النشطة",
+        "itemsWithRetailPrice": "الأصناف ذات سعر التجزئة",
+        "avgRetailPrice": "متوسط سعر التجزئة",
+        "footerLabel": "تقرير المخزون",
+        "pageNumber": "صفحة {current} من {total}",
+        "statusActive": "نشط",
+        "statusInactive": "غير نشط"
+      }
+    },
+    "categories": {
+      "title": "الفئات",
+      "description": "نظّم أصنافك في فئات وفئات فرعية.",
+      "backAriaLabel": "العودة إلى الأصناف",
+      "addButton": "إضافة فئة",
+      "treeTitle": "شجرة الفئات",
+      "treeDescription": "اضغط على الفئة لتوسيعها/طيّها. مرر فوقها لرؤية الإجراءات.",
+      "emptyTitle": "لا توجد فئات بعد.",
+      "emptyHint": "اضغط \"إضافة فئة\" لإنشاء أول فئة.",
+      "newTitle": "فئة جديدة",
+      "editTitle": "تعديل الفئة",
+      "newDescription": "أنشئ فئة جديدة لتنظيم أصنافك.",
+      "editDescription": "حدّث تفاصيل الفئة.",
+      "nameLabel": "الاسم",
+      "namePlaceholder": "أدخل اسم الفئة",
+      "parentLabel": "الفئة الأم",
+      "parentPlaceholder": "اختر الفئة الأم",
+      "parentNone": "بدون فئة أم (فئة رئيسية)",
+      "createButton": "إنشاء الفئة",
+      "saveButton": "حفظ التغييرات",
+      "cancelButton": "إلغاء",
+      "deleteDialog": {
+        "title": "حذف الفئة",
+        "description": "هل أنت متأكد من حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+        "note": "ملاحظة:",
+        "noteBody": "يمكنك فقط حذف الفئات التي لا تحتوي على فئات فرعية ولا أصناف."
+      },
+      "itemActions": {
+        "addSubcategory": "إضافة فئة فرعية",
+        "addSubcategoryAria": "إضافة فئة فرعية إلى {name}",
+        "edit": "تعديل",
+        "editAria": "تعديل {name}",
+        "delete": "حذف",
+        "deleteAria": "حذف {name}",
+        "expand": "توسيع {name}",
+        "collapse": "طيّ {name}"
+      },
+      "toasts": {
+        "created": "تم إنشاء الفئة",
+        "createdDescription": "تم إنشاء الفئة.",
+        "createFailed": "فشل إنشاء الفئة",
+        "updated": "تم تحديث الفئة",
+        "updatedDescription": "تم تحديث الفئة.",
+        "updateFailed": "فشل تحديث الفئة",
+        "deleted": "تم حذف الفئة",
+        "deletedDescription": "تم حذف الفئة.",
+        "deleteFailed": "فشل حذف الفئة"
+      }
+    },
+    "units": {
+      "piece": "قطعة",
+      "kg": "كيلوجرام (كجم)",
+      "gram": "جرام (جم)",
+      "liter": "لتر (ل)",
+      "ml": "مليلتر (مل)",
+      "meter": "متر (م)",
+      "cm": "سنتيمتر (سم)",
+      "box": "صندوق",
+      "carton": "كرتون",
+      "pack": "عبوة",
+      "dozen": "دزينة"
+    },
+    "priceTiers": {
+      "retail": "تجزئة",
+      "wholesale": "جملة",
+      "vip": "كبار العملاء",
+      "cost": "التكلفة"
+    },
+    "currencies": {
+      "usd": "دولار أمريكي ($)",
+      "eur": "يورو (€)",
+      "gbp": "جنيه إسترليني (£)",
+      "egp": "جنيه مصري (E£)",
+      "sar": "ريال سعودي",
+      "aed": "درهم إماراتي",
+      "usdShort": "دولار أمريكي ($)",
+      "eurShort": "يورو",
+      "gbpShort": "جنيه إسترليني",
+      "egpShort": "جنيه مصري",
+      "sarShort": "ريال سعودي",
+      "aedShort": "درهم إماراتي"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    }
+  },
+  "sales": {
+    "list": {
+      "title": "فواتير المبيعات",
+      "description": "إدارة فواتير المبيعات",
+      "newSale": "بيع جديد",
+      "searchPlaceholder": "البحث برقم الفاتورة...",
+      "searchAriaLabel": "البحث في فواتير المبيعات",
+      "filterPlaceholder": "تصفية حسب الحالة",
+      "stats": {
+        "totalSales": "إجمالي المبيعات",
+        "showing": "المعروض",
+        "showingOf": "من {count}",
+        "drafts": "المسودات في الصفحة",
+        "pageTotal": "إجمالي الصفحة"
+      },
+      "columns": {
+        "invoiceNumber": "رقم الفاتورة",
+        "customer": "العميل",
+        "date": "التاريخ",
+        "status": "الحالة",
+        "total": "الإجمالي"
+      },
+      "walkIn": "عميل عابر",
+      "loading": "جاري التحميل...",
+      "errorLoad": "فشل تحميل الفواتير. يرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+      "tryAgain": "حاول مرة أخرى",
+      "empty": "لا توجد فواتير مبيعات",
+      "createFirst": "أنشئ أول عملية بيع",
+      "viewAriaLabel": "عرض فاتورة {number}",
+      "actionsAriaLabel": "إجراءات الفاتورة",
+      "pagination": {
+        "summary": "عرض {from} إلى {to} من {total} فاتورة",
+        "previous": "السابق",
+        "next": "التالي"
+      }
+    },
+    "status": {
+      "all": "جميع الحالات",
+      "draft": "مسودة",
+      "final": "نهائية",
+      "returned": "مرتجعة",
+      "canceled": "ملغاة"
+    },
+    "actions": {
+      "label": "الإجراءات",
+      "view": "عرض التفاصيل",
+      "edit": "تعديل",
+      "createReturn": "إنشاء مرتجع",
+      "finalize": "اعتماد",
+      "print": "طباعة",
+      "exportPdf": "تصدير PDF",
+      "cancelInvoice": "إلغاء الفاتورة",
+      "back": "العودة إلى المبيعات",
+      "backToSales": "العودة للمبيعات"
+    },
+    "new": {
+      "title": "بيع جديد",
+      "description": "إنشاء فاتورة مبيعات جديدة"
+    },
+    "detail": {
+      "createdOn": "أُنشئت في {date}",
+      "notFound": "الفاتورة غير موجودة",
+      "loading": "جاري تحميل الفاتورة...",
+      "sectionCustomer": "العميل",
+      "sectionWarehouse": "المستودع",
+      "sectionSummary": "الملخص",
+      "sectionItems": "الأصناف",
+      "sectionItemsCount": "{count} صنف في هذه الفاتورة",
+      "sectionNotes": "ملاحظات",
+      "walkInCustomer": "عميل عابر",
+      "summary": {
+        "subtotal": "الإجمالي الفرعي:",
+        "tax": "الضريبة:",
+        "discount": "الخصم:",
+        "total": "الإجمالي:"
+      },
+      "itemsTable": {
+        "row": "#",
+        "item": "الصنف",
+        "description": "الوصف",
+        "qty": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "discountPercent": "خصم %",
+        "taxPercent": "ضريبة %",
+        "total": "الإجمالي"
+      },
+      "finalizeDialog": {
+        "title": "اعتماد الفاتورة",
+        "intro": "هل أنت متأكد من اعتماد هذه الفاتورة؟ سيؤدي ذلك إلى:",
+        "bullet1": "تحديث مستويات المخزون",
+        "bullet2": "تحديث رصيد العميل",
+        "bullet3": "قفل الفاتورة لمنع أي تعديلات لاحقة",
+        "cancel": "إلغاء",
+        "confirm": "اعتماد",
+        "pending": "جاري الاعتماد..."
+      },
+      "cancelDialog": {
+        "title": "إلغاء الفاتورة",
+        "body": "هل أنت متأكد من إلغاء هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء.",
+        "keep": "الاحتفاظ بالفاتورة",
+        "confirm": "إلغاء الفاتورة",
+        "pending": "جاري الإلغاء..."
+      },
+      "toasts": {
+        "finalized": "تم اعتماد الفاتورة",
+        "finalizedDescription": "تم اعتماد الفاتورة بنجاح",
+        "finalizeFailed": "فشل اعتماد الفاتورة",
+        "canceled": "تم إلغاء الفاتورة",
+        "canceledDescription": "تم إلغاء الفاتورة",
+        "cancelFailed": "فشل إلغاء الفاتورة",
+        "returnCreated": "تم إنشاء المرتجع",
+        "returnCreatedDescription": "تم إنشاء فاتورة المرتجع"
+      }
+    },
+    "form": {
+      "customer": "العميل",
+      "supplier": "المورد",
+      "selectCustomer": "اختر العميل...",
+      "selectSupplier": "اختر المورد...",
+      "warehouse": "المستودع",
+      "selectWarehouse": "اختر المستودع...",
+      "details": "التفاصيل",
+      "currency": "العملة",
+      "date": "التاريخ",
+      "items": "الأصناف",
+      "addItemsHint": "أضف الأصناف إلى فاتورة {type}",
+      "saleType": "المبيعات",
+      "purchaseType": "المشتريات",
+      "validation": {
+        "warehouseAndItems": "اختر مستودعاً وأضف صنفاً واحداً على الأقل لإنشاء هذه الفاتورة.",
+        "warehouseOnly": "يرجى اختيار مستودع للمتابعة.",
+        "itemsOnly": "أضف صنفاً واحداً على الأقل للمتابعة."
+      },
+      "addItem": "إضافة صنف",
+      "searchItems": "ابحث عن الأصناف بالاسم أو الكود...",
+      "noItemsFound": "لا توجد أصناف",
+      "cancel": "إلغاء",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "أضف ملاحظات...",
+      "summary": "الملخص",
+      "subtotal": "الإجمالي الفرعي:",
+      "tax": "الضريبة:",
+      "discount": "الخصم:",
+      "discountAriaLabel": "قيمة الخصم",
+      "total": "الإجمالي:",
+      "draftSavedAt": "تم حفظ المسودة محلياً {time}",
+      "saveDraft": "حفظ كمسودة",
+      "finalize": "اعتماد",
+      "loading": "جاري التحميل...",
+      "finalizeConfirm": {
+        "title": "اعتماد هذه الفاتورة؟",
+        "body": "اعتماد الفاتورة يقفلها ويحدّث كميات المخزون وأرصدة العملاء. لا يمكن التراجع عن هذا الإجراء. إذا احتجت إلى تعديل لاحقاً، يجب إنشاء فاتورة مرتجع.",
+        "cancel": "إلغاء",
+        "confirm": "اعتماد الفاتورة"
+      },
+      "toasts": {
+        "selectWarehouse": "يرجى اختيار مستودع",
+        "addOneItem": "يرجى إضافة صنف واحد على الأقل",
+        "draftSaved": "تم حفظ المسودة",
+        "draftSavedDescription": "تم حفظ الفاتورة {number} كمسودة",
+        "saveFailed": "فشل حفظ المسودة",
+        "finalized": "تم اعتماد الفاتورة",
+        "finalizedDescription": "تم اعتماد الفاتورة {number}",
+        "finalizeFailed": "فشل اعتماد الفاتورة"
+      }
+    },
+    "items": {
+      "columns": {
+        "row": "#",
+        "item": "الصنف",
+        "description": "الوصف",
+        "qty": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "discountPercent": "خصم %",
+        "taxPercent": "ضريبة %",
+        "total": "الإجمالي"
+      },
+      "stock": "المخزون: {count}",
+      "addItem": "إضافة صنف",
+      "empty": "لم تتم إضافة أصناف بعد",
+      "subtotal": "الإجمالي الفرعي:",
+      "tax": "الضريبة:",
+      "total": "الإجمالي:",
+      "ariaReorder": "إعادة ترتيب {name}",
+      "ariaRemove": "حذف {name}",
+      "ariaDescription": "وصف {name}",
+      "ariaQuantity": "كمية {name}",
+      "ariaUnitPrice": "سعر وحدة {name}",
+      "ariaDiscountPercent": "نسبة خصم {name}",
+      "ariaTaxRate": "نسبة ضريبة {name}"
+    },
+    "party": {
+      "selectPlaceholder": "اختر طرفاً...",
+      "search": "ابحث بالاسم أو البريد أو الهاتف...",
+      "searchAriaLabel": "البحث عن الأطراف",
+      "loading": "جاري التحميل...",
+      "empty": "لا توجد أطراف.",
+      "owes": "مدين بـ: {amount}",
+      "credit": "دائن بـ: {amount}",
+      "balanceZero": "الرصيد: 0.00",
+      "clear": "مسح",
+      "typeCustomer": "عميل",
+      "typeSupplier": "مورد"
+    },
+    "return": {
+      "title": "إنشاء مرتجع",
+      "description": "اختر الأصناف والكميات لإرجاعها من الفاتورة {number}",
+      "columns": {
+        "item": "الصنف",
+        "original": "الأصلي",
+        "returnQty": "كمية الإرجاع",
+        "unitPrice": "سعر الوحدة",
+        "returnValue": "قيمة الإرجاع"
+      },
+      "selectAll": "تحديد جميع الأصناف",
+      "selectItem": "تحديد {name}",
+      "returnQtyAriaLabel": "كمية الإرجاع لـ {name}",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "سبب الإرجاع...",
+      "notesDefault": "إرجاع للفاتورة {number}",
+      "selectedSummary": "تم تحديد {selected} من {total} صنف",
+      "returnTotal": "إجمالي المرتجع: {amount}",
+      "cancel": "إلغاء",
+      "submit": "إنشاء المرتجع",
+      "submitting": "جاري إنشاء المرتجع...",
+      "errorSelectOne": "يرجى اختيار صنف واحد على الأقل للإرجاع",
+      "errorQuantity": "يرجى مراجعة كميات الإرجاع. يجب أن تكون بين 0 والكمية الأصلية.",
+      "errorGeneric": "فشل إنشاء المرتجع"
+    },
+    "pdf": {
+      "labels": {
+        "draft": "مسودة",
+        "invoice": "فاتورة",
+        "return": "مرتجع",
+        "canceled": "ملغاة"
+      },
+      "documentSale": "فاتورة مبيعات",
+      "documentPurchase": "فاتورة مشتريات",
+      "invoiceNo": "رقم الفاتورة:",
+      "date": "التاريخ:",
+      "finalized": "تاريخ الاعتماد:",
+      "status": "الحالة:",
+      "billTo": "فاتورة إلى",
+      "supplier": "المورد",
+      "warehouse": "المستودع",
+      "walkInCustomer": "عميل عابر",
+      "columnRow": "#",
+      "columnItem": "الصنف",
+      "columnDescription": "الوصف",
+      "columnQty": "الكمية",
+      "columnUnitPrice": "سعر الوحدة",
+      "columnDisc": "خصم %",
+      "columnTax": "ضريبة %",
+      "columnTotal": "الإجمالي",
+      "skuPrefix": "كود:",
+      "subtotal": "الإجمالي الفرعي:",
+      "tax": "الضريبة:",
+      "discount": "الخصم:",
+      "total": "الإجمالي:",
+      "notesTitle": "ملاحظات",
+      "paymentTitle": "معلومات الدفع",
+      "paymentBody": "يرجى تحويل الدفع إلى:",
+      "paymentReference": "المرجع: {number}",
+      "returnTitle": "معلومات الإرجاع",
+      "returnBody": "هذه فاتورة مرتجع للفاتورة الأصلية:",
+      "thankYou": "شكراً لتعاملكم معنا!",
+      "footerInvoice": "الفاتورة: {number}",
+      "footerPage": "صفحة 1 من 1",
+      "authorizedSignature": "التوقيع المعتمد",
+      "customerSignature": "توقيع العميل",
+      "defaultCompanyName": "شركتك"
+    }
+  },
+  "purchases": {
+    "list": {
+      "title": "أوامر الشراء",
+      "description": "إدارة أوامر الشراء وفواتير الموردين",
+      "newPurchase": "شراء جديد",
+      "searchPlaceholder": "ابحث برقم الفاتورة...",
+      "searchAriaLabel": "ابحث في أوامر الشراء",
+      "filterPlaceholder": "فلترة حسب الحالة",
+      "stats": {
+        "totalPurchases": "إجمالي المشتريات",
+        "showing": "يعرض",
+        "showingOf": "من {count}",
+        "drafts": "المسودات في الصفحة",
+        "pageTotal": "إجمالي الصفحة"
+      },
+      "columns": {
+        "invoiceNumber": "رقم الفاتورة",
+        "supplier": "المورد",
+        "date": "التاريخ",
+        "status": "الحالة",
+        "total": "الإجمالي"
+      },
+      "noSupplier": "بدون مورد",
+      "loading": "جاري التحميل...",
+      "errorLoad": "فشل تحميل الفواتير",
+      "tryAgain": "إعادة المحاولة",
+      "empty": "لا توجد أوامر شراء",
+      "createFirst": "أنشئ أول عملية شراء",
+      "viewAriaLabel": "عرض فاتورة الشراء {number}",
+      "actionsAriaLabel": "إجراءات الشراء",
+      "pagination": {
+        "summary": "يعرض {from} إلى {to} من {total} فاتورة",
+        "previous": "السابق",
+        "next": "التالي"
+      }
+    },
+    "actions": {
+      "label": "إجراءات",
+      "view": "عرض التفاصيل",
+      "edit": "تعديل",
+      "createReturn": "إنشاء مرتجع",
+      "finalize": "اعتماد",
+      "print": "طباعة",
+      "exportPdf": "تصدير PDF",
+      "cancelInvoice": "إلغاء",
+      "back": "العودة إلى المشتريات",
+      "backToPurchases": "العودة إلى المشتريات"
+    },
+    "new": {
+      "title": "أمر شراء جديد",
+      "description": "أنشئ أمر شراء جديد من مورد"
+    },
+    "detail": {
+      "createdOn": "تم الإنشاء في {date}",
+      "notFound": "لم يتم العثور على فاتورة الشراء",
+      "loading": "جاري تحميل الفاتورة...",
+      "sectionSupplier": "المورد",
+      "sectionWarehouse": "المستودع المستلم",
+      "sectionWarehouseNote": "تمت إضافة الأصناف إلى هذا المستودع",
+      "sectionSummary": "الملخص",
+      "sectionItems": "الأصناف",
+      "sectionItemsCount": "{count} صنف في أمر الشراء",
+      "sectionNotes": "ملاحظات",
+      "noSupplier": "لا يوجد مورد مرتبط",
+      "summary": {
+        "subtotal": "المجموع الفرعي:",
+        "tax": "الضريبة:",
+        "discount": "الخصم:",
+        "total": "الإجمالي:"
+      },
+      "finalizeDialog": {
+        "title": "اعتماد الشراء",
+        "intro": "هل أنت متأكد من اعتماد أمر الشراء؟ سيؤدي ذلك إلى:",
+        "bullet1": "إضافة الأصناف إلى مخزون المستودع",
+        "bullet2": "تحديث رصيد المورد",
+        "bullet3": "قفل أمر الشراء من التعديلات",
+        "cancel": "إلغاء",
+        "confirm": "اعتماد",
+        "pending": "جاري الاعتماد..."
+      },
+      "cancelDialog": {
+        "title": "إلغاء أمر الشراء",
+        "body": "هل أنت متأكد من إلغاء أمر الشراء؟ لا يمكن التراجع عن هذا الإجراء.",
+        "keep": "احتفظ بأمر الشراء",
+        "confirm": "إلغاء أمر الشراء",
+        "pending": "جاري الإلغاء..."
+      },
+      "toasts": {
+        "finalized": "تم اعتماد أمر الشراء",
+        "finalizedDescription": "تم اعتماد أمر الشراء بنجاح",
+        "finalizeFailed": "فشل اعتماد أمر الشراء",
+        "canceled": "تم إلغاء أمر الشراء",
+        "canceledDescription": "تم إلغاء أمر الشراء",
+        "cancelFailed": "فشل إلغاء أمر الشراء",
+        "returnCreated": "تم إنشاء المرتجع",
+        "returnCreatedDescription": "تم إنشاء فاتورة المرتجع"
+      }
+    },
+    "edit": {
+      "title": "تعديل أمر الشراء",
+      "description": "تحديث مسودة أمر الشراء",
+      "onlyDraft": "لا يمكن تعديل إلا مسودات أوامر الشراء"
+    }
   }
 }

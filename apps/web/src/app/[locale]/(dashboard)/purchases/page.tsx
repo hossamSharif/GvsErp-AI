@@ -9,6 +9,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   Search,
@@ -53,32 +54,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useInvoices, usePrefetchInvoice } from '@/hooks/use-invoices';
 import type { InvoiceStatus, InvoiceQueryParams } from '@erp/shared';
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
-
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', icon: Clock, variant: 'secondary' },
-  final: { label: 'Finalized', icon: CheckCircle, variant: 'default' },
-  returned: { label: 'Returned', icon: RotateCcw, variant: 'outline' },
-  canceled: { label: 'Canceled', icon: XCircle, variant: 'destructive' },
+const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  draft: { icon: Clock, variant: 'secondary' },
+  final: { icon: CheckCircle, variant: 'default' },
+  returned: { icon: RotateCcw, variant: 'outline' },
+  canceled: { icon: XCircle, variant: 'destructive' },
 };
-
-// =============================================================================
-// COMPONENT
-// =============================================================================
 
 export default function PurchasesListPage() {
   const router = useRouter();
   const { locale } = useParams();
   const prefetchInvoice = usePrefetchInvoice();
+  const t = useTranslations('purchases.list');
+  const tStatus = useTranslations('sales.status');
+  const tActions = useTranslations('purchases.actions');
 
-  // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
   const [page, setPage] = useState(1);
 
-  // Build query params
   const queryParams: InvoiceQueryParams = useMemo(() => ({
     type: 'purchase',
     search: searchQuery || undefined,
@@ -89,62 +83,55 @@ export default function PurchasesListPage() {
     sortDir: 'desc',
   }), [searchQuery, statusFilter, page]);
 
-  // Fetch invoices
   const { data, isLoading, error } = useInvoices(queryParams);
 
   const invoices = data?.data || [];
   const meta = data?.meta;
 
-  // Handle row click
   const handleRowClick = (invoiceId: string) => {
     router.push(`/${locale}/purchases/${invoiceId}`);
   };
 
-  // Handle row hover (prefetch)
   const handleRowHover = (invoiceId: string) => {
     prefetchInvoice(invoiceId);
   };
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Purchase Orders</h1>
-          <p className="text-muted-foreground">
-            Manage your purchase orders and supplier invoices
-          </p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <Button asChild>
           <Link href={`/${locale}/purchases/new`}>
             <Plus className="h-4 w-4 mr-2" />
-            New Purchase
+            {t('newPurchase')}
           </Link>
         </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Purchases</CardDescription>
+            <CardDescription>{t('stats.totalPurchases')}</CardDescription>
             <CardTitle className="text-2xl">{meta?.total || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Showing</CardDescription>
+            <CardDescription>{t('stats.showing')}</CardDescription>
             <CardTitle className="text-2xl">
               {invoices.length}
               <span className="text-sm font-normal text-muted-foreground ml-1">
-                of {meta?.total || 0}
+                {t('stats.showingOf', { count: meta?.total || 0 })}
               </span>
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Drafts on Page</CardDescription>
+            <CardDescription>{t('stats.drafts')}</CardDescription>
             <CardTitle className="text-2xl text-amber-600">
               {invoices.filter(i => i.status === 'draft').length}
             </CardTitle>
@@ -152,7 +139,7 @@ export default function PurchasesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Page Total</CardDescription>
+            <CardDescription>{t('stats.pageTotal')}</CardDescription>
             <CardTitle className="text-2xl">
               {invoices
                 .reduce((sum, i) => sum + i.total, 0)
@@ -162,13 +149,12 @@ export default function PurchasesListPage() {
         </Card>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
-            placeholder="Search by invoice number..."
-            aria-label="Search purchase orders"
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchAriaLabel')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -186,29 +172,28 @@ export default function PurchasesListPage() {
         >
           <SelectTrigger className="w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t('filterPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="final">Finalized</SelectItem>
-            <SelectItem value="returned">Returned</SelectItem>
-            <SelectItem value="canceled">Canceled</SelectItem>
+            <SelectItem value="all">{tStatus('all')}</SelectItem>
+            <SelectItem value="draft">{tStatus('draft')}</SelectItem>
+            <SelectItem value="final">{tStatus('final')}</SelectItem>
+            <SelectItem value="returned">{tStatus('returned')}</SelectItem>
+            <SelectItem value="canceled">{tStatus('canceled')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{t('columns.invoiceNumber')}</TableHead>
+                <TableHead>{t('columns.supplier')}</TableHead>
+                <TableHead>{t('columns.date')}</TableHead>
+                <TableHead>{t('columns.status')}</TableHead>
+                <TableHead className="text-right">{t('columns.total')}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -216,13 +201,13 @@ export default function PurchasesListPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center">
-                    Loading...
+                    {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-destructive">
-                    Error loading invoices
+                    {t('errorLoad')}
                   </TableCell>
                 </TableRow>
               ) : invoices.length === 0 ? (
@@ -230,16 +215,16 @@ export default function PurchasesListPage() {
                   <TableCell colSpan={6} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <FileText className="h-8 w-8" />
-                      <p>No purchase orders found</p>
+                      <p>{t('empty')}</p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/${locale}/purchases/new`}>Create your first purchase</Link>
+                        <Link href={`/${locale}/purchases/new`}>{t('createFirst')}</Link>
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 invoices.map((invoice) => {
-                  const statusConfig = STATUS_CONFIG[invoice.status];
+                  const statusConfig = STATUS_ICONS[invoice.status];
                   const StatusIcon = statusConfig.icon;
 
                   return (
@@ -248,7 +233,7 @@ export default function PurchasesListPage() {
                       className="cursor-pointer"
                       tabIndex={0}
                       role="link"
-                      aria-label={`View purchase ${invoice.invoiceNumber}`}
+                      aria-label={t('viewAriaLabel', { number: invoice.invoiceNumber })}
                       onClick={() => handleRowClick(invoice.id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -264,7 +249,7 @@ export default function PurchasesListPage() {
                       </TableCell>
                       <TableCell>
                         {invoice.party?.name || (
-                          <span className="text-muted-foreground">No supplier</span>
+                          <span className="text-muted-foreground">{t('noSupplier')}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -273,7 +258,7 @@ export default function PurchasesListPage() {
                       <TableCell>
                         <Badge variant={statusConfig.variant} className="gap-1">
                           <StatusIcon className="h-3 w-3" />
-                          {statusConfig.label}
+                          {tStatus(invoice.status)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
@@ -285,24 +270,24 @@ export default function PurchasesListPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Purchase actions">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t('actionsAriaLabel')}>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{tActions('label')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                               <Link href={`/${locale}/purchases/${invoice.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
-                                View Details
+                                {tActions('view')}
                               </Link>
                             </DropdownMenuItem>
                             {invoice.status === 'draft' && (
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/purchases/${invoice.id}/edit`}>
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Edit
+                                  {tActions('edit')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
@@ -310,7 +295,7 @@ export default function PurchasesListPage() {
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/purchases/${invoice.id}?return=true`}>
                                   <Undo2 className="h-4 w-4 mr-2" />
-                                  Create Return
+                                  {tActions('createReturn')}
                                 </Link>
                               </DropdownMenuItem>
                             )}
@@ -326,11 +311,14 @@ export default function PurchasesListPage() {
         </CardContent>
       </Card>
 
-      {/* Pagination */}
       {meta && meta.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, meta.total)} of {meta.total} invoices
+            {t('pagination.summary', {
+              from: ((page - 1) * 20) + 1,
+              to: Math.min(page * 20, meta.total),
+              total: meta.total,
+            })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -339,7 +327,7 @@ export default function PurchasesListPage() {
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >
-              Previous
+              {t('pagination.previous')}
             </Button>
             <Button
               variant="outline"
@@ -347,7 +335,7 @@ export default function PurchasesListPage() {
               disabled={page >= meta.total_pages}
               onClick={() => setPage(p => p + 1)}
             >
-              Next
+              {t('pagination.next')}
             </Button>
           </div>
         </div>

@@ -11,6 +11,10 @@
     "purchases": "Purchases",
     "customers": "Customers",
     "suppliers": "Suppliers",
+    "payments": "Payments",
+    "pos": "POS",
+    "accounting": "Accounting",
+    "hr": "HR",
     "expenses": "Expenses",
     "reports": "Reports",
     "settings": "Settings"
@@ -39,7 +43,721 @@
     "export": "Export",
     "import": "Import",
     "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "generating": "Generating...",
+    "updating": "Updating...",
     "noResults": "No results found",
-    "actions": "Actions"
+    "actions": "Actions",
+    "close": "Close",
+    "back": "Back",
+    "optional": "Optional",
+    "retry": "Retry",
+    "tryAgain": "Try again",
+    "error": "Error",
+    "success": "Success"
+  },
+  "items": {
+    "list": {
+      "title": "Items",
+      "description": "Manage your inventory items, categories, and pricing.",
+      "addButton": "Add Item",
+      "exportButton": "Export",
+      "updatePricesButton": "Update Prices ({count})",
+      "searchPlaceholder": "Search items...",
+      "emptyMessage": "No items found. Create your first item to get started.",
+      "errorLoading": "Failed to load items",
+      "filterAllCategories": "All Categories",
+      "uncategorized": "Uncategorized",
+      "menuOpen": "Open menu",
+      "columns": {
+        "name": "Name",
+        "sku": "SKU",
+        "barcode": "Barcode",
+        "brand": "Brand",
+        "category": "Category",
+        "unit": "Unit",
+        "tax": "Tax %",
+        "status": "Status"
+      },
+      "actions": {
+        "viewDetails": "View Details",
+        "delete": "Delete"
+      },
+      "deleteDialog": {
+        "title": "Delete Item",
+        "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
+      },
+      "toasts": {
+        "deleted": "Item deleted",
+        "deletedDescription": "The item has been deleted successfully.",
+        "deleteFailed": "Failed to delete item"
+      }
+    },
+    "new": {
+      "title": "New Item",
+      "description": "Create a new inventory item with pricing and packaging options.",
+      "backAriaLabel": "Go back to items",
+      "toasts": {
+        "created": "Item created",
+        "createdDescription": "{name} has been created successfully.",
+        "createFailed": "Failed to create item"
+      }
+    },
+    "errors": {
+      "DUPLICATE_SKU": "An item with this SKU already exists",
+      "DUPLICATE_BARCODE": "An item with this barcode already exists",
+      "ITEM_NOT_FOUND": "Item not found",
+      "CATEGORY_NOT_FOUND": "Category not found"
+    },
+    "edit": {
+      "description": "Edit item details, pricing, and packaging options.",
+      "backAriaLabel": "Go back to items",
+      "notFound": "Item not found",
+      "backToItems": "Back to Items",
+      "toasts": {
+        "updated": "Item updated",
+        "updatedDescription": "{name} has been updated successfully.",
+        "updateFailed": "Failed to update item"
+      }
+    },
+    "form": {
+      "tabs": {
+        "basic": "Basic Info",
+        "pricing": "Pricing",
+        "packaging": "Packaging",
+        "images": "Images"
+      },
+      "basicInfo": {
+        "title": "Basic Information",
+        "description": "Enter the basic details of the item."
+      },
+      "fields": {
+        "name": "Name",
+        "nameRequired": "Name *",
+        "namePlaceholder": "Enter item name",
+        "nameAlias": "Alternative Name",
+        "nameAliasPlaceholder": "Enter alternative name",
+        "nameAliasDescription": "An alternative name for searching",
+        "sku": "SKU",
+        "skuPlaceholder": "Enter SKU",
+        "barcode": "Barcode",
+        "barcodePlaceholder": "Enter barcode",
+        "brand": "Brand",
+        "brandPlaceholder": "Enter brand",
+        "category": "Category",
+        "categoryPlaceholder": "Select category",
+        "categoryNone": "No category",
+        "unit": "Unit of Measure *",
+        "unitPlaceholder": "Select unit",
+        "taxRate": "Tax Rate (%)",
+        "taxRatePlaceholder": "e.g. 15 for 15%",
+        "taxRateDescription": "Enter the tax percentage (0-100)",
+        "active": "Active",
+        "activeDescription": "Inactive items won't appear in search results"
+      },
+      "pricing": {
+        "title": "Pricing Tiers",
+        "description": "Set different prices for different customer types.",
+        "addButton": "Add Price",
+        "empty": "No prices added yet. Click \"Add Price\" to create a pricing tier.",
+        "tier": "Tier",
+        "price": "Price",
+        "currency": "Currency",
+        "effectiveFrom": "Effective From",
+        "effectiveFromDescription": "Date this price tier becomes active",
+        "removeAriaLabel": "Remove price tier"
+      },
+      "packaging": {
+        "title": "Packaging Options",
+        "description": "Define different packaging units (e.g., box of 12, carton of 24).",
+        "addButton": "Add Packaging",
+        "empty": "No packaging options added yet. Click \"Add Packaging\" to create one.",
+        "name": "Name",
+        "namePlaceholder": "e.g., Box",
+        "quantity": "Units per Package",
+        "barcode": "Package Barcode",
+        "barcodeOptional": "Optional",
+        "removeAriaLabel": "Remove packaging option"
+      },
+      "images": {
+        "title": "Product Images",
+        "description": "Upload images of your product. The first image will be the primary image.",
+        "placeholder": "Image upload component will be added here.",
+        "hint": "Drag and drop or click to upload images."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "create": "Create Item",
+        "save": "Save Changes"
+      },
+      "validation": {
+        "nameRequired": "Item name is required",
+        "unitRequired": "Unit is required",
+        "priceTierRequired": "Price tier is required",
+        "pricePositive": "Price must be positive",
+        "packagingNameRequired": "Name is required",
+        "packagingQuantityMin": "Quantity must be at least 1",
+        "taxRateRange": "Tax rate must be between 0 and 100",
+        "nameMaxLength": "Name must be 255 characters or less",
+        "skuMaxLength": "SKU must be 100 characters or less",
+        "barcodeMaxLength": "Barcode must be 100 characters or less"
+      }
+    },
+    "bulkPrice": {
+      "title": "Bulk Price Update",
+      "description": "Update prices for {count} selected item(s). This will apply the adjustment to the specified price tier.",
+      "moreItems": "+{count} more",
+      "adjustmentType": "Adjustment Type",
+      "percentage": "Percentage (%)",
+      "fixed": "Fixed Amount",
+      "percentageLabel": "Percentage Change",
+      "fixedLabel": "Amount to Add/Subtract",
+      "percentageDescription": "Enter positive value to increase, negative to decrease (e.g., 10 for +10%, -5 for -5%)",
+      "fixedDescription": "Enter positive value to add, negative to subtract from current price",
+      "priceTier": "Price Tier",
+      "priceTierPlaceholder": "Select tier",
+      "currency": "Currency",
+      "currencyPlaceholder": "Select currency",
+      "successTitle": "Success",
+      "successDescription": "Updated {count} item(s) successfully.",
+      "failedTitle": "Some items failed",
+      "moreErrors": "...and {count} more errors",
+      "close": "Close",
+      "cancel": "Cancel",
+      "submit": "Update Prices",
+      "updating": "Updating...",
+      "validation": {
+        "tierRequired": "Price tier is required",
+        "currencyRequired": "Currency is required",
+        "percentageRange": "Percentage must be between -100% and 1000%"
+      },
+      "toasts": {
+        "pricesUpdated": "Prices updated",
+        "updateFailed": "Failed to update prices"
+      }
+    },
+    "report": {
+      "title": "Items Report",
+      "description": "Generate and download inventory reports as PDF.",
+      "backAriaLabel": "Go back to items",
+      "optionsTitle": "Report Options",
+      "optionsDescription": "Configure filters and options for the report.",
+      "category": "Category",
+      "categoryAll": "All categories",
+      "status": "Status",
+      "statusAll": "All items",
+      "statusActive": "Active only",
+      "statusInactive": "Inactive only",
+      "currency": "Currency",
+      "includePrices": "Include Prices",
+      "includePricesDescription": "Show retail and wholesale prices",
+      "preview": "Preview",
+      "previewDescription": "Preview the report before downloading.",
+      "previewButton": "Preview Report",
+      "downloadButton": "Download PDF",
+      "loading": "Loading...",
+      "generating": "Generating...",
+      "errorLoading": "Failed to load report data",
+      "clickToPreview": "Click \"Preview Report\" to see the report",
+      "filterCategory": "Category: {name}",
+      "filterStatus": "Status: {value}",
+      "filterAllItems": "All items",
+      "filterStatusActive": "Active",
+      "filterStatusInactive": "Inactive",
+      "defaultCompanyName": "Your Company",
+      "documentTitle": "Inventory Items Report",
+      "fileNamePrefix": "items-report",
+      "toasts": {
+        "downloaded": "Report downloaded",
+        "downloadedDescription": "The PDF report has been downloaded successfully.",
+        "generateFailed": "Failed to generate report"
+      },
+      "pdf": {
+        "filter": "Filter",
+        "generated": "Generated",
+        "totalItems": "Total Items",
+        "columnName": "Name",
+        "columnSku": "SKU",
+        "columnBarcode": "Barcode",
+        "columnCategory": "Category",
+        "columnUnit": "Unit",
+        "columnRetail": "Retail",
+        "columnWholesale": "Wholesale",
+        "columnStatus": "Status",
+        "summary": "Summary",
+        "activeItems": "Active Items",
+        "inactiveItems": "Inactive Items",
+        "itemsWithRetailPrice": "Items with Retail Price",
+        "avgRetailPrice": "Average Retail Price",
+        "footerLabel": "Inventory Report",
+        "pageNumber": "Page {current} of {total}",
+        "statusActive": "Active",
+        "statusInactive": "Inactive"
+      }
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Organize your items into categories and subcategories.",
+      "backAriaLabel": "Back to items",
+      "addButton": "Add Category",
+      "treeTitle": "Category Tree",
+      "treeDescription": "Click on a category to expand/collapse. Hover to see actions.",
+      "emptyTitle": "No categories yet.",
+      "emptyHint": "Click \"Add Category\" to create your first category.",
+      "newTitle": "New Category",
+      "editTitle": "Edit Category",
+      "newDescription": "Create a new category to organize your items.",
+      "editDescription": "Update the category details.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Enter category name",
+      "parentLabel": "Parent Category",
+      "parentPlaceholder": "Select parent category",
+      "parentNone": "No parent (root category)",
+      "createButton": "Create Category",
+      "saveButton": "Save Changes",
+      "cancelButton": "Cancel",
+      "deleteDialog": {
+        "title": "Delete Category",
+        "description": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+        "note": "Note:",
+        "noteBody": "You can only delete categories that have no subcategories and no items."
+      },
+      "itemActions": {
+        "addSubcategory": "Add subcategory",
+        "addSubcategoryAria": "Add subcategory to {name}",
+        "edit": "Edit",
+        "editAria": "Edit {name}",
+        "delete": "Delete",
+        "deleteAria": "Delete {name}",
+        "expand": "Expand {name}",
+        "collapse": "Collapse {name}"
+      },
+      "toasts": {
+        "created": "Category created",
+        "createdDescription": "The category has been created.",
+        "createFailed": "Failed to create category",
+        "updated": "Category updated",
+        "updatedDescription": "The category has been updated.",
+        "updateFailed": "Failed to update category",
+        "deleted": "Category deleted",
+        "deletedDescription": "The category has been deleted.",
+        "deleteFailed": "Failed to delete category"
+      }
+    },
+    "units": {
+      "piece": "Piece",
+      "kg": "Kilogram (kg)",
+      "gram": "Gram (g)",
+      "liter": "Liter (L)",
+      "ml": "Milliliter (mL)",
+      "meter": "Meter (m)",
+      "cm": "Centimeter (cm)",
+      "box": "Box",
+      "carton": "Carton",
+      "pack": "Pack",
+      "dozen": "Dozen"
+    },
+    "priceTiers": {
+      "retail": "Retail",
+      "wholesale": "Wholesale",
+      "vip": "VIP",
+      "cost": "Cost"
+    },
+    "currencies": {
+      "usd": "US Dollar ($)",
+      "eur": "Euro (€)",
+      "gbp": "British Pound (£)",
+      "egp": "Egyptian Pound (E£)",
+      "sar": "Saudi Riyal",
+      "aed": "UAE Dirham",
+      "usdShort": "US Dollar ($)",
+      "eurShort": "Euro",
+      "gbpShort": "British Pound",
+      "egpShort": "Egyptian Pound",
+      "sarShort": "Saudi Riyal",
+      "aedShort": "UAE Dirham"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "sales": {
+    "list": {
+      "title": "Sales Invoices",
+      "description": "Manage your sales invoices",
+      "newSale": "New Sale",
+      "searchPlaceholder": "Search by invoice number...",
+      "searchAriaLabel": "Search sales invoices",
+      "filterPlaceholder": "Filter by status",
+      "stats": {
+        "totalSales": "Total Sales",
+        "showing": "Showing",
+        "showingOf": "of {count}",
+        "drafts": "Drafts on Page",
+        "pageTotal": "Page Total"
+      },
+      "columns": {
+        "invoiceNumber": "Invoice #",
+        "customer": "Customer",
+        "date": "Date",
+        "status": "Status",
+        "total": "Total"
+      },
+      "walkIn": "Walk-in",
+      "loading": "Loading...",
+      "errorLoad": "Failed to load invoices. Please check your connection and try again.",
+      "tryAgain": "Try again",
+      "empty": "No sales invoices found",
+      "createFirst": "Create your first sale",
+      "viewAriaLabel": "View sale {number}",
+      "actionsAriaLabel": "Invoice actions",
+      "pagination": {
+        "summary": "Showing {from} to {to} of {total} invoices",
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
+    "status": {
+      "all": "All Statuses",
+      "draft": "Draft",
+      "final": "Finalized",
+      "returned": "Returned",
+      "canceled": "Canceled"
+    },
+    "actions": {
+      "label": "Actions",
+      "view": "View Details",
+      "edit": "Edit",
+      "createReturn": "Create Return",
+      "finalize": "Finalize",
+      "print": "Print",
+      "exportPdf": "Export PDF",
+      "cancelInvoice": "Cancel Invoice",
+      "back": "Go back to sales",
+      "backToSales": "Back to Sales"
+    },
+    "new": {
+      "title": "New Sale",
+      "description": "Create a new sales invoice"
+    },
+    "detail": {
+      "createdOn": "Created {date}",
+      "notFound": "Invoice not found",
+      "loading": "Loading invoice...",
+      "sectionCustomer": "Customer",
+      "sectionWarehouse": "Warehouse",
+      "sectionSummary": "Summary",
+      "sectionItems": "Items",
+      "sectionItemsCount": "{count} item(s) in this invoice",
+      "sectionNotes": "Notes",
+      "walkInCustomer": "Walk-in customer",
+      "summary": {
+        "subtotal": "Subtotal:",
+        "tax": "Tax:",
+        "discount": "Discount:",
+        "total": "Total:"
+      },
+      "itemsTable": {
+        "row": "#",
+        "item": "Item",
+        "description": "Description",
+        "qty": "Qty",
+        "unitPrice": "Unit Price",
+        "discountPercent": "Disc %",
+        "taxPercent": "Tax %",
+        "total": "Total"
+      },
+      "finalizeDialog": {
+        "title": "Finalize Invoice",
+        "intro": "Are you sure you want to finalize this invoice? This will:",
+        "bullet1": "Update stock levels",
+        "bullet2": "Update customer balance",
+        "bullet3": "Lock the invoice from further edits",
+        "cancel": "Cancel",
+        "confirm": "Finalize",
+        "pending": "Finalizing..."
+      },
+      "cancelDialog": {
+        "title": "Cancel Invoice",
+        "body": "Are you sure you want to cancel this invoice? This action cannot be undone.",
+        "keep": "Keep Invoice",
+        "confirm": "Cancel Invoice",
+        "pending": "Canceling..."
+      },
+      "toasts": {
+        "finalized": "Invoice Finalized",
+        "finalizedDescription": "The invoice has been finalized successfully",
+        "finalizeFailed": "Failed to finalize invoice",
+        "canceled": "Invoice Canceled",
+        "canceledDescription": "The invoice has been canceled",
+        "cancelFailed": "Failed to cancel invoice",
+        "returnCreated": "Return Created",
+        "returnCreatedDescription": "The return invoice has been created"
+      }
+    },
+    "form": {
+      "customer": "Customer",
+      "supplier": "Supplier",
+      "selectCustomer": "Select customer...",
+      "selectSupplier": "Select supplier...",
+      "warehouse": "Warehouse",
+      "selectWarehouse": "Select warehouse...",
+      "details": "Details",
+      "currency": "Currency",
+      "date": "Date",
+      "items": "Items",
+      "addItemsHint": "Add items to your {type} invoice",
+      "saleType": "sales",
+      "purchaseType": "purchase",
+      "validation": {
+        "warehouseAndItems": "Select a warehouse and add at least one item to create this invoice.",
+        "warehouseOnly": "Please select a warehouse to continue.",
+        "itemsOnly": "Add at least one item to continue."
+      },
+      "addItem": "Add Item",
+      "searchItems": "Search items by name or SKU...",
+      "noItemsFound": "No items found",
+      "cancel": "Cancel",
+      "notes": "Notes",
+      "notesPlaceholder": "Add notes...",
+      "summary": "Summary",
+      "subtotal": "Subtotal:",
+      "tax": "Tax:",
+      "discount": "Discount:",
+      "discountAriaLabel": "Discount amount",
+      "total": "Total:",
+      "draftSavedAt": "Draft saved locally {time}",
+      "saveDraft": "Save as Draft",
+      "finalize": "Finalize",
+      "loading": "Loading...",
+      "finalizeConfirm": {
+        "title": "Finalize this invoice?",
+        "body": "Finalizing locks the invoice and updates stock quantities and party balances. This action cannot be undone. If you need to make changes later, you will need to create a return invoice.",
+        "cancel": "Cancel",
+        "confirm": "Finalize Invoice"
+      },
+      "toasts": {
+        "selectWarehouse": "Please select a warehouse",
+        "addOneItem": "Please add at least one item",
+        "draftSaved": "Draft Saved",
+        "draftSavedDescription": "Invoice {number} saved as draft",
+        "saveFailed": "Failed to save draft",
+        "finalized": "Invoice Finalized",
+        "finalizedDescription": "Invoice {number} has been finalized",
+        "finalizeFailed": "Failed to finalize invoice"
+      }
+    },
+    "items": {
+      "columns": {
+        "row": "#",
+        "item": "Item",
+        "description": "Description",
+        "qty": "Qty",
+        "unitPrice": "Unit Price",
+        "discountPercent": "Disc %",
+        "taxPercent": "Tax %",
+        "total": "Total"
+      },
+      "stock": "Stock: {count}",
+      "addItem": "Add Item",
+      "empty": "No items added yet",
+      "subtotal": "Subtotal:",
+      "tax": "Tax:",
+      "total": "Total:",
+      "ariaReorder": "Reorder {name}",
+      "ariaRemove": "Remove {name}",
+      "ariaDescription": "Description for {name}",
+      "ariaQuantity": "Quantity for {name}",
+      "ariaUnitPrice": "Unit price for {name}",
+      "ariaDiscountPercent": "Discount percent for {name}",
+      "ariaTaxRate": "Tax rate for {name}"
+    },
+    "party": {
+      "selectPlaceholder": "Select party...",
+      "search": "Search by name, email, or phone...",
+      "searchAriaLabel": "Search parties",
+      "loading": "Loading...",
+      "empty": "No parties found.",
+      "owes": "Owes: {amount}",
+      "credit": "Credit: {amount}",
+      "balanceZero": "Balance: 0.00",
+      "clear": "Clear",
+      "typeCustomer": "Customer",
+      "typeSupplier": "Supplier"
+    },
+    "return": {
+      "title": "Create Return",
+      "description": "Select items and quantities to return from invoice {number}",
+      "columns": {
+        "item": "Item",
+        "original": "Original",
+        "returnQty": "Return Qty",
+        "unitPrice": "Unit Price",
+        "returnValue": "Return Value"
+      },
+      "selectAll": "Select all items",
+      "selectItem": "Select {name}",
+      "returnQtyAriaLabel": "Return quantity for {name}",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Reason for return...",
+      "notesDefault": "Return for invoice {number}",
+      "selectedSummary": "{selected} of {total} items selected",
+      "returnTotal": "Return Total: {amount}",
+      "cancel": "Cancel",
+      "submit": "Create Return",
+      "submitting": "Creating Return...",
+      "errorSelectOne": "Please select at least one item to return",
+      "errorQuantity": "Please check return quantities. They must be between 0 and the original quantity.",
+      "errorGeneric": "Failed to create return"
+    },
+    "pdf": {
+      "labels": {
+        "draft": "DRAFT",
+        "invoice": "INVOICE",
+        "return": "RETURN",
+        "canceled": "CANCELED"
+      },
+      "documentSale": "Sales Invoice",
+      "documentPurchase": "Purchase Invoice",
+      "invoiceNo": "Invoice No:",
+      "date": "Date:",
+      "finalized": "Finalized:",
+      "status": "Status:",
+      "billTo": "Bill To",
+      "supplier": "Supplier",
+      "warehouse": "Warehouse",
+      "walkInCustomer": "Walk-in Customer",
+      "columnRow": "#",
+      "columnItem": "Item",
+      "columnDescription": "Description",
+      "columnQty": "Qty",
+      "columnUnitPrice": "Unit Price",
+      "columnDisc": "Disc %",
+      "columnTax": "Tax %",
+      "columnTotal": "Total",
+      "skuPrefix": "SKU:",
+      "subtotal": "Subtotal:",
+      "tax": "Tax:",
+      "discount": "Discount:",
+      "total": "Total:",
+      "notesTitle": "Notes",
+      "paymentTitle": "Payment Information",
+      "paymentBody": "Please make payment to:",
+      "paymentReference": "Reference: {number}",
+      "returnTitle": "Return Information",
+      "returnBody": "This is a return invoice for original invoice:",
+      "thankYou": "Thank you for your business!",
+      "footerInvoice": "Invoice: {number}",
+      "footerPage": "Page 1 of 1",
+      "authorizedSignature": "Authorized Signature",
+      "customerSignature": "Customer Signature",
+      "defaultCompanyName": "Your Company"
+    }
+  },
+  "purchases": {
+    "list": {
+      "title": "Purchase Orders",
+      "description": "Manage your purchase orders and supplier invoices",
+      "newPurchase": "New Purchase",
+      "searchPlaceholder": "Search by invoice number...",
+      "searchAriaLabel": "Search purchase orders",
+      "filterPlaceholder": "Filter by status",
+      "stats": {
+        "totalPurchases": "Total Purchases",
+        "showing": "Showing",
+        "showingOf": "of {count}",
+        "drafts": "Drafts on Page",
+        "pageTotal": "Page Total"
+      },
+      "columns": {
+        "invoiceNumber": "Invoice #",
+        "supplier": "Supplier",
+        "date": "Date",
+        "status": "Status",
+        "total": "Total"
+      },
+      "noSupplier": "No supplier",
+      "loading": "Loading...",
+      "errorLoad": "Error loading invoices",
+      "tryAgain": "Try again",
+      "empty": "No purchase orders found",
+      "createFirst": "Create your first purchase",
+      "viewAriaLabel": "View purchase {number}",
+      "actionsAriaLabel": "Purchase actions",
+      "pagination": {
+        "summary": "Showing {from} to {to} of {total} invoices",
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
+    "actions": {
+      "label": "Actions",
+      "view": "View Details",
+      "edit": "Edit",
+      "createReturn": "Create Return",
+      "finalize": "Finalize",
+      "print": "Print",
+      "exportPdf": "Export PDF",
+      "cancelInvoice": "Cancel",
+      "back": "Go back to purchases",
+      "backToPurchases": "Back to Purchases"
+    },
+    "new": {
+      "title": "New Purchase Order",
+      "description": "Create a new purchase order from a supplier"
+    },
+    "detail": {
+      "createdOn": "Created {date}",
+      "notFound": "Purchase not found",
+      "loading": "Loading purchase...",
+      "sectionSupplier": "Supplier",
+      "sectionWarehouse": "Receiving Warehouse",
+      "sectionWarehouseNote": "Stock has been added to this warehouse",
+      "sectionSummary": "Summary",
+      "sectionItems": "Items",
+      "sectionItemsCount": "{count} item(s) in this purchase order",
+      "sectionNotes": "Notes",
+      "noSupplier": "No supplier linked",
+      "summary": {
+        "subtotal": "Subtotal:",
+        "tax": "Tax:",
+        "discount": "Discount:",
+        "total": "Total:"
+      },
+      "finalizeDialog": {
+        "title": "Finalize Purchase",
+        "intro": "Are you sure you want to finalize this purchase order? This will:",
+        "bullet1": "Add items to warehouse stock",
+        "bullet2": "Update supplier balance",
+        "bullet3": "Lock the purchase from further edits",
+        "cancel": "Cancel",
+        "confirm": "Finalize",
+        "pending": "Finalizing..."
+      },
+      "cancelDialog": {
+        "title": "Cancel Purchase",
+        "body": "Are you sure you want to cancel this purchase? This action cannot be undone.",
+        "keep": "Keep Purchase",
+        "confirm": "Cancel Purchase",
+        "pending": "Canceling..."
+      },
+      "toasts": {
+        "finalized": "Purchase Finalized",
+        "finalizedDescription": "The purchase has been finalized successfully",
+        "finalizeFailed": "Failed to finalize purchase",
+        "canceled": "Purchase Canceled",
+        "canceledDescription": "The purchase has been canceled",
+        "cancelFailed": "Failed to cancel purchase",
+        "returnCreated": "Return Created",
+        "returnCreatedDescription": "The return invoice has been created"
+      }
+    },
+    "edit": {
+      "title": "Edit Purchase",
+      "description": "Update draft purchase order",
+      "onlyDraft": "Only draft purchases can be edited"
+    }
   }
 }

@@ -10,6 +10,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
@@ -22,6 +23,9 @@ import type { InvoiceWithRelations } from '@erp/shared';
 export default function EditPurchasePage() {
   const params = useParams();
   const router = useRouter();
+  const t = useTranslations('purchases.edit');
+  const tDetail = useTranslations('purchases.detail');
+  const tActions = useTranslations('purchases.actions');
 
   const invoiceId = params.id as string;
   const locale = params.locale as string;
@@ -80,9 +84,9 @@ export default function EditPurchasePage() {
   if (error || !invoice) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-destructive">Purchase not found</p>
+        <p className="text-destructive">{tDetail('notFound')}</p>
         <Button variant="outline" asChild>
-          <Link href={`/${locale}/purchases`}>Back to Purchases</Link>
+          <Link href={`/${locale}/purchases`}>{tActions('backToPurchases')}</Link>
         </Button>
       </div>
     );
@@ -91,9 +95,9 @@ export default function EditPurchasePage() {
   if (invoice.status !== 'draft') {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-destructive">Only draft purchases can be edited</p>
+        <p className="text-destructive">{t('onlyDraft')}</p>
         <Button variant="outline" asChild>
-          <Link href={`/${locale}/purchases/${invoiceId}`}>View Purchase</Link>
+          <Link href={`/${locale}/purchases/${invoiceId}`}>{tActions('view')}</Link>
         </Button>
       </div>
     );
@@ -103,15 +107,15 @@ export default function EditPurchasePage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Go back to purchase details">
+        <Button variant="ghost" size="icon" asChild aria-label={tActions('back')}>
           <Link href={`/${locale}/purchases/${invoiceId}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Edit Purchase</h1>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Editing {invoice.invoiceNumber}
+            {invoice.invoiceNumber}
           </p>
         </div>
       </div>

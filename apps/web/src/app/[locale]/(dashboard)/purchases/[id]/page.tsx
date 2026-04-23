@@ -10,6 +10,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   ArrowLeft,
   Edit,
@@ -63,100 +64,90 @@ import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog'
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
-
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', icon: Clock, variant: 'secondary' },
-  final: { label: 'Finalized', icon: CheckCircle, variant: 'default' },
-  returned: { label: 'Returned', icon: RotateCcw, variant: 'outline' },
-  canceled: { label: 'Canceled', icon: XCircle, variant: 'destructive' },
+const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  draft: { icon: Clock, variant: 'secondary' },
+  final: { icon: CheckCircle, variant: 'default' },
+  returned: { icon: RotateCcw, variant: 'outline' },
+  canceled: { icon: XCircle, variant: 'destructive' },
 };
-
-// =============================================================================
-// COMPONENT
-// =============================================================================
 
 export default function PurchaseDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const t = useTranslations('purchases.detail');
+  const tActions = useTranslations('purchases.actions');
+  const tStatus = useTranslations('sales.status');
+  const tCommon = useTranslations('common');
+  const tCols = useTranslations('sales.detail.itemsTable');
 
   const invoiceId = params.id as string;
   const locale = params.locale as string;
   const showReturn = searchParams.get('return') === 'true';
 
-  // Fetch invoice
   const { data, isLoading, error } = useInvoice(invoiceId);
   const invoice = data?.data;
 
-  // Mutations
   const finalizeInvoice = useFinalizeInvoice();
   const cancelInvoice = useCancelInvoice();
 
-  // Print ref
   const printRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: `Purchase-${invoiceId}`,
   });
 
-  // Dialog state
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
 
-  // Handle finalize
   const handleFinalize = useCallback(async () => {
     try {
       await finalizeInvoice.mutateAsync({ id: invoiceId });
       setShowFinalizeDialog(false);
       toast({
-        title: 'Purchase Finalized',
-        description: 'The purchase order has been finalized and stock has been updated',
+        title: t('toasts.finalized'),
+        description: t('toasts.finalizedDescription'),
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to finalize purchase',
+        title: tCommon('error'),
+        description: err instanceof Error ? err.message : t('toasts.finalizeFailed'),
       });
     }
-  }, [invoiceId, finalizeInvoice, toast]);
+  }, [invoiceId, finalizeInvoice, toast, t, tCommon]);
 
-  // Handle cancel
   const handleCancel = useCallback(async () => {
     try {
       await cancelInvoice.mutateAsync(invoiceId);
       setShowCancelDialog(false);
       toast({
-        title: 'Purchase Canceled',
-        description: 'The purchase order has been canceled',
+        title: t('toasts.canceled'),
+        description: t('toasts.canceledDescription'),
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to cancel purchase',
+        title: tCommon('error'),
+        description: err instanceof Error ? err.message : t('toasts.cancelFailed'),
       });
     }
-  }, [invoiceId, cancelInvoice, toast]);
+  }, [invoiceId, cancelInvoice, toast, t, tCommon]);
 
-  // Handle return success
   const handleReturnSuccess = useCallback(() => {
     setShowReturnDialog(false);
     toast({
-      title: 'Return Created',
-      description: 'The purchase return has been created and stock has been adjusted',
+      title: t('toasts.returnCreated'),
+      description: t('toasts.returnCreatedDescription'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading purchase...</p>
+        <p className="text-muted-foreground">{t('loading')}</p>
       </div>
     );
   }
@@ -164,23 +155,22 @@ export default function PurchaseDetailPage() {
   if (error || !invoice) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-destructive">Purchase not found</p>
+        <p className="text-destructive">{t('notFound')}</p>
         <Button variant="outline" asChild>
-          <Link href={`/${locale}/purchases`}>Back to Purchases</Link>
+          <Link href={`/${locale}/purchases`}>{tActions('backToPurchases')}</Link>
         </Button>
       </div>
     );
   }
 
-  const statusConfig = STATUS_CONFIG[invoice.status];
+  const statusConfig = STATUS_ICONS[invoice.status];
   const StatusIcon = statusConfig.icon;
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Go back to purchases">
+          <Button variant="ghost" size="icon" asChild aria-label={tActions('back')}>
             <Link href={`/${locale}/purchases`}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -190,11 +180,11 @@ export default function PurchaseDetailPage() {
               <h1 className="text-2xl font-bold">{invoice.invoiceNumber}</h1>
               <Badge variant={statusConfig.variant} className="gap-1">
                 <StatusIcon className="h-3 w-3" />
-                {statusConfig.label}
+                {tStatus(invoice.status)}
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Created {new Date(invoice.createdAt).toLocaleDateString()}
+              {t('createdOn', { date: new Date(invoice.createdAt).toLocaleDateString() })}
             </p>
           </div>
         </div>
@@ -205,37 +195,37 @@ export default function PurchaseDetailPage() {
               <Button variant="outline" asChild>
                 <Link href={`/${locale}/purchases/${invoiceId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {tActions('edit')}
                 </Link>
               </Button>
               <Button onClick={() => setShowFinalizeDialog(true)}>
                 <Send className="h-4 w-4 mr-2" />
-                Finalize
+                {tActions('finalize')}
               </Button>
             </>
           )}
           {invoice.status === 'final' && (
             <Button variant="outline" onClick={() => setShowReturnDialog(true)}>
               <Undo2 className="h-4 w-4 mr-2" />
-              Create Return
+              {tActions('createReturn')}
             </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Purchase actions">
+              <Button variant="outline" size="icon" aria-label={tActions('label')}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tActions('label')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handlePrint()}>
                 <Printer className="h-4 w-4 mr-2" />
-                Print
+                {tActions('print')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handlePrint()}>
                 <Download className="h-4 w-4 mr-2" />
-                Export PDF
+                {tActions('exportPdf')}
               </DropdownMenuItem>
               {invoice.status === 'draft' && (
                 <>
@@ -245,7 +235,7 @@ export default function PurchaseDetailPage() {
                     onClick={() => setShowCancelDialog(true)}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Cancel Purchase
+                    {tActions('cancelInvoice')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -254,12 +244,10 @@ export default function PurchaseDetailPage() {
         </div>
       </div>
 
-      {/* Invoice Details */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Supplier Info */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Supplier</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('sectionSupplier')}</CardTitle>
           </CardHeader>
           <CardContent>
             {invoice.party ? (
@@ -281,20 +269,19 @@ export default function PurchaseDetailPage() {
                 )}
                 <div className="pt-2">
                   <Badge variant={invoice.party.balance > 0 ? 'destructive' : 'secondary'} className="text-xs">
-                    Balance: {invoice.party.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {t('summary.total').replace(':', '')}: {invoice.party.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </Badge>
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground">No supplier selected</p>
+              <p className="text-muted-foreground">{t('noSupplier')}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Warehouse */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Receiving Warehouse</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('sectionWarehouse')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -303,58 +290,56 @@ export default function PurchaseDetailPage() {
             </div>
             {invoice.status === 'final' && (
               <p className="text-xs text-muted-foreground mt-2">
-                Stock has been added to this warehouse
+                {t('sectionWarehouseNote')}
               </p>
             )}
           </CardContent>
         </Card>
 
-        {/* Summary */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Summary</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('sectionSummary')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">{t('summary.subtotal')}</span>
               <span>{invoice.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax:</span>
+              <span className="text-muted-foreground">{t('summary.tax')}</span>
               <span>{invoice.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Discount:</span>
+              <span className="text-muted-foreground">{t('summary.discount')}</span>
               <span>-{invoice.discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between font-semibold pt-2 border-t">
-              <span>Total:</span>
+              <span>{t('summary.total')}</span>
               <span>{invoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Items Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Items</CardTitle>
+          <CardTitle>{t('sectionItems')}</CardTitle>
           <CardDescription>
-            {invoice.items.length} item(s) in this purchase order
+            {t('sectionItemsCount', { count: invoice.items.length })}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Disc %</TableHead>
-                <TableHead className="text-right">Tax %</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="w-12">{tCols('row')}</TableHead>
+                <TableHead>{tCols('item')}</TableHead>
+                <TableHead>{tCols('description')}</TableHead>
+                <TableHead className="text-right">{tCols('qty')}</TableHead>
+                <TableHead className="text-right">{tCols('unitPrice')}</TableHead>
+                <TableHead className="text-right">{tCols('discountPercent')}</TableHead>
+                <TableHead className="text-right">{tCols('taxPercent')}</TableHead>
+                <TableHead className="text-right">{tCols('total')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -388,11 +373,10 @@ export default function PurchaseDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Notes */}
       {invoice.notes && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Notes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('sectionNotes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap">{invoice.notes}</p>
@@ -400,61 +384,57 @@ export default function PurchaseDetailPage() {
         </Card>
       )}
 
-      {/* Hidden Printable Invoice */}
       <div className="hidden">
         <InvoicePdf ref={printRef} invoice={invoice} />
       </div>
 
-      {/* Finalize Confirmation Dialog */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Finalize Purchase</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to finalize this purchase order? This will:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Add items to warehouse stock</li>
-                <li>Update supplier balance</li>
-                <li>Lock the purchase from further edits</li>
-              </ul>
+            <DialogTitle>{t('finalizeDialog.title')}</DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                {t('finalizeDialog.intro')}
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>{t('finalizeDialog.bullet1')}</li>
+                  <li>{t('finalizeDialog.bullet2')}</li>
+                  <li>{t('finalizeDialog.bullet3')}</li>
+                </ul>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowFinalizeDialog(false)}>
-              Cancel
+              {t('finalizeDialog.cancel')}
             </Button>
             <Button onClick={handleFinalize} disabled={finalizeInvoice.isPending}>
-              {finalizeInvoice.isPending ? 'Finalizing...' : 'Finalize'}
+              {finalizeInvoice.isPending ? t('finalizeDialog.pending') : t('finalizeDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Cancel Confirmation Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Purchase</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this purchase order? This action cannot be undone.
-            </DialogDescription>
+            <DialogTitle>{t('cancelDialog.title')}</DialogTitle>
+            <DialogDescription>{t('cancelDialog.body')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              Keep Purchase
+              {t('cancelDialog.keep')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancel}
               disabled={cancelInvoice.isPending}
             >
-              {cancelInvoice.isPending ? 'Canceling...' : 'Cancel Purchase'}
+              {cancelInvoice.isPending ? t('cancelDialog.pending') : t('cancelDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Return Invoice Dialog */}
       {showReturnDialog && invoice && (
         <ReturnInvoiceDialog
           open={showReturnDialog}
