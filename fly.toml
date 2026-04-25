@@ -1,0 +1,38 @@
+# Fly.io config for apps/api (Express).
+# Region: fra (Frankfurt) — close to MENA users. Change `primary_region`
+# if your users are elsewhere. List: https://fly.io/docs/reference/regions/
+#
+# `fly launch --no-deploy` may overwrite parts of this file with its own
+# defaults — keep this version in git so you can restore it if that happens.
+
+app = "gvs-erp-api"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3001"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  # Scale to zero when idle to fit the free allowance. First request after
+  # idle has a ~5-10s cold start; acceptable for a low-traffic ERP.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
