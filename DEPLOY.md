@@ -127,7 +127,7 @@ In the same screen, add these env vars (all three required):
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<your-project>.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (Supabase anon key) |
-| `NEXT_PUBLIC_API_URL` | `https://gvs-erp-api.fly.dev` |
+| `NEXT_PUBLIC_API_URL` | `https://gvs-erp-api.fly.dev/api/v1` (the `/api/v1` suffix is required — `apps/web/src/lib/api-client.ts` concatenates this directly with endpoint paths like `/invoices`) |
 
 Click **Deploy**. First build takes ~2-3 minutes.
 
