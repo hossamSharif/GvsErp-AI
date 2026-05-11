@@ -5,11 +5,30 @@
  * role assignment, and user preferences.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
 import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput, Permission } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
+
+// Lazy service-role client for auth.admin.* operations.
+// The per-request supabase passed into UserService carries the user JWT,
+// which lacks the privileges needed to manage Supabase Auth users.
+let adminClient: SupabaseClient<Database> | null = null;
+function getAdminClient(): SupabaseClient<Database> {
+  if (adminClient) return adminClient;
+  const url = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    throw new Error(
+      'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set for user-admin operations'
+    );
+  }
+  adminClient = createClient<Database>(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  return adminClient;
+}
 
 /**
  * Application error for user-related operations
@@ -98,7 +117,7 @@ export class UserService {
     }
 
     // Create user in Supabase Auth
-    const { data: authData, error: authError } = await this.supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await getAdminClient().auth.admin.createUser({
       email: input.email,
       password: input.password,
       email_confirm: true, // Auto-confirm email
@@ -133,7 +152,7 @@ export class UserService {
       return this.mapUser(user);
     } catch (error) {
       // Rollback: Delete auth user if database creation fails
-      await this.supabase.auth.admin.deleteUser(authData.user.id);
+      await getAdminClient().auth.admin.deleteUser(authData.user.id);
       throw new UserError(
         'Failed to create user record',
         'USER_CREATE_FAILED',
@@ -169,7 +188,7 @@ export class UserService {
       }
 
       // Update email in Supabase Auth
-      const { error: authError } = await this.supabase.auth.admin.updateUserById(
+      const { error: authError } = await getAdminClient().auth.admin.updateUserById(
         id,
         { email: input.email }
       );
@@ -185,7 +204,7 @@ export class UserService {
 
     // Update full_name in auth metadata if changed
     if (input.full_name && input.full_name !== existing.full_name) {
-      await this.supabase.auth.admin.updateUserById(id, {
+      await getAdminClient().auth.admin.updateUserById(id, {
         user_metadata: {
           full_name: input.full_name,
         },
@@ -230,7 +249,7 @@ export class UserService {
     }
 
     // Optionally delete from Supabase Auth (commented out for soft delete)
-    // await this.supabase.auth.admin.deleteUser(id);
+    // await getAdminClient().auth.admin.deleteUser(id);
   }
 
   /**
@@ -243,7 +262,7 @@ export class UserService {
     }
 
     // Delete from Supabase Auth
-    const { error: authError } = await this.supabase.auth.admin.deleteUser(id);
+    const { error: authError } = await getAdminClient().auth.admin.deleteUser(id);
     if (authError) {
       throw new UserError(
         'Failed to delete auth user',
@@ -311,7 +330,7 @@ export class UserService {
       throw new UserError('User not found', 'USER_NOT_FOUND', 404);
     }
 
-    const { error } = await this.supabase.auth.admin.updateUserById(id, {
+    const { error } = await getAdminClient().auth.admin.updateUserById(id, {
       password: newPassword,
     });
 
@@ -328,7 +347,7 @@ export class UserService {
    * Send password reset email
    */
   async sendPasswordResetEmail(email: string): Promise<void> {
-    const { error } = await this.supabase.auth.resetPasswordForEmail(email);
+    const { error } = await getAdminClient().auth.resetPasswordForEmail(email);
 
     if (error) {
       throw new UserError(

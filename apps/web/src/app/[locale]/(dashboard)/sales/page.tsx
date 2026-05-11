@@ -23,6 +23,7 @@ import {
   Clock,
   XCircle,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,10 +50,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useInvoices, usePrefetchInvoice } from '@/hooks/use-invoices';
-import type { InvoiceStatus, InvoiceQueryParams } from '@erp/shared';
+import { useToast } from '@/hooks/use-toast';
+import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import type { InvoiceStatus, InvoiceQueryParams, InvoiceWithParty } from '@erp/shared';
 
 // =============================================================================
 // CONSTANTS
@@ -73,14 +83,44 @@ export default function SalesListPage() {
   const router = useRouter();
   const { locale } = useParams();
   const prefetchInvoice = usePrefetchInvoice();
+  const { toast } = useToast();
   const t = useTranslations('sales.list');
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('sales.actions');
+  const tDetail = useTranslations('sales.detail');
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
   const [page, setPage] = useState(1);
+
+  // Delete dialog state
+  const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceWithParty | null>(null);
+  const deleteInvoice = useDeleteInvoice();
+
+  const handleDeleteConfirm = async () => {
+    if (!invoiceToDelete) return;
+    try {
+      await deleteInvoice.mutateAsync(invoiceToDelete.id);
+      toast({
+        title: tDetail('toasts.deleted'),
+        description: tDetail('toasts.deletedDescription'),
+      });
+      setInvoiceToDelete(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : tDetail('toasts.deleteFailed');
+      const lower = message.toLowerCase();
+      const title =
+        lower.includes('payment') ? tDetail('toasts.blockedByPayments')
+        : lower.includes('return') ? tDetail('toasts.blockedByReturn')
+        : tDetail('toasts.deleteFailed');
+      toast({
+        variant: 'destructive',
+        title,
+        description: message,
+      });
+    }
+  };
 
   // Build query params
   const queryParams: InvoiceQueryParams = useMemo(() => ({
@@ -298,7 +338,7 @@ export default function SalesListPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuLabel>{tActions('label')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
@@ -307,7 +347,7 @@ export default function SalesListPage() {
                                 {tActions('view')}
                               </Link>
                             </DropdownMenuItem>
-                            {invoice.status === 'draft' && (
+                            {(invoice.status === 'draft' || invoice.status === 'final') && (
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/sales/${invoice.id}/edit`}>
                                   <Edit className="h-4 w-4 mr-2" />
@@ -323,6 +363,17 @@ export default function SalesListPage() {
                                 </Link>
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setInvoiceToDelete(invoice);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {tActions('delete')}
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -365,6 +416,41 @@ export default function SalesListPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={invoiceToDelete !== null}
+        onOpenChange={(open) => !open && setInvoiceToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tDetail('deleteDialog.title')}</DialogTitle>
+            <DialogDescription>
+              {invoiceToDelete?.status === 'final'
+                ? tDetail('deleteDialog.bodyFinal')
+                : invoiceToDelete?.status === 'returned'
+                ? tDetail('deleteDialog.bodyReturned')
+                : invoiceToDelete?.status === 'canceled'
+                ? tDetail('deleteDialog.bodyCanceled')
+                : tDetail('deleteDialog.bodyDraft')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInvoiceToDelete(null)}>
+              {tDetail('deleteDialog.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteInvoice.isPending}
+            >
+              {deleteInvoice.isPending
+                ? tDetail('deleteDialog.pending')
+                : tDetail('deleteDialog.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

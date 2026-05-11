@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { usePayments, useDeletePayment } from '@/hooks/use-payments';
 import { DataTable } from '@/components/tables/data-table';
@@ -47,6 +48,7 @@ import type { PaymentWithParty, PaymentQueryParams } from '@erp/shared';
 import {
   Plus,
   MoreHorizontal,
+  Pencil,
   Trash2,
   Eye,
   Download,
@@ -59,6 +61,9 @@ export default function PaymentsPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const intlLocale = useLocale();
+  const t = useTranslations('payments.list');
+  const tCommon = useTranslations('common');
   const { toast } = useToast();
 
   // Query state
@@ -80,16 +85,16 @@ export default function PaymentsPage() {
   const deleteMutation = useDeletePayment({
     onSuccess: () => {
       toast({
-        title: 'Payment deleted',
-        description: 'The payment has been deleted and balances updated.',
+        title: t('toast.deleted'),
+        description: t('toast.deletedDesc'),
       });
       setDeleteDialogOpen(false);
       setPaymentToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete payment',
+        title: tCommon('error'),
+        description: error.message || t('toast.deleteError'),
         variant: 'destructive',
       });
     },
@@ -133,6 +138,13 @@ export default function PaymentsPage() {
     [router, locale]
   );
 
+  const handleEditPayment = useCallback(
+    (payment: PaymentWithParty) => {
+      router.push(`/${locale}/payments/${payment.id}/edit`);
+    },
+    [router, locale]
+  );
+
   const handleDeletePayment = useCallback((payment: PaymentWithParty) => {
     setPaymentToDelete(payment);
     setDeleteDialogOpen(true);
@@ -161,26 +173,26 @@ export default function PaymentsPage() {
 
   // Format date
   const formatDate = useCallback((date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(intlLocale === 'ar' ? 'ar-EG' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  }, []);
+  }, [intlLocale]);
 
   // Table columns
   const columns = useMemo<ColumnDef<PaymentWithParty>[]>(
     () => [
       {
         accessorKey: 'reference',
-        header: 'Reference',
+        header: t('columns.reference'),
         cell: ({ row }) => (
-          <span className="font-mono text-sm">{row.original.reference || 'N/A'}</span>
+          <span className="font-mono text-sm">{row.original.reference || '—'}</span>
         ),
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('columns.type'),
         cell: ({ row }) => {
           const isReceived = row.original.type === 'received';
           return (
@@ -188,12 +200,12 @@ export default function PaymentsPage() {
               {isReceived ? (
                 <>
                   <ArrowDownCircle className="mr-1 h-3 w-3" />
-                  Received
+                  {t('type.received')}
                 </>
               ) : (
                 <>
                   <ArrowUpCircle className="mr-1 h-3 w-3" />
-                  Made
+                  {t('type.made')}
                 </>
               )}
             </Badge>
@@ -202,19 +214,19 @@ export default function PaymentsPage() {
       },
       {
         accessorKey: 'party',
-        header: 'Party',
+        header: t('columns.party'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.party.name}</span>
-            <span className="text-xs text-muted-foreground capitalize">
-              {row.original.party.type}
+            <span className="text-xs text-muted-foreground">
+              {t(`type.${row.original.party.type}` as any)}
             </span>
           </div>
         ),
       },
       {
         accessorKey: 'amount',
-        header: 'Amount',
+        header: t('columns.amount'),
         cell: ({ row }) => (
           <span className="font-medium">
             {formatCurrency(row.original.amount, row.original.currency)}
@@ -223,34 +235,38 @@ export default function PaymentsPage() {
       },
       {
         accessorKey: 'paymentMethod',
-        header: 'Method',
+        header: t('columns.method'),
         cell: ({ row }) => (
           <span className="capitalize">
-            {row.original.paymentMethod?.replace('_', ' ') || 'N/A'}
+            {row.original.paymentMethod?.replace('_', ' ') || '—'}
           </span>
         ),
       },
       {
         accessorKey: 'paymentDate',
-        header: 'Date',
+        header: t('columns.date'),
         cell: ({ row }) => formatDate(row.original.paymentDate),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('columns.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t('menuOpen')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleViewPayment(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t('actions.view')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEditPayment(row.original)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                {t('actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -258,14 +274,14 @@ export default function PaymentsPage() {
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleViewPayment, handleDeletePayment, formatCurrency, formatDate]
+    [handleViewPayment, handleEditPayment, handleDeletePayment, formatCurrency, formatDate, t, tCommon]
   );
 
   return (
@@ -273,17 +289,17 @@ export default function PaymentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
-          <p className="text-muted-foreground">Track all payments received and made</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleExportReport}>
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            {t('exportButton')}
           </Button>
           <Button onClick={handleRecordPayment}>
             <Plus className="mr-2 h-4 w-4" />
-            Record Payment
+            {t('recordButton')}
           </Button>
         </div>
       </div>
@@ -292,19 +308,19 @@ export default function PaymentsPage() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Filter:</span>
+          <span className="text-sm text-muted-foreground">{t('filterLabel')}</span>
         </div>
         <Select
           value={queryParams.type || 'all'}
           onValueChange={handleTypeFilter}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Payments" />
+            <SelectValue placeholder={t('filterAll')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Payments</SelectItem>
-            <SelectItem value="received">Received Only</SelectItem>
-            <SelectItem value="made">Made Only</SelectItem>
+            <SelectItem value="all">{t('filterAll')}</SelectItem>
+            <SelectItem value="received">{t('filterReceived')}</SelectItem>
+            <SelectItem value="made">{t('filterMade')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -319,7 +335,7 @@ export default function PaymentsPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search by reference or notes..."
+        searchPlaceholder={t('searchPlaceholder')}
         isLoading={isLoading}
       />
 
@@ -327,16 +343,17 @@ export default function PaymentsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the payment with reference "{paymentToDelete?.reference}" and reverse
-              the balance change. This action cannot be undone.
+              {t('deleteDialog.description', {
+                reference: paymentToDelete?.reference || paymentToDelete?.id?.slice(0, 8) || '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+              {tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -2,8 +2,8 @@
 
 ## Progress
 
-**Last session:** 2026-04-23 — Phase 4 complete (pgvector migration `014_ai_embeddings.sql` with JWT-claim RLS + `match_ai_embeddings` RPC, backend-aware vector store, hash-aware idempotent ingest with delete-stale, parity check, APScheduler daily re-embed + hourly balance snapshot, Excel export tool with matplotlib chart embed).
-**Next up:** Phase 5 — MCP fundamentals: install the Python `mcp` SDK, wrap the Phase 2 ERP tools as a stdio MCP server (`src/mcp_server/erp_tools.py`), refactor the agent to be an MCP client of its own server, register in Claude Desktop and verify external call works.
+**Last session:** 2026-04-25 — Phase 7 complete (LangGraph state machine in `src/agent/graph.py` with `load_memory → planner → executor` topology and a self-loop on the executor; `MemorySaver` checkpointer with optional `AsyncSqliteSaver` via `--extra checkpoint-sqlite`; `ai_user_memory` table + RLS in migration 017; `src/memory/user_memory.py` for load/save/delete; sidebar engine toggle (`loop` vs `graph`) and Long-term Memory pane in `app.py`; confirmation-key fix that hashes `(name, args)` instead of relying on the LLM's per-request `call_id`; eval harness with 20 cases, stubbed dispatch, `LIVE_EVALS=1` opt-in; LangSmith env wiring; offline pytest unit tests for the confirmation key parity between engines).
+**Next up:** Phase 8 (post-roadmap) — deployment (Fly.io / Railway), per-tool memory writes (`save_memory` as a tool), multi-agent subgraph for RAG, replace `pending`-flag pattern with idiomatic `interrupt()` + `Command(resume=…)`.
 
 ### Phase 0 — Bootstrap ✅ (2026-04-19)
 - [x] uv installed (0.8.17)
@@ -51,32 +51,35 @@
 - [x] Learning note `04-pipelines-pgvector-migration.md`
 - **Notes:** Migration `packages/database/migrations/014_ai_embeddings.sql` adds `ai_embeddings` (id, tenant_id, source_table, source_id, content, content_hash, embedding vector(768), metadata jsonb, embedded_at) + ivfflat index + JWT-claim RLS (NOT the broken `current_setting('app.current_tenant_id')` pattern — see `013_fix_sales_rls_jwt.sql`). Same migration adds `ai_balance_snapshots` for the hourly job and a `match_ai_embeddings(query_embedding, match_count, filter)` PL/pgSQL RPC that LangChain's `SupabaseVectorStore` reads through. `src/rag/store.py` is now backend-aware (`settings.rag_backend = "chroma" | "pgvector"`) — same `VectorStore` interface to callers; `retrieve.py` + `search_knowledge` + `generate_party_summary_pdf` all thread `client=ctx.supabase` through. Writes to pgvector go through `src/rag/store_pg.py:upsert_embeddings`, which hashes content (sha256) and skips rows whose hash matches the prior insert — re-running the pipeline on unchanged data reports `inserted=0 updated=0 skipped=N`. `delete_stale` drops source_ids that disappeared from the latest ERP pull. `src/rag/parity.py` constructs both stores in one process and reports Jaccard overlap of top-k source_ids per probe query. `src/pipelines/scheduler.py` is single-tenant per process (PIPELINE_TENANT_ID + PIPELINE_USER_JWT in env) with `coalesce=True` + `max_instances=1` and a priming run on startup; multi-tenant loop deferred to Phase 7+. Excel tool uses `matplotlib.use("Agg")` for headless chart rendering, embeds a PNG on a second worksheet via `openpyxl.drawing.image.Image`. Streamlit sidebar surfaces the active backend label + tenant_id (from `user.user_metadata`); the same authenticated supabase client is reused for chat tools and pgvector ingest.
 
-### Phase 5 — MCP fundamentals: build your own server
-- [ ] Install official `mcp` Python SDK
-- [ ] `src/mcp_server/erp_tools.py` (stdio transport exposes Phase 2 tools)
-- [ ] Refactor agent into MCP client of its own server (clean boundary)
-- [ ] Register in Claude Desktop config + verify external call works
-- [ ] Learning note `05-mcp-build-server.md`
+### Phase 5 — MCP fundamentals: build your own server ✅ (2026-04-23)
+- [x] Install official `mcp` Python SDK
+- [x] `src/mcp_server/erp_tools.py` (stdio transport exposes Phase 2 tools)
+- [x] Refactor agent into MCP client of its own server (clean boundary)
+- [x] Register in Claude Desktop config + verify external call works
+- [x] Learning note `05-mcp-build-server.md`
+- **Notes:** `mcp==1.27.0` added to `pyproject.toml`. `src/mcp_server/erp_tools.py` is a FastMCP server — `@mcp.tool()` decorators on async functions whose signatures mirror the Pydantic models in `src/tools/erp.py`; FastMCP infers JSON schema from type hints (Literal → enum, `| None` → optional, nested `InvoiceItem` → `$defs` ref). Auth is env-driven (`MCP_ERP_JWT`, `MCP_ERP_API_BASE_URL`, `MCP_ERP_DRY_RUN`) so it can run as a headless subprocess under any MCP host. `src/agent/mcp_client.py:McpErpClient` is an `AsyncExitStack`-based context manager that spawns `sys.executable -m src.mcp_server.erp_tools`, runs `stdio_client` + `ClientSession.initialize()`, caches `list_tools()` at entry, and exposes `tool_names()` / `owns()` / `openai_schemas()` / `call()`. Schema translation MCP → OpenAI is four lines (copy `name`/`description`/`inputSchema`, strip root `title`, wrap in `{type:"function", function:{...}}`). `src/agent/loop.py:run_agent` takes an optional `mcp_erp` kwarg: when present, MCP schemas ride ahead of locals with any name-collision locals filtered out, and tool dispatch checks `mcp_erp.owns(name)` before falling through to the in-process registry — docs + RAG tools still dispatch locally because they rely on `ToolContext.supabase`. `app.py` exposes a sidebar toggle "Route ERP tools through MCP server" (default on) that wraps `_run_once` with `McpErpClient` for the turn. Claude Desktop config sample at `apps/ai/docs/claude_desktop_config.example.json` — copy into `%APPDATA%\Claude\claude_desktop_config.json`, paste a valid JWT, restart. Round-trip verified: with a dummy JWT + dry-run, the client successfully lists tools, the server fires a real `GET /parties`, the 401 from `apps/api`'s `requireAuth` middleware propagates back to the client as `{"error": "..."}`. FastMCP serializes dict returns as TextContent JSON (not `structuredContent`); `McpErpClient.call()` handles both branches for forward-compat with Pydantic-model-return tools.
 
-### Phase 6 — External MCP integrations
-- [ ] Gmail MCP server wired (per-user OAuth, attachment send)
-- [ ] Drive MCP server wired (upload + folder listing)
-- [ ] Calendar MCP server wired (event create + list)
-- [ ] `ai_connected_services` table with `pgcrypto` token vault
-- [ ] Custom `src/mcp_server/whatsapp.py` (Meta Graph API, system-user token)
-- [ ] Destructive-action confirmation gate in Streamlit
-- [ ] Compose demo: `generate_pdf → upload_to_drive → send_gmail_link`
-- [ ] Learning note `06-mcp-consume-servers.md`
+### Phase 6 — External MCP integrations ✅ (2026-04-23)
+- [x] Gmail MCP server wired (per-user OAuth, attachment send)
+- [x] Drive MCP server wired (upload + folder listing)
+- [x] Calendar MCP server wired (event create + list)
+- [x] `ai_connected_services` table with `pgcrypto` token vault
+- [x] Custom `src/mcp_server/whatsapp.py` (Meta Graph API, system-user token)
+- [x] Destructive-action confirmation gate in Streamlit
+- [x] Compose demo: `generate_pdf → upload_to_drive → send_gmail_link`
+- [x] Learning note `06-mcp-consume-servers.md`
+- **Notes:** Built custom FastMCP servers for Google Workspace (6 tools: `send_email`, `list_emails`, `upload_to_drive`, `list_drive_files`, `create_calendar_event`, `list_calendar_events`) and WhatsApp Business (2 tools: `send_whatsapp`, `list_whatsapp_templates`) rather than consuming community servers — more learning value and full auth control. `McpHub` (`src/agent/mcp_hub.py`) generalises the Phase 5 single-client pattern: spawns all configured servers, merges schemas, routes calls by tool name, tracks destructive tools. Token vault uses Fernet (AES-128-CBC + HMAC-SHA256) in Python — tokens encrypted before DB write, `ai_connected_services` table only sees opaque ciphertext; `pgcrypto` extension enabled for UUID generation. Google OAuth uses three-legged flow via `google-auth-oauthlib`; Streamlit captures `?code=` from `st.query_params` on callback. Confirmation gate: `DESTRUCTIVE_TOOLS` set in `mcp_hub.py`, agent loop returns `PendingConfirmation` dataclass when a destructive call isn't pre-confirmed, Streamlit renders Confirm/Cancel buttons, re-runs agent with `confirmed_calls={call_id}` on approval. Compose workflow requires no special code — the LLM naturally chains `generate_report_pdf → upload_to_drive → send_email` in sequence, with each destructive step confirmed independently. New deps: `google-api-python-client`, `google-auth`, `google-auth-oauthlib`, `cryptography`.
 
-### Phase 7 — Graduate to LangGraph + real agent behaviour
-- [ ] Add `langgraph` + `langsmith` deps
-- [ ] `src/agent/graph.py` — state machine, keep old `loop.py` for comparison
-- [ ] Planner/executor split
-- [ ] Checkpointer (SQLite → Postgres later)
-- [ ] Human-in-the-loop gate on destructive tools
-- [ ] `ai_user_memory` table + long-term memory retrieval
-- [ ] `tests/evals/` — 20 scripted prompts, pytest, LangSmith tracing
-- [ ] Learning note `07-langgraph-real-agents.md`
+### Phase 7 — Graduate to LangGraph + real agent behaviour ✅ (2026-04-25)
+- [x] Add `langgraph` + `langsmith` deps (+ optional `langgraph-checkpoint-sqlite` extra)
+- [x] `src/agent/graph.py` — state machine, keep old `loop.py` for comparison
+- [x] Planner/executor split
+- [x] Checkpointer (`MemorySaver` default; `AsyncSqliteSaver` opt-in via `make_checkpointer`)
+- [x] Human-in-the-loop gate on destructive tools (with stable args-hash key — fixes the `call_id` regeneration bug)
+- [x] `ai_user_memory` table + long-term memory retrieval (migration 017, `src/memory/user_memory.py`)
+- [x] `tests/evals/` — 20 scripted prompts, pytest, LangSmith tracing
+- [x] Learning note `07-langgraph-real-agents.md`
+- **Notes:** Three nodes — `load_memory` (queries `ai_user_memory`, prepends a "known facts" system message via `Annotated[list, operator.add]` reducer), `planner` (small LLM call producing a 1–3 line plan, surfaced as a 📋 expander in Streamlit + a span in LangSmith), `executor` (the Phase 2 LLM↔tools cycle, re-entered via a conditional edge until `final_text` / `pending` / iter-cap). The graph is built per-turn so it can closure over the live `ToolContext` + `McpHub` (which aren't picklable for the checkpointer); the checkpointer state itself is JSON-serializable. `confirmation_key(name, args)` replaces matching on the LLM-issued `call_id` because that ID is regenerated on every request — Phase 6's gate would have re-prompted the user forever; now the same fix is in `loop.py` too. Streamlit sidebar gets a `loop`/`graph` radio toggle plus a Long-term Memory pane with add/delete; LangSmith env vars (`LANGSMITH_API_KEY` / `LANGSMITH_TRACING` / `LANGSMITH_PROJECT`) are forwarded into `os.environ` from settings so the LangChain callback handler picks them up automatically. Eval harness stubs `registry.dispatch` to a generic success shape — we judge tool *selection*, not tool *execution* — and uses `expects_any` (lenient) + `should_not_call` (strict-negative) per case; opt-in via `LIVE_EVALS=1 uv run pytest tests/evals/`. Offline `tests/test_confirmation_key.py` verifies the loop/graph keys agree without any LLM call. Pytest + pytest-asyncio added under `[dependency-groups].dev` (run `uv sync --dev`).
 
 ### How to use this tracker
 - At the end of each working session, I tick off what got done, update **Last session** and **Next up**, and commit.

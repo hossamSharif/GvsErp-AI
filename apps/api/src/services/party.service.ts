@@ -227,7 +227,11 @@ export class PartyService {
     });
 
     if (error) {
-      throw new PartyError('Failed to recalculate balance', 'RECALCULATE_FAILED', 500);
+      throw new PartyError(
+        `Failed to recalculate balance: ${error.message || error.code || 'unknown'}`,
+        'RECALCULATE_FAILED',
+        500,
+      );
     }
 
     return Number(data || 0);

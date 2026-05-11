@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/use-accounts';
 import { useAccountingStatus } from '@/hooks/use-accounting';
 import { AccountingActivationWizard } from '@/components/wizards/accounting-activation';
@@ -45,6 +46,7 @@ import type { Account, AccountType, CreateAccountInput } from '@erp/shared';
 
 export default function ChartOfAccountsPage() {
   const { toast } = useToast();
+  const t = useTranslations('accounting');
   const [showActivation, setShowActivation] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -253,14 +255,12 @@ export default function ChartOfAccountsPage() {
         <div className="flex flex-col items-center justify-center h-96">
           <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>Accounting Module Not Activated</CardTitle>
-              <CardDescription>
-                Activate the accounting module to manage your chart of accounts and financial statements.
-              </CardDescription>
+              <CardTitle>{t('notActivated.title')}</CardTitle>
+              <CardDescription>{t('notActivated.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => setShowActivation(true)} className="w-full">
-                Activate Accounting Module
+                {t('notActivated.activate')}
               </Button>
             </CardContent>
           </Card>
@@ -277,14 +277,12 @@ export default function ChartOfAccountsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Chart of Accounts</h1>
-          <p className="text-muted-foreground">
-            Manage your accounting accounts and categories
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('accounts.title')}</h1>
+          <p className="text-muted-foreground">{t('accounts.description')}</p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
           <Plus className="mr-2 h-4 w-4" />
-          New Account
+          {t('accounts.addAccount')}
         </Button>
       </div>
 
@@ -292,15 +290,14 @@ export default function ChartOfAccountsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
-            placeholder="Search by code or name..."
-            aria-label="Search accounts by code or name"
+            placeholder={t('accounts.searchPlaceholder')}
+            aria-label={t('accounts.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Label htmlFor="account-type-filter">Filter by Type:</Label>
           <Select
             value={filterType}
             onValueChange={(value) => setFilterType(value as AccountType | 'all')}
@@ -309,12 +306,12 @@ export default function ChartOfAccountsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="asset">Asset</SelectItem>
-              <SelectItem value="liability">Liability</SelectItem>
-              <SelectItem value="equity">Equity</SelectItem>
-              <SelectItem value="revenue">Revenue</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
+              <SelectItem value="all">{t('accounts.filterAll')}</SelectItem>
+              <SelectItem value="asset">{t('accounts.type.asset')}</SelectItem>
+              <SelectItem value="liability">{t('accounts.type.liability')}</SelectItem>
+              <SelectItem value="equity">{t('accounts.type.equity')}</SelectItem>
+              <SelectItem value="revenue">{t('accounts.type.revenue')}</SelectItem>
+              <SelectItem value="expense">{t('accounts.type.expense')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

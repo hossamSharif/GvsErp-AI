@@ -21,6 +21,7 @@ import roleRoutes from './roles.routes';
 import userRoutes from './users.routes';
 import settingsRoutes from './settings.routes';
 import auditRoutes from './audit.routes';
+import expensesRoutes from './expenses.routes';
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use('/roles', roleRoutes);
 router.use('/users', userRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/audit', auditRoutes);
+router.use('/expenses', expensesRoutes);
 
 export default router;

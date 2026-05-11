@@ -155,74 +155,173 @@ export class InvoiceService {
   }
 
   /**
-   * Update a draft invoice
+   * Update an invoice. Drafts are edited freely; finalized invoices are
+   * re-mapped with full stock + party-balance reversal/reapply. Returned
+   * and canceled invoices are immutable.
    */
   async updateInvoice(id: string, input: UpdateInvoiceInput): Promise<InvoiceWithRelations> {
-    // Check invoice exists and is draft
-    const existing = await this.invoiceRepository.findById(this.tenantId, id);
+    const existing = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
     if (!existing) {
       throw new InvoiceError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
     }
 
-    if (existing.status !== 'draft') {
-      throw new InvoiceError('Only draft invoices can be updated', 'INVOICE_NOT_DRAFT', 400);
+    if (existing.status === 'returned' || existing.status === 'canceled') {
+      throw new InvoiceError(
+        `Cannot edit a ${existing.status} invoice`,
+        'INVOICE_NOT_EDITABLE',
+        400
+      );
     }
 
-    // Validate warehouse if changing
+    if (existing.status === 'final') {
+      return this.updateFinalInvoice(existing, input);
+    }
+
+    return this.updateDraftInvoice(existing, input);
+  }
+
+  /**
+   * Apply field/item updates to a draft invoice.
+   */
+  private async updateDraftInvoice(
+    existing: InvoiceWithRelations,
+    input: UpdateInvoiceInput
+  ): Promise<InvoiceWithRelations> {
     if (input.warehouseId) {
       await this.validateWarehouse(input.warehouseId);
     }
 
-    // Validate party if changing
     if (input.partyId !== undefined && input.partyId !== null) {
       await this.validateParty(input.partyId, existing.type as InvoiceType);
     }
 
-    // Map input to database format
-    const updateData: Record<string, unknown> = {};
-    if (input.partyId !== undefined) updateData.party_id = input.partyId;
-    if (input.warehouseId !== undefined) updateData.warehouse_id = input.warehouseId;
-    if (input.currency !== undefined) updateData.currency = input.currency;
-    if (input.exchangeRate !== undefined) updateData.exchange_rate = input.exchangeRate;
-    if (input.discountAmount !== undefined) updateData.discount_amount = input.discountAmount;
-    if (input.notes !== undefined) updateData.notes = input.notes;
+    const updateData = this.buildInvoiceUpdateData(input);
+    const items = this.mapInputItems(input);
 
-    // Map items if provided
-    let items: Parameters<typeof this.invoiceRepository.updateWithItems>[3] | undefined;
-    if (input.items) {
-      // Validate items exist
-      await this.validateItems(input.items.map(i => i.itemId));
-
-      items = input.items.map((item, index) => ({
-        item_id: item.itemId,
-        description: item.description || null,
-        quantity: item.quantity,
-        unit_price: item.unitPrice,
-        discount_percent: item.discountPercent || 0,
-        tax_rate: item.taxRate || 0,
-        line_total: this.calculateLineTotal(item.quantity, item.unitPrice, item.discountPercent || 0, item.taxRate || 0),
-        sort_order: item.sortOrder ?? index,
-      }));
+    if (items) {
+      await this.validateItems(items.map(i => i.item_id));
     }
 
-    return this.invoiceRepository.updateWithItems(this.tenantId, id, updateData, items);
+    return this.invoiceRepository.updateWithItems(this.tenantId, existing.id, updateData, items);
   }
 
   /**
-   * Cancel a draft invoice
+   * Apply field/item updates to a finalized invoice. Reverses old stock and
+   * party-balance effects, persists the new fields/items, then re-applies
+   * stock with the new quantities and adjusts the party balance(s) by the
+   * delta. Mirrors the reversal pattern used by createReturn.
    */
-  async cancelInvoice(id: string): Promise<Invoice> {
-    const existing = await this.invoiceRepository.findById(this.tenantId, id);
+  private async updateFinalInvoice(
+    existing: InvoiceWithRelations,
+    input: UpdateInvoiceInput
+  ): Promise<InvoiceWithRelations> {
+    // Block edits when downstream rows depend on this invoice.
+    await this.assertNoLinkedPayments(existing.id);
+    await this.assertNoChildReturn(existing.id);
+
+    if (input.warehouseId) {
+      await this.validateWarehouse(input.warehouseId);
+    }
+
+    if (input.partyId !== undefined && input.partyId !== null) {
+      await this.validateParty(input.partyId, existing.type as InvoiceType);
+    }
+
+    // 1) Reverse old stock movements against the original warehouse/items.
+    await this.revertInvoiceStock(existing);
+
+    // 2) Persist the field/item changes (DB triggers recompute totals).
+    const updateData = this.buildInvoiceUpdateData(input);
+    const items = this.mapInputItems(input);
+    if (items) {
+      await this.validateItems(items.map(i => i.item_id));
+    }
+    const persisted = await this.invoiceRepository.updateWithItems(
+      this.tenantId,
+      existing.id,
+      updateData,
+      items
+    );
+
+    // 3) For sales, validate stock against the new items in the new warehouse.
+    if (persisted.type === 'sale') {
+      try {
+        await this.validateStockAvailability(persisted.warehouseId, persisted.items);
+      } catch (err) {
+        // Re-apply the old stock movements so we don't leave inventory inflated.
+        await this.applyStockMovements(existing);
+        throw err;
+      }
+    }
+
+    // 4) Apply new stock movements at the (possibly updated) warehouse.
+    await this.applyStockMovements(persisted);
+
+    // 5) Adjust party balance(s). Since the status didn't change, the DB
+    //    trigger doesn't fire — we use the same direct-update pattern as
+    //    createReturn.
+    const oldTotal = existing.total;
+    const newTotal = persisted.total;
+    const oldPartyId = existing.partyId;
+    const newPartyId = persisted.partyId;
+
+    if (oldPartyId && newPartyId && oldPartyId === newPartyId) {
+      const delta = newTotal - oldTotal;
+      if (delta !== 0) {
+        await this.updatePartyBalance(newPartyId, delta, persisted.type);
+      }
+    } else {
+      if (oldPartyId) {
+        await this.updatePartyBalance(oldPartyId, -oldTotal, existing.type);
+      }
+      if (newPartyId) {
+        await this.updatePartyBalance(newPartyId, newTotal, persisted.type);
+      }
+    }
+
+    return persisted;
+  }
+
+  /**
+   * Hard-delete an invoice. Reverses any side effects already applied
+   * (stock movements + party balance) before removing the row.
+   *
+   * - draft / canceled: no reversal; just delete.
+   * - final: revert stock, subtract total from party balance.
+   * - returned: undo the return's stock-add and balance-subtract.
+   *
+   * Blocks delete if linked payments exist, or if a finalized invoice has
+   * a child return row.
+   */
+  async deleteInvoice(id: string): Promise<{ id: string }> {
+    const existing = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
     if (!existing) {
       throw new InvoiceError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
     }
 
-    if (existing.status !== 'draft') {
-      throw new InvoiceError('Only draft invoices can be canceled', 'INVOICE_NOT_DRAFT', 400);
+    await this.assertNoLinkedPayments(existing.id);
+
+    if (existing.status === 'final') {
+      await this.assertNoChildReturn(existing.id);
+      await this.revertInvoiceStock(existing);
+      if (existing.partyId) {
+        await this.updatePartyBalance(existing.partyId, -existing.total, existing.type);
+      }
+    } else if (existing.status === 'returned') {
+      // The return added stock back (sale-return) or removed stock
+      // (purchase-return). Re-apply the original direction to undo it.
+      await this.reapplyReturnedStock(existing);
+      if (existing.partyId) {
+        // The return previously subtracted total via createReturn's call to
+        // updatePartyBalance(-total). Undo it.
+        await this.updatePartyBalance(existing.partyId, existing.total, existing.type);
+      }
     }
 
-    const updated = await this.invoiceRepository.updateStatus(this.tenantId, id, 'canceled');
-    return this.mapRowToInvoice(updated);
+    // invoice_items have ON DELETE CASCADE; payments are blocked above.
+    await this.invoiceRepository.delete(this.tenantId, id, false);
+
+    return { id };
   }
 
   // ==========================================================================
@@ -681,6 +780,174 @@ export class InvoiceService {
         'INSUFFICIENT_STOCK',
         400
       );
+    }
+  }
+
+  /**
+   * Build the partial DB update payload from a public update input.
+   */
+  private buildInvoiceUpdateData(input: UpdateInvoiceInput): Record<string, unknown> {
+    const updateData: Record<string, unknown> = {};
+    if (input.partyId !== undefined) updateData.party_id = input.partyId;
+    if (input.warehouseId !== undefined) updateData.warehouse_id = input.warehouseId;
+    if (input.currency !== undefined) updateData.currency = input.currency;
+    if (input.exchangeRate !== undefined) updateData.exchange_rate = input.exchangeRate;
+    if (input.discountAmount !== undefined) updateData.discount_amount = input.discountAmount;
+    if (input.notes !== undefined) updateData.notes = input.notes;
+    return updateData;
+  }
+
+  /**
+   * Map public input items to the repository's insert shape.
+   */
+  private mapInputItems(
+    input: UpdateInvoiceInput
+  ): Parameters<InvoiceRepository['updateWithItems']>[3] | undefined {
+    if (!input.items) return undefined;
+    return input.items.map((item, index) => ({
+      item_id: item.itemId,
+      description: item.description || null,
+      quantity: item.quantity,
+      unit_price: item.unitPrice,
+      discount_percent: item.discountPercent || 0,
+      tax_rate: item.taxRate || 0,
+      line_total: this.calculateLineTotal(
+        item.quantity,
+        item.unitPrice,
+        item.discountPercent || 0,
+        item.taxRate || 0
+      ),
+      sort_order: item.sortOrder ?? index,
+    }));
+  }
+
+  /**
+   * Reject if any payment is linked to this invoice.
+   */
+  private async assertNoLinkedPayments(invoiceId: string): Promise<void> {
+    const { count, error } = await this.supabase
+      .from('payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', this.tenantId)
+      .eq('invoice_id', invoiceId);
+
+    if (error) throw error;
+    if ((count ?? 0) > 0) {
+      throw new InvoiceError(
+        'Cannot modify or delete an invoice that has linked payments. Remove the payments first.',
+        'INVOICE_HAS_PAYMENTS',
+        409
+      );
+    }
+  }
+
+  /**
+   * Reject if a return invoice references this invoice as its parent.
+   */
+  private async assertNoChildReturn(invoiceId: string): Promise<void> {
+    const { count, error } = await this.supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', this.tenantId)
+      .eq('returned_from_id', invoiceId);
+
+    if (error) throw error;
+    if ((count ?? 0) > 0) {
+      throw new InvoiceError(
+        'Cannot modify or delete an invoice that has a return. Delete the return first.',
+        'INVOICE_HAS_RETURN',
+        409
+      );
+    }
+  }
+
+  /**
+   * Reverse the stock movements that finalization applied — i.e., add back
+   * for sales and subtract for purchases. Used by edit-final and delete-final.
+   */
+  private async revertInvoiceStock(invoice: InvoiceWithRelations): Promise<void> {
+    const isSale = invoice.type === 'sale';
+    for (const item of invoice.items) {
+      const { data: inventory } = await this.supabase
+        .from('inventory')
+        .select('id, quantity')
+        .eq('tenant_id', this.tenantId)
+        .eq('warehouse_id', invoice.warehouseId)
+        .eq('item_id', item.itemId)
+        .maybeSingle();
+
+      const previousQuantity = inventory ? Number(inventory.quantity) : 0;
+      // Sale: add qty back to stock. Purchase: subtract qty from stock.
+      const quantityChange = isSale ? item.quantity : -item.quantity;
+      const newQuantity = previousQuantity + quantityChange;
+
+      if (inventory) {
+        const { error } = await this.supabase
+          .from('inventory')
+          .update({ quantity: newQuantity })
+          .eq('id', inventory.id);
+        if (error) throw error;
+      } else if (isSale) {
+        const { error } = await this.supabase
+          .from('inventory')
+          .insert({
+            tenant_id: this.tenantId,
+            warehouse_id: invoice.warehouseId,
+            item_id: item.itemId,
+            quantity: newQuantity,
+          });
+        if (error) throw error;
+      }
+    }
+  }
+
+  /**
+   * Re-apply original-direction stock movements to undo a return.
+   * Used by delete-of-returned: a sale-return originally added stock back,
+   * so undoing it subtracts; a purchase-return originally removed stock,
+   * so undoing it adds. The "original type" is the parent invoice's type,
+   * which we look up via returnedFromId.
+   */
+  private async reapplyReturnedStock(returnInvoice: InvoiceWithRelations): Promise<void> {
+    let originalType: InvoiceType = returnInvoice.type;
+    if (returnInvoice.returnedFromId) {
+      const parent = await this.invoiceRepository.findById(this.tenantId, returnInvoice.returnedFromId);
+      if (parent) {
+        originalType = parent.type as InvoiceType;
+      }
+    }
+    const isSaleReturn = originalType === 'sale';
+    for (const item of returnInvoice.items) {
+      const { data: inventory } = await this.supabase
+        .from('inventory')
+        .select('id, quantity')
+        .eq('tenant_id', this.tenantId)
+        .eq('warehouse_id', returnInvoice.warehouseId)
+        .eq('item_id', item.itemId)
+        .maybeSingle();
+
+      const previousQuantity = inventory ? Number(inventory.quantity) : 0;
+      // Undo a sale-return: subtract; undo a purchase-return: add.
+      const quantityChange = isSaleReturn ? -item.quantity : item.quantity;
+      const newQuantity = previousQuantity + quantityChange;
+
+      if (inventory) {
+        const { error } = await this.supabase
+          .from('inventory')
+          .update({ quantity: newQuantity })
+          .eq('id', inventory.id);
+        if (error) throw error;
+      } else if (!isSaleReturn) {
+        const { error } = await this.supabase
+          .from('inventory')
+          .insert({
+            tenant_id: this.tenantId,
+            warehouse_id: returnInvoice.warehouseId,
+            item_id: item.itemId,
+            quantity: newQuantity,
+          });
+        if (error) throw error;
+      }
     }
   }
 

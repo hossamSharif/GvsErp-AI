@@ -153,28 +153,25 @@ export function useCreatePayment(
   options?: UseMutationOptions<ApiResponse<PaymentWithRelations>, Error, CreatePaymentInput>
 ) {
   const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
 
   return useMutation({
     mutationFn: async (input: CreatePaymentInput) => {
       const response = await api.post<ApiResponse<PaymentWithRelations>>('/payments', input);
       return response;
     },
-    onSuccess: (data) => {
-      // Invalidate payment lists
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
-
-      // Set the detail cache
       queryClient.setQueryData(paymentKeys.detail(data.data.id), data);
-
-      // Invalidate party details and balance (payment affects balance)
       if (data.data.partyId) {
         queryClient.invalidateQueries({ queryKey: partyKeys.detail(data.data.partyId) });
         queryClient.invalidateQueries({ queryKey: partyKeys.balance(data.data.partyId) });
         queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
         queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
       }
+      callerOnSuccess?.(data, variables, context);
     },
-    ...options,
+    ...rest,
   });
 }
 
@@ -182,23 +179,29 @@ export function useCreatePayment(
  * Update an existing payment
  */
 export function useUpdatePayment(
-  options?: UseMutationOptions<ApiResponse<Payment>, Error, { id: string; input: UpdatePaymentInput }>
+  options?: UseMutationOptions<ApiResponse<Payment>, Error, { id: string; input: UpdatePaymentInput; partyId?: string }>
 ) {
   const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
 
   return useMutation({
-    mutationFn: async ({ id, input }: { id: string; input: UpdatePaymentInput }) => {
+    mutationFn: async ({ id, input }: { id: string; input: UpdatePaymentInput; partyId?: string }) => {
       const response = await api.put<ApiResponse<Payment>>(`/payments/${id}`, input);
       return response;
     },
-    onSuccess: (data, variables) => {
-      // Invalidate payment lists
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
-
-      // Invalidate payment detail
       queryClient.invalidateQueries({ queryKey: paymentKeys.detail(variables.id) });
+      const partyId = variables.partyId ?? data.data.partyId;
+      if (partyId) {
+        queryClient.invalidateQueries({ queryKey: partyKeys.detail(partyId) });
+        queryClient.invalidateQueries({ queryKey: partyKeys.balance(partyId) });
+        queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
+      }
+      callerOnSuccess?.(data, variables, context);
     },
-    ...options,
+    ...rest,
   });
 }
 
@@ -209,26 +212,23 @@ export function useDeletePayment(
   options?: UseMutationOptions<void, Error, { id: string; partyId: string }>
 ) {
   const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
 
   return useMutation({
     mutationFn: async ({ id }: { id: string; partyId: string }) => {
       await api.delete(`/payments/${id}`);
     },
-    onSuccess: (_, { id, partyId }) => {
-      // Invalidate payment lists
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
-
-      // Remove from detail cache
-      queryClient.removeQueries({ queryKey: paymentKeys.detail(id) });
-
-      // Invalidate party details and balance (payment deletion affects balance)
-      if (partyId) {
-        queryClient.invalidateQueries({ queryKey: partyKeys.detail(partyId) });
-        queryClient.invalidateQueries({ queryKey: partyKeys.balance(partyId) });
+      queryClient.removeQueries({ queryKey: paymentKeys.detail(variables.id) });
+      if (variables.partyId) {
+        queryClient.invalidateQueries({ queryKey: partyKeys.detail(variables.partyId) });
+        queryClient.invalidateQueries({ queryKey: partyKeys.balance(variables.partyId) });
         queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
         queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
       }
+      callerOnSuccess?.(data, variables, context);
     },
-    ...options,
+    ...rest,
   });
 }

@@ -290,7 +290,7 @@ export function InvoiceForm({
     [currentDraftId, updateItem]
   );
 
-  // Save as draft (create invoice in database)
+  // Save: create a new invoice OR update the existingInvoice if we're editing.
   const handleSaveDraft = useCallback(async () => {
     if (!draft || !draft.warehouseId) {
       toast({
@@ -310,7 +310,44 @@ export function InvoiceForm({
       return;
     }
 
+    const itemsPayload = draft.items.map((item) => ({
+      itemId: item.itemId,
+      description: item.description || undefined,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      discountPercent: item.discountPercent,
+      taxRate: item.taxRate,
+      sortOrder: item.sortOrder,
+    }));
+
     try {
+      if (existingInvoice) {
+        const result = await updateInvoiceMutation.mutateAsync({
+          id: existingInvoice.id,
+          data: {
+            partyId: draft.partyId,
+            warehouseId: draft.warehouseId,
+            currency: draft.currency,
+            exchangeRate: draft.exchangeRate,
+            discountAmount: draft.discountAmount,
+            notes: draft.notes || undefined,
+            items: itemsPayload,
+          },
+        });
+
+        if (currentDraftId) {
+          deleteDraft(currentDraftId);
+        }
+
+        toast({
+          title: t('toasts.draftSaved'),
+          description: t('toasts.draftSavedDescription', { number: result.data.invoiceNumber }),
+        });
+
+        onSaved?.(result.data);
+        return;
+      }
+
       const result = await createInvoice.mutateAsync({
         type: draft.type,
         partyId: draft.partyId,
@@ -319,15 +356,7 @@ export function InvoiceForm({
         exchangeRate: draft.exchangeRate,
         discountAmount: draft.discountAmount,
         notes: draft.notes || undefined,
-        items: draft.items.map((item) => ({
-          itemId: item.itemId,
-          description: item.description || undefined,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          discountPercent: item.discountPercent,
-          taxRate: item.taxRate,
-          sortOrder: item.sortOrder,
-        })),
+        items: itemsPayload,
       });
 
       // Clean up local draft
@@ -348,7 +377,7 @@ export function InvoiceForm({
         description: error instanceof Error ? error.message : t('toasts.saveFailed'),
       });
     }
-  }, [draft, currentDraftId, createInvoice, deleteDraft, toast, onSaved, t, tCommon]);
+  }, [draft, existingInvoice, currentDraftId, createInvoice, updateInvoiceMutation, deleteDraft, toast, onSaved, t, tCommon]);
 
   // Finalize invoice
   const handleFinalize = useCallback(async () => {
@@ -664,27 +693,29 @@ export function InvoiceForm({
       {/* Actions */}
       {!readOnly && (
         <div className="flex items-center gap-3 justify-end">
-          {draft?.lastSavedAt && (
+          {draft?.lastSavedAt && !existingInvoice && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Check className="h-3 w-3 text-green-500" />
               {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
             </span>
           )}
           <Button
-            variant="outline"
+            variant={existingInvoice ? 'default' : 'outline'}
             onClick={handleSaveDraft}
-            disabled={!isValid || createInvoice.isPending}
+            disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
           >
             <Save className="h-4 w-4 mr-2" />
-            {t('saveDraft')}
+            {existingInvoice ? t('saveChanges') : t('saveDraft')}
           </Button>
-          <Button
-            onClick={() => setShowFinalizeConfirm(true)}
-            disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {t('finalize')}
-          </Button>
+          {!existingInvoice && (
+            <Button
+              onClick={() => setShowFinalizeConfirm(true)}
+              disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {t('finalize')}
+            </Button>
+          )}
         </div>
       )}
 

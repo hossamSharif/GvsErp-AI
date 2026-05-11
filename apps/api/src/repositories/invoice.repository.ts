@@ -260,7 +260,8 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
   }
 
   /**
-   * Update invoice (draft only)
+   * Update invoice fields and optionally replace items.
+   * Status enforcement is the service's job; the repo trusts its caller.
    */
   async updateWithItems(
     tenantId: string,
@@ -273,8 +274,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
       .from('invoices')
       .update(invoice)
       .eq('tenant_id', tenantId)
-      .eq('id', id)
-      .eq('status', 'draft'); // Only draft invoices can be updated
+      .eq('id', id);
 
     if (invoiceError) {
       throw invoiceError;

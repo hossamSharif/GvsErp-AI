@@ -22,12 +22,27 @@ dependencies = [
     "apscheduler>=3.10",
     "openpyxl>=3.1",
     "matplotlib>=3.9",
+    "mcp>=1.12",
+    "google-api-python-client>=2.0",
+    "google-auth>=2.0",
+    "google-auth-oauthlib>=1.0",
+    "cryptography>=43.0",
+    "langgraph>=1.1",
+    "langsmith>=0.7",
 ]
+
+[project.optional-dependencies]
+# Phase 7: persistent LangGraph checkpointer.  Without this the agent falls
+# back to in-memory checkpoints (lost on app restart).  Install with:
+#   uv sync --extra checkpoint-sqlite
+checkpoint-sqlite = ["langgraph-checkpoint-sqlite>=2.0"]
 
 [dependency-groups]
 dev = [
     "ruff>=0.8",
     "mypy>=1.13",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
 ]
 
 [tool.ruff]

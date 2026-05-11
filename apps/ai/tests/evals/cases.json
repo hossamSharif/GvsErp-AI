@@ -1,0 +1,122 @@
+[
+  {
+    "id": "list_parties_basic",
+    "prompt": "List all parties.",
+    "expects_any": ["list_parties"],
+    "should_not_call": []
+  },
+  {
+    "id": "list_top_outstanding",
+    "prompt": "List the top 10 customers by outstanding balance.",
+    "expects_any": ["list_parties"],
+    "should_not_call": []
+  },
+  {
+    "id": "list_suppliers_only",
+    "prompt": "Show me only our suppliers.",
+    "expects_any": ["list_parties"],
+    "should_not_call": ["list_invoices"]
+  },
+  {
+    "id": "get_invoice_by_number",
+    "prompt": "Show me invoice INV-2026-001.",
+    "expects_any": ["get_invoice"],
+    "should_not_call": []
+  },
+  {
+    "id": "get_party_by_id",
+    "prompt": "Get the party with ID 11111111-1111-1111-1111-111111111111.",
+    "expects_any": ["get_party"],
+    "should_not_call": []
+  },
+  {
+    "id": "list_invoices_purchase",
+    "prompt": "List the most recent purchase invoices.",
+    "expects_any": ["list_invoices"],
+    "should_not_call": []
+  },
+  {
+    "id": "list_invoices_for_party",
+    "prompt": "Show me all invoices for party 22222222-2222-2222-2222-222222222222.",
+    "expects_any": ["list_invoices"],
+    "should_not_call": []
+  },
+  {
+    "id": "create_invoice_dryrun",
+    "prompt": "Create a sales invoice in warehouse 33333333-3333-3333-3333-333333333333 for party 44444444-4444-4444-4444-444444444444 with item 55555555-5555-5555-5555-555555555555 quantity 2 at unit price 50 USD.",
+    "expects_any": ["create_invoice"],
+    "should_not_call": []
+  },
+  {
+    "id": "search_knowledge_overdue",
+    "prompt": "What patterns do you see in our overdue invoices recently?",
+    "expects_any": ["search_knowledge", "list_invoices"],
+    "should_not_call": []
+  },
+  {
+    "id": "summary_history_party",
+    "prompt": "Summarize our history with ACME Corp this quarter.",
+    "expects_any": ["search_knowledge", "list_invoices", "list_parties"],
+    "should_not_call": []
+  },
+  {
+    "id": "generate_pdf_after_list",
+    "prompt": "List the top 5 customers and then generate a PDF report from those rows.",
+    "expects_any": ["list_parties", "generate_report_pdf"],
+    "should_not_call": []
+  },
+  {
+    "id": "generate_excel_overdue",
+    "prompt": "Pull our overdue sales invoices and export them to Excel with a bar chart of total by party.",
+    "expects_any": ["list_invoices", "generate_excel_report"],
+    "should_not_call": []
+  },
+  {
+    "id": "party_summary_pdf",
+    "prompt": "Generate a narrative PDF summary for party 66666666-6666-6666-6666-666666666666.",
+    "expects_any": ["generate_party_summary_pdf"],
+    "should_not_call": []
+  },
+  {
+    "id": "compose_pdf_then_drive",
+    "prompt": "Generate a PDF of our top customers and upload it to Drive under /Reports/2026.",
+    "expects_any": ["generate_report_pdf"],
+    "should_not_call": []
+  },
+  {
+    "id": "email_invoice_list",
+    "prompt": "List the most recent invoices and email the table to finance@acme.com.",
+    "expects_any": ["list_invoices"],
+    "should_not_call": []
+  },
+  {
+    "id": "calendar_event_planning",
+    "prompt": "Tell me what tools you have for scheduling — do not actually call them.",
+    "expects_any": [],
+    "should_not_call": ["create_calendar_event", "send_email", "send_whatsapp"]
+  },
+  {
+    "id": "no_tool_greeting",
+    "prompt": "Hello — what can you help me with today?",
+    "expects_any": [],
+    "should_not_call": ["list_parties", "list_invoices", "create_invoice", "send_email"]
+  },
+  {
+    "id": "no_tool_definitional",
+    "prompt": "What is the difference between a sales invoice and a purchase invoice?",
+    "expects_any": [],
+    "should_not_call": ["list_invoices", "create_invoice"]
+  },
+  {
+    "id": "list_parties_with_search",
+    "prompt": "Find any parties whose name or email contains 'acme'.",
+    "expects_any": ["list_parties"],
+    "should_not_call": []
+  },
+  {
+    "id": "do_not_create_without_warehouse",
+    "prompt": "Create a sale invoice for the customer named ACME — pick anything reasonable.",
+    "expects_any": ["list_parties", "create_invoice"],
+    "should_not_call": []
+  }
+]

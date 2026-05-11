@@ -70,7 +70,8 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       .from('items')
       .select(`
         *,
-        category:categories(*)
+        category:categories(*),
+        prices:item_prices(*)
       `, { count: 'exact' })
       .eq('tenant_id', tenantId);
 
@@ -649,10 +650,16 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
     };
   }
 
-  private mapItemWithCategory = (row: ItemRow & { category: Database['public']['Tables']['categories']['Row'] | null }): ItemWithCategory => {
+  private mapItemWithCategory = (
+    row: ItemRow & {
+      category: Database['public']['Tables']['categories']['Row'] | null;
+      prices?: ItemPriceRow[] | null;
+    },
+  ): ItemWithCategory & { prices?: ItemPrice[] } => {
     return {
       ...this.mapItem(row),
       category: row.category ? this.mapCategory(row.category) : null,
+      prices: (row.prices || []).map(this.mapItemPrice),
     };
   };
 

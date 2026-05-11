@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useParties, useDeleteParty } from '@/hooks/use-parties';
 import { DataTable } from '@/components/tables/data-table';
@@ -54,6 +55,7 @@ export default function CustomersPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
 
   // Query state
   const [queryParams, setQueryParams] = useState<PartyQueryParams>({
@@ -75,15 +77,15 @@ export default function CustomersPage() {
   const deleteMutation = useDeleteParty({
     onSuccess: () => {
       toast({
-        title: 'Customer deleted',
-        description: 'The customer has been deleted successfully.',
+        title: t('toast.customerDeleted'),
+        description: t('toast.customerDeletedDesc'),
       });
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
+        title: t('toast.customerDeleted'),
         description: error.message || 'Failed to delete customer',
         variant: 'destructive',
       });
@@ -162,7 +164,7 @@ export default function CustomersPage() {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('columns.name'),
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.name}</span>
@@ -174,12 +176,12 @@ export default function CustomersPage() {
       },
       {
         accessorKey: 'phone',
-        header: 'Phone',
+        header: t('columns.phone'),
         cell: ({ row }) => row.original.phone || '-',
       },
       {
         accessorKey: 'balance',
-        header: 'Balance',
+        header: t('columns.balance'),
         cell: ({ row }) => {
           const balance = row.original.balance;
           return (
@@ -197,42 +199,42 @@ export default function CustomersPage() {
       },
       {
         accessorKey: 'taxNumber',
-        header: 'Tax Number',
+        header: t('columns.taxNumber'),
         cell: ({ row }) => row.original.taxNumber || '-',
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('columns.status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? t('status.active') : t('status.inactive')}
           </Badge>
         ),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('columns.actions'),
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t('actions.openMenu')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('actions.actionsLabel')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleViewCustomer(row.original)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t('actions.viewDetails')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleEditCustomer(row.original)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleRecordPayment(row.original)}>
                 <DollarSign className="mr-2 h-4 w-4" />
-                Record Payment
+                {t('actions.recordPayment')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -240,14 +242,14 @@ export default function CustomersPage() {
                 className="text-red-600"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [handleViewCustomer, handleEditCustomer, handleRecordPayment, handleDeleteCustomer, formatCurrency]
+    [handleViewCustomer, handleEditCustomer, handleRecordPayment, handleDeleteCustomer, formatCurrency, t]
   );
 
   return (
@@ -255,17 +257,17 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground">Manage your customer relationships and balances</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('list.customersTitle')}</h1>
+          <p className="text-muted-foreground">{t('list.customersDescription')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleExportReport}>
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            {t('list.exportReport')}
           </Button>
           <Button onClick={handleAddCustomer}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Customer
+            {t('list.addCustomer')}
           </Button>
         </div>
       </div>
@@ -280,7 +282,7 @@ export default function CustomersPage() {
         onPageChange={handlePageChange}
         onSortingChange={handleSortChange}
         onSearchChange={handleSearch}
-        searchPlaceholder="Search customers..."
+        searchPlaceholder={t('list.searchCustomers')}
         isLoading={isLoading}
       />
 
@@ -288,15 +290,15 @@ export default function CustomersPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('delete.confirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the customer "{customerToDelete?.name}". This action cannot be undone.
+              {t('delete.confirmCustomerBody', { name: customerToDelete?.name ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('delete.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+              {t('delete.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

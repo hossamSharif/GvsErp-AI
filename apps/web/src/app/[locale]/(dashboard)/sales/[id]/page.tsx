@@ -6,8 +6,7 @@
  * View and manage a single sales invoice.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -23,6 +22,7 @@ import {
   Clock,
   XCircle,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +58,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
+import { useInvoice, useFinalizeInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import { usePrintInvoice } from '@/hooks/use-print-invoice';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
@@ -97,18 +98,14 @@ export default function SaleDetailPage() {
 
   // Mutations
   const finalizeInvoice = useFinalizeInvoice();
-  const cancelInvoice = useCancelInvoice();
+  const deleteInvoice = useDeleteInvoice();
 
   // Print ref
-  const printRef = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Sale-${invoiceId}`,
-  });
+  const { printRef, handlePrint } = usePrintInvoice(invoice);
 
   // Dialog state
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
 
   // Handle finalize
@@ -129,23 +126,30 @@ export default function SaleDetailPage() {
     }
   }, [invoiceId, finalizeInvoice, toast, t]);
 
-  // Handle cancel
-  const handleCancel = useCallback(async () => {
+  // Handle delete
+  const handleDelete = useCallback(async () => {
     try {
-      await cancelInvoice.mutateAsync(invoiceId);
-      setShowCancelDialog(false);
+      await deleteInvoice.mutateAsync(invoiceId);
+      setShowDeleteDialog(false);
       toast({
-        title: t('toasts.canceled'),
-        description: t('toasts.canceledDescription'),
+        title: t('toasts.deleted'),
+        description: t('toasts.deletedDescription'),
       });
+      router.push(`/${locale}/sales`);
     } catch (error) {
+      const message = error instanceof Error ? error.message : t('toasts.deleteFailed');
+      const lower = message.toLowerCase();
+      const title =
+        lower.includes('payment') ? t('toasts.blockedByPayments')
+        : lower.includes('return') ? t('toasts.blockedByReturn')
+        : t('toasts.deleteFailed');
       toast({
         variant: 'destructive',
-        title: t('toasts.cancelFailed'),
-        description: error instanceof Error ? error.message : t('toasts.cancelFailed'),
+        title,
+        description: message,
       });
     }
-  }, [invoiceId, cancelInvoice, toast, t]);
+  }, [invoiceId, deleteInvoice, toast, t, router, locale]);
 
   // Handle return success
   const handleReturnSuccess = useCallback(() => {
@@ -203,19 +207,19 @@ export default function SaleDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:ml-auto">
+          {(invoice.status === 'draft' || invoice.status === 'final') && (
+            <Button variant="outline" asChild>
+              <Link href={`/${locale}/sales/${invoiceId}/edit`}>
+                <Edit className="h-4 w-4 mr-2" />
+                {tActions('edit')}
+              </Link>
+            </Button>
+          )}
           {invoice.status === 'draft' && (
-            <>
-              <Button variant="outline" asChild>
-                <Link href={`/${locale}/sales/${invoiceId}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  {tActions('edit')}
-                </Link>
-              </Button>
-              <Button onClick={() => setShowFinalizeDialog(true)}>
-                <Send className="h-4 w-4 mr-2" />
-                {tActions('finalize')}
-              </Button>
-            </>
+            <Button onClick={() => setShowFinalizeDialog(true)}>
+              <Send className="h-4 w-4 mr-2" />
+              {tActions('finalize')}
+            </Button>
           )}
           {invoice.status === 'final' && (
             <Button variant="outline" onClick={() => setShowReturnDialog(true)}>
@@ -240,18 +244,14 @@ export default function SaleDetailPage() {
                 <Download className="h-4 w-4 mr-2" />
                 {tActions('exportPdf')}
               </DropdownMenuItem>
-              {invoice.status === 'draft' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={() => setShowCancelDialog(true)}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    {tActions('cancelInvoice')}
-                  </DropdownMenuItem>
-                </>
-              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {tActions('delete')}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -422,25 +422,31 @@ export default function SaleDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Cancel Confirmation Dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('cancelDialog.title')}</DialogTitle>
+            <DialogTitle>{t('deleteDialog.title')}</DialogTitle>
             <DialogDescription>
-              {t('cancelDialog.body')}
+              {invoice.status === 'final'
+                ? t('deleteDialog.bodyFinal')
+                : invoice.status === 'returned'
+                ? t('deleteDialog.bodyReturned')
+                : invoice.status === 'canceled'
+                ? t('deleteDialog.bodyCanceled')
+                : t('deleteDialog.bodyDraft')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              {t('cancelDialog.keep')}
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              {t('deleteDialog.cancel')}
             </Button>
             <Button
               variant="destructive"
-              onClick={handleCancel}
-              disabled={cancelInvoice.isPending}
+              onClick={handleDelete}
+              disabled={deleteInvoice.isPending}
             >
-              {cancelInvoice.isPending ? t('cancelDialog.pending') : t('cancelDialog.confirm')}
+              {deleteInvoice.isPending ? t('deleteDialog.pending') : t('deleteDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

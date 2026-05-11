@@ -45,6 +45,7 @@ interface UserQueryParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
+  includeInactive?: boolean;
   roleId?: string;
   sortBy?: 'full_name' | 'email' | 'created_at';
   sortDir?: 'asc' | 'desc';
@@ -79,6 +80,7 @@ export function useUsers(
       const response = await api.get<UserListResponse>('/users', {
         search: params.search,
         isActive: params.isActive,
+        includeInactive: params.includeInactive,
         roleId: params.roleId,
         page: params.page,
         limit: params.limit,
@@ -126,14 +128,12 @@ export function useCreateUser(
       const response = await api.post<ApiResponse<User>>('/users', input);
       return response;
     },
-    onSuccess: (data) => {
-      // Invalidate user lists
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-
-      // Set the detail cache
-      queryClient.setQueryData(userKeys.detail(data.data.id), data);
-    },
     ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      queryClient.setQueryData(userKeys.detail(data.data.id), data);
+      options?.onSuccess?.(data, variables, context);
+    },
   });
 }
 
@@ -150,14 +150,12 @@ export function useUpdateUser(
       const response = await api.put<ApiResponse<User>>(`/users/${id}`, input);
       return response;
     },
-    onSuccess: (data, variables) => {
-      // Invalidate user lists
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-
-      // Invalidate user detail
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
-    },
     ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
+      options?.onSuccess?.(data, variables, context);
+    },
   });
 }
 
@@ -171,13 +169,11 @@ export function useDeleteUser(options?: UseMutationOptions<void, Error, string>)
     mutationFn: async (id: string) => {
       await api.delete(`/users/${id}`);
     },
-    onSuccess: (_, id) => {
-      // Invalidate user lists
-      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-
-      // Remove from detail cache
-      queryClient.removeQueries({ queryKey: userKeys.detail(id) });
-    },
     ...options,
+    onSuccess: (data, id, context) => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      queryClient.removeQueries({ queryKey: userKeys.detail(id) });
+      options?.onSuccess?.(data, id, context);
+    },
   });
 }

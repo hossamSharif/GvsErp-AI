@@ -7,6 +7,7 @@
  */
 
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -37,44 +38,45 @@ export default function SettingsPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations('settings.home');
 
   const sections: SettingsSection[] = [
     {
-      title: 'General Settings',
-      description: 'Configure language, theme, and display preferences',
+      title: t('cards.general'),
+      description: t('cards.generalDesc'),
       icon: <SettingsIcon className="h-6 w-6" />,
       href: `/${locale}/settings/general`,
     },
     {
-      title: 'Users',
-      description: 'Manage user accounts and permissions',
+      title: t('cards.users'),
+      description: t('cards.usersDesc'),
       icon: <Users className="h-6 w-6" />,
       href: `/${locale}/settings/users`,
     },
     {
-      title: 'Roles & Permissions',
-      description: 'Configure roles and access control',
+      title: t('cards.roles'),
+      description: t('cards.rolesDesc'),
       icon: <Shield className="h-6 w-6" />,
       href: `/${locale}/settings/roles`,
     },
     {
-      title: 'Currencies',
-      description: 'Manage currencies and default settings',
+      title: t('cards.currencies'),
+      description: t('cards.currenciesDesc'),
       icon: <DollarSign className="h-6 w-6" />,
       href: `/${locale}/settings/currencies`,
     },
     {
-      title: 'Exchange Rates',
-      description: 'Set up and manage currency exchange rates',
+      title: t('cards.exchangeRates'),
+      description: t('cards.exchangeRatesDesc'),
       icon: <TrendingUp className="h-6 w-6" />,
       href: `/${locale}/settings/exchange-rates`,
     },
     {
-      title: 'Subscription & Billing',
-      description: 'View your plan and manage billing',
+      title: t('cards.subscription'),
+      description: t('cards.subscriptionDesc'),
       icon: <CreditCard className="h-6 w-6" />,
       href: `/${locale}/settings/subscription`,
-      badge: 'Coming Soon',
+      badge: t('comingSoon'),
     },
   ];
 
@@ -86,10 +88,8 @@ export default function SettingsPage() {
     <div className="flex h-full flex-col space-y-6 p-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your system configuration and preferences
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       {/* Settings Sections Grid */}

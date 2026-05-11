@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
 import { locales } from '@/i18n/request';
@@ -7,7 +6,7 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = { className: 'font-sans' };
 
 export const metadata: Metadata = {
   title: 'ERP SaaS',

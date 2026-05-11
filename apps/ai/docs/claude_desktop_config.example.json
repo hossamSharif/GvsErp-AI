@@ -1,0 +1,38 @@
+{
+  "_comment": [
+    "Phase 5 — register the ERP MCP server with Claude Desktop.",
+    "",
+    "Edit on Windows:  %APPDATA%\\Claude\\claude_desktop_config.json",
+    "Edit on macOS:    ~/Library/Application Support/Claude/claude_desktop_config.json",
+    "",
+    "Copy the `mcpServers.erp-tools` block into that file, then:",
+    "  1. replace MCP_ERP_JWT with a valid Supabase access token",
+    "     (copy st.session_state.jwt from the Streamlit app, or sign in ",
+    "      via any tool that exposes the access_token),",
+    "  2. adjust --directory to your absolute checkout path (Windows users:",
+    "     use forward slashes or double-backslashes in JSON),",
+    "  3. confirm MCP_ERP_API_BASE_URL matches your running apps/api service,",
+    "  4. restart Claude Desktop — the tools appear in the tool-picker menu.",
+    "",
+    "Verify: ask Claude Desktop 'list parties' — it will call list_parties",
+    "on this server and return the ERP response."
+  ],
+  "mcpServers": {
+    "erp-tools": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "C:/mnt/c/ClaudeWorkspace/ErpSystem2025-AI/apps/ai",
+        "python",
+        "-m",
+        "src.mcp_server.erp_tools"
+      ],
+      "env": {
+        "MCP_ERP_JWT": "paste-supabase-access-token-here",
+        "MCP_ERP_API_BASE_URL": "http://localhost:3001/api/v1",
+        "MCP_ERP_DRY_RUN": "true"
+      }
+    }
+  }
+}

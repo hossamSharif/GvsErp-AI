@@ -23,6 +23,7 @@ import {
   Clock,
   XCircle,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,10 +50,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useInvoices, usePrefetchInvoice } from '@/hooks/use-invoices';
-import type { InvoiceStatus, InvoiceQueryParams } from '@erp/shared';
+import { useToast } from '@/hooks/use-toast';
+import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import type { InvoiceStatus, InvoiceQueryParams, InvoiceWithParty } from '@erp/shared';
 
 const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   draft: { icon: Clock, variant: 'secondary' },
@@ -65,13 +75,42 @@ export default function PurchasesListPage() {
   const router = useRouter();
   const { locale } = useParams();
   const prefetchInvoice = usePrefetchInvoice();
+  const { toast } = useToast();
   const t = useTranslations('purchases.list');
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('purchases.actions');
+  const tDetail = useTranslations('purchases.detail');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
   const [page, setPage] = useState(1);
+
+  const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceWithParty | null>(null);
+  const deleteInvoice = useDeleteInvoice();
+
+  const handleDeleteConfirm = async () => {
+    if (!invoiceToDelete) return;
+    try {
+      await deleteInvoice.mutateAsync(invoiceToDelete.id);
+      toast({
+        title: tDetail('toasts.deleted'),
+        description: tDetail('toasts.deletedDescription'),
+      });
+      setInvoiceToDelete(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : tDetail('toasts.deleteFailed');
+      const lower = message.toLowerCase();
+      const title =
+        lower.includes('payment') ? tDetail('toasts.blockedByPayments')
+        : lower.includes('return') ? tDetail('toasts.blockedByReturn')
+        : tDetail('toasts.deleteFailed');
+      toast({
+        variant: 'destructive',
+        title,
+        description: message,
+      });
+    }
+  };
 
   const queryParams: InvoiceQueryParams = useMemo(() => ({
     type: 'purchase',
@@ -274,7 +313,7 @@ export default function PurchasesListPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuLabel>{tActions('label')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
@@ -283,7 +322,7 @@ export default function PurchasesListPage() {
                                 {tActions('view')}
                               </Link>
                             </DropdownMenuItem>
-                            {invoice.status === 'draft' && (
+                            {(invoice.status === 'draft' || invoice.status === 'final') && (
                               <DropdownMenuItem asChild>
                                 <Link href={`/${locale}/purchases/${invoice.id}/edit`}>
                                   <Edit className="h-4 w-4 mr-2" />
@@ -299,6 +338,17 @@ export default function PurchasesListPage() {
                                 </Link>
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setInvoiceToDelete(invoice);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {tActions('delete')}
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -340,6 +390,40 @@ export default function PurchasesListPage() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={invoiceToDelete !== null}
+        onOpenChange={(open) => !open && setInvoiceToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tDetail('deleteDialog.title')}</DialogTitle>
+            <DialogDescription>
+              {invoiceToDelete?.status === 'final'
+                ? tDetail('deleteDialog.bodyFinal')
+                : invoiceToDelete?.status === 'returned'
+                ? tDetail('deleteDialog.bodyReturned')
+                : invoiceToDelete?.status === 'canceled'
+                ? tDetail('deleteDialog.bodyCanceled')
+                : tDetail('deleteDialog.bodyDraft')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInvoiceToDelete(null)}>
+              {tDetail('deleteDialog.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteInvoice.isPending}
+            >
+              {deleteInvoice.isPending
+                ? tDetail('deleteDialog.pending')
+                : tDetail('deleteDialog.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

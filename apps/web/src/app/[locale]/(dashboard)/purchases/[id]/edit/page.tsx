@@ -11,7 +11,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
 import { useInvoice } from '@/hooks/use-invoices';
@@ -92,10 +92,11 @@ export default function EditPurchasePage() {
     );
   }
 
-  if (invoice.status !== 'draft') {
+  const editable = invoice.status === 'draft' || invoice.status === 'final';
+  if (!editable) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-destructive">{t('onlyDraft')}</p>
+        <p className="text-destructive">{t('notEditable')}</p>
         <Button variant="outline" asChild>
           <Link href={`/${locale}/purchases/${invoiceId}`}>{tActions('view')}</Link>
         </Button>
@@ -119,6 +120,16 @@ export default function EditPurchasePage() {
           </p>
         </div>
       </div>
+
+      {invoice.status === 'final' && (
+        <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+          <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <p className="font-semibold">{t('editFinalBanner.title')}</p>
+            <p className="text-sm">{t('editFinalBanner.description')}</p>
+          </div>
+        </div>
+      )}
 
       {/* Invoice Form */}
       <InvoiceForm

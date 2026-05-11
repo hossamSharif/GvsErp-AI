@@ -12,6 +12,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useParty, usePartyStatement, useRecalculateBalance } from '@/hooks/use-parties';
 import { Button } from '@/components/ui/button';
@@ -47,8 +48,11 @@ export default function CustomerDetailPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const intlLocale = useLocale();
   const customerId = params.id as string;
   const { toast } = useToast();
+  const t = useTranslations('parties');
+  const tCommon = useTranslations('common');
 
   // Date range for statement (last 3 months by default)
   const [dateRange] = useState({
@@ -76,14 +80,16 @@ export default function CustomerDetailPage() {
   const recalculateMutation = useRecalculateBalance({
     onSuccess: (response) => {
       toast({
-        title: 'Balance recalculated',
-        description: `New balance: $${response.data.balance.toFixed(2)}`,
+        title: t('detail.balanceRecalculated'),
+        description: t('detail.balanceRecalculatedDesc', {
+          amount: response.data.balance.toFixed(2),
+        }),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to recalculate balance',
+        title: tCommon('error'),
+        description: error.message || t('detail.recalcFailed'),
         variant: 'destructive',
       });
     },
@@ -106,55 +112,61 @@ export default function CustomerDetailPage() {
     router.push(`/${locale}/customers`);
   }, [router, locale]);
 
-  // Format currency
-  const formatCurrency = useCallback((amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  }, []);
+  // Format currency (locale-aware)
+  const formatCurrency = useCallback(
+    (amount: number) => {
+      return new Intl.NumberFormat(intlLocale === 'ar' ? 'ar-EG' : 'en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(amount);
+    },
+    [intlLocale],
+  );
 
-  // Format date
-  const formatDate = useCallback((date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  }, []);
+  // Format date (locale-aware)
+  const formatDate = useCallback(
+    (date: string) => {
+      return new Date(date).toLocaleDateString(intlLocale === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    },
+    [intlLocale],
+  );
 
   // Transaction table columns
   const columns = useMemo<ColumnDef<PartyTransaction>[]>(
     () => [
       {
         accessorKey: 'date',
-        header: 'Date',
+        header: t('txnColumns.date'),
         cell: ({ row }) => formatDate(row.original.date),
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('txnColumns.type'),
         cell: ({ row }) => (
           <Badge variant={row.original.type === 'invoice' ? 'default' : 'secondary'}>
-            {row.original.type}
+            {t(`txnTypes.${row.original.type}` as 'txnTypes.invoice' | 'txnTypes.payment')}
           </Badge>
         ),
       },
       {
         accessorKey: 'reference',
-        header: 'Reference',
+        header: t('txnColumns.reference'),
         cell: ({ row }) => (
           <span className="font-mono text-sm">{row.original.reference}</span>
         ),
       },
       {
         accessorKey: 'description',
-        header: 'Description',
+        header: t('txnColumns.description'),
         cell: ({ row }) => row.original.description || '-',
       },
       {
         accessorKey: 'debit',
-        header: 'Debit',
+        header: t('txnColumns.debit'),
         cell: ({ row }) => (
           <span className={cn('font-medium', row.original.debit > 0 && 'text-red-600')}>
             {row.original.debit > 0 ? formatCurrency(row.original.debit) : '-'}
@@ -163,7 +175,7 @@ export default function CustomerDetailPage() {
       },
       {
         accessorKey: 'credit',
-        header: 'Credit',
+        header: t('txnColumns.credit'),
         cell: ({ row }) => (
           <span className={cn('font-medium', row.original.credit > 0 && 'text-green-600')}>
             {row.original.credit > 0 ? formatCurrency(row.original.credit) : '-'}
@@ -172,7 +184,7 @@ export default function CustomerDetailPage() {
       },
       {
         accessorKey: 'balance',
-        header: 'Balance',
+        header: t('txnColumns.balance'),
         cell: ({ row }) => (
           <span className={cn('font-medium', {
             'text-red-600': row.original.balance > 0,
@@ -183,7 +195,7 @@ export default function CustomerDetailPage() {
         ),
       },
     ],
-    [formatCurrency, formatDate]
+    [formatCurrency, formatDate, t]
   );
 
   // Loading state
@@ -212,9 +224,9 @@ export default function CustomerDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4 p-8">
         <p className="text-destructive">
-          {customerError?.message || 'Customer not found'}
+          {customerError?.message || t('detail.customerNotFound')}
         </p>
-        <Button onClick={handleBack}>Back to Customers</Button>
+        <Button onClick={handleBack}>{t('detail.backToCustomers')}</Button>
       </div>
     );
   }
@@ -228,22 +240,27 @@ export default function CustomerDetailPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" aria-label="Go back" onClick={handleBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('detail.goBack')}
+            onClick={handleBack}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{customer.name}</h1>
-            <p className="text-muted-foreground">Customer details and transaction history</p>
+            <p className="text-muted-foreground">{t('detail.customerSubtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleEdit}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
+            <Pencil className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
+            {t('actions.edit')}
           </Button>
           <Button onClick={handleRecordPayment}>
-            <DollarSign className="mr-2 h-4 w-4" />
-            Record Payment
+            <DollarSign className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
+            {t('actions.recordPayment')}
           </Button>
         </div>
       </div>
@@ -253,7 +270,7 @@ export default function CustomerDetailPage() {
         {/* Customer Info Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>{t('detail.contactInformation')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {customer.email && (
@@ -277,14 +294,16 @@ export default function CustomerDetailPage() {
             {customer.taxNumber && (
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Tax: {customer.taxNumber}</span>
+                <span className="text-sm">
+                  {t('detail.taxPrefix')} {customer.taxNumber}
+                </span>
               </div>
             )}
             <Separator />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
+              <span className="text-sm text-muted-foreground">{t('columns.status')}</span>
               <Badge variant={customer.isActive ? 'default' : 'secondary'}>
-                {customer.isActive ? 'Active' : 'Inactive'}
+                {customer.isActive ? t('status.active') : t('status.inactive')}
               </Badge>
             </div>
           </CardContent>
@@ -293,8 +312,8 @@ export default function CustomerDetailPage() {
         {/* Balance Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Current Balance</CardTitle>
-            <CardDescription>Outstanding amount</CardDescription>
+            <CardTitle>{t('detail.currentBalance')}</CardTitle>
+            <CardDescription>{t('detail.outstandingAmount')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
@@ -314,7 +333,11 @@ export default function CustomerDetailPage() {
                   {formatCurrency(Math.abs(balance))}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {balance > 0 ? 'Receivable' : balance < 0 ? 'Overpaid' : 'Settled'}
+                  {balance > 0
+                    ? t('detail.receivable')
+                    : balance < 0
+                      ? t('detail.overpaid')
+                      : t('detail.settled')}
                 </p>
               </div>
             </div>
@@ -325,8 +348,8 @@ export default function CustomerDetailPage() {
               disabled={recalculateMutation.isPending}
               className="w-full"
             >
-              <RefreshCw className={cn('mr-2 h-4 w-4', recalculateMutation.isPending && 'animate-spin')} />
-              Recalculate Balance
+              <RefreshCw className={cn('mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0', recalculateMutation.isPending && 'animate-spin')} />
+              {t('detail.recalculateBalance')}
             </Button>
           </CardContent>
         </Card>
@@ -334,27 +357,27 @@ export default function CustomerDetailPage() {
         {/* Summary Stats Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Summary</CardTitle>
-            <CardDescription>Transaction totals</CardDescription>
+            <CardTitle>{t('detail.summary')}</CardTitle>
+            <CardDescription>{t('detail.transactionTotals')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {statement && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Invoiced</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.totalInvoiced')}</span>
                   <span className="font-medium">{formatCurrency(statement.totalDebits)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Paid</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.totalPaid')}</span>
                   <span className="font-medium">{formatCurrency(statement.totalCredits)}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Transactions</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.transactions')}</span>
                   <Badge variant="outline">{statement.transactions.length}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Period</span>
+                  <span className="text-sm text-muted-foreground">{t('detail.period')}</span>
                   <span className="text-xs text-muted-foreground">
                     {formatDate(statement.dateFrom)} - {formatDate(statement.dateTo)}
                   </span>
@@ -368,9 +391,9 @@ export default function CustomerDetailPage() {
       {/* Transaction History */}
       <Card>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <CardTitle>{t('detail.transactionHistory')}</CardTitle>
           <CardDescription>
-            All invoices and payments for the selected period
+            {t('detail.transactionHistoryDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -394,7 +417,7 @@ export default function CustomerDetailPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No transactions found for this period</p>
+              <p className="text-muted-foreground">{t('detail.noTransactions')}</p>
             </div>
           )}
         </CardContent>
@@ -404,7 +427,7 @@ export default function CustomerDetailPage() {
       {customer.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>{t('detail.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">

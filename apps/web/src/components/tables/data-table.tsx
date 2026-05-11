@@ -13,6 +13,7 @@
  */
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -161,7 +162,7 @@ export function DataTable<TData, TValue>({
   data,
   selectable = false,
   resizable = true,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder,
   searchColumn,
   showSearch = true,
   showColumnToggle = true,
@@ -169,7 +170,7 @@ export function DataTable<TData, TValue>({
   pageSize = 20,
   pageSizeOptions = [10, 20, 50, 100],
   isLoading = false,
-  emptyMessage = 'No results found.',
+  emptyMessage,
   onSelectionChange,
   pagination: paginationProp,
   onPaginationChange,
@@ -181,6 +182,9 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   className,
 }: DataTableProps<TData, TValue>) {
+  const tCommon = useTranslations('common');
+  const resolvedSearchPlaceholder = searchPlaceholder ?? tCommon('searchPlaceholder');
+  const resolvedEmptyMessage = emptyMessage ?? tCommon('noResults');
   const paginationLabelId = React.useId();
   // Merge shorthand pagination props into pagination object
   const pagination = paginationProp ?? (pageCount !== undefined ? {
@@ -269,8 +273,8 @@ export function DataTable<TData, TValue>({
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input
-              aria-label={searchPlaceholder}
-              placeholder={searchPlaceholder}
+              aria-label={resolvedSearchPlaceholder}
+              placeholder={resolvedSearchPlaceholder}
               value={searchColumn
                 ? (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
                 : globalFilter
@@ -295,7 +299,7 @@ export function DataTable<TData, TValue>({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="ml-auto">
                 <Settings2 className="mr-2 h-4 w-4" />
-                Columns
+                {tCommon('columns')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[200px]">
@@ -427,7 +431,7 @@ export function DataTable<TData, TValue>({
                     colSpan={tableColumns.length}
                     className="h-24 text-center text-muted-foreground"
                   >
-                    {emptyMessage}
+                    {resolvedEmptyMessage}
                   </TableCell>
                 </TableRow>
               )}
@@ -443,8 +447,10 @@ export function DataTable<TData, TValue>({
           <div className="flex-1 text-sm text-muted-foreground" role="status" aria-live="polite">
             {selectable && (
               <>
-                {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                {table.getFilteredRowModel().rows.length} row(s) selected.
+                {tCommon('selectedRows', {
+                  selected: table.getFilteredSelectedRowModel().rows.length,
+                  total: table.getFilteredRowModel().rows.length,
+                })}
               </>
             )}
           </div>
@@ -452,7 +458,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center gap-6 lg:gap-8">
             {/* Page size selector */}
             <div className="flex items-center gap-2">
-              <label id={paginationLabelId} className="text-sm font-medium">Rows per page</label>
+              <label id={paginationLabelId} className="text-sm font-medium">{tCommon('rowsPerPage')}</label>
               <Select
                 value={String(pagination?.limit || table.getState().pagination.pageSize)}
                 onValueChange={(value) => {
@@ -478,8 +484,10 @@ export function DataTable<TData, TValue>({
 
             {/* Page info */}
             <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {pagination ? pagination.page : table.getState().pagination.pageIndex + 1} of{' '}
-              {pagination ? pagination.totalPages : table.getPageCount()}
+              {tCommon('pageOf', {
+                page: pagination ? pagination.page : table.getState().pagination.pageIndex + 1,
+                total: pagination ? pagination.totalPages : table.getPageCount(),
+              })}
             </div>
 
             {/* Navigation */}
@@ -488,7 +496,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                aria-label="Go to first page"
+                aria-label={tCommon('firstPage')}
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(1, pagination.limit);
@@ -504,7 +512,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                aria-label="Go to previous page"
+                aria-label={tCommon('previousPage')}
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.page - 1, pagination.limit);
@@ -520,7 +528,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                aria-label="Go to next page"
+                aria-label={tCommon('nextPage')}
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.page + 1, pagination.limit);
@@ -540,7 +548,7 @@ export function DataTable<TData, TValue>({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                aria-label="Go to last page"
+                aria-label={tCommon('lastPage')}
                 onClick={() => {
                   if (handlePaginationChange && pagination) {
                     handlePaginationChange(pagination.totalPages, pagination.limit);

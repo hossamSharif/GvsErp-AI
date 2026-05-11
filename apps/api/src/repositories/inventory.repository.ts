@@ -31,8 +31,8 @@ interface InventoryWithItemRow extends InventoryRow {
     barcode: string | null;
     unit_of_measure: string;
     is_active: boolean;
+    item_prices: ItemPriceRow[];
   };
-  item_prices: ItemPriceRow[];
 }
 
 
@@ -166,11 +166,11 @@ export class InventoryRepository extends BaseRepository<
           sku,
           barcode,
           unit_of_measure,
-          is_active
-        ),
-        item_prices (
-          price,
-          price_tier
+          is_active,
+          item_prices (
+            price,
+            price_tier
+          )
         )
       `, { count: 'exact' })
       .eq('tenant_id', tenantId)
@@ -201,7 +201,7 @@ export class InventoryRepository extends BaseRepository<
       const quantity = Number(row.quantity);
       const reservedQuantity = Number(row.reserved_quantity) || 0;
       const threshold = row.low_stock_threshold ? Number(row.low_stock_threshold) : null;
-      const costPrice = row.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
+      const costPrice = row.items.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
 
       return {
         id: row.id,
@@ -423,9 +423,11 @@ export class InventoryRepository extends BaseRepository<
       .select(`
         quantity,
         item_id,
-        item_prices (
-          price,
-          price_tier
+        items!inner (
+          item_prices (
+            price,
+            price_tier
+          )
         )
       `)
       .eq('tenant_id', tenantId)
@@ -436,9 +438,9 @@ export class InventoryRepository extends BaseRepository<
       throw error;
     }
 
-    const rows = (data || []) as unknown as Array<{ quantity: number; item_id: string; item_prices: ItemPriceRow[] }>;
+    const rows = (data || []) as unknown as Array<{ quantity: number; item_id: string; items: { item_prices: ItemPriceRow[] } }>;
     return rows.reduce((total: number, row) => {
-      const costPrice = row.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
+      const costPrice = row.items?.item_prices?.find((p) => p.price_tier === 'cost')?.price || 0;
       return total + Number(row.quantity) * Number(costPrice);
     }, 0);
   }

@@ -201,7 +201,6 @@ router.get(
  */
 router.get(
   '/:id/statement',
-  validateRequest({ query: partyStatementParamsSchema }),
   asyncHandler(async (req: Request, res: Response) => {
     const service = getPartyService(req);
     const params = {

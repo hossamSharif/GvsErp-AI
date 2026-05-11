@@ -64,6 +64,16 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      fontFamily: {
+        arabic: [
+          'Cairo',
+          'Tajawal',
+          '"IBM Plex Sans Arabic"',
+          '"Segoe UI"',
+          'system-ui',
+          'sans-serif',
+        ],
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },

@@ -218,9 +218,9 @@ export default function WarehouseDetailPage() {
       {alerts.filter((a) => a.percentOfThreshold < 25).length > 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Critical Stock Alert</AlertTitle>
+          <AlertTitle>{t('criticalStockAlert')}</AlertTitle>
           <AlertDescription>
-            {alerts.filter((a) => a.percentOfThreshold < 25).length} item(s) are critically low (below 25% of threshold). Review the Alerts tab to take action.
+            {t('criticalStockMessage', { count: alerts.filter((a) => a.percentOfThreshold < 25).length })}
           </AlertDescription>
         </Alert>
       )}

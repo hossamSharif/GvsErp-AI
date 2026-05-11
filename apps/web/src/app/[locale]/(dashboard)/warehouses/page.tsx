@@ -164,14 +164,14 @@ export default function WarehousesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Showing</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('showingStats')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {warehouses.length}
               <span className="text-sm font-normal text-muted-foreground ml-1">
-                of {meta?.total || 0}
+                {t('of')} {meta?.total || 0}
               </span>
             </div>
           </CardContent>
@@ -179,13 +179,13 @@ export default function WarehousesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activeShort')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {warehouses.filter((w: Warehouse) => w.isActive).length}
-              <span className="text-xs font-normal text-muted-foreground ml-1">on this page</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">{t('onThisPage')}</span>
             </div>
           </CardContent>
         </Card>
@@ -197,7 +197,7 @@ export default function WarehousesPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder={t('searchPlaceholder')}
-            aria-label="Search warehouses"
+            aria-label={t('searchAriaLabel')}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
@@ -254,7 +254,7 @@ export default function WarehousesPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">{t('openMenu')}</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

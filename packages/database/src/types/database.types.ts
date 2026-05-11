@@ -322,6 +322,72 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          exchange_rate: number
+          expense_date: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          reference: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          exchange_rate?: number
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          exchange_rate?: number
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exchange_rates: {
         Row: {
           created_at: string

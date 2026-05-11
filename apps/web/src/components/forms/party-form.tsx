@@ -12,6 +12,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import {
   Form,
@@ -33,7 +34,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import type {
   Party,
   PartyType,
@@ -89,6 +89,8 @@ export function PartyForm({
   isLoading = false,
   mode = 'create',
 }: PartyFormProps) {
+  const t = useTranslations('parties.form');
+
   // Form setup
   const form = useForm<PartyFormData>({
     resolver: zodResolver(partyFormSchema),
@@ -135,7 +137,28 @@ export function PartyForm({
     await onSubmit(submitData as CreatePartyInput | UpdatePartyInput);
   };
 
-  const partyLabel = partyType === 'customer' ? 'Customer' : 'Supplier';
+  const isCustomer = partyType === 'customer';
+  const namePlaceholder = isCustomer ? t('namePlaceholderCustomer') : t('namePlaceholderSupplier');
+  const sectionDesc =
+    mode === 'create'
+      ? isCustomer
+        ? t('createCustomerDesc')
+        : t('createSupplierDesc')
+      : isCustomer
+        ? t('updateCustomerDesc')
+        : t('updateSupplierDesc');
+  const statusDesc = isCustomer ? t('manageCustomerStatus') : t('manageSupplierStatus');
+  const notesDesc = isCustomer ? t('notesDescCustomer') : t('notesDescSupplier');
+  const activeDesc = isCustomer ? t('activeDescCustomer') : t('activeDescSupplier');
+  const submitLabel =
+    mode === 'create'
+      ? isCustomer
+        ? t('createCustomer')
+        : t('createSupplier')
+      : isCustomer
+        ? t('updateCustomer')
+        : t('updateSupplier');
+  const submittingLabel = mode === 'create' ? t('creating') : t('updating');
 
   return (
     <Form {...form}>
@@ -143,12 +166,8 @@ export function PartyForm({
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
-              {mode === 'create'
-                ? `Enter the ${partyLabel.toLowerCase()} details`
-                : `Update the ${partyLabel.toLowerCase()} information`}
-            </CardDescription>
+            <CardTitle>{t('basicInformation')}</CardTitle>
+            <CardDescription>{sectionDesc}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Name */}
@@ -158,10 +177,10 @@ export function PartyForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Name <span className="text-red-500">*</span>
+                    {t('nameLabel')} <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={`${partyLabel} name`} {...field} />
+                    <Input placeholder={namePlaceholder} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,18 +193,19 @@ export function PartyForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    {t('emailLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="email@example.com"
+                      placeholder={t('emailPlaceholder')}
                       {...field}
                       value={field.value || ''}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Contact email for invoices and communications
-                  </FormDescription>
+                  <FormDescription>{t('emailDesc')}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -197,11 +217,14 @@ export function PartyForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    {t('phoneLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
-                      placeholder="+1 (555) 123-4567"
+                      placeholder={t('phonePlaceholder')}
                       {...field}
                       value={field.value || ''}
                     />
@@ -216,8 +239,7 @@ export function PartyForm({
         {/* Additional Details */}
         <Card>
           <CardHeader>
-            <CardTitle>Additional Details</CardTitle>
-            <CardDescription>Optional contact and tax information</CardDescription>
+            <CardTitle>{t('additionalDetails')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Address */}
@@ -226,10 +248,13 @@ export function PartyForm({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    {t('addressLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Street address, city, country"
+                      placeholder={t('addressPlaceholder')}
                       className="min-h-[80px]"
                       {...field}
                       value={field.value || ''}
@@ -246,17 +271,18 @@ export function PartyForm({
               name="taxNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax Number / VAT ID <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    {t('taxNumberLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Tax identification number"
+                      placeholder={t('taxNumberPlaceholder')}
                       {...field}
                       value={field.value || ''}
                     />
                   </FormControl>
-                  <FormDescription>
-                    VAT, GST, or tax registration number
-                  </FormDescription>
+                  <FormDescription>{t('taxNumberDesc')}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -268,18 +294,19 @@ export function PartyForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    {t('notesLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes or comments"
+                      placeholder={t('notesPlaceholder')}
                       className="min-h-[100px]"
                       {...field}
                       value={field.value || ''}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Internal notes (not visible to {partyLabel.toLowerCase()})
-                  </FormDescription>
+                  <FormDescription>{notesDesc}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -291,8 +318,8 @@ export function PartyForm({
         {mode === 'edit' && (
           <Card>
             <CardHeader>
-              <CardTitle>Status</CardTitle>
-              <CardDescription>Manage {partyLabel.toLowerCase()} status</CardDescription>
+              <CardTitle>{t('statusSection')}</CardTitle>
+              <CardDescription>{statusDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <FormField
@@ -301,10 +328,8 @@ export function PartyForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Active</FormLabel>
-                      <FormDescription>
-                        Inactive {partyType}s won't appear in dropdowns
-                      </FormDescription>
+                      <FormLabel className="text-base">{t('activeLabel')}</FormLabel>
+                      <FormDescription>{activeDesc}</FormDescription>
                     </div>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -320,19 +345,19 @@ export function PartyForm({
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+              {t('cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {mode === 'create' ? 'Creating...' : 'Updating...'}
+                <Loader2 className="mr-2 h-4 w-4 animate-spin rtl:ml-2 rtl:mr-0" />
+                {submittingLabel}
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                {mode === 'create' ? `Create ${partyLabel}` : `Update ${partyLabel}`}
+                <Save className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
+                {submitLabel}
               </>
             )}
           </Button>

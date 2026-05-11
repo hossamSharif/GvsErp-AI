@@ -256,25 +256,33 @@ export function useUpdateInvoice(
 }
 
 /**
- * Cancel a draft invoice
+ * Hard-delete an invoice (any status). Stock + party balance are reversed
+ * on the server before the row is removed.
  */
-export function useCancelInvoice(
-  options?: UseMutationOptions<ApiResponse<Invoice>, Error, string>
+export function useDeleteInvoice(
+  options?: UseMutationOptions<ApiResponse<{ id: string }>, Error, string>
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await api.delete<ApiResponse<Invoice>>(`/invoices/${id}`);
+      const response = await api.delete<ApiResponse<{ id: string }>>(`/invoices/${id}`);
       return response;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: [...invoiceKeys.all, 'stock'] });
     },
     ...options,
   });
 }
+
+/**
+ * @deprecated Use useDeleteInvoice. The DELETE endpoint now hard-deletes
+ * (with stock + balance reversal) for any invoice status.
+ */
+export const useCancelInvoice = useDeleteInvoice;
 
 /**
  * Finalize an invoice

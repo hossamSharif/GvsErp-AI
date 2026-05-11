@@ -129,7 +129,9 @@ router.put(
 
 /**
  * DELETE /invoices/:id
- * Cancel a draft invoice (soft delete via status change)
+ * Hard-delete an invoice. Reverses stock + party-balance side effects
+ * before removing the row. Blocked when the invoice has linked payments
+ * or, for finalized invoices, when a return invoice references it.
  */
 router.delete(
   '/:id',
@@ -137,12 +139,12 @@ router.delete(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getInvoiceService(req);
-      const invoice = await service.cancelInvoice(req.params.id);
+      const result = await service.deleteInvoice(req.params.id);
 
       res.json({
         success: true,
-        data: invoice,
-        message: 'Invoice canceled successfully',
+        data: result,
+        message: 'Invoice deleted successfully',
       });
     } catch (error) {
       next(error);

@@ -33,8 +33,8 @@ export default function NewPaymentPage() {
   const [activeTab, setActiveTab] = useState<PaymentType>(prefilledType);
 
   // Fetch parties
-  const { data: customersData, isLoading: customersLoading } = useParties({ type: 'customer', limit: 200 });
-  const { data: suppliersData, isLoading: suppliersLoading } = useParties({ type: 'supplier', limit: 200 });
+  const { data: customersData, isLoading: customersLoading } = useParties({ type: 'customer', limit: 100 });
+  const { data: suppliersData, isLoading: suppliersLoading } = useParties({ type: 'supplier', limit: 100 });
 
   const isLoading = customersLoading || suppliersLoading;
 

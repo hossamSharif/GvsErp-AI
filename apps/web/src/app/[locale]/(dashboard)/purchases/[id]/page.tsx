@@ -6,8 +6,7 @@
  * View and manage a single purchase invoice.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -24,6 +23,7 @@ import {
   XCircle,
   RotateCcw,
   Package,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useInvoice, useFinalizeInvoice, useCancelInvoice } from '@/hooks/use-invoices';
+import { useInvoice, useFinalizeInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import { usePrintInvoice } from '@/hooks/use-print-invoice';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
@@ -73,7 +74,7 @@ const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'd
 
 export default function PurchaseDetailPage() {
   const params = useParams();
-  const _router = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const t = useTranslations('purchases.detail');
@@ -90,16 +91,12 @@ export default function PurchaseDetailPage() {
   const invoice = data?.data;
 
   const finalizeInvoice = useFinalizeInvoice();
-  const cancelInvoice = useCancelInvoice();
+  const deleteInvoice = useDeleteInvoice();
 
-  const printRef = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Purchase-${invoiceId}`,
-  });
+  const { printRef, handlePrint } = usePrintInvoice(invoice);
 
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
 
   const handleFinalize = useCallback(async () => {
@@ -119,22 +116,29 @@ export default function PurchaseDetailPage() {
     }
   }, [invoiceId, finalizeInvoice, toast, t, tCommon]);
 
-  const handleCancel = useCallback(async () => {
+  const handleDelete = useCallback(async () => {
     try {
-      await cancelInvoice.mutateAsync(invoiceId);
-      setShowCancelDialog(false);
+      await deleteInvoice.mutateAsync(invoiceId);
+      setShowDeleteDialog(false);
       toast({
-        title: t('toasts.canceled'),
-        description: t('toasts.canceledDescription'),
+        title: t('toasts.deleted'),
+        description: t('toasts.deletedDescription'),
       });
+      router.push(`/${locale}/purchases`);
     } catch (err) {
+      const message = err instanceof Error ? err.message : t('toasts.deleteFailed');
+      const lower = message.toLowerCase();
+      const title =
+        lower.includes('payment') ? t('toasts.blockedByPayments')
+        : lower.includes('return') ? t('toasts.blockedByReturn')
+        : t('toasts.deleteFailed');
       toast({
         variant: 'destructive',
-        title: tCommon('error'),
-        description: err instanceof Error ? err.message : t('toasts.cancelFailed'),
+        title,
+        description: message,
       });
     }
-  }, [invoiceId, cancelInvoice, toast, t, tCommon]);
+  }, [invoiceId, deleteInvoice, toast, t, router, locale]);
 
   const handleReturnSuccess = useCallback(() => {
     setShowReturnDialog(false);
@@ -190,19 +194,19 @@ export default function PurchaseDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:ml-auto">
+          {(invoice.status === 'draft' || invoice.status === 'final') && (
+            <Button variant="outline" asChild>
+              <Link href={`/${locale}/purchases/${invoiceId}/edit`}>
+                <Edit className="h-4 w-4 mr-2" />
+                {tActions('edit')}
+              </Link>
+            </Button>
+          )}
           {invoice.status === 'draft' && (
-            <>
-              <Button variant="outline" asChild>
-                <Link href={`/${locale}/purchases/${invoiceId}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  {tActions('edit')}
-                </Link>
-              </Button>
-              <Button onClick={() => setShowFinalizeDialog(true)}>
-                <Send className="h-4 w-4 mr-2" />
-                {tActions('finalize')}
-              </Button>
-            </>
+            <Button onClick={() => setShowFinalizeDialog(true)}>
+              <Send className="h-4 w-4 mr-2" />
+              {tActions('finalize')}
+            </Button>
           )}
           {invoice.status === 'final' && (
             <Button variant="outline" onClick={() => setShowReturnDialog(true)}>
@@ -227,18 +231,14 @@ export default function PurchaseDetailPage() {
                 <Download className="h-4 w-4 mr-2" />
                 {tActions('exportPdf')}
               </DropdownMenuItem>
-              {invoice.status === 'draft' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={() => setShowCancelDialog(true)}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    {tActions('cancelInvoice')}
-                  </DropdownMenuItem>
-                </>
-              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {tActions('delete')}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -414,22 +414,30 @@ export default function PurchaseDetailPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('cancelDialog.title')}</DialogTitle>
-            <DialogDescription>{t('cancelDialog.body')}</DialogDescription>
+            <DialogTitle>{t('deleteDialog.title')}</DialogTitle>
+            <DialogDescription>
+              {invoice.status === 'final'
+                ? t('deleteDialog.bodyFinal')
+                : invoice.status === 'returned'
+                ? t('deleteDialog.bodyReturned')
+                : invoice.status === 'canceled'
+                ? t('deleteDialog.bodyCanceled')
+                : t('deleteDialog.bodyDraft')}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-              {t('cancelDialog.keep')}
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              {t('deleteDialog.cancel')}
             </Button>
             <Button
               variant="destructive"
-              onClick={handleCancel}
-              disabled={cancelInvoice.isPending}
+              onClick={handleDelete}
+              disabled={deleteInvoice.isPending}
             >
-              {cancelInvoice.isPending ? t('cancelDialog.pending') : t('cancelDialog.confirm')}
+              {deleteInvoice.isPending ? t('deleteDialog.pending') : t('deleteDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

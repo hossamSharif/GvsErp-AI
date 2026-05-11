@@ -8,6 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Search, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,13 +30,14 @@ export default function EmployeesPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const t = useTranslations('hr.employees');
   const [search, setSearch] = useState('');
-  const [department, setDepartment] = useState('');
+  const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('active');
 
   const { data, isLoading } = useEmployees({
     search: search || undefined,
-    department: department || undefined,
+    department: department === 'all' ? undefined : department,
     isActive: status === 'all' ? undefined : status === 'active',
     page: 1,
     limit: 50,
@@ -50,7 +52,7 @@ export default function EmployeesPage() {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: 'employee_number',
-      header: 'Employee #',
+      header: t('columns.employeeNumber'),
       cell: ({ row }) => (
         <Link
           href={`/${locale}/hr/employees/${row.original.id}`}
@@ -62,29 +64,31 @@ export default function EmployeesPage() {
     },
     {
       accessorKey: 'full_name',
-      header: 'Name',
+      header: t('columns.name'),
     },
     {
       accessorKey: 'department',
-      header: 'Department',
+      header: t('columns.department'),
       cell: ({ row }) => row.original.department || '-',
     },
     {
       accessorKey: 'position',
-      header: 'Position',
+      header: t('columns.position'),
       cell: ({ row }) => row.original.position || '-',
     },
     {
       accessorKey: 'hire_date',
-      header: 'Hire Date',
+      header: t('columns.hireDate'),
       cell: ({ row }) => {
         if (!row.original.hire_date) return '-';
-        return new Date(row.original.hire_date).toLocaleDateString();
+        return new Date(row.original.hire_date).toLocaleDateString(
+          locale === 'ar' ? 'ar-EG' : 'en-US'
+        );
       },
     },
     {
       accessorKey: 'salary',
-      header: 'Salary',
+      header: t('columns.salary'),
       cell: ({ row }) => {
         if (!row.original.salary) return '-';
         return `${row.original.salary_currency} ${row.original.salary.toLocaleString()}`;
@@ -92,10 +96,10 @@ export default function EmployeesPage() {
     },
     {
       accessorKey: 'is_active',
-      header: 'Status',
+      header: t('columns.status'),
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
-          {row.original.is_active ? 'Active' : 'Inactive'}
+          {row.original.is_active ? t('filters.active') : t('filters.inactive')}
         </Badge>
       ),
     },
@@ -106,23 +110,21 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Employees</h1>
-          <p className="text-muted-foreground">
-            Manage your workforce and employee information
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline">
             <Upload className="mr-2 h-4 w-4" />
-            Import
+            {t('import')}
           </Button>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t('export')}
           </Button>
           <Button onClick={() => router.push(`/${locale}/hr/employees/new`)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Employee
+            {t('addEmployee')}
           </Button>
         </div>
       </div>
@@ -131,30 +133,30 @@ export default function EmployeesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Employees</CardDescription>
+            <CardDescription>{t('stats.total')}</CardDescription>
             <CardTitle className="text-3xl">{data?.meta?.total || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Showing</CardDescription>
+            <CardDescription>{t('stats.showing')}</CardDescription>
             <CardTitle className="text-3xl">
               {data?.data?.length || 0}
               <span className="text-sm font-normal text-muted-foreground ml-1">
-                of {data?.meta?.total || 0}
+                {t('stats.of')} {data?.meta?.total || 0}
               </span>
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Departments</CardDescription>
+            <CardDescription>{t('stats.departments')}</CardDescription>
             <CardTitle className="text-3xl">{departments?.length || 0}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active on Page</CardDescription>
+            <CardDescription>{t('stats.activeOnPage')}</CardDescription>
             <CardTitle className="text-3xl">
               {data?.data?.filter((e) => e.is_active).length || 0}
             </CardTitle>
@@ -165,7 +167,7 @@ export default function EmployeesPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{t('filters.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
@@ -173,8 +175,8 @@ export default function EmployeesPage() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
-                  placeholder="Search employees..."
-                  aria-label="Search employees"
+                  placeholder={t('filters.searchPlaceholder')}
+                  aria-label={t('filters.searchAria')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-8"
@@ -184,10 +186,10 @@ export default function EmployeesPage() {
 
             <Select value={department} onValueChange={setDepartment}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Departments" />
+                <SelectValue placeholder={t('filters.allDepartments')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">{t('filters.allDepartments')}</SelectItem>
                 {departments?.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
@@ -201,9 +203,9 @@ export default function EmployeesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="all">{t('filters.allStatus')}</SelectItem>
+                <SelectItem value="active">{t('filters.active')}</SelectItem>
+                <SelectItem value="inactive">{t('filters.inactive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

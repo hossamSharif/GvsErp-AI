@@ -75,30 +75,14 @@ import {
 } from '@/hooks/use-warehouses';
 import type { TransferWithDetails, TransferQueryParams, TransferStatus } from '@erp/shared';
 
-const statusConfig: Record<
+const statusIconAndVariant: Record<
   TransferStatus,
-  { label: string; icon: React.ReactNode; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  { icon: React.ReactNode; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
 > = {
-  pending: {
-    label: 'Pending',
-    icon: <Clock className="h-3 w-3" />,
-    variant: 'secondary',
-  },
-  in_transit: {
-    label: 'In Transit',
-    icon: <Loader2 className="h-3 w-3 animate-spin" />,
-    variant: 'default',
-  },
-  completed: {
-    label: 'Completed',
-    icon: <CheckCircle className="h-3 w-3" />,
-    variant: 'outline',
-  },
-  canceled: {
-    label: 'Canceled',
-    icon: <XCircle className="h-3 w-3" />,
-    variant: 'destructive',
-  },
+  pending: { icon: <Clock className="h-3 w-3" />, variant: 'secondary' },
+  in_transit: { icon: <Loader2 className="h-3 w-3 animate-spin" />, variant: 'default' },
+  completed: { icon: <CheckCircle className="h-3 w-3" />, variant: 'outline' },
+  canceled: { icon: <XCircle className="h-3 w-3" />, variant: 'destructive' },
 };
 
 export default function TransfersPage() {
@@ -185,13 +169,13 @@ export default function TransfersPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Showing</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('showingStats')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {transfers.length}
               <span className="text-sm font-normal text-muted-foreground ml-1">
-                of {meta?.total || 0}
+                {t('of')} {meta?.total || 0}
               </span>
             </div>
           </CardContent>
@@ -206,7 +190,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold">
               {transfers.filter((t) => t.status === 'pending').length}
             </div>
-            <p className="text-xs text-muted-foreground">on this page</p>
+            <p className="text-xs text-muted-foreground">{t('onThisPage')}</p>
           </CardContent>
         </Card>
 
@@ -219,7 +203,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold text-blue-500">
               {transfers.filter((t) => t.status === 'in_transit').length}
             </div>
-            <p className="text-xs text-muted-foreground">on this page</p>
+            <p className="text-xs text-muted-foreground">{t('onThisPage')}</p>
           </CardContent>
         </Card>
 
@@ -232,7 +216,7 @@ export default function TransfersPage() {
             <div className="text-2xl font-bold text-green-500">
               {transfers.filter((t) => t.status === 'completed').length}
             </div>
-            <p className="text-xs text-muted-foreground">on this page</p>
+            <p className="text-xs text-muted-foreground">{t('onThisPage')}</p>
           </CardContent>
         </Card>
       </div>
@@ -298,7 +282,13 @@ export default function TransfersPage() {
               </TableHeader>
               <TableBody>
                 {transfers.map((transfer: TransferWithDetails) => {
-                  const config = statusConfig[transfer.status];
+                  const config = statusIconAndVariant[transfer.status];
+                  const statusLabel = {
+                    pending: t('pending'),
+                    in_transit: t('inTransit'),
+                    completed: t('completed'),
+                    canceled: t('canceled'),
+                  }[transfer.status];
                   return (
                     <TableRow
                       key={transfer.id}
@@ -327,7 +317,7 @@ export default function TransfersPage() {
                       <TableCell className="text-center">
                         <Badge variant={config.variant} className="gap-1">
                           {config.icon}
-                          {config.label}
+                          {statusLabel}
                         </Badge>
                       </TableCell>
                       <TableCell>

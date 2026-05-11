@@ -1,38 +1,36 @@
-# Fly.io config for apps/api (Express).
-# Region: fra (Frankfurt) — close to MENA users. Change `primary_region`
-# if your users are elsewhere. List: https://fly.io/docs/reference/regions/
+# fly.toml app configuration file generated for gvs-erp-api on 2026-04-25T16:47:39+02:00
 #
-# `fly launch --no-deploy` may overwrite parts of this file with its own
-# defaults — keep this version in git so you can restore it if that happens.
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "gvs-erp-api"
-primary_region = "fra"
+app = 'gvs-erp-api'
+primary_region = 'fra'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  PORT = "3001"
-  NODE_ENV = "production"
+  NODE_ENV = 'production'
+  PORT = '3001'
 
 [http_service]
   internal_port = 3001
   force_https = true
-  # Scale to zero when idle to fit the free allowance. First request after
-  # idle has a ~5-10s cold start; acceptable for a low-traffic ERP.
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
   [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+  size = 'shared-cpu-1x'
+  memory = '256mb'
+  cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256

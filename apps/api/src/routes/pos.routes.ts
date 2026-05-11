@@ -6,7 +6,7 @@
 import { Router, Request } from 'express';
 import { POSService } from '../services/pos.service';
 import { validateBody, validateParams } from '../middleware/validate';
-import { requirePermission } from '../middleware/auth';
+import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
 import {
   createPOSLocationSchema,
@@ -16,6 +16,9 @@ import {
 } from '@erp/shared';
 
 const router: Router = Router();
+
+// Apply authentication to all routes
+router.use(requireAuth);
 
 function getPOSService(req: Request) {
   const { supabase, tenantId } = getTenantContext(req);

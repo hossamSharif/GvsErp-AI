@@ -48,6 +48,32 @@ class Settings(BaseSettings):
     pipeline_reembed_interval_min: int = 1440  # 24h
     pipeline_balance_interval_min: int = 60
 
+    # Phase 6: Google OAuth (Gmail / Drive / Calendar).
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret: str = ""
+    google_oauth_redirect_uri: str = "http://localhost:8501"
+
+    # Phase 6: WhatsApp Business API (Meta Graph API).
+    whatsapp_access_token: str = ""
+    whatsapp_phone_number_id: str = ""
+
+    # Phase 6: Fernet key for encrypting OAuth tokens at rest.
+    # Generate one with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    token_encryption_key: str = ""
+
+    # Phase 7: agent engine — "loop" (handwritten) or "graph" (LangGraph).
+    agent_engine: str = "loop"
+
+    # Phase 7: LangSmith tracing (optional).  Setting LANGSMITH_TRACING=true
+    # plus an API key is enough — LangGraph picks up the env vars itself.
+    langsmith_api_key: str = ""
+    langsmith_tracing: bool = False
+    langsmith_project: str = "erp-ai-companion"
+
+    # Phase 7: where to persist the LangGraph SqliteSaver checkpoint file.
+    # Empty = use in-memory MemorySaver (no persistence across app restarts).
+    langgraph_sqlite_path: str = ""
+
     def api_key_for(self, provider: str) -> str:
         return {
             "google": self.google_api_key,
