@@ -160,7 +160,7 @@ export function useCreatePayment(
       const response = await api.post<ApiResponse<PaymentWithRelations>>('/payments', input);
       return response;
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
       queryClient.setQueryData(paymentKeys.detail(data.data.id), data);
       if (data.data.partyId) {
@@ -169,7 +169,7 @@ export function useCreatePayment(
         queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
         queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
       }
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });
@@ -189,7 +189,7 @@ export function useUpdatePayment(
       const response = await api.put<ApiResponse<Payment>>(`/payments/${id}`, input);
       return response;
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
       queryClient.invalidateQueries({ queryKey: paymentKeys.detail(variables.id) });
       const partyId = variables.partyId ?? data.data.partyId;
@@ -199,7 +199,7 @@ export function useUpdatePayment(
         queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
         queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
       }
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });
@@ -218,7 +218,7 @@ export function useDeletePayment(
     mutationFn: async ({ id }: { id: string; partyId: string }) => {
       await api.delete(`/payments/${id}`);
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
       queryClient.removeQueries({ queryKey: paymentKeys.detail(variables.id) });
       if (variables.partyId) {
@@ -227,7 +227,7 @@ export function useDeletePayment(
         queryClient.invalidateQueries({ queryKey: partyKeys.lists() });
         queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
       }
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });

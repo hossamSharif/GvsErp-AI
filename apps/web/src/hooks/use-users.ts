@@ -129,10 +129,10 @@ export function useCreateUser(
       return response;
     },
     ...options,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.setQueryData(userKeys.detail(data.data.id), data);
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
   });
 }
@@ -151,10 +151,10 @@ export function useUpdateUser(
       return response;
     },
     ...options,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
   });
 }
@@ -170,10 +170,10 @@ export function useDeleteUser(options?: UseMutationOptions<void, Error, string>)
       await api.delete(`/users/${id}`);
     },
     ...options,
-    onSuccess: (data, id, context) => {
+    onSuccess: (data, id, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.removeQueries({ queryKey: userKeys.detail(id) });
-      options?.onSuccess?.(data, id, context);
+      options?.onSuccess?.(data, id, onMutateResult, context);
     },
   });
 }

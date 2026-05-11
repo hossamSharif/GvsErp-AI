@@ -142,11 +142,11 @@ export function useCreateExpense(
       const response = await api.post<ApiResponse<ExpenseWithCreator>>('/expenses', input);
       return response;
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       queryClient.invalidateQueries({ queryKey: expenseKeys.categories() });
       queryClient.setQueryData(expenseKeys.detail(data.data.id), data);
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });
@@ -163,11 +163,11 @@ export function useUpdateExpense(
       const response = await api.put<ApiResponse<Expense>>(`/expenses/${id}`, input);
       return response;
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       queryClient.invalidateQueries({ queryKey: expenseKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: expenseKeys.categories() });
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });
@@ -183,10 +183,10 @@ export function useDeleteExpense(
     mutationFn: async ({ id }) => {
       await api.delete(`/expenses/${id}`);
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
       queryClient.removeQueries({ queryKey: expenseKeys.detail(variables.id) });
-      callerOnSuccess?.(data, variables, context);
+      callerOnSuccess?.(data, variables, onMutateResult, context);
     },
     ...rest,
   });
