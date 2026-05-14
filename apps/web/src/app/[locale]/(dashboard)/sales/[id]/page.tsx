@@ -61,6 +61,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
 import { usePrintInvoice } from '@/hooks/use-print-invoice';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
+import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import type { InvoiceStatus } from '@erp/shared';
 
@@ -461,6 +462,11 @@ export default function SaleDetailPage() {
           onSuccess={handleReturnSuccess}
         />
       )}
+
+      {/* Phase 8: invoice + its auto-posted journal entry audit trail */}
+      <div className="mt-6 space-y-4">
+        <EntityAuditTrail entityType="invoice" entityId={invoiceId} />
+      </div>
     </div>
   );
 }

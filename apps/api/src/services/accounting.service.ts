@@ -17,6 +17,7 @@ import type {
   AccountType,
   JournalEntry,
   CreateJournalEntryInput,
+  CreateJournalLineInput,
   UpdateJournalEntryInput,
   TrialBalance,
   TrialBalanceRow,
@@ -28,7 +29,41 @@ import type {
   GeneralLedgerEntry,
   CreateAccountInput,
   UpdateAccountInput,
+  DayBookReport,
+  DayBookEntry,
+  AgingReport,
+  AgingBucket,
+  AgingPartyRow,
 } from '@erp/shared';
+
+/**
+ * Default aging buckets (in days) matching Tally's standard layout.
+ * "to=null" means the bucket includes everything beyond `from` (e.g. 90+).
+ */
+const DEFAULT_AGING_BUCKETS: { label: string; from: number; to: number | null }[] = [
+  { label: '0-30', from: 0, to: 31 },
+  { label: '31-60', from: 31, to: 61 },
+  { label: '61-90', from: 61, to: 91 },
+  { label: '90+', from: 91, to: null },
+];
+
+function emptyBuckets(
+  defs: { label: string; from: number; to: number | null }[]
+): AgingBucket[] {
+  return defs.map((d) => ({ label: d.label, from: d.from, to: d.to, amount: 0 }));
+}
+
+function bucketIndexFor(
+  daysOld: number,
+  defs: { label: string; from: number; to: number | null }[]
+): number {
+  for (let i = 0; i < defs.length; i++) {
+    const d = defs[i];
+    const ok = daysOld >= d.from && (d.to === null || daysOld < d.to);
+    if (ok) return i;
+  }
+  return defs.length - 1;
+}
 
 /**
  * Application error for accounting-related operations
@@ -56,13 +91,375 @@ export class AccountingError extends Error {
   }
 }
 
+/**
+ * Semantic roles that auto-posting flows resolve to a ledger account.
+ * Must stay in sync with the CHECK constraint on
+ * accounting_default_accounts.role (migration 021).
+ */
+export type AccountingDefaultRole =
+  | 'cash_in_hand'
+  | 'accounts_receivable'
+  | 'accounts_payable'
+  | 'sales_revenue'
+  | 'sales_tax_payable'
+  | 'inventory_asset'
+  | 'cogs'
+  | 'discount_allowed'
+  | 'discount_received'
+  | 'salary_expense'
+  | 'salary_payable'
+  | 'general_expense'
+  | 'service_purchase_expense';
+
+export type AccountingDefaults = Partial<Record<AccountingDefaultRole, string>>;
+
+/**
+ * Mapping from semantic role to the account code seeded by
+ * importDefaultChartOfAccounts(). Roles missing here (e.g. discount_allowed)
+ * have no default account in the standard chart and are populated lazily by
+ * the auto-posting flow or via the Settings UI.
+ */
+const DEFAULT_ROLE_TO_CODE: Partial<Record<AccountingDefaultRole, string>> = {
+  cash_in_hand: '1110',
+  accounts_receivable: '1120',
+  inventory_asset: '1130',
+  accounts_payable: '2110',
+  sales_tax_payable: '2120',
+  sales_revenue: '4100',
+  cogs: '5100',
+  general_expense: '5200',
+  service_purchase_expense: '5200',
+  salary_expense: '5210',
+};
+
 export class AccountingService {
   private accountRepo: AccountRepository;
   private journalRepo: JournalEntryRepository;
+  private supabase: SupabaseClient<Database>;
 
   constructor(supabase: SupabaseClient<Database>) {
+    this.supabase = supabase;
     this.accountRepo = new AccountRepository(supabase);
     this.journalRepo = new JournalEntryRepository(supabase);
+  }
+
+  // ==================== Module Settings & Defaults ====================
+
+  /**
+   * Check whether the accounting module is enabled for this tenant. Used by
+   * auto-posting flows to silently skip when accounting is off — tenants who
+   * haven't activated the module see no behavior change.
+   */
+  async isEnabled(tenantId: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .select('settings')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return false;
+    }
+
+    const settings = (data.settings ?? {}) as Record<string, any>;
+    // Tolerate both schemas:
+    //   modern: settings.modules.accounting.enabled (set by accounting/activate)
+    //   legacy: settings.accounting_module_enabled (flat boolean, set by
+    //   settings.service.ts:toggleAccountingModule for tenants created
+    //   before the modules object schema landed).
+    // settings.modules.accounting may also literally be a boolean true/false
+    // from resetSettings() initialization; treat true === enabled, object
+    // → read .enabled.
+    const mod = settings?.modules?.accounting;
+    if (mod === true) return true;
+    if (mod && typeof mod === 'object' && mod.enabled) return true;
+    if (settings?.accounting_module_enabled === true) return true;
+    return false;
+  }
+
+  /**
+   * Resolve all configured default-role -> account_id mappings for a tenant.
+   * Roles without a configured mapping are simply absent from the returned
+   * object — callers must handle missing values (typically by skipping the
+   * post and warning).
+   */
+  async getDefaultAccountIds(tenantId: string): Promise<AccountingDefaults> {
+    const { data, error } = await this.supabase
+      .from('accounting_default_accounts' as any)
+      .select('role, account_id')
+      .eq('tenant_id', tenantId);
+
+    if (error) {
+      throw error;
+    }
+
+    const out: AccountingDefaults = {};
+    for (const row of ((data as unknown) as { role: string; account_id: string }[]) ?? []) {
+      out[row.role as AccountingDefaultRole] = row.account_id;
+    }
+    return out;
+  }
+
+  /**
+   * Upsert a single role -> account mapping.
+   */
+  async setDefaultAccount(
+    tenantId: string,
+    role: AccountingDefaultRole,
+    accountId: string
+  ): Promise<void> {
+    // Validate account exists and belongs to the tenant
+    const account = await this.accountRepo.findById(tenantId, accountId);
+    if (!account) {
+      throw new AccountingError('Account not found', 'ACCOUNT_NOT_FOUND', 404);
+    }
+
+    const { error } = await this.supabase
+      .from('accounting_default_accounts' as any)
+      .upsert(
+        { tenant_id: tenantId, role, account_id: accountId },
+        { onConflict: 'tenant_id,role' }
+      );
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Internal: seed the default role mappings for a tenant after a chart of
+   * accounts has been imported. Idempotent — uses upsert. Skips roles whose
+   * mapped account_code wasn't created (e.g. tenant pruned the default
+   * chart).
+   */
+  private async seedDefaultAccountMappings(
+    tenantId: string,
+    accountMap: Map<string, string>
+  ): Promise<void> {
+    const rows: { tenant_id: string; role: string; account_id: string }[] = [];
+    for (const [role, code] of Object.entries(DEFAULT_ROLE_TO_CODE)) {
+      const accountId = accountMap.get(code);
+      if (accountId) {
+        rows.push({ tenant_id: tenantId, role, account_id: accountId });
+      }
+    }
+
+    if (rows.length === 0) {
+      return;
+    }
+
+    const { error } = await this.supabase
+      .from('accounting_default_accounts' as any)
+      .upsert(rows, { onConflict: 'tenant_id,role' });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  // ==================== Party Ledgers (Phase 4) ====================
+
+  /**
+   * Ensure the given party owns a dedicated ledger account under the
+   * tenant's Sundry Debtors (customers) or Sundry Creditors (suppliers).
+   *
+   * The "every party is a ledger" pattern is Tally's defining choice: the
+   * trial balance and balance sheet expand to show one line per party
+   * instead of a single AR/AP total.
+   *
+   * Idempotent — if the party already has `ledger_account_id`, returns it
+   * untouched. Returns null when accounting is disabled or the parent
+   * default account isn't mapped yet (in which case auto-posting falls
+   * back to the legacy default).
+   */
+  async ensurePartyLedger(
+    tenantId: string,
+    partyId: string,
+    partyType: 'customer' | 'supplier'
+  ): Promise<string | null> {
+    // Fast path: already linked.
+    const { data: party, error: pErr } = await this.supabase
+      .from('parties')
+      .select('id, name, type, is_active, ledger_account_id')
+      .eq('tenant_id', tenantId)
+      .eq('id', partyId)
+      .maybeSingle();
+    if (pErr) throw pErr;
+    if (!party) return null;
+    const partyRow = party as unknown as {
+      id: string;
+      name: string;
+      ledger_account_id: string | null;
+    };
+    if (partyRow.ledger_account_id) {
+      return partyRow.ledger_account_id;
+    }
+
+    if (!(await this.isEnabled(tenantId))) {
+      return null;
+    }
+
+    // Resolve the appropriate parent group account.
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    const parentId =
+      partyType === 'customer' ? defaults.accounts_receivable : defaults.accounts_payable;
+    if (!parentId) {
+      console.warn(
+        `[accounting] Cannot create party ledger for ${partyId}: ${
+          partyType === 'customer' ? 'accounts_receivable' : 'accounts_payable'
+        } default unmapped`
+      );
+      return null;
+    }
+
+    // Code: PTY-<first 8 of party uuid>. Deterministic so re-running the
+    // logic doesn't double-insert (UNIQUE on tenant_id+code is the guard).
+    const code = `PTY-${partyId.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+
+    // Try create; if conflict, look up the existing one.
+    let ledgerAccountId: string;
+    try {
+      const account = await this.accountRepo.create(tenantId, {
+        code,
+        name: partyRow.name,
+        type: partyType === 'customer' ? 'asset' : 'liability',
+        parent_id: parentId,
+      });
+      ledgerAccountId = account.id;
+    } catch (err) {
+      const existing = await this.accountRepo.findByCode(tenantId, code);
+      if (!existing) throw err;
+      ledgerAccountId = existing.id;
+    }
+
+    // Link the party.
+    const { error: uErr } = await this.supabase
+      .from('parties')
+      .update({ ledger_account_id: ledgerAccountId } as any)
+      .eq('tenant_id', tenantId)
+      .eq('id', partyId);
+    if (uErr) throw uErr;
+
+    // Promote the parent to a group account so future direct postings are
+    // rejected — only party-specific leaf ledgers should accept JEs.
+    await this.supabase
+      .from('accounts')
+      .update({ is_group: true } as any)
+      .eq('id', parentId)
+      .eq('is_group', false);
+
+    return ledgerAccountId;
+  }
+
+  /**
+   * Sync the linked ledger's name when a party is renamed. Tally renames
+   * the underlying ledger when the party is renamed.
+   */
+  async syncPartyLedgerName(
+    tenantId: string,
+    partyId: string,
+    newName: string
+  ): Promise<void> {
+    const { data: party, error } = await this.supabase
+      .from('parties')
+      .select('ledger_account_id')
+      .eq('tenant_id', tenantId)
+      .eq('id', partyId)
+      .maybeSingle();
+    if (error || !party) return;
+    const ledgerId = (party as unknown as { ledger_account_id: string | null }).ledger_account_id;
+    if (!ledgerId) return;
+    await this.accountRepo.update(tenantId, ledgerId, { name: newName });
+  }
+
+  /**
+   * Resolve the party's specific ledger ID, falling back to the
+   * tenant-wide default (accounts_receivable / accounts_payable) when the
+   * party hasn't been linked yet. Used by auto-posting flows.
+   */
+  async getPartyLedgerOrDefault(
+    tenantId: string,
+    partyId: string | null | undefined,
+    side: 'receivable' | 'payable'
+  ): Promise<string | null> {
+    if (partyId) {
+      const { data, error } = await this.supabase
+        .from('parties')
+        .select('ledger_account_id')
+        .eq('tenant_id', tenantId)
+        .eq('id', partyId)
+        .maybeSingle();
+      if (!error && data) {
+        const id = (data as unknown as { ledger_account_id: string | null }).ledger_account_id;
+        if (id) return id;
+      }
+    }
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    return (side === 'receivable' ? defaults.accounts_receivable : defaults.accounts_payable) ?? null;
+  }
+
+  // ==================== Reversal ====================
+
+  /**
+   * Create a reversing journal entry for the JE that originated from
+   * (sourceType, sourceId). Posted entries are immutable — to undo their
+   * effect we post a mirror entry with debits/credits swapped. Used by the
+   * invoice / payment / expense delete paths.
+   *
+   * Returns null if no original entry exists (e.g. tenant didn't have
+   * accounting enabled when the source was created).
+   */
+  async reverseEntry(
+    tenantId: string,
+    userId: string | null,
+    sourceType: string,
+    sourceId: string,
+    reason: string
+  ): Promise<JournalEntry | null> {
+    const original = await this.journalRepo.findBySource(
+      tenantId,
+      sourceType,
+      sourceId
+    );
+    if (!original || !original.lines || original.lines.length === 0) {
+      return null;
+    }
+
+    // Don't double-reverse — if a reversal already exists, no-op.
+    const existingReversal = await this.journalRepo.findBySource(
+      tenantId,
+      `${sourceType}-reversal`,
+      original.id
+    );
+    if (existingReversal) {
+      return existingReversal;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const reverseLines: CreateJournalLineInput[] = original.lines.map((line) => ({
+      account_id: line.account_id,
+      debit: line.credit,
+      credit: line.debit,
+      description: line.description,
+    }));
+
+    const reversal = await this.journalRepo.createWithLines(
+      tenantId,
+      userId,
+      {
+        entry_date: today,
+        description: `Reversal of ${original.entry_number}: ${reason}`,
+        source_type: `${sourceType}-reversal`,
+        source_id: original.id,
+        // Phase 2: stamp the reversal voucher type so it gets a REV-
+        // prefix and shows distinctly in the day book.
+        voucher_type: 'reversal',
+        narration: `Reversal of ${original.entry_number}: ${reason}`,
+      },
+      reverseLines
+    );
+
+    return this.journalRepo.post(tenantId, reversal.id);
   }
 
   // ==================== Chart of Accounts ====================
@@ -255,6 +652,9 @@ export class AccountingService {
         entry_date: data.entry_date,
         description: data.description,
         source_type: 'manual',
+        // Phase 2: manual entries default to 'journal' voucher type (F7).
+        voucher_type: 'journal',
+        narration: data.description,
       },
       data.lines
     );
@@ -685,10 +1085,19 @@ export class AccountingService {
         createdAccounts.push(account);
         accountMap.set(account.code, account.id);
       } catch (error) {
-        // Skip if account already exists
-        console.warn(`Skipping account ${accountData.code}: ${error}`);
+        // Account may already exist from a prior activation. Look it up so
+        // the role-mapping seed below can still populate.
+        const existing = await this.accountRepo.findByCode(tenantId, accountData.code);
+        if (existing) {
+          accountMap.set(existing.code, existing.id);
+        } else {
+          console.warn(`Skipping account ${accountData.code}: ${error}`);
+        }
       }
     }
+
+    // Seed the role -> account mapping so auto-posting flows have defaults.
+    await this.seedDefaultAccountMappings(tenantId, accountMap);
 
     return createdAccounts;
   }
@@ -696,194 +1105,302 @@ export class AccountingService {
   // ==================== Auto-Generation from Stock Transactions ====================
 
   /**
-   * Generate journal entry from sales invoice
+   * If a posted journal entry already exists for this (source_type, source_id),
+   * fetch and return it instead of erroring on the partial unique index from
+   * migration 021. Lets callers retry safely.
+   */
+  private async findExistingPostedEntry(
+    tenantId: string,
+    sourceType: string,
+    sourceId: string
+  ): Promise<JournalEntry | null> {
+    const existing = await this.journalRepo.findBySource(tenantId, sourceType, sourceId);
+    return existing && existing.is_posted ? existing : null;
+  }
+
+  /**
+   * Phase 2: derive a Tally voucher_type from the auto-posting source_type.
+   * Returns 'journal' as a safe fallback for unknown source_types.
+   */
+  private sourceTypeToVoucherType(sourceType: string): string {
+    if (sourceType.endsWith('-reversal')) return 'reversal';
+    switch (sourceType) {
+      case 'sale':
+        return 'sales';
+      case 'purchase':
+        return 'purchase';
+      case 'payment':
+        return 'payment';
+      case 'expense':
+        return 'payment';
+      case 'cogs':
+        return 'cogs';
+      case 'manual':
+        return 'journal';
+      default:
+        return 'journal';
+    }
+  }
+
+  /**
+   * Recognise Postgres unique-violation (23505) raised by the
+   * uq_journal_entries_source_posted partial index — fall back to fetching
+   * the entry that already won the race.
+   */
+  private isUniqueViolation(err: unknown): boolean {
+    return (
+      typeof err === 'object' &&
+      err !== null &&
+      'code' in err &&
+      (err as { code?: string }).code === '23505'
+    );
+  }
+
+  /**
+   * Create + post a journal entry derived from a sales invoice.
+   *
+   *   Dr  Cash / Accounts Receivable    (total)
+   *   Cr  Sales Revenue                 (total - tax_amount)
+   *   Cr  Sales Tax Payable             (tax_amount)              [if tax > 0]
+   *
+   * Note: previously the credit side used `subtotal` which left the entry
+   * unbalanced whenever a discount or rounding was applied. Using
+   * `total - tax_amount` is always balanced against the `total` debit.
+   *
+   * Returns null if accounting is not enabled or required defaults are
+   * unmapped. Idempotent: a second call for the same invoice returns the
+   * existing entry.
    */
   async generateJournalEntryFromSale(
     tenantId: string,
-    userId: string,
+    userId: string | null,
     invoiceId: string,
     invoice: {
       total: number;
       subtotal: number;
       tax_amount: number;
-      party_id?: string;
+      party_id?: string | null;
     },
-    defaultAccounts: {
-      cash_account_id?: string;
-      accounts_receivable_id?: string;
-      sales_revenue_id?: string;
-      sales_tax_payable_id?: string;
-    }
+    entryDate?: string
   ): Promise<JournalEntry | null> {
-    // Determine debit account (Cash or Accounts Receivable)
-    const debitAccountId = invoice.party_id
-      ? defaultAccounts.accounts_receivable_id
-      : defaultAccounts.cash_account_id;
+    const existing = await this.findExistingPostedEntry(tenantId, 'sale', invoiceId);
+    if (existing) return existing;
 
-    if (!debitAccountId || !defaultAccounts.sales_revenue_id) {
-      console.warn('Default accounts not configured for sales');
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    // Phase 4: prefer the party's specific ledger (under Sundry Debtors)
+    // over the generic accounts_receivable default.
+    const debitAccountId = invoice.party_id
+      ? await this.getPartyLedgerOrDefault(tenantId, invoice.party_id, 'receivable')
+      : defaults.cash_in_hand;
+
+    if (!debitAccountId || !defaults.sales_revenue) {
+      console.warn(
+        `[accounting] Skipping sale JE for invoice ${invoiceId}: missing default accounts (cash_in_hand/accounts_receivable, sales_revenue)`
+      );
       return null;
     }
 
-    const lines = [
-      // Debit: Cash or Accounts Receivable
+    const taxAmount = invoice.tax_amount || 0;
+    const revenueAmount = invoice.total - taxAmount;
+
+    const lines: CreateJournalLineInput[] = [
       {
         account_id: debitAccountId,
         debit: invoice.total,
         credit: 0,
-        description: 'Sale transaction',
+        description: 'Sale',
       },
-      // Credit: Sales Revenue
       {
-        account_id: defaultAccounts.sales_revenue_id,
+        account_id: defaults.sales_revenue,
         debit: 0,
-        credit: invoice.subtotal,
+        credit: revenueAmount,
         description: 'Sales revenue',
       },
     ];
 
-    // Add sales tax if applicable
-    if (invoice.tax_amount > 0 && defaultAccounts.sales_tax_payable_id) {
-      lines.push({
-        account_id: defaultAccounts.sales_tax_payable_id,
-        debit: 0,
-        credit: invoice.tax_amount,
-        description: 'Sales tax',
-      });
+    if (taxAmount > 0) {
+      if (!defaults.sales_tax_payable) {
+        console.warn(
+          `[accounting] Sale invoice ${invoiceId} has tax but sales_tax_payable role is unmapped. Bundling tax into revenue.`
+        );
+        lines[1].credit = invoice.total;
+      } else {
+        lines.push({
+          account_id: defaults.sales_tax_payable,
+          debit: 0,
+          credit: taxAmount,
+          description: 'Sales tax',
+        });
+      }
     }
 
-    return this.journalRepo.createWithLines(
-      tenantId,
-      userId,
-      {
-        entry_date: new Date().toISOString().split('T')[0],
-        description: `Sale invoice`,
-        source_type: 'sale',
-        source_id: invoiceId,
-      },
-      lines
-    );
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate ?? new Date().toISOString().split('T')[0],
+      description: `Sale invoice`,
+      source_type: 'sale',
+      source_id: invoiceId,
+      lines,
+    });
   }
 
   /**
-   * Generate journal entry from purchase invoice
+   * Create + post a journal entry derived from a purchase invoice.
+   *
+   *   Dr  Inventory                     (total)
+   *   Cr  Cash / Accounts Payable       (total)
+   *
+   * Tax stays bundled with inventory in v1 — per-jurisdiction tax split is
+   * deferred (see plan Phase 5). Idempotent.
    */
   async generateJournalEntryFromPurchase(
     tenantId: string,
-    userId: string,
+    userId: string | null,
     invoiceId: string,
     invoice: {
       total: number;
       subtotal: number;
       tax_amount: number;
-      party_id?: string;
+      party_id?: string | null;
     },
-    defaultAccounts: {
-      cash_account_id?: string;
-      accounts_payable_id?: string;
-      inventory_asset_id?: string;
-      cogs_expense_id?: string;
-    }
+    entryDate?: string
   ): Promise<JournalEntry | null> {
-    // Determine credit account (Cash or Accounts Payable)
-    const creditAccountId = invoice.party_id
-      ? defaultAccounts.accounts_payable_id
-      : defaultAccounts.cash_account_id;
+    const existing = await this.findExistingPostedEntry(tenantId, 'purchase', invoiceId);
+    if (existing) return existing;
 
-    if (!creditAccountId || !defaultAccounts.inventory_asset_id) {
-      console.warn('Default accounts not configured for purchases');
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    // Phase 4: prefer the supplier's specific ledger (under Sundry
+    // Creditors) over the generic accounts_payable default.
+    const creditAccountId = invoice.party_id
+      ? await this.getPartyLedgerOrDefault(tenantId, invoice.party_id, 'payable')
+      : defaults.cash_in_hand;
+
+    if (!creditAccountId || !defaults.inventory_asset) {
+      console.warn(
+        `[accounting] Skipping purchase JE for invoice ${invoiceId}: missing default accounts (accounts_payable/cash_in_hand, inventory_asset)`
+      );
       return null;
     }
 
-    const lines = [
-      // Debit: Inventory
+    const lines: CreateJournalLineInput[] = [
       {
-        account_id: defaultAccounts.inventory_asset_id,
+        account_id: defaults.inventory_asset,
         debit: invoice.total,
         credit: 0,
         description: 'Inventory purchase',
       },
-      // Credit: Cash or Accounts Payable
       {
         account_id: creditAccountId,
         debit: 0,
         credit: invoice.total,
-        description: 'Purchase payment',
+        description: 'Purchase',
       },
     ];
 
-    return this.journalRepo.createWithLines(
-      tenantId,
-      userId,
-      {
-        entry_date: new Date().toISOString().split('T')[0],
-        description: `Purchase invoice`,
-        source_type: 'purchase',
-        source_id: invoiceId,
-      },
-      lines
-    );
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate ?? new Date().toISOString().split('T')[0],
+      description: `Purchase invoice`,
+      source_type: 'purchase',
+      source_id: invoiceId,
+      lines,
+    });
   }
 
   /**
-   * Generate journal entry from payment
+   * Create + post a journal entry derived from a payment.
+   *
+   * Received from customer:
+   *   Dr  Cash
+   *   Cr  Accounts Receivable
+   *
+   * Made to supplier:
+   *   Dr  Accounts Payable
+   *   Cr  Cash
+   *
+   * Idempotent.
    */
   async generateJournalEntryFromPayment(
     tenantId: string,
-    userId: string,
+    userId: string | null,
     paymentId: string,
     payment: {
       amount: number;
       type: 'received' | 'made';
+      /**
+       * Party that the payment belongs to. Phase 4: when provided, the
+       * AR/AP side of the JE lands on the party's specific ledger
+       * (Sundry Debtors/Creditors) instead of the tenant-wide default.
+       */
+      party_id?: string | null;
+      /**
+       * Bank-account ledger to use instead of the default cash_in_hand.
+       * Plan Phase 3: payments routed through a bank_account land on that
+       * bank's ledger rather than generic cash.
+       */
+      cash_account_id_override?: string | null;
     },
-    defaultAccounts: {
-      cash_account_id?: string;
-      accounts_receivable_id?: string;
-      accounts_payable_id?: string;
-    }
+    entryDate?: string
   ): Promise<JournalEntry | null> {
-    if (!defaultAccounts.cash_account_id) {
-      console.warn('Default cash account not configured');
+    const existing = await this.findExistingPostedEntry(tenantId, 'payment', paymentId);
+    if (existing) return existing;
+
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    const cashAccountId = payment.cash_account_id_override ?? defaults.cash_in_hand;
+    if (!cashAccountId) {
+      console.warn(
+        `[accounting] Skipping payment JE for ${paymentId}: cash_in_hand role unmapped`
+      );
       return null;
     }
 
-    let lines;
-
+    let lines: CreateJournalLineInput[];
     if (payment.type === 'received') {
-      // Payment received from customer
-      if (!defaultAccounts.accounts_receivable_id) return null;
-
+      // Phase 4: prefer party-specific ledger over generic AR default.
+      const arAccountId = await this.getPartyLedgerOrDefault(
+        tenantId,
+        payment.party_id ?? null,
+        'receivable'
+      );
+      if (!arAccountId) {
+        console.warn(
+          `[accounting] Skipping payment JE for ${paymentId}: accounts_receivable role unmapped and no party ledger`
+        );
+        return null;
+      }
       lines = [
-        // Debit: Cash
         {
-          account_id: defaultAccounts.cash_account_id,
+          account_id: cashAccountId,
           debit: payment.amount,
           credit: 0,
           description: 'Payment received',
         },
-        // Credit: Accounts Receivable
         {
-          account_id: defaultAccounts.accounts_receivable_id,
+          account_id: arAccountId,
           debit: 0,
           credit: payment.amount,
           description: 'Customer payment',
         },
       ];
     } else {
-      // Payment made to supplier
-      if (!defaultAccounts.accounts_payable_id) return null;
-
+      const apAccountId = await this.getPartyLedgerOrDefault(
+        tenantId,
+        payment.party_id ?? null,
+        'payable'
+      );
+      if (!apAccountId) {
+        console.warn(
+          `[accounting] Skipping payment JE for ${paymentId}: accounts_payable role unmapped and no party ledger`
+        );
+        return null;
+      }
       lines = [
-        // Debit: Accounts Payable
         {
-          account_id: defaultAccounts.accounts_payable_id,
+          account_id: apAccountId,
           debit: payment.amount,
           credit: 0,
           description: 'Supplier payment',
         },
-        // Credit: Cash
         {
-          account_id: defaultAccounts.cash_account_id,
+          account_id: cashAccountId,
           debit: 0,
           credit: payment.amount,
           description: 'Payment made',
@@ -891,67 +1408,479 @@ export class AccountingService {
       ];
     }
 
-    return this.journalRepo.createWithLines(
-      tenantId,
-      userId,
-      {
-        entry_date: new Date().toISOString().split('T')[0],
-        description: `Payment ${payment.type}`,
-        source_type: 'payment',
-        source_id: paymentId,
-      },
-      lines
-    );
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate ?? new Date().toISOString().split('T')[0],
+      description: `Payment ${payment.type}`,
+      source_type: 'payment',
+      source_id: paymentId,
+      // Phase 2: received-from-customer → receipt voucher (Tally F6);
+      // made-to-supplier → payment voucher (F5).
+      voucher_type: payment.type === 'received' ? 'receipt' : 'payment',
+      lines,
+    });
   }
 
   /**
-   * Generate journal entry from expense
+   * Create + post a journal entry derived from an expense.
+   *
+   *   Dr  Expense (general or category-mapped)
+   *   Cr  Cash
+   *
+   * Idempotent.
    */
   async generateJournalEntryFromExpense(
     tenantId: string,
-    userId: string,
+    userId: string | null,
     expenseId: string,
     expense: {
       amount: number;
       category_name: string;
     },
-    defaultAccounts: {
-      cash_account_id?: string;
-      expense_account_id?: string;
-    }
+    entryDate?: string
   ): Promise<JournalEntry | null> {
-    if (!defaultAccounts.cash_account_id || !defaultAccounts.expense_account_id) {
-      console.warn('Default accounts not configured for expenses');
+    const existing = await this.findExistingPostedEntry(tenantId, 'expense', expenseId);
+    if (existing) return existing;
+
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    const expenseAccountId = defaults.general_expense;
+
+    if (!defaults.cash_in_hand || !expenseAccountId) {
+      console.warn(
+        `[accounting] Skipping expense JE for ${expenseId}: missing default accounts (cash_in_hand, general_expense)`
+      );
       return null;
     }
 
-    const lines = [
-      // Debit: Expense
+    const lines: CreateJournalLineInput[] = [
       {
-        account_id: defaultAccounts.expense_account_id,
+        account_id: expenseAccountId,
         debit: expense.amount,
         credit: 0,
         description: expense.category_name,
       },
-      // Credit: Cash
       {
-        account_id: defaultAccounts.cash_account_id,
+        account_id: defaults.cash_in_hand,
         debit: 0,
         credit: expense.amount,
         description: 'Expense payment',
       },
     ];
 
-    return this.journalRepo.createWithLines(
-      tenantId,
-      userId,
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate ?? new Date().toISOString().split('T')[0],
+      description: `Expense: ${expense.category_name}`,
+      source_type: 'expense',
+      source_id: expenseId,
+      lines,
+    });
+  }
+
+  /**
+   * Shared helper: create a journal entry, post it, handle the
+   * idempotency unique-violation cleanly.
+   *
+   * Phase 2: stamps voucher_type so each auto-posted entry gets the right
+   * Tally prefix (SAL-, PUR-, RCT-, PAY-, COGS-, REV-) on entry_number.
+   */
+  private async createAndPost(
+    tenantId: string,
+    userId: string | null,
+    args: {
+      entry_date: string;
+      description: string;
+      source_type: string;
+      source_id: string;
+      voucher_type?: string;
+      lines: CreateJournalLineInput[];
+    }
+  ): Promise<JournalEntry | null> {
+    // Map source_type → voucher_type when caller didn't supply one.
+    const voucherType =
+      args.voucher_type ?? this.sourceTypeToVoucherType(args.source_type);
+    try {
+      const entry = await this.journalRepo.createWithLines(
+        tenantId,
+        userId,
+        {
+          entry_date: args.entry_date,
+          description: args.description,
+          source_type: args.source_type,
+          source_id: args.source_id,
+          voucher_type: voucherType,
+          narration: args.description,
+        },
+        args.lines
+      );
+      return await this.journalRepo.post(tenantId, entry.id);
+    } catch (err) {
+      if (this.isUniqueViolation(err)) {
+        const existing = await this.journalRepo.findBySource(
+          tenantId,
+          args.source_type,
+          args.source_id
+        );
+        if (existing) return existing;
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Phase 5: Post the COGS leg for a finalized sale.
+   *
+   *   Dr  Cost of Goods Sold     (cogsAmount)
+   *   Cr  Inventory Asset        (cogsAmount)
+   *
+   * Distinct from the revenue JE (source_type='sale') — this one uses
+   * source_type='cogs' and the same source_id so reversal on delete can
+   * find it cleanly. Idempotent via the partial unique index.
+   */
+  async generateJournalEntryFromCogs(
+    tenantId: string,
+    userId: string | null,
+    invoiceId: string,
+    cogsAmount: number,
+    entryDate?: string
+  ): Promise<JournalEntry | null> {
+    if (cogsAmount <= 0.01) return null;
+
+    const existing = await this.findExistingPostedEntry(tenantId, 'cogs', invoiceId);
+    if (existing) return existing;
+
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    if (!defaults.cogs || !defaults.inventory_asset) {
+      console.warn(
+        `[accounting] Skipping COGS JE for invoice ${invoiceId}: cogs or inventory_asset role unmapped`
+      );
+      return null;
+    }
+
+    const lines: CreateJournalLineInput[] = [
       {
-        entry_date: new Date().toISOString().split('T')[0],
-        description: `Expense: ${expense.category_name}`,
-        source_type: 'expense',
-        source_id: expenseId,
+        account_id: defaults.cogs,
+        debit: cogsAmount,
+        credit: 0,
+        description: 'Cost of goods sold',
       },
-      lines
+      {
+        account_id: defaults.inventory_asset,
+        debit: 0,
+        credit: cogsAmount,
+        description: 'Inventory consumed',
+      },
+    ];
+
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate ?? new Date().toISOString().split('T')[0],
+      description: 'COGS for sale',
+      source_type: 'cogs',
+      source_id: invoiceId,
+      lines,
+    });
+  }
+
+  /**
+   * Phase 5: Convenience predicate. Per-tenant feature flag stored at
+   * tenants.settings.modules.accounting.cogs_enabled (boolean). When off
+   * (default), COGS is skipped entirely and the system behaves as
+   * pre-Phase-5.
+   */
+  async isCogsEnabled(tenantId: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .select('settings')
+      .eq('id', tenantId)
+      .maybeSingle();
+    if (error || !data) return false;
+    const settings = (data.settings ?? {}) as Record<string, any>;
+    return Boolean(settings?.modules?.accounting?.cogs_enabled);
+  }
+
+  /**
+   * Flip the COGS feature flag. Cutover semantics: enabling at time T
+   * means sales finalized after T post COGS against any layers that
+   * exist at that point. Pre-T sales are NOT retroactively COGS'd —
+   * historical revenue and inventory remain as they were posted.
+   */
+  async setCogsEnabled(tenantId: string, enabled: boolean): Promise<void> {
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .select('settings')
+      .eq('id', tenantId)
+      .maybeSingle();
+    if (error) throw error;
+
+    const settings = ((data?.settings as Record<string, any>) ?? {});
+    settings.modules = settings.modules ?? {};
+    // Coerce legacy boolean shape to object before writing cogs_enabled
+    // (see isEnabled() for the dual-schema notes).
+    if (typeof settings.modules.accounting !== 'object' || settings.modules.accounting === null) {
+      const wasEnabled = settings.modules.accounting === true;
+      settings.modules.accounting = { enabled: wasEnabled };
+    }
+    settings.modules.accounting.cogs_enabled = enabled;
+
+    const { error: uErr } = await this.supabase
+      .from('tenants')
+      .update({ settings } as any)
+      .eq('id', tenantId);
+    if (uErr) throw uErr;
+  }
+
+  // ==================== Day Book (Phase 6) ====================
+
+  /**
+   * Day Book: every posted journal entry in a date range, with per-entry
+   * debit/credit totals. This is the centre-piece daily view in Tally —
+   * the accountant reviews what happened across all voucher types in
+   * chronological order.
+   */
+  async generateDayBook(
+    tenantId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<DayBookReport> {
+    const { data, error } = await this.supabase
+      .from('journal_entries')
+      .select('id, entry_number, entry_date, description, source_type, source_id, is_posted, journal_lines(debit, credit)')
+      .eq('tenant_id', tenantId)
+      .eq('is_posted', true)
+      .gte('entry_date', startDate)
+      .lte('entry_date', endDate)
+      .order('entry_date', { ascending: true })
+      .order('entry_number', { ascending: true });
+
+    if (error) throw error;
+
+    type Row = {
+      id: string;
+      entry_number: string;
+      entry_date: string;
+      description: string | null;
+      source_type: string | null;
+      source_id: string | null;
+      is_posted: boolean | null;
+      journal_lines: { debit: number | null; credit: number | null }[];
+    };
+
+    const entries: DayBookEntry[] = ((data ?? []) as unknown as Row[]).map((row) => {
+      const debit = (row.journal_lines ?? []).reduce(
+        (s, l) => s + Number(l.debit ?? 0),
+        0
+      );
+      const credit = (row.journal_lines ?? []).reduce(
+        (s, l) => s + Number(l.credit ?? 0),
+        0
+      );
+      return {
+        entry_id: row.id,
+        entry_number: row.entry_number,
+        entry_date: row.entry_date,
+        description: row.description,
+        source_type: row.source_type,
+        source_id: row.source_id,
+        total_debit: debit,
+        total_credit: credit,
+        is_posted: row.is_posted ?? false,
+      };
+    });
+
+    const totalDebit = entries.reduce((s, e) => s + e.total_debit, 0);
+    const totalCredit = entries.reduce((s, e) => s + e.total_credit, 0);
+
+    return {
+      start_date: startDate,
+      end_date: endDate,
+      entries,
+      total_debit: totalDebit,
+      total_credit: totalCredit,
+      count: entries.length,
+    };
+  }
+
+  // ==================== Stock Summary (Phase 5) ====================
+
+  /**
+   * Phase 5: Tally Stock Summary. For each item with remaining FIFO
+   * layers, sums qty_remaining and qty_remaining * unit_cost to give a
+   * current valuation. Items with zero remaining qty (fully consumed)
+   * are omitted.
+   */
+  async generateStockSummary(
+    tenantId: string
+  ): Promise<{
+    items: Array<{
+      item_id: string;
+      item_name: string;
+      sku: string | null;
+      total_qty: number;
+      total_value: number;
+      avg_unit_cost: number;
+    }>;
+    grand_total_value: number;
+  }> {
+    const { data: layers, error } = await this.supabase
+      .from('stock_valuation_layers' as any)
+      .select('item_id, qty_remaining, unit_cost')
+      .eq('tenant_id', tenantId)
+      .gt('qty_remaining', 0);
+    if (error) throw error;
+
+    type LayerRow = { item_id: string; qty_remaining: number; unit_cost: number };
+    const byItem = new Map<string, { qty: number; value: number }>();
+    for (const l of ((layers as unknown) as LayerRow[]) ?? []) {
+      const cur = byItem.get(l.item_id) ?? { qty: 0, value: 0 };
+      cur.qty += Number(l.qty_remaining);
+      cur.value += Number(l.qty_remaining) * Number(l.unit_cost);
+      byItem.set(l.item_id, cur);
+    }
+
+    if (byItem.size === 0) {
+      return { items: [], grand_total_value: 0 };
+    }
+
+    const itemIds = Array.from(byItem.keys());
+    const { data: items, error: iErr } = await this.supabase
+      .from('items')
+      .select('id, name, sku')
+      .in('id', itemIds);
+    if (iErr) throw iErr;
+
+    const itemMap = new Map((items ?? []).map((i) => [i.id, i]));
+
+    let grand = 0;
+    const rows = Array.from(byItem.entries())
+      .map(([itemId, agg]) => {
+        const item = itemMap.get(itemId);
+        const totalValue = Math.round(agg.value * 100) / 100;
+        grand += totalValue;
+        return {
+          item_id: itemId,
+          item_name: item?.name ?? 'Unknown',
+          sku: (item?.sku as string | null) ?? null,
+          total_qty: agg.qty,
+          total_value: totalValue,
+          avg_unit_cost: agg.qty > 0 ? totalValue / agg.qty : 0,
+        };
+      })
+      .sort((a, b) => b.total_value - a.total_value);
+
+    return { items: rows, grand_total_value: grand };
+  }
+
+  // ==================== Aging (Phase 6) ====================
+
+  /**
+   * Aging report: outstanding receivables (customers) or payables
+   * (suppliers) bucketed by age. Drives the Tally outstanding statements
+   * accountants check daily for follow-up.
+   *
+   * Outstanding per invoice = invoice.total − Σ(payment_allocations).
+   * Age = asOfDate − invoice.finalized_at (falls back to created_at).
+   *
+   * @param tenantId
+   * @param asOfDate   Cutoff for both invoice eligibility and allocation totals.
+   * @param partyType  'customer' for receivables, 'supplier' for payables.
+   * @param buckets    Optional override. Defaults to 0-30 / 31-60 / 61-90 / 90+.
+   */
+  async generateAgingReport(
+    tenantId: string,
+    asOfDate: string,
+    partyType: 'customer' | 'supplier',
+    buckets?: { label: string; from: number; to: number | null }[]
+  ): Promise<AgingReport> {
+    const bucketDefs = buckets ?? DEFAULT_AGING_BUCKETS;
+
+    // Pull all finalized invoices for parties of this type, up to as-of date.
+    const { data: invoices, error: iErr } = await this.supabase
+      .from('invoices')
+      .select('id, party_id, total, finalized_at, created_at, returned_from_id, type')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'final')
+      .is('returned_from_id', null)
+      .lte('finalized_at', asOfDate + 'T23:59:59');
+    if (iErr) throw iErr;
+
+    const eligibleInvoices = (invoices ?? []).filter((i) =>
+      partyType === 'customer' ? i.type === 'sale' : i.type === 'purchase'
     );
+
+    const invoiceIds = eligibleInvoices.map((i) => i.id);
+    if (invoiceIds.length === 0) {
+      return {
+        as_of_date: asOfDate,
+        bucket_definitions: bucketDefs.map((d) => ({ label: d.label, from: d.from, to: d.to })),
+        parties: [],
+        totals: { total_outstanding: 0, buckets: emptyBuckets(bucketDefs) },
+      };
+    }
+
+    // Pull all matching parties so we can attach names/types
+    const partyIds = Array.from(new Set(eligibleInvoices.map((i) => i.party_id).filter((x): x is string => !!x)));
+    const { data: parties, error: pErr } = await this.supabase
+      .from('parties')
+      .select('id, name, type')
+      .in('id', partyIds);
+    if (pErr) throw pErr;
+    const partyMap = new Map((parties ?? []).map((p) => [p.id, p]));
+
+    // Sum allocations up to asOfDate per invoice
+    const { data: allocations, error: aErr } = await this.supabase
+      .from('payment_allocations' as any)
+      .select('invoice_id, amount, allocated_at')
+      .in('invoice_id', invoiceIds)
+      .lte('allocated_at', asOfDate + 'T23:59:59');
+    if (aErr) throw aErr;
+
+    const allocMap = new Map<string, number>();
+    for (const row of ((allocations as unknown) as { invoice_id: string; amount: number }[]) ?? []) {
+      allocMap.set(row.invoice_id, (allocMap.get(row.invoice_id) ?? 0) + Number(row.amount));
+    }
+
+    // Aggregate per party
+    const partyRows = new Map<string, AgingPartyRow>();
+    const asOf = new Date(asOfDate);
+    const totals: AgingBucket[] = emptyBuckets(bucketDefs);
+    let grandTotal = 0;
+
+    for (const inv of eligibleInvoices) {
+      if (!inv.party_id) continue;
+      const allocated = allocMap.get(inv.id) ?? 0;
+      const outstanding = Number(inv.total ?? 0) - allocated;
+      if (outstanding <= 0.01) continue;
+
+      const rawDate = inv.finalized_at ?? inv.created_at;
+      const invDate = rawDate ? new Date(rawDate) : asOf;
+      const daysOld = Math.max(0, Math.floor((asOf.getTime() - invDate.getTime()) / 86_400_000));
+      const bucketIdx = bucketIndexFor(daysOld, bucketDefs);
+
+      let row = partyRows.get(inv.party_id);
+      if (!row) {
+        const party = partyMap.get(inv.party_id);
+        row = {
+          party_id: inv.party_id,
+          party_name: party?.name ?? 'Unknown',
+          party_type: (party?.type as 'customer' | 'supplier') ?? partyType,
+          total_outstanding: 0,
+          buckets: emptyBuckets(bucketDefs),
+        };
+        partyRows.set(inv.party_id, row);
+      }
+      row.buckets[bucketIdx].amount += outstanding;
+      row.total_outstanding += outstanding;
+      totals[bucketIdx].amount += outstanding;
+      grandTotal += outstanding;
+    }
+
+    const partyList = Array.from(partyRows.values()).sort(
+      (a, b) => b.total_outstanding - a.total_outstanding
+    );
+
+    return {
+      as_of_date: asOfDate,
+      bucket_definitions: bucketDefs.map((d) => ({ label: d.label, from: d.from, to: d.to })),
+      parties: partyList,
+      totals: { total_outstanding: grandTotal, buckets: totals },
+    };
   }
 }

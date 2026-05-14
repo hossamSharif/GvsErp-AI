@@ -14,3 +14,5 @@ export * from './accounting';
 export * from './hr';
 export * from './settings';
 export * from './expenses';
+export * from './banks';
+export * from './cost-centers';

@@ -152,6 +152,19 @@ export const createPaymentSchema = z.object({
     .nullable()
     .optional(),
   invoiceId: uuidSchema.nullable().optional(),
+  // Phase 3: bank routing + bill-wise allocations.
+  bankAccountId: uuidSchema.nullable().optional(),
+  allocations: z
+    .array(
+      z.object({
+        invoice_id: uuidSchema,
+        amount: z.coerce
+          .number()
+          .positive('Allocation amount must be greater than 0')
+          .multipleOf(0.01, 'Allocation amount can have at most 2 decimal places'),
+      })
+    )
+    .optional(),
   notes: z.string()
     .max(500, 'Notes must be 500 characters or less')
     .nullable()

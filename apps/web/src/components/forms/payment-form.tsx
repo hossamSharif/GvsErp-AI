@@ -3,16 +3,18 @@
 /**
  * Payment Form Component
  *
- * Form for recording payments with:
- * - Party selection
- * - Payment details (amount, method, reference)
- * - Optional invoice linking
+ * Records a payment with:
+ *  - Party selection (customer for "received", supplier for "made")
+ *  - Bank/cash account routing (Phase 3 — replaces free-text payment_method)
+ *  - Bill-wise allocation: split this payment across specific outstanding
+ *    invoices, with the unallocated portion left as an advance
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import {
   Form,
   FormControl,
@@ -39,6 +41,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type {
   Payment,
   PaymentType,
@@ -56,6 +66,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Save, Loader2, DollarSign } from 'lucide-react';
+import { useBanks } from '@/hooks/use-banks';
+import { usePaymentOutstandingInvoices } from '@/hooks/use-payments';
+
+const SENTINEL_CASH = '__cash__';
 
 // =============================================================================
 // FORM SCHEMA
@@ -67,26 +81,13 @@ const paymentFormSchema = z.object({
   amount: z.coerce.number().positive('Amount must be greater than 0'),
   currency: z.string().length(3).default('USD'),
   exchangeRate: z.coerce.number().positive().default(1),
-  paymentMethod: z.string().max(50).nullable().optional().or(z.literal('')),
+  bankAccountId: z.string().uuid().nullable().optional().or(z.literal('')),
   reference: z.string().max(100).nullable().optional().or(z.literal('')),
-  invoiceId: z.string().uuid().nullable().optional().or(z.literal('')),
   notes: z.string().max(500).nullable().optional().or(z.literal('')),
   paymentDate: z.string().optional(),
 });
 
 type PaymentFormData = z.infer<typeof paymentFormSchema>;
-
-// =============================================================================
-// CONSTANTS
-// =============================================================================
-
-const PAYMENT_METHODS = [
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'check', label: 'Check' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'other', label: 'Other' },
-];
 
 const CURRENCIES = [
   { value: 'USD', label: 'US Dollar ($)' },
@@ -97,30 +98,15 @@ const CURRENCIES = [
   { value: 'AED', label: 'UAE Dirham (د.إ)' },
 ];
 
-// =============================================================================
-// PROPS
-// =============================================================================
-
 interface PaymentFormProps {
-  /** Payment type - received or made */
   paymentType: PaymentType;
-  /** Available parties (filtered by type) */
   parties?: Party[];
-  /** Pre-selected party ID */
   selectedPartyId?: string;
-  /** Existing payment data for editing */
   payment?: Payment;
-  /** Submit handler */
   onSubmit: (data: CreatePaymentInput) => Promise<void>;
-  /** Cancel handler */
   onCancel?: () => void;
-  /** Loading state */
   isLoading?: boolean;
 }
-
-// =============================================================================
-// COMPONENT
-// =============================================================================
 
 export function PaymentForm({
   paymentType,
@@ -131,7 +117,9 @@ export function PaymentForm({
   onCancel,
   isLoading = false,
 }: PaymentFormProps) {
-  // Form setup
+  const tForm = useTranslations('payments.form');
+  const tAlloc = useTranslations('payments.form.allocations');
+
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
@@ -140,15 +128,36 @@ export function PaymentForm({
       amount: 0,
       currency: 'USD',
       exchangeRate: 1,
-      paymentMethod: '',
+      bankAccountId: '',
       reference: '',
-      invoiceId: '',
       notes: '',
       paymentDate: new Date().toISOString().split('T')[0],
     },
   });
 
-  // Populate form with existing data
+  const watchedPartyId = form.watch('partyId');
+  const watchedAmount = Number(form.watch('amount') || 0);
+
+  // Allocation state: keyed by invoice_id. Stored outside react-hook-form
+  // because the rows are driven by a server-fetched list, not a static field
+  // set.
+  const [allocations, setAllocations] = useState<Record<string, number>>({});
+
+  // Banks for the cash/bank dropdown.
+  const { data: banks = [], isLoading: banksLoading } = useBanks();
+
+  // Outstanding invoices for the currently-selected party. Only loaded when
+  // the user is recording against an existing party — bill-wise picker is
+  // hidden otherwise.
+  const { data: outstandingInvoices = [], isLoading: outstandingLoading } =
+    usePaymentOutstandingInvoices(watchedPartyId || undefined);
+
+  // Reset allocations when the party changes so we don't carry stale picks.
+  useEffect(() => {
+    setAllocations({});
+  }, [watchedPartyId]);
+
+  // Populate from existing payment (edit flow).
   useEffect(() => {
     if (payment) {
       form.reset({
@@ -157,39 +166,83 @@ export function PaymentForm({
         amount: payment.amount,
         currency: payment.currency,
         exchangeRate: payment.exchangeRate,
-        paymentMethod: payment.paymentMethod || '',
+        bankAccountId: '',
         reference: payment.reference || '',
-        invoiceId: payment.invoiceId || '',
         notes: payment.notes || '',
         paymentDate: payment.paymentDate,
       });
     }
   }, [payment, form]);
 
-  // Update party ID if prop changes
   useEffect(() => {
     if (selectedPartyId && !payment) {
       form.setValue('partyId', selectedPartyId);
     }
   }, [selectedPartyId, payment, form]);
 
-  // Confirmation state
+  const totalAllocated = useMemo(
+    () => Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0),
+    [allocations]
+  );
+  const advanceAmount = Math.max(0, watchedAmount - totalAllocated);
+  const allocationsExceed = totalAllocated > watchedAmount + 0.01;
+
+  const handleAllocationChange = (invoiceId: string, raw: string, max: number) => {
+    let amount = Number(raw);
+    if (isNaN(amount) || amount < 0) amount = 0;
+    if (amount > max) amount = max; // Cap at outstanding.
+    setAllocations((prev) => {
+      const next = { ...prev };
+      if (amount === 0) {
+        delete next[invoiceId];
+      } else {
+        next[invoiceId] = Math.round(amount * 100) / 100;
+      }
+      return next;
+    });
+  };
+
+  /**
+   * Fill the payment amount FIFO-style across outstanding invoices: clear
+   * existing allocations first, then walk oldest → newest applying each
+   * invoice's outstanding balance until the payment amount is exhausted.
+   */
+  const handleAutoFill = () => {
+    if (!watchedAmount || outstandingInvoices.length === 0) return;
+    let remaining = watchedAmount;
+    const fresh: Record<string, number> = {};
+    for (const inv of outstandingInvoices) {
+      if (remaining <= 0.01) break;
+      const apply = Math.min(inv.outstanding, remaining);
+      if (apply > 0) {
+        fresh[inv.invoice_id] = Math.round(apply * 100) / 100;
+        remaining -= apply;
+      }
+    }
+    setAllocations(fresh);
+  };
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingData, setPendingData] = useState<CreatePaymentInput | null>(null);
 
-  // Handle form submission — show confirmation first
   const handleSubmit = async (data: PaymentFormData) => {
+    const allocationRows = Object.entries(allocations)
+      .filter(([, amt]) => amt > 0)
+      .map(([invoice_id, amount]) => ({ invoice_id, amount }));
+
     const submitData: CreatePaymentInput = {
       partyId: data.partyId,
       type: data.type,
       amount: data.amount,
       currency: data.currency,
       exchangeRate: data.exchangeRate,
-      paymentMethod: data.paymentMethod || null,
+      bankAccountId: data.bankAccountId && data.bankAccountId !== SENTINEL_CASH
+        ? data.bankAccountId
+        : null,
       reference: data.reference || null,
-      invoiceId: data.invoiceId || null,
       notes: data.notes || null,
       paymentDate: data.paymentDate,
+      allocations: allocationRows.length > 0 ? allocationRows : undefined,
     };
 
     setPendingData(submitData);
@@ -209,16 +262,15 @@ export function PaymentForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Payment Details */}
         <Card>
           <CardHeader>
             <CardTitle>{paymentLabel}</CardTitle>
             <CardDescription>
-              Record a payment {paymentType === 'received' ? 'from' : 'to'} a {partyTypeLabel.toLowerCase()}
+              Record a payment {paymentType === 'received' ? 'from' : 'to'} a{' '}
+              {partyTypeLabel.toLowerCase()}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Party Selection */}
             <FormField
               control={form.control}
               name="partyId"
@@ -238,7 +290,9 @@ export function PaymentForm({
                         <SelectItem key={party.id} value={party.id}>
                           {party.name}
                           {party.balance !== 0 && (
-                            <span className={`ml-2 text-sm ${party.balance > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                            <span
+                              className={`ml-2 text-sm ${party.balance > 0 ? 'text-amber-600' : 'text-green-600'}`}
+                            >
                               ({party.balance > 0
                                 ? `Owes: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                 : `Credit: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`})
@@ -253,7 +307,6 @@ export function PaymentForm({
               )}
             />
 
-            {/* Amount */}
             <FormField
               control={form.control}
               name="amount"
@@ -280,7 +333,6 @@ export function PaymentForm({
               )}
             />
 
-            {/* Currency and Exchange Rate */}
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -329,7 +381,6 @@ export function PaymentForm({
               />
             </div>
 
-            {/* Payment Date */}
             <FormField
               control={form.control}
               name="paymentDate"
@@ -344,33 +395,47 @@ export function PaymentForm({
               )}
             />
 
-            {/* Payment Method */}
+            {/* Phase 3: bank/cash account dropdown replaces free-text payment_method */}
             <FormField
               control={form.control}
-              name="paymentMethod"
+              name="bankAccountId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Method <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                  <FormLabel>{tForm('bankAccountLabel')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || SENTINEL_CASH}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
+                        <SelectValue placeholder={tForm('bankAccountPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {PAYMENT_METHODS.map((method) => (
-                        <SelectItem key={method.value} value={method.value}>
-                          {method.label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value={SENTINEL_CASH}>
+                        {tForm('bankAccountCash')}
+                      </SelectItem>
+                      {banks
+                        .filter((b) => b.is_active)
+                        .map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            <span className="font-mono text-xs mr-2">
+                              {b.ledger?.code ?? ''}
+                            </span>
+                            {b.name}
+                            {b.bank_name ? ` · ${b.bank_name}` : ''}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                  {!banksLoading && banks.length === 0 && (
+                    <FormDescription>{tForm('noBanksHint')}</FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Reference */}
             <FormField
               control={form.control}
               name="reference"
@@ -384,21 +449,20 @@ export function PaymentForm({
                       value={field.value || ''}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Optional reference for this payment
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Notes */}
             <FormField
               control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                  <FormLabel>
+                    Notes{' '}
+                    <span className="text-muted-foreground font-normal">(Optional)</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Additional notes about this payment"
@@ -414,14 +478,135 @@ export function PaymentForm({
           </CardContent>
         </Card>
 
-        {/* Form Actions */}
+        {/* Phase 3: bill-wise allocation */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle>{tAlloc('title')}</CardTitle>
+                <CardDescription>{tAlloc('subtitle')}</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoFill}
+                  disabled={!watchedAmount || outstandingInvoices.length === 0}
+                >
+                  {tAlloc('autoFill')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAllocations({})}
+                  disabled={Object.keys(allocations).length === 0}
+                >
+                  {tAlloc('clearAll')}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!watchedPartyId ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                {tAlloc('selectParty')}
+              </p>
+            ) : outstandingLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+            ) : outstandingInvoices.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                {tAlloc('empty')}
+              </p>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{tAlloc('invoice')}</TableHead>
+                      <TableHead>{tAlloc('date')}</TableHead>
+                      <TableHead className="text-right">{tAlloc('total')}</TableHead>
+                      <TableHead className="text-right">
+                        {tAlloc('outstanding')}
+                      </TableHead>
+                      <TableHead className="text-right w-40">
+                        {tAlloc('applied')}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {outstandingInvoices.map((inv) => (
+                      <TableRow key={inv.invoice_id}>
+                        <TableCell className="font-mono text-sm">
+                          {inv.invoice_number}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {inv.invoice_date}
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({tAlloc('days', { count: inv.days_outstanding })})
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {inv.total.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {inv.outstanding.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            max={inv.outstanding}
+                            value={allocations[inv.invoice_id] ?? ''}
+                            placeholder="0.00"
+                            className="text-right font-mono"
+                            onChange={(e) =>
+                              handleAllocationChange(
+                                inv.invoice_id,
+                                e.target.value,
+                                inv.outstanding
+                              )
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+                  <div>
+                    {tAlloc('summary', {
+                      applied: totalAllocated.toFixed(2),
+                      amount: watchedAmount.toFixed(2),
+                    })}
+                  </div>
+                  <div className="font-medium">
+                    {advanceAmount > 0.01 && (
+                      <span className="text-amber-600">
+                        {tAlloc('advance', { amount: advanceAmount.toFixed(2) })}
+                      </span>
+                    )}
+                    {allocationsExceed && (
+                      <span className="text-red-600">{tAlloc('exceeds')}</span>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || allocationsExceed}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -437,7 +622,6 @@ export function PaymentForm({
         </div>
       </form>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -445,18 +629,19 @@ export function PaymentForm({
             <AlertDialogDescription>
               {pendingData && (
                 <>
-                  You are about to record a {pendingData.type === 'received' ? 'received' : 'made'} payment
-                  of {pendingData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} {pendingData.currency}.
-                  This will update the party balance immediately.
+                  You are about to record a{' '}
+                  {pendingData.type === 'received' ? 'received' : 'made'} payment of{' '}
+                  {pendingData.amount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}{' '}
+                  {pendingData.currency}. This will update the party balance immediately.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmPayment}>
-              Record Payment
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmPayment}>Record Payment</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

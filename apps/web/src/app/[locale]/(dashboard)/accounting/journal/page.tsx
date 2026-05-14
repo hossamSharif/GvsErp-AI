@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useJournalEntries, usePostJournalEntry, useDeleteJournalEntry } from '@/hooks/use-journal-entries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,14 +37,64 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, MoreHorizontal, Edit2, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit2, Trash2, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import Link from 'next/link';
+import type { VoucherType } from '@erp/shared';
+
+/**
+ * Resolve a journal entry's (source_type, source_id) to a detail-page URL.
+ * Returns null for 'manual' entries and for *-reversal entries (whose
+ * source_id points at the original journal entry, not at a domain row).
+ */
+function resolveSourceHref(
+  locale: string,
+  sourceType: string | null | undefined,
+  sourceId: string | null | undefined
+): string | null {
+  if (!sourceType || !sourceId) return null;
+  switch (sourceType) {
+    case 'sale':
+      return `/${locale}/sales/${sourceId}`;
+    case 'purchase':
+      return `/${locale}/purchases/${sourceId}`;
+    case 'payment':
+      return `/${locale}/payments/${sourceId}`;
+    case 'expense':
+      return `/${locale}/expenses/${sourceId}/edit`;
+    default:
+      return null; // 'manual', reversals, future source types
+  }
+}
+
+/**
+ * Phase 2: short Tally-style label for each voucher type. Matches the
+ * entry_number prefix so users see SAL / PUR / RCT / PAY / JNL / CON /
+ * CN / DN / COGS / REV consistently across UI and entry numbers.
+ */
+function voucherLabel(type: VoucherType | string | null | undefined): string {
+  switch (type) {
+    case 'sales':       return 'SAL';
+    case 'purchase':    return 'PUR';
+    case 'receipt':     return 'RCT';
+    case 'payment':     return 'PAY';
+    case 'journal':     return 'JNL';
+    case 'contra':      return 'CON';
+    case 'credit_note': return 'CN';
+    case 'debit_note':  return 'DN';
+    case 'cogs':        return 'COGS';
+    case 'reversal':    return 'REV';
+    default:            return '—';
+  }
+}
 
 export default function JournalEntriesPage() {
   const router = useRouter();
   const { locale } = useParams();
   const { toast } = useToast();
+  const t = useTranslations('accounting.journal');
+  const tCommon = useTranslations('common');
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
@@ -68,13 +119,13 @@ export default function JournalEntriesPage() {
     try {
       await postMutation.mutateAsync(targetEntryId);
       toast({
-        title: 'Success',
-        description: 'Journal entry posted successfully',
+        title: tCommon('success'),
+        description: t('list.toast.posted'),
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to post journal entry',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('list.toast.postError'),
         variant: 'destructive',
       });
     }
@@ -93,13 +144,13 @@ export default function JournalEntriesPage() {
     try {
       await deleteMutation.mutateAsync(targetEntryId);
       toast({
-        title: 'Success',
-        description: 'Journal entry deleted successfully',
+        title: tCommon('success'),
+        description: t('list.toast.deleted'),
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete journal entry',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('list.toast.deleteError'),
         variant: 'destructive',
       });
     }
@@ -110,14 +161,12 @@ export default function JournalEntriesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Journal Entries</h1>
-          <p className="text-muted-foreground">
-            Manage your accounting journal entries
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('list.title')}</h1>
+          <p className="text-muted-foreground">{t('list.description')}</p>
         </div>
         <Button onClick={() => router.push(`/${locale}/accounting/journal/new`)}>
           <Plus className="mr-2 h-4 w-4" />
-          New Journal Entry
+          {t('list.newButton')}
         </Button>
       </div>
 
@@ -131,23 +180,56 @@ export default function JournalEntriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Entry Number</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('list.columns.voucher')}</TableHead>
+                  <TableHead>{t('list.columns.entryNumber')}</TableHead>
+                  <TableHead>{t('list.columns.date')}</TableHead>
+                  <TableHead>{t('list.columns.description')}</TableHead>
+                  <TableHead>{t('list.columns.source')}</TableHead>
+                  <TableHead>{t('list.columns.status')}</TableHead>
+                  <TableHead className="text-right">{t('list.columns.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.data.map((entry) => (
                   <TableRow key={entry.id}>
+                    <TableCell>
+                      {entry.voucher_type ? (
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          {voucherLabel(entry.voucher_type)}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="font-mono">{entry.entry_number}</TableCell>
                     <TableCell>{format(new Date(entry.entry_date), 'PPP')}</TableCell>
                     <TableCell>{entry.description || '-'}</TableCell>
                     <TableCell className="capitalize">
                       {entry.source_type ? (
-                        <Badge variant="outline">{entry.source_type}</Badge>
+                        (() => {
+                          const href = resolveSourceHref(
+                            locale as string,
+                            entry.source_type,
+                            entry.source_id
+                          );
+                          const badge = (
+                            <Badge variant="outline" className="font-normal">
+                              {entry.source_type.replace('-', ' ')}
+                            </Badge>
+                          );
+                          return href ? (
+                            <Link
+                              href={href}
+                              className="inline-flex items-center gap-1 hover:underline"
+                              aria-label={t('list.sourceAria', { sourceType: entry.source_type })}
+                            >
+                              {badge}
+                              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                            </Link>
+                          ) : (
+                            badge
+                          );
+                        })()
                       ) : (
                         '-'
                       )}
@@ -155,10 +237,10 @@ export default function JournalEntriesPage() {
                     <TableCell>
                       {entry.is_posted ? (
                         <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                          Posted
+                          {t('list.status.posted')}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">Draft</Badge>
+                        <Badge variant="secondary">{t('list.status.draft')}</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -175,18 +257,18 @@ export default function JournalEntriesPage() {
                                 onClick={() => router.push(`/${locale}/accounting/journal/${entry.id}`)}
                               >
                                 <Edit2 className="mr-2 h-4 w-4" />
-                                Edit
+                                {t('list.actions.edit')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handlePost(entry.id)}>
                                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                                Post Entry
+                                {t('list.actions.post')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDelete(entry.id)}
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                {t('list.actions.delete')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -194,7 +276,7 @@ export default function JournalEntriesPage() {
                             <DropdownMenuItem
                               onClick={() => router.push(`/${locale}/accounting/journal/${entry.id}`)}
                             >
-                              View Details
+                              {t('list.actions.view')}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -206,7 +288,7 @@ export default function JournalEntriesPage() {
             </Table>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No journal entries found. Click "New Journal Entry" to create one.
+              {t('list.empty', { action: t('list.newButton') })}
             </div>
           )}
         </CardContent>
@@ -216,16 +298,15 @@ export default function JournalEntriesPage() {
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Post Journal Entry</AlertDialogTitle>
+            <AlertDialogTitle>{t('list.dialogs.post.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to post this journal entry? This action cannot be undone.
-              Once posted, the entry will update account balances and cannot be edited or deleted.
+              {t('list.dialogs.post.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmPost}>
-              Post Entry
+              {t('list.dialogs.post.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -235,15 +316,15 @@ export default function JournalEntriesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Journal Entry</AlertDialogTitle>
+            <AlertDialogTitle>{t('list.dialogs.delete.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this journal entry? This action cannot be undone.
+              {t('list.dialogs.delete.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+              {tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

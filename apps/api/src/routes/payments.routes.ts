@@ -5,6 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { PaymentService } from '../services/payment.service';
 import type { PaymentQueryParams } from '@erp/shared';
 import {
@@ -184,6 +185,33 @@ router.get(
         success: true,
         data: report,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /payments/outstanding-invoices?party_id=<uuid>&as_of=<YYYY-MM-DD>
+ *
+ * Finalized invoices for a party with a remaining outstanding balance
+ * (total - sum(allocations)). Drives the bill-wise picker on the payment
+ * form. Plan Phase 3.
+ */
+router.get(
+  '/outstanding-invoices',
+  validateRequest({
+    query: z.object({
+      party_id: z.string().uuid(),
+      as_of: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getPaymentService(req);
+      const { party_id, as_of } = req.query as { party_id: string; as_of?: string };
+      const invoices = await service.getOutstandingInvoices(party_id, as_of);
+      res.json({ success: true, data: invoices });
     } catch (error) {
       next(error);
     }

@@ -387,6 +387,10 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
   }
 
   private mapParty = (row: PartyRow): Party => {
+    // Phase 4: ledger_account_id is added by migration 023 — older
+    // generated types may not list it yet.
+    const ledgerId = (row as unknown as { ledger_account_id?: string | null })
+      .ledger_account_id ?? null;
     return {
       id: row.id,
       tenantId: row.tenant_id,
@@ -399,6 +403,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
       balance: Number(row.balance),
       isActive: row.is_active,
       notes: row.notes,
+      ledgerAccountId: ledgerId,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

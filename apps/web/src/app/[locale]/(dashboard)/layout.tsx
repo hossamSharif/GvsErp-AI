@@ -7,9 +7,15 @@
 
 import { type ReactNode } from 'react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
+import { GlobalShortcuts } from '@/components/accounting/global-shortcuts';
 
 export const dynamic = 'force-dynamic';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell>
+      <GlobalShortcuts />
+      {children}
+    </DashboardShell>
+  );
 }

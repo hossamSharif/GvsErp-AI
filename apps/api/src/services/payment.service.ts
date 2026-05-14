@@ -8,6 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { PartyRepository } from '../repositories/party.repository';
+import { AccountingService } from './accounting.service';
 import type {
   Payment,
   PaymentWithParty,
@@ -20,6 +21,8 @@ import type {
   PaymentReportResponse,
   PaymentReportEntry,
   PaymentReportSummary,
+  OutstandingInvoice,
+  PaymentAllocationInput,
 } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
 
@@ -43,6 +46,7 @@ export class PaymentError extends Error {
 export class PaymentService {
   private readonly paymentRepository: PaymentRepository;
   private readonly partyRepository: PartyRepository;
+  private readonly accountingService: AccountingService;
   private readonly tenantId: string;
   private readonly supabase: SupabaseClient<Database>;
 
@@ -53,6 +57,7 @@ export class PaymentService {
     this.supabase = supabase;
     this.paymentRepository = new PaymentRepository(supabase);
     this.partyRepository = new PartyRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
   }
 
@@ -94,7 +99,17 @@ export class PaymentService {
   }
 
   /**
-   * Create a new payment
+   * Create a new payment.
+   *
+   * Phase 3 changes:
+   *  - `bankAccountId` (optional) routes the journal entry through that
+   *    bank's ledger instead of generic cash_in_hand.
+   *  - `allocations[]` carries bill-wise details (which invoices this
+   *    payment clears, and how much against each). Validated for:
+   *      - sum(amount) <= payment.amount
+   *      - each invoice belongs to the same party
+   *      - each amount <= that invoice's outstanding balance
+   *    When provided, takes precedence over the legacy `invoiceId` field.
    */
   async createPayment(input: CreatePaymentInput, userId?: string): Promise<PaymentWithRelations> {
     // Validate party exists
@@ -106,13 +121,41 @@ export class PaymentService {
     // Validate payment type matches party type
     this.validatePaymentType(input.type, party.type);
 
-    // Validate invoice if provided
-    if (input.invoiceId) {
-      await this.validateInvoice(input.invoiceId, input.partyId);
+    // Resolve effective allocations: explicit list takes precedence over
+    // the legacy single invoiceId.
+    const effectiveAllocations: PaymentAllocationInput[] = input.allocations?.length
+      ? input.allocations
+      : input.invoiceId
+        ? [{ invoice_id: input.invoiceId, amount: input.amount }]
+        : [];
+
+    if (effectiveAllocations.length > 0) {
+      await this.validateAllocations(input.partyId, input.amount, effectiveAllocations);
+    }
+
+    // Resolve bank account (if provided) so we can post the JE through its ledger.
+    let bankLedgerId: string | null = null;
+    if (input.bankAccountId) {
+      const { data: bank, error } = await this.supabase
+        .from('bank_accounts' as any)
+        .select('id, ledger_account_id, is_active')
+        .eq('tenant_id', this.tenantId)
+        .eq('id', input.bankAccountId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!bank) {
+        throw new PaymentError('Bank account not found', 'BANK_NOT_FOUND', 404);
+      }
+      bankLedgerId = (bank as any).ledger_account_id;
     }
 
     // Generate payment reference if not provided
     const reference = input.reference || await this.generatePaymentReference(input.type);
+
+    // Keep the legacy `invoice_id` populated when there's exactly one
+    // allocation, so existing UI/reports that read it still work.
+    const legacyInvoiceId =
+      effectiveAllocations.length === 1 ? effectiveAllocations[0].invoice_id : null;
 
     const paymentData = {
       party_id: input.partyId,
@@ -122,13 +165,58 @@ export class PaymentService {
       exchange_rate: input.exchangeRate || 1,
       payment_method: input.paymentMethod || null,
       reference,
-      invoice_id: input.invoiceId || null,
+      invoice_id: legacyInvoiceId ?? input.invoiceId ?? null,
+      bank_account_id: input.bankAccountId ?? null,
       notes: input.notes?.trim() || null,
       payment_date: input.paymentDate || new Date().toISOString().split('T')[0],
       created_by: userId || null,
     };
 
-    const payment = await this.paymentRepository.create(this.tenantId, paymentData);
+    const payment = await this.paymentRepository.create(this.tenantId, paymentData as any);
+
+    // Insert allocations after the payment exists (FK + sum-check trigger
+    // verify integrity).
+    if (effectiveAllocations.length > 0) {
+      const allocationRows = effectiveAllocations.map((a) => ({
+        tenant_id: this.tenantId,
+        payment_id: payment.id,
+        invoice_id: a.invoice_id,
+        amount: a.amount,
+      }));
+      const { error: allocErr } = await this.supabase
+        .from('payment_allocations' as any)
+        .insert(allocationRows);
+      if (allocErr) {
+        // Roll back the parent payment so we don't leave orphans.
+        await this.paymentRepository.delete(this.tenantId, payment.id);
+        throw allocErr;
+      }
+    }
+
+    // Auto-post the corresponding journal entry. Silently no-ops when
+    // accounting is disabled for the tenant or default ledgers are unmapped.
+    if (await this.accountingService.isEnabled(this.tenantId)) {
+      try {
+        await this.accountingService.generateJournalEntryFromPayment(
+          this.tenantId,
+          userId ?? null,
+          payment.id,
+          {
+            amount: Number(payment.amount),
+            type: payment.type as 'received' | 'made',
+            // Phase 4: route through the party's specific ledger.
+            party_id: payment.party_id,
+            cash_account_id_override: bankLedgerId,
+          },
+          paymentData.payment_date
+        );
+      } catch (error) {
+        console.error(
+          `[payment] Failed to post accounting entry for payment ${payment.id}:`,
+          error
+        );
+      }
+    }
 
     // Get payment with relations
     const paymentWithRelations = await this.paymentRepository.findByIdWithRelations(
@@ -141,6 +229,160 @@ export class PaymentService {
     }
 
     return paymentWithRelations;
+  }
+
+  /**
+   * Validate a list of bill-wise allocations against business rules.
+   *  - sum(amount) ≤ payment.amount
+   *  - each invoice belongs to the same party
+   *  - each amount ≤ outstanding balance on that invoice
+   */
+  private async validateAllocations(
+    partyId: string,
+    paymentAmount: number,
+    allocations: PaymentAllocationInput[]
+  ): Promise<void> {
+    const total = allocations.reduce((s, a) => s + a.amount, 0);
+    if (total > paymentAmount + 0.01) {
+      throw new PaymentError(
+        `Allocations (${total}) exceed payment amount (${paymentAmount})`,
+        'ALLOCATIONS_EXCEED_AMOUNT'
+      );
+    }
+    for (const a of allocations) {
+      if (a.amount <= 0) {
+        throw new PaymentError(
+          `Allocation amount must be positive (got ${a.amount})`,
+          'ALLOCATION_NOT_POSITIVE'
+        );
+      }
+    }
+
+    // Fetch the referenced invoices in one query
+    const invoiceIds = allocations.map((a) => a.invoice_id);
+    const { data: invoices, error } = await this.supabase
+      .from('invoices')
+      .select('id, party_id, total, status')
+      .eq('tenant_id', this.tenantId)
+      .in('id', invoiceIds);
+    if (error) throw error;
+
+    const invMap = new Map((invoices ?? []).map((i) => [i.id, i]));
+    for (const a of allocations) {
+      const inv = invMap.get(a.invoice_id);
+      if (!inv) {
+        throw new PaymentError(
+          `Invoice ${a.invoice_id} not found`,
+          'INVOICE_NOT_FOUND',
+          404
+        );
+      }
+      if (inv.party_id !== partyId) {
+        throw new PaymentError(
+          `Invoice ${inv.id} does not belong to party ${partyId}`,
+          'INVOICE_PARTY_MISMATCH'
+        );
+      }
+      if (inv.status !== 'final') {
+        throw new PaymentError(
+          `Invoice ${inv.id} is not finalized`,
+          'INVOICE_NOT_FINAL'
+        );
+      }
+    }
+
+    // Sum existing allocations per invoice to check the remaining capacity
+    const { data: prior, error: priorErr } = await this.supabase
+      .from('payment_allocations' as any)
+      .select('invoice_id, amount')
+      .in('invoice_id', invoiceIds);
+    if (priorErr) throw priorErr;
+
+    const priorMap = new Map<string, number>();
+    for (const row of ((prior as unknown) as { invoice_id: string; amount: number }[]) ?? []) {
+      priorMap.set(row.invoice_id, (priorMap.get(row.invoice_id) ?? 0) + Number(row.amount));
+    }
+
+    for (const a of allocations) {
+      const inv = invMap.get(a.invoice_id)!;
+      const alreadyAllocated = priorMap.get(a.invoice_id) ?? 0;
+      const outstanding = Number(inv.total) - alreadyAllocated;
+      if (a.amount > outstanding + 0.01) {
+        throw new PaymentError(
+          `Allocation ${a.amount} exceeds outstanding balance ${outstanding} on invoice ${inv.id}`,
+          'ALLOCATION_EXCEEDS_OUTSTANDING'
+        );
+      }
+    }
+  }
+
+  /**
+   * Return outstanding (unpaid / partially-paid) finalized invoices for a
+   * party. Drives the bill-wise picker on the payment form.
+   *
+   * @param partyId  Party to filter by.
+   * @param asOf     Optional date — only allocations up to this date count.
+   */
+  async getOutstandingInvoices(partyId: string, asOf?: string): Promise<OutstandingInvoice[]> {
+    // Note: invoices table has no `invoice_date` column — we surface
+    // `finalized_at` (when it became billable) and fall back to `created_at`.
+    const { data: invoices, error: iErr } = await this.supabase
+      .from('invoices')
+      .select('id, invoice_number, finalized_at, created_at, total, returned_from_id')
+      .eq('tenant_id', this.tenantId)
+      .eq('party_id', partyId)
+      .eq('status', 'final')
+      .is('returned_from_id', null);
+    if (iErr) throw iErr;
+
+    const invoiceIds = (invoices ?? []).map((i) => i.id);
+    if (invoiceIds.length === 0) return [];
+
+    let allocQuery = this.supabase
+      .from('payment_allocations' as any)
+      .select('invoice_id, amount, allocated_at')
+      .in('invoice_id', invoiceIds);
+    if (asOf) {
+      allocQuery = allocQuery.lte('allocated_at', asOf + 'T23:59:59');
+    }
+    const { data: allocations, error: aErr } = await allocQuery;
+    if (aErr) throw aErr;
+
+    const allocMap = new Map<string, number>();
+    for (const row of ((allocations as unknown) as { invoice_id: string; amount: number }[]) ?? []) {
+      allocMap.set(row.invoice_id, (allocMap.get(row.invoice_id) ?? 0) + Number(row.amount));
+    }
+
+    const today = new Date();
+    const result: OutstandingInvoice[] = [];
+    for (const inv of invoices ?? []) {
+      const total = Number(inv.total ?? 0);
+      const allocated = allocMap.get(inv.id) ?? 0;
+      const outstanding = total - allocated;
+      if (outstanding <= 0.01) continue;
+
+      const rawDate = inv.finalized_at ?? inv.created_at;
+      const invDate = rawDate ? new Date(rawDate) : today;
+      const dateOnly = invDate.toISOString().split('T')[0];
+      const daysOutstanding = Math.max(
+        0,
+        Math.floor((today.getTime() - invDate.getTime()) / 86_400_000)
+      );
+
+      result.push({
+        invoice_id: inv.id,
+        invoice_number: inv.invoice_number,
+        invoice_date: dateOnly,
+        total,
+        allocated,
+        outstanding,
+        days_outstanding: daysOutstanding,
+      });
+    }
+
+    // Oldest first — natural FIFO order for allocation.
+    result.sort((a, b) => (a.invoice_date < b.invoice_date ? -1 : 1));
+    return result;
   }
 
   /**
@@ -181,6 +423,25 @@ export class PaymentService {
     const existing = await this.paymentRepository.findById(this.tenantId, id);
     if (!existing) {
       throw new PaymentError('Payment not found', 'PAYMENT_NOT_FOUND', 404);
+    }
+
+    // Reverse the auto-posted journal entry before deletion. Posted journal
+    // entries are immutable; reverseEntry posts a mirror entry instead.
+    if (await this.accountingService.isEnabled(this.tenantId)) {
+      try {
+        await this.accountingService.reverseEntry(
+          this.tenantId,
+          null,
+          'payment',
+          id,
+          'Payment deleted'
+        );
+      } catch (error) {
+        console.error(
+          `[payment] Failed to reverse accounting entry for payment ${id}:`,
+          error
+        );
+      }
     }
 
     // The database trigger will automatically reverse the balance change
@@ -340,37 +601,9 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Validate invoice exists and belongs to party
-   */
-  private async validateInvoice(invoiceId: string, partyId: string): Promise<void> {
-    const { data: invoice, error } = await this.supabase
-      .from('invoices')
-      .select('id, party_id, status')
-      .eq('id', invoiceId)
-      .eq('tenant_id', this.tenantId)
-      .single();
-
-    if (error || !invoice) {
-      throw new PaymentError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
-    }
-
-    if (invoice.party_id !== partyId) {
-      throw new PaymentError(
-        'Invoice does not belong to this party',
-        'INVOICE_PARTY_MISMATCH',
-        400
-      );
-    }
-
-    if (invoice.status !== 'final') {
-      throw new PaymentError(
-        'Cannot link payment to non-finalized invoice',
-        'INVOICE_NOT_FINAL',
-        400
-      );
-    }
-  }
+  // validateInvoice removed in Phase 3 — bill-wise allocations validated via
+  // validateAllocations() above. Single-invoice payments now flow through
+  // that same path with a one-row allocations array.
 
   /**
    * Generate payment reference number

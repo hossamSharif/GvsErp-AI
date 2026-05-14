@@ -8,6 +8,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { InvoiceRepository, InvoiceQueryOptions } from '../repositories/invoice.repository';
+import { AccountingService } from './accounting.service';
+import { InventoryValuationService } from './inventory-valuation.service';
 import type {
   Invoice,
   InvoiceWithParty,
@@ -51,6 +53,8 @@ export class InvoiceError extends Error {
  */
 export class InvoiceService {
   private readonly invoiceRepository: InvoiceRepository;
+  private readonly accountingService: AccountingService;
+  private readonly inventoryValuation: InventoryValuationService;
   private readonly supabase: SupabaseClient<Database>;
   private readonly tenantId: string;
   private readonly userId?: string;
@@ -61,6 +65,8 @@ export class InvoiceService {
     userId?: string
   ) {
     this.invoiceRepository = new InvoiceRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
+    this.inventoryValuation = new InventoryValuationService(supabase);
     this.supabase = supabase;
     this.tenantId = tenantId;
     this.userId = userId;
@@ -307,6 +313,9 @@ export class InvoiceService {
       if (existing.partyId) {
         await this.updatePartyBalance(existing.partyId, -existing.total, existing.type);
       }
+      // Reverse the auto-posted journal entry (if any). Posted entries are
+      // immutable, so we post a mirror entry rather than editing the original.
+      await this.reverseAccountingForInvoice(existing.id, existing.type);
     } else if (existing.status === 'returned') {
       // The return added stock back (sale-return) or removed stock
       // (purchase-return). Re-apply the original direction to undo it.
@@ -397,11 +406,203 @@ export class InvoiceService {
     // Get updated invoice
     const finalizedInvoice = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
 
+    // Post the auto-generated journal entry. Silently no-ops when accounting
+    // is disabled for the tenant or required default ledgers are unmapped.
+    await this.postAccountingForInvoice(finalizedInvoice!);
+
     return {
       invoice: finalizedInvoice!,
       stockMovements,
       partyBalanceUpdate,
     };
+  }
+
+  /**
+   * Auto-post a balanced journal entry for a finalized sale or purchase
+   * invoice. Skips returns (returnedFromId set) — those are handled by the
+   * Credit/Debit Note voucher work in plan Phase 2. Failures are logged but
+   * never rolled back: finalizing the invoice itself remains the
+   * source-of-truth event for the operational flow.
+   */
+  private async postAccountingForInvoice(invoice: InvoiceWithRelations): Promise<void> {
+    if (invoice.returnedFromId) {
+      // Returns are out of scope for P1 auto-posting; Phase 2 wires
+      // Credit/Debit Notes.
+      return;
+    }
+
+    if (!(await this.accountingService.isEnabled(this.tenantId))) {
+      return;
+    }
+
+    try {
+      const userId = this.userId ?? invoice.createdBy ?? null;
+      const entryDate = invoice.finalizedAt
+        ? invoice.finalizedAt.split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
+      const payload = {
+        total: invoice.total,
+        subtotal: invoice.subtotal,
+        tax_amount: invoice.taxAmount,
+        party_id: invoice.partyId ?? undefined,
+      };
+
+      if (invoice.type === 'sale') {
+        await this.accountingService.generateJournalEntryFromSale(
+          this.tenantId,
+          userId,
+          invoice.id,
+          payload,
+          entryDate
+        );
+        // Phase 5: when COGS is enabled, consume FIFO layers and post the
+        // matching Dr COGS / Cr Inventory entry on top of the revenue JE.
+        await this.postCogsForSale(invoice, entryDate, userId);
+      } else if (invoice.type === 'purchase') {
+        await this.accountingService.generateJournalEntryFromPurchase(
+          this.tenantId,
+          userId,
+          invoice.id,
+          payload,
+          entryDate
+        );
+        // Phase 5: when COGS is enabled, register this purchase as a
+        // FIFO cost layer so future sales can compute COGS against it.
+        await this.recordPurchaseLayers(invoice);
+      }
+    } catch (error) {
+      console.error(
+        `[invoice] Failed to post accounting entry for invoice ${invoice.id}:`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Phase 5: COGS leg for sales. Skips silently when COGS feature flag
+   * isn't on for the tenant. Logs a warning when layers are insufficient
+   * (short-stock fallback: 0 cost for the residual qty).
+   */
+  private async postCogsForSale(
+    invoice: InvoiceWithRelations,
+    entryDate: string,
+    userId: string | null
+  ): Promise<void> {
+    if (!(await this.accountingService.isCogsEnabled(this.tenantId))) {
+      return;
+    }
+    try {
+      const result = await this.inventoryValuation.consumeLayersForSale({
+        id: invoice.id,
+        tenant_id: this.tenantId,
+        warehouse_id: invoice.warehouseId,
+        finalized_at: invoice.finalizedAt,
+      });
+      if (result.short_stock.length > 0) {
+        console.warn(
+          `[invoice] Sale ${invoice.id}: short stock on ${result.short_stock.length} line(s); residual qty costed at 0.`
+        );
+      }
+      if (result.total_cogs > 0) {
+        await this.accountingService.generateJournalEntryFromCogs(
+          this.tenantId,
+          userId,
+          invoice.id,
+          result.total_cogs,
+          entryDate
+        );
+      }
+    } catch (error) {
+      console.error(
+        `[invoice] Failed to post COGS for sale ${invoice.id}:`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Phase 5: register a purchase's lines as FIFO cost layers. Idempotent
+   * — skips lines that already produced a layer.
+   */
+  private async recordPurchaseLayers(invoice: InvoiceWithRelations): Promise<void> {
+    if (!(await this.accountingService.isCogsEnabled(this.tenantId))) {
+      return;
+    }
+    try {
+      await this.inventoryValuation.recordLayersForPurchase({
+        id: invoice.id,
+        tenant_id: this.tenantId,
+        warehouse_id: invoice.warehouseId,
+        finalized_at: invoice.finalizedAt,
+      });
+    } catch (error) {
+      console.error(
+        `[invoice] Failed to record FIFO layers for purchase ${invoice.id}:`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Reverse a previously-posted journal entry for an invoice. Used when the
+   * invoice is deleted or unfinalized so the GL stays consistent.
+   *
+   * Phase 5: also reverses the COGS JE and the FIFO layers for the
+   * matching side. Purchase-deletes zero out the layers they created (the
+   * audit row stays); sale-deletes reverse the COGS JE.
+   */
+  private async reverseAccountingForInvoice(
+    invoiceId: string,
+    type: InvoiceType
+  ): Promise<void> {
+    if (!(await this.accountingService.isEnabled(this.tenantId))) {
+      return;
+    }
+    try {
+      await this.accountingService.reverseEntry(
+        this.tenantId,
+        this.userId ?? null,
+        type, // 'sale' or 'purchase' — matches source_type used at post time
+        invoiceId,
+        'Invoice deleted'
+      );
+    } catch (error) {
+      console.error(
+        `[invoice] Failed to reverse accounting entry for invoice ${invoiceId}:`,
+        error
+      );
+    }
+
+    // Phase 5: COGS-side reversal.
+    if (await this.accountingService.isCogsEnabled(this.tenantId)) {
+      try {
+        if (type === 'sale') {
+          await this.accountingService.reverseEntry(
+            this.tenantId,
+            this.userId ?? null,
+            'cogs',
+            invoiceId,
+            'Sale deleted'
+          );
+        } else if (type === 'purchase') {
+          const r = await this.inventoryValuation.reverseLayersForPurchase(
+            this.tenantId,
+            invoiceId
+          );
+          if (r.partially_consumed > 0) {
+            console.warn(
+              `[invoice] Purchase ${invoiceId} reversal: ${r.partially_consumed} layer(s) had already been consumed by downstream sales — those layers are zeroed but the consumed cost stays on the sales' COGS.`
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          `[invoice] Failed to reverse COGS / layers for invoice ${invoiceId}:`,
+          error
+        );
+      }
+    }
   }
 
   // ==========================================================================

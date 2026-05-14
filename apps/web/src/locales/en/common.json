@@ -885,6 +885,7 @@
       "edit": "Edit",
       "recordPayment": "Record Payment",
       "makePayment": "Make Payment",
+      "viewLedger": "View Ledger",
       "delete": "Delete",
       "openMenu": "Open menu",
       "actionsLabel": "Actions"
@@ -1570,13 +1571,220 @@
         "updatedDesc": "Payment changes have been saved.",
         "updateError": "Failed to update payment"
       }
+    },
+    "form": {
+      "bankAccountLabel": "Bank / Cash Account",
+      "bankAccountPlaceholder": "Select where the money moved",
+      "bankAccountCash": "Cash (no bank)",
+      "noBanksHint": "No bank accounts yet. Create one in Accounting → Bank Accounts.",
+      "allocations": {
+        "title": "Allocate to bills",
+        "subtitle": "Apply this payment to specific invoices. Unallocated amount is recorded as advance.",
+        "loading": "Loading outstanding invoices...",
+        "empty": "No outstanding invoices for this party.",
+        "selectParty": "Select a party first to see outstanding invoices.",
+        "invoice": "Invoice",
+        "date": "Date",
+        "total": "Total",
+        "outstanding": "Outstanding",
+        "applied": "Apply",
+        "days": "{count} days",
+        "autoFill": "Auto-fill oldest first",
+        "clearAll": "Clear",
+        "summary": "Applied {applied} of {amount}",
+        "advance": "{amount} unallocated (advance)",
+        "exceeds": "Allocations exceed the payment amount."
+      }
     }
   },
+  "auditTrail": {
+    "title": "Edit Log",
+    "empty": "No recorded changes yet.",
+    "noChangedFields": "No tracked fields changed."
+  },
   "accounting": {
+    "subnav": {
+      "label": "Accounting navigation",
+      "accounts": "Accounts",
+      "journal": "Journal",
+      "banks": "Banks",
+      "costCenters": "Cost Centers",
+      "settings": "Settings",
+      "reports": "Reports",
+      "trialBalance": "Trial Balance",
+      "incomeStatement": "Income Statement",
+      "balanceSheet": "Balance Sheet",
+      "ledger": "Ledger",
+      "dayBook": "Day Book",
+      "agingReceivables": "Aging — Receivables",
+      "agingPayables": "Aging — Payables",
+      "stockSummary": "Stock Summary",
+      "costCenterTotals": "Cost Center Totals"
+    },
+    "shortcuts": {
+      "dialogTitle": "Keyboard shortcuts",
+      "dialogDescription": "Tally-style F-keys for the operational flows. Work anywhere unless you're typing in a field.",
+      "payment": "Record payment (made)",
+      "receipt": "Record payment (received)",
+      "journal": "New journal entry",
+      "sales": "New sales invoice",
+      "purchase": "New purchase invoice",
+      "dayBook": "Open Day Book",
+      "help": "Show this cheatsheet"
+    },
     "notActivated": {
       "title": "Accounting Module Not Activated",
       "description": "Activate the accounting module to manage your chart of accounts and financial statements.",
       "activate": "Activate Accounting Module"
+    },
+    "financialReports": {
+      "common": {
+        "asOfDate": "As Of Date",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "generate": "Generate Report",
+        "exportPdf": "Export PDF",
+        "loadingAria": "Loading {report}",
+        "account": "Account",
+        "selectAccount": "Select account"
+      },
+      "trialBalance": {
+        "title": "Trial Balance",
+        "description": "View account balances as of a specific date",
+        "columns": {
+          "accountCode": "Account Code",
+          "accountName": "Account Name",
+          "type": "Type",
+          "debit": "Debit",
+          "credit": "Credit"
+        },
+        "totals": "Totals:"
+      },
+      "incomeStatement": {
+        "title": "Income Statement",
+        "description": "Profit and loss statement for a period",
+        "revenue": "Revenue",
+        "expenses": "Expenses",
+        "totalRevenue": "Total Revenue",
+        "totalExpenses": "Total Expenses",
+        "netIncome": "Net Income"
+      },
+      "balanceSheet": {
+        "title": "Balance Sheet",
+        "description": "Assets, liabilities, and equity as of a specific date",
+        "assets": "Assets",
+        "totalAssets": "Total Assets",
+        "liabilities": "Liabilities",
+        "totalLiabilities": "Total Liabilities",
+        "equity": "Equity",
+        "totalEquity": "Total Equity",
+        "totalLiabilitiesEquity": "Total Liabilities & Equity"
+      },
+      "generalLedger": {
+        "title": "General Ledger",
+        "description": "View transaction history for an account",
+        "beginningBalance": "Beginning Balance: ",
+        "endingBalance": "Ending Balance: ",
+        "selectAccountPrompt": "Select an account to view its general ledger",
+        "columns": {
+          "date": "Date",
+          "entryNumber": "Entry Number",
+          "description": "Description",
+          "debit": "Debit",
+          "credit": "Credit",
+          "balance": "Balance"
+        }
+      }
+    },
+    "journal": {
+      "list": {
+        "title": "Journal Entries",
+        "description": "Manage your accounting journal entries",
+        "newButton": "New Journal Entry",
+        "empty": "No journal entries found. Click \"{action}\" to create one.",
+        "columns": {
+          "voucher": "Voucher",
+          "entryNumber": "Entry Number",
+          "date": "Date",
+          "description": "Description",
+          "source": "Source",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "posted": "Posted",
+          "draft": "Draft"
+        },
+        "actions": {
+          "edit": "Edit",
+          "post": "Post Entry",
+          "delete": "Delete",
+          "view": "View Details"
+        },
+        "sourceAria": "Open source {sourceType}",
+        "dialogs": {
+          "post": {
+            "title": "Post Journal Entry",
+            "description": "Are you sure you want to post this journal entry? This action cannot be undone. Once posted, the entry will update account balances and cannot be edited or deleted.",
+            "confirm": "Post Entry"
+          },
+          "delete": {
+            "title": "Delete Journal Entry",
+            "description": "Are you sure you want to delete this journal entry? This action cannot be undone."
+          }
+        },
+        "toast": {
+          "posted": "Journal entry posted successfully",
+          "deleted": "Journal entry deleted successfully",
+          "postError": "Failed to post journal entry",
+          "deleteError": "Failed to delete journal entry"
+        }
+      },
+      "new": {
+        "title": "New Journal Entry",
+        "description": "Create a new accounting journal entry",
+        "toast": {
+          "created": "Journal entry created successfully",
+          "createError": "Failed to create journal entry"
+        }
+      },
+      "form": {
+        "entryInfo": "Entry Information",
+        "entryDate": "Entry Date",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Brief description of this journal entry",
+        "lines": "Journal Lines",
+        "addLine": "Add Line",
+        "columns": {
+          "account": "Account",
+          "description": "Description",
+          "debit": "Debit",
+          "credit": "Credit"
+        },
+        "placeholders": {
+          "selectAccount": "Select account",
+          "lineDescription": "Line description",
+          "amount": "0.00"
+        },
+        "totals": "Totals:",
+        "notBalanced": "Entry is not balanced. Difference: {diff}",
+        "exceedDebit": "(debits exceed credits)",
+        "exceedCredit": "(credits exceed debits)",
+        "balanced": "Entry is balanced",
+        "save": "Save Journal Entry",
+        "saving": "Saving...",
+        "errors": {
+          "notBalanced": "Journal entry must be balanced — debits must equal credits.",
+          "tooFewLines": "Journal entry must have at least 2 valid lines with an account and amount."
+        },
+        "aria": {
+          "accountForLine": "Account for line {n}",
+          "descriptionForLine": "Description for line {n}",
+          "debitForLine": "Debit amount for line {n}",
+          "creditForLine": "Credit amount for line {n}",
+          "removeLine": "Remove line {n}"
+        }
+      }
     },
     "accounts": {
       "title": "Chart of Accounts",
@@ -1584,6 +1792,8 @@
       "addAccount": "Add Account",
       "filterAll": "All Types",
       "searchPlaceholder": "Search accounts...",
+      "groupLabel": "group",
+      "emptyState": "No accounts found. Click \"{action}\" to create one.",
       "type": {
         "asset": "Asset",
         "liability": "Liability",
@@ -1598,14 +1808,220 @@
         "parent": "Parent Account",
         "noParent": "No parent (top level)",
         "create": "Create Account",
-        "update": "Update Account"
+        "update": "Update Account",
+        "createDescription": "Add a new account to your chart of accounts",
+        "updateDescription": "Update account information",
+        "submitCreate": "Create",
+        "submitUpdate": "Update"
       },
       "delete": {
         "title": "Delete Account",
         "description": "Are you sure you want to delete this account? This action cannot be undone."
       },
+      "toast": {
+        "created": "Account created successfully",
+        "updated": "Account updated successfully",
+        "deleted": "Account deleted successfully",
+        "saveError": "Failed to save account",
+        "deleteError": "Failed to delete account"
+      },
       "expand": "Expand account {code}",
       "collapse": "Collapse account {code}"
+    },
+    "reports": {
+      "costCenterTotals": {
+        "title": "Cost Center Totals",
+        "description": "Sum of allocated debit, credit, and net per cost center over a date range.",
+        "filters": "Range",
+        "startDate": "From",
+        "endDate": "To",
+        "empty": "No cost-center allocations in this period.",
+        "total": "Total",
+        "columns": {
+          "category": "Category",
+          "code": "Code",
+          "name": "Center",
+          "debit": "Debit",
+          "credit": "Credit",
+          "net": "Net"
+        }
+      },
+      "stockSummary": {
+        "title": "Stock Summary",
+        "description": "Quantity and value on hand per item, valued from FIFO purchase layers. Items fully consumed are hidden.",
+        "empty": "No stock on hand. Record a purchase with COGS enabled to populate this report.",
+        "total": "Total stock value",
+        "columns": {
+          "item": "Item",
+          "sku": "SKU",
+          "qty": "Quantity",
+          "avgCost": "Avg unit cost",
+          "value": "Value"
+        }
+      },
+      "dayBook": {
+        "title": "Day Book",
+        "description": "Every posted voucher in a date range, oldest first. Tally's daily-review surface.",
+        "filters": "Range",
+        "startDate": "From",
+        "endDate": "To",
+        "empty": "No vouchers in this period.",
+        "totalCount": "{count, plural, =0 {No vouchers} =1 {# voucher} other {# vouchers}}",
+        "columns": {
+          "date": "Date",
+          "entryNumber": "Voucher #",
+          "description": "Description",
+          "source": "Source",
+          "debit": "Debit",
+          "credit": "Credit"
+        }
+      },
+      "aging": {
+        "receivablesTitle": "Aging — Receivables",
+        "receivablesDescription": "Outstanding amounts owed by customers, bucketed by age.",
+        "payablesTitle": "Aging — Payables",
+        "payablesDescription": "Outstanding amounts owed to suppliers, bucketed by age.",
+        "filters": "Cutoff",
+        "asOfDate": "As of",
+        "empty": "Nothing outstanding as of this date.",
+        "totals": "Total",
+        "columns": {
+          "party": "Party",
+          "total": "Total"
+        }
+      }
+    },
+    "costCenters": {
+      "title": "Cost Centers",
+      "description": "Parallel reporting dimension. Tag postings with a department, project, branch, or any custom unit to slice the P&L beyond chart-of-accounts.",
+      "cancel": "Cancel",
+      "create": "Create",
+      "toast": {
+        "categoryCreated": "Category created",
+        "centerCreated": "Cost center created",
+        "error": "Operation failed"
+      },
+      "categories": {
+        "title": "Categories",
+        "description": "Department / Project / Branch — the dimensions themselves.",
+        "empty": "No categories yet.",
+        "centersSuffix": "centers",
+        "dialog": {
+          "title": "Add Category",
+          "description": "A category is the top-level grouping (e.g. \"Department\"). Cost centers live inside it.",
+          "name": "Name",
+          "placeholder": "Department"
+        }
+      },
+      "centers": {
+        "title": "Cost Centers",
+        "description": "The actual units transactions get tagged with.",
+        "add": "Add Center",
+        "empty": "No cost centers yet.",
+        "emptyNeedsCategory": "Create a category first.",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "category": "Category",
+          "status": "Status"
+        },
+        "dialog": {
+          "title": "Add Cost Center",
+          "description": "Optionally nest under an existing center within the same category.",
+          "category": "Category",
+          "selectCategory": "Select a category",
+          "code": "Code",
+          "name": "Name",
+          "namePlaceholder": "Engineering",
+          "parent": "Parent",
+          "parentNone": "None (top-level)",
+          "parentPlaceholder": "Select parent center (optional)"
+        }
+      }
+    },
+    "banks": {
+      "title": "Bank Accounts",
+      "description": "Manage cash and bank accounts. Each bank is bound 1:1 to a ledger; payments flow through these instead of free-text payment methods.",
+      "addBank": "Add Bank Account",
+      "viewLedger": "View Ledger",
+      "deactivate": "Deactivate",
+      "empty": "No bank accounts yet. Click \"Add Bank Account\" to create one.",
+      "createSuccess": "Bank account created",
+      "createError": "Failed to create bank account",
+      "deactivateSuccess": "Bank account deactivated",
+      "deactivateError": "Failed to deactivate bank account",
+      "columns": {
+        "name": "Name",
+        "bankName": "Bank",
+        "accountNumber": "Account #",
+        "ledgerCode": "Ledger",
+        "balance": "Balance",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "form": {
+        "title": "Add Bank Account",
+        "description": "A linked ledger is created automatically under Current Assets.",
+        "name": "Name",
+        "namePlaceholder": "Chase Checking",
+        "bankName": "Bank",
+        "bankNamePlaceholder": "Chase",
+        "accountNumber": "Account Number",
+        "openingBalance": "Opening Balance",
+        "currency": "Currency",
+        "cancel": "Cancel",
+        "create": "Create"
+      },
+      "deactivateConfirm": {
+        "title": "Deactivate Bank Account",
+        "description": "Existing payments and journal entries stay intact; the account just becomes unavailable for new payments. This is reversible by re-enabling from settings."
+      }
+    },
+    "settings": {
+      "title": "Accounting Settings",
+      "description": "Configure how the accounting module integrates with sales, purchases, payments, and expenses.",
+      "cogs": {
+        "title": "Cost of Goods Sold (COGS)",
+        "description": "When enabled, every finalized sale posts a second journal entry (Dr COGS / Cr Inventory) computed by consuming FIFO purchase layers oldest-first. Purchases register new layers.",
+        "toggleLabel": "Track COGS on sales",
+        "toggleHint": "Cutover only. Sales finalized before enabling are NOT retroactively re-costed.",
+        "enabledToast": "COGS tracking enabled",
+        "disabledToast": "COGS tracking disabled",
+        "errorToast": "Failed to update COGS setting"
+      },
+      "defaults": {
+        "title": "Default Ledgers",
+        "description": "Map each role to a ledger in your chart of accounts. Auto-posting flows (sales, purchases, payments, expenses) use these accounts when posting journal entries.",
+        "role": "Role",
+        "account": "Account",
+        "notSet": "Not set",
+        "selectAccount": "Select an account",
+        "updateSuccess": "Default account updated",
+        "updateError": "Failed to update default account"
+      },
+      "roles": {
+        "cash_in_hand": "Cash in Hand",
+        "accounts_receivable": "Accounts Receivable",
+        "accounts_payable": "Accounts Payable",
+        "sales_revenue": "Sales Revenue",
+        "sales_tax_payable": "Sales Tax Payable",
+        "inventory_asset": "Inventory Asset",
+        "cogs": "Cost of Goods Sold",
+        "discount_allowed": "Discount Allowed",
+        "discount_received": "Discount Received",
+        "salary_expense": "Salary Expense",
+        "salary_payable": "Salary Payable",
+        "general_expense": "General Expense",
+        "service_purchase_expense": "Service Purchase Expense"
+      }
     }
   },
   "hr": {

@@ -43,6 +43,12 @@ export interface Party {
   balance: number;
   isActive: boolean;
   notes: string | null;
+  /**
+   * Phase 4: link to this party's dedicated ledger in the chart of
+   * accounts. NULL for pre-Phase-4 rows or tenants without accounting
+   * enabled.
+   */
+  ledgerAccountId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -192,9 +198,15 @@ export interface CreatePaymentInput {
   amount: number;
   currency?: string;
   exchangeRate?: number;
+  /** @deprecated since Phase 3 — use bankAccountId. Retained for legacy callers. */
   paymentMethod?: string | null;
+  /** Bank/cash account that the payment flowed through. NULL = generic cash. */
+  bankAccountId?: string | null;
   reference?: string | null;
+  /** @deprecated since Phase 3 — use allocations[]. The legacy 1:1 invoice pointer; */
   invoiceId?: string | null;
+  /** Bill-wise allocations (Phase 3). When provided, takes precedence over invoiceId. */
+  allocations?: Array<{ invoice_id: string; amount: number }>;
   notes?: string | null;
   paymentDate?: string;
 }

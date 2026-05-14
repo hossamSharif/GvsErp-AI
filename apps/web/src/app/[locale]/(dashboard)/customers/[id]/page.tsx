@@ -15,6 +15,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useParty, usePartyStatement, useRecalculateBalance } from '@/hooks/use-parties';
+import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,6 +31,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import type { PartyTransaction } from '@erp/shared';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Mail,
@@ -42,6 +44,7 @@ import {
   Receipt,
   TrendingUp,
   TrendingDown,
+  BookOpen,
 } from 'lucide-react';
 
 export default function CustomerDetailPage() {
@@ -254,6 +257,14 @@ export default function CustomerDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {customer.ledgerAccountId && (
+            <Button asChild variant="outline">
+              <Link href={`/${locale}/accounting/ledger?account_id=${customer.ledgerAccountId}`}>
+                <BookOpen className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
+                {t('actions.viewLedger')}
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" onClick={handleEdit}>
             <Pencil className="mr-2 h-4 w-4 rtl:ml-2 rtl:mr-0" />
             {t('actions.edit')}
@@ -435,6 +446,16 @@ export default function CustomerDetailPage() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Phase 8: per-entity audit trail */}
+      <EntityAuditTrail entityType="party" entityId={customerId} />
+
+      {customer.ledgerAccountId && (
+        <EntityAuditTrail
+          entityType="account"
+          entityId={customer.ledgerAccountId}
+        />
       )}
     </div>
   );

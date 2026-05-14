@@ -50,7 +50,12 @@ export type AuditEntityType =
   | 'payroll'
   | 'account'
   | 'journal_entry'
-  | 'accounting';
+  | 'accounting'
+  | 'bank_account'
+  | 'cost_category'
+  | 'cost_center'
+  | 'cost_allocation'
+  | 'accounting_default';
 
 // =============================================================================
 // AUDIT LOG ENTITY

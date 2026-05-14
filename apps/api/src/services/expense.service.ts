@@ -7,6 +7,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { ExpenseRepository } from '../repositories/expense.repository';
+import { AccountingService } from './accounting.service';
 import type {
   Expense,
   ExpenseWithCreator,
@@ -33,10 +34,12 @@ export class ExpenseError extends Error {
 
 export class ExpenseService {
   private readonly repo: ExpenseRepository;
+  private readonly accountingService: AccountingService;
   private readonly tenantId: string;
 
   constructor(supabase: SupabaseClient<Database>, tenantId: string) {
     this.repo = new ExpenseRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
   }
 
@@ -80,6 +83,29 @@ export class ExpenseService {
     };
 
     const created = await this.repo.create(this.tenantId, data);
+
+    // Auto-post the corresponding journal entry. Silently no-ops when
+    // accounting is disabled for the tenant.
+    if (await this.accountingService.isEnabled(this.tenantId)) {
+      try {
+        await this.accountingService.generateJournalEntryFromExpense(
+          this.tenantId,
+          userId ?? null,
+          created.id,
+          {
+            amount: Number(created.amount),
+            category_name: created.category,
+          },
+          data.expense_date
+        );
+      } catch (error) {
+        console.error(
+          `[expense] Failed to post accounting entry for expense ${created.id}:`,
+          error
+        );
+      }
+    }
+
     const withCreator = await this.repo.findByIdWithCreator(this.tenantId, created.id);
     if (!withCreator) {
       throw new ExpenseError('Failed to retrieve created expense', 'CREATE_FAILED', 500);
@@ -124,6 +150,25 @@ export class ExpenseService {
     if (!existing) {
       throw new ExpenseError('Expense not found', 'EXPENSE_NOT_FOUND', 404);
     }
+
+    // Reverse the auto-posted journal entry before deletion.
+    if (await this.accountingService.isEnabled(this.tenantId)) {
+      try {
+        await this.accountingService.reverseEntry(
+          this.tenantId,
+          null,
+          'expense',
+          id,
+          'Expense deleted'
+        );
+      } catch (error) {
+        console.error(
+          `[expense] Failed to reverse accounting entry for expense ${id}:`,
+          error
+        );
+      }
+    }
+
     const deleted = await this.repo.delete(this.tenantId, id, false);
     if (!deleted) {
       throw new ExpenseError('Failed to delete expense', 'DELETE_FAILED', 500);

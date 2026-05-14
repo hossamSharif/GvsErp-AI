@@ -14,6 +14,11 @@ export interface Account {
   children?: Account[];
   balance: number;
   is_active: boolean;
+  /**
+   * Phase 4: group accounts cannot be posted to directly (Tally semantics).
+   * The frontend renders them as headers in the chart-of-accounts tree.
+   */
+  is_group?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +38,23 @@ export interface UpdateAccountInput {
   is_active?: boolean;
 }
 
+/**
+ * Phase 2: Tally voucher types. The voucher_type column on journal_entries
+ * is derived from source_type for auto-posted entries and chosen by the
+ * user for manual journal/contra entries.
+ */
+export type VoucherType =
+  | 'contra'
+  | 'payment'
+  | 'receipt'
+  | 'journal'
+  | 'sales'
+  | 'purchase'
+  | 'credit_note'
+  | 'debit_note'
+  | 'cogs'
+  | 'reversal';
+
 export interface JournalEntry {
   id: string;
   tenant_id: string;
@@ -41,6 +63,8 @@ export interface JournalEntry {
   description?: string;
   source_type?: string; // 'manual', 'sale', 'purchase', 'payment'
   source_id?: string;
+  voucher_type?: VoucherType;
+  narration?: string;
   is_posted: boolean;
   created_by?: string;
   created_at: string;
@@ -169,6 +193,63 @@ export interface GeneralLedgerReport {
   beginning_balance: number;
   entries: GeneralLedgerEntry[];
   ending_balance: number;
+}
+
+// =============================================================================
+// Day Book — Phase 6 (chronological list of vouchers in a date range)
+// =============================================================================
+
+export interface DayBookEntry {
+  entry_id: string;
+  entry_number: string;
+  entry_date: string;
+  description: string | null;
+  source_type: string | null;
+  source_id: string | null;
+  total_debit: number;
+  total_credit: number;
+  is_posted: boolean;
+}
+
+export interface DayBookReport {
+  start_date: string;
+  end_date: string;
+  entries: DayBookEntry[];
+  total_debit: number;
+  total_credit: number;
+  count: number;
+}
+
+// =============================================================================
+// Aging — Phase 6 (outstanding receivables/payables bucketed by age)
+// =============================================================================
+
+export interface AgingBucket {
+  /** Bucket label, e.g. "0-30", "31-60", "61-90", "90+" */
+  label: string;
+  /** Inclusive lower bound in days */
+  from: number;
+  /** Exclusive upper bound in days. null means "and over". */
+  to: number | null;
+  amount: number;
+}
+
+export interface AgingPartyRow {
+  party_id: string;
+  party_name: string;
+  party_type: 'customer' | 'supplier';
+  total_outstanding: number;
+  buckets: AgingBucket[];
+}
+
+export interface AgingReport {
+  as_of_date: string;
+  bucket_definitions: { label: string; from: number; to: number | null }[];
+  parties: AgingPartyRow[];
+  totals: {
+    total_outstanding: number;
+    buckets: AgingBucket[];
+  };
 }
 
 // Activation wizard

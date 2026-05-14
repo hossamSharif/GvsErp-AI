@@ -48,3 +48,8 @@ docs/supabaseNew.md
 # Temporary files
 *.tmp
 *.temp
+
+# Test artifacts / screenshots
+/*.png
+.playwright-mcp/
+.claude/settings.local.json

@@ -885,6 +885,7 @@
       "edit": "تعديل",
       "recordPayment": "تسجيل دفعة",
       "makePayment": "إجراء دفعة",
+      "viewLedger": "عرض دفتر الأستاذ",
       "delete": "حذف",
       "openMenu": "فتح القائمة",
       "actionsLabel": "الإجراءات"
@@ -1570,13 +1571,220 @@
         "updatedDesc": "تم حفظ تعديلات الدفعة.",
         "updateError": "تعذّر تحديث الدفعة"
       }
+    },
+    "form": {
+      "bankAccountLabel": "الحساب البنكي / النقدي",
+      "bankAccountPlaceholder": "اختر الحساب الذي مرّت من خلاله الأموال",
+      "bankAccountCash": "نقدية (بدون بنك)",
+      "noBanksHint": "لا توجد حسابات بنكية بعد. أنشئ واحداً من المحاسبة ← الحسابات البنكية.",
+      "allocations": {
+        "title": "ربط بفواتير محددة",
+        "subtitle": "اربط هذه الدفعة بفواتير محددة. أي مبلغ متبقٍ يُسجَّل كدفعة مقدمة.",
+        "loading": "جارٍ تحميل الفواتير المعلقة...",
+        "empty": "لا توجد فواتير معلقة لهذا الطرف.",
+        "selectParty": "اختر الطرف أولاً لعرض الفواتير المعلقة.",
+        "invoice": "الفاتورة",
+        "date": "التاريخ",
+        "total": "الإجمالي",
+        "outstanding": "المتبقي",
+        "applied": "المطبَّق",
+        "days": "{count} يوم",
+        "autoFill": "تعبئة تلقائية من الأقدم",
+        "clearAll": "مسح",
+        "summary": "تم تطبيق {applied} من {amount}",
+        "advance": "{amount} غير مُربَط (دفعة مقدمة)",
+        "exceeds": "المبلغ المطبق يتجاوز قيمة الدفعة."
+      }
     }
   },
+  "auditTrail": {
+    "title": "سجل التعديلات",
+    "empty": "لا توجد تغييرات مسجَّلة بعد.",
+    "noChangedFields": "لم تتغيّر أي حقول مُتعقَّبة."
+  },
   "accounting": {
+    "subnav": {
+      "label": "تنقّل المحاسبة",
+      "accounts": "الحسابات",
+      "journal": "اليومية",
+      "banks": "البنوك",
+      "costCenters": "مراكز التكلفة",
+      "settings": "الإعدادات",
+      "reports": "التقارير",
+      "trialBalance": "ميزان المراجعة",
+      "incomeStatement": "قائمة الدخل",
+      "balanceSheet": "الميزانية العمومية",
+      "ledger": "دفتر الأستاذ",
+      "dayBook": "دفتر اليومية",
+      "agingReceivables": "أعمار الذمم — مدينة",
+      "agingPayables": "أعمار الذمم — دائنة",
+      "stockSummary": "ملخص المخزون",
+      "costCenterTotals": "إجماليات مراكز التكلفة"
+    },
+    "shortcuts": {
+      "dialogTitle": "اختصارات لوحة المفاتيح",
+      "dialogDescription": "اختصارات F-keys على غرار Tally للعمليات اليومية. تعمل في أي مكان ما لم تكن تكتب داخل حقل.",
+      "payment": "تسجيل دفعة (مدفوعة)",
+      "receipt": "تسجيل دفعة (مقبوضة)",
+      "journal": "قيد يومية جديد",
+      "sales": "فاتورة مبيعات جديدة",
+      "purchase": "فاتورة مشتريات جديدة",
+      "dayBook": "فتح دفتر اليومية",
+      "help": "عرض هذه القائمة"
+    },
     "notActivated": {
       "title": "وحدة المحاسبة غير مفعّلة",
       "description": "فعّل وحدة المحاسبة لإدارة دليل الحسابات والقوائم المالية.",
       "activate": "تفعيل وحدة المحاسبة"
+    },
+    "financialReports": {
+      "common": {
+        "asOfDate": "حتى تاريخ",
+        "startDate": "من تاريخ",
+        "endDate": "إلى تاريخ",
+        "generate": "إنشاء التقرير",
+        "exportPdf": "تصدير PDF",
+        "loadingAria": "جارٍ تحميل {report}",
+        "account": "الحساب",
+        "selectAccount": "اختر حساباً"
+      },
+      "trialBalance": {
+        "title": "ميزان المراجعة",
+        "description": "عرض أرصدة الحسابات حتى تاريخ معيّن",
+        "columns": {
+          "accountCode": "كود الحساب",
+          "accountName": "اسم الحساب",
+          "type": "النوع",
+          "debit": "مدين",
+          "credit": "دائن"
+        },
+        "totals": "الإجماليات:"
+      },
+      "incomeStatement": {
+        "title": "قائمة الدخل",
+        "description": "قائمة الأرباح والخسائر لفترة محددة",
+        "revenue": "الإيرادات",
+        "expenses": "المصروفات",
+        "totalRevenue": "إجمالي الإيرادات",
+        "totalExpenses": "إجمالي المصروفات",
+        "netIncome": "صافي الدخل"
+      },
+      "balanceSheet": {
+        "title": "الميزانية العمومية",
+        "description": "الأصول والالتزامات وحقوق الملكية حتى تاريخ معيّن",
+        "assets": "الأصول",
+        "totalAssets": "إجمالي الأصول",
+        "liabilities": "الالتزامات",
+        "totalLiabilities": "إجمالي الالتزامات",
+        "equity": "حقوق الملكية",
+        "totalEquity": "إجمالي حقوق الملكية",
+        "totalLiabilitiesEquity": "إجمالي الالتزامات وحقوق الملكية"
+      },
+      "generalLedger": {
+        "title": "دفتر الأستاذ العام",
+        "description": "عرض سجل المعاملات لحساب معيّن",
+        "beginningBalance": "الرصيد الافتتاحي: ",
+        "endingBalance": "الرصيد الختامي: ",
+        "selectAccountPrompt": "اختر حساباً لعرض دفتر الأستاذ الخاص به",
+        "columns": {
+          "date": "التاريخ",
+          "entryNumber": "رقم القيد",
+          "description": "البيان",
+          "debit": "مدين",
+          "credit": "دائن",
+          "balance": "الرصيد"
+        }
+      }
+    },
+    "journal": {
+      "list": {
+        "title": "قيود اليومية",
+        "description": "إدارة قيود اليومية المحاسبية",
+        "newButton": "قيد يومية جديد",
+        "empty": "لا توجد قيود يومية. اضغط \"{action}\" لإنشاء قيد.",
+        "columns": {
+          "voucher": "السند",
+          "entryNumber": "رقم القيد",
+          "date": "التاريخ",
+          "description": "البيان",
+          "source": "المصدر",
+          "status": "الحالة",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "posted": "مرحَّل",
+          "draft": "مسوّدة"
+        },
+        "actions": {
+          "edit": "تعديل",
+          "post": "ترحيل القيد",
+          "delete": "حذف",
+          "view": "عرض التفاصيل"
+        },
+        "sourceAria": "افتح المصدر {sourceType}",
+        "dialogs": {
+          "post": {
+            "title": "ترحيل قيد اليومية",
+            "description": "هل أنت متأكد من ترحيل هذا القيد؟ لا يمكن التراجع. بعد الترحيل سيتم تحديث أرصدة الحسابات ولن يمكن تعديل القيد أو حذفه.",
+            "confirm": "ترحيل القيد"
+          },
+          "delete": {
+            "title": "حذف قيد اليومية",
+            "description": "هل أنت متأكد من حذف هذا القيد؟ لا يمكن التراجع."
+          }
+        },
+        "toast": {
+          "posted": "تم ترحيل القيد بنجاح",
+          "deleted": "تم حذف القيد بنجاح",
+          "postError": "تعذّر ترحيل القيد",
+          "deleteError": "تعذّر حذف القيد"
+        }
+      },
+      "new": {
+        "title": "قيد يومية جديد",
+        "description": "إنشاء قيد يومية محاسبي جديد",
+        "toast": {
+          "created": "تم إنشاء القيد بنجاح",
+          "createError": "تعذّر إنشاء القيد"
+        }
+      },
+      "form": {
+        "entryInfo": "بيانات القيد",
+        "entryDate": "تاريخ القيد",
+        "descriptionLabel": "البيان",
+        "descriptionPlaceholder": "وصف مختصر لهذا القيد",
+        "lines": "بنود القيد",
+        "addLine": "إضافة بند",
+        "columns": {
+          "account": "الحساب",
+          "description": "البيان",
+          "debit": "مدين",
+          "credit": "دائن"
+        },
+        "placeholders": {
+          "selectAccount": "اختر حساباً",
+          "lineDescription": "وصف البند",
+          "amount": "0.00"
+        },
+        "totals": "الإجماليات:",
+        "notBalanced": "القيد غير متوازن. الفرق: {diff}",
+        "exceedDebit": "(المدين يتجاوز الدائن)",
+        "exceedCredit": "(الدائن يتجاوز المدين)",
+        "balanced": "القيد متوازن",
+        "save": "حفظ القيد",
+        "saving": "جارٍ الحفظ...",
+        "errors": {
+          "notBalanced": "يجب أن يكون القيد متوازناً — المدين يساوي الدائن.",
+          "tooFewLines": "يجب أن يحتوي القيد على بندين صحيحين على الأقل بحساب وقيمة."
+        },
+        "aria": {
+          "accountForLine": "حساب البند {n}",
+          "descriptionForLine": "وصف البند {n}",
+          "debitForLine": "قيمة المدين للبند {n}",
+          "creditForLine": "قيمة الدائن للبند {n}",
+          "removeLine": "حذف البند {n}"
+        }
+      }
     },
     "accounts": {
       "title": "دليل الحسابات",
@@ -1584,6 +1792,8 @@
       "addAccount": "إضافة حساب",
       "filterAll": "جميع الأنواع",
       "searchPlaceholder": "ابحث في الحسابات...",
+      "groupLabel": "مجموعة",
+      "emptyState": "لا توجد حسابات. اضغط \"{action}\" لإنشاء حساب.",
       "type": {
         "asset": "أصل",
         "liability": "التزام",
@@ -1598,14 +1808,220 @@
         "parent": "الحساب الأب",
         "noParent": "بدون أب (مستوى أعلى)",
         "create": "إنشاء حساب",
-        "update": "تحديث الحساب"
+        "update": "تحديث الحساب",
+        "createDescription": "أضف حساباً جديداً إلى دليل الحسابات",
+        "updateDescription": "تحديث بيانات الحساب",
+        "submitCreate": "إنشاء",
+        "submitUpdate": "تحديث"
       },
       "delete": {
         "title": "حذف الحساب",
         "description": "هل أنت متأكد من حذف هذا الحساب؟ لا يمكن التراجع."
       },
+      "toast": {
+        "created": "تم إنشاء الحساب بنجاح",
+        "updated": "تم تحديث الحساب بنجاح",
+        "deleted": "تم حذف الحساب بنجاح",
+        "saveError": "تعذّر حفظ الحساب",
+        "deleteError": "تعذّر حذف الحساب"
+      },
       "expand": "توسيع الحساب {code}",
       "collapse": "طيّ الحساب {code}"
+    },
+    "reports": {
+      "costCenterTotals": {
+        "title": "إجماليات مراكز التكلفة",
+        "description": "مجموع المدين والدائن والصافي المخصص لكل مركز تكلفة خلال فترة محددة.",
+        "filters": "النطاق",
+        "startDate": "من",
+        "endDate": "إلى",
+        "empty": "لا توجد ربط مراكز تكلفة في هذه الفترة.",
+        "total": "الإجمالي",
+        "columns": {
+          "category": "الفئة",
+          "code": "الرمز",
+          "name": "المركز",
+          "debit": "مدين",
+          "credit": "دائن",
+          "net": "الصافي"
+        }
+      },
+      "stockSummary": {
+        "title": "ملخص المخزون",
+        "description": "الكميات والقيم المتوفرة لكل صنف، محسوبة من طبقات شراء FIFO. الأصناف المستهلكة بالكامل لا تُعرَض.",
+        "empty": "لا يوجد مخزون. سجّل عملية شراء أثناء تفعيل تكلفة البضاعة المباعة لتعبئة هذا التقرير.",
+        "total": "إجمالي قيمة المخزون",
+        "columns": {
+          "item": "الصنف",
+          "sku": "رمز الصنف",
+          "qty": "الكمية",
+          "avgCost": "متوسط التكلفة",
+          "value": "القيمة"
+        }
+      },
+      "dayBook": {
+        "title": "دفتر اليومية",
+        "description": "كل قيد مرحَّل خلال الفترة، مرتباً من الأقدم. شاشة المراجعة اليومية في Tally.",
+        "filters": "النطاق",
+        "startDate": "من",
+        "endDate": "إلى",
+        "empty": "لا توجد قيود في هذه الفترة.",
+        "totalCount": "{count, plural, =0 {لا قيود} =1 {قيد واحد} =2 {قيدان} few {# قيود} many {# قيداً} other {# قيد}}",
+        "columns": {
+          "date": "التاريخ",
+          "entryNumber": "رقم القيد",
+          "description": "الوصف",
+          "source": "المصدر",
+          "debit": "مدين",
+          "credit": "دائن"
+        }
+      },
+      "aging": {
+        "receivablesTitle": "أعمار الذمم — مدينة",
+        "receivablesDescription": "المبالغ المستحقة من العملاء مصنفة حسب العمر.",
+        "payablesTitle": "أعمار الذمم — دائنة",
+        "payablesDescription": "المبالغ المستحقة للموردين مصنفة حسب العمر.",
+        "filters": "التاريخ المرجعي",
+        "asOfDate": "حتى تاريخ",
+        "empty": "لا توجد مبالغ معلقة حتى هذا التاريخ.",
+        "totals": "الإجمالي",
+        "columns": {
+          "party": "الطرف",
+          "total": "الإجمالي"
+        }
+      }
+    },
+    "costCenters": {
+      "title": "مراكز التكلفة",
+      "description": "بُعد تقريري موازٍ. اربط القيود بقسم أو مشروع أو فرع أو أي وحدة مخصصة لتحليل الأرباح والخسائر خارج إطار دليل الحسابات.",
+      "cancel": "إلغاء",
+      "create": "إنشاء",
+      "toast": {
+        "categoryCreated": "تم إنشاء الفئة",
+        "centerCreated": "تم إنشاء مركز التكلفة",
+        "error": "فشلت العملية"
+      },
+      "categories": {
+        "title": "الفئات",
+        "description": "قسم / مشروع / فرع — الأبعاد نفسها.",
+        "empty": "لا توجد فئات بعد.",
+        "centersSuffix": "مركز",
+        "dialog": {
+          "title": "إضافة فئة",
+          "description": "الفئة هي التجميع الأعلى مستوًى (مثلاً \"القسم\"). تنتمي مراكز التكلفة إليها.",
+          "name": "الاسم",
+          "placeholder": "القسم"
+        }
+      },
+      "centers": {
+        "title": "مراكز التكلفة",
+        "description": "الوحدات الفعلية التي تُربَط بها المعاملات.",
+        "add": "إضافة مركز",
+        "empty": "لا توجد مراكز تكلفة بعد.",
+        "emptyNeedsCategory": "أنشئ فئة أولاً.",
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "columns": {
+          "code": "الرمز",
+          "name": "الاسم",
+          "category": "الفئة",
+          "status": "الحالة"
+        },
+        "dialog": {
+          "title": "إضافة مركز تكلفة",
+          "description": "يمكنك اختيارياً تضمينه تحت مركز موجود ضمن الفئة نفسها.",
+          "category": "الفئة",
+          "selectCategory": "اختر فئة",
+          "code": "الرمز",
+          "name": "الاسم",
+          "namePlaceholder": "الهندسة",
+          "parent": "الأب",
+          "parentNone": "بدون (أعلى مستوى)",
+          "parentPlaceholder": "اختر المركز الأب (اختياري)"
+        }
+      }
+    },
+    "banks": {
+      "title": "الحسابات البنكية",
+      "description": "إدارة الحسابات النقدية والبنكية. يرتبط كل بنك بدفتر أستاذ واحد، وتُمرَّر المدفوعات من خلاله بدلاً من نص حر لطريقة الدفع.",
+      "addBank": "إضافة حساب بنكي",
+      "viewLedger": "عرض دفتر الأستاذ",
+      "deactivate": "إلغاء التفعيل",
+      "empty": "لا توجد حسابات بنكية بعد. اضغط \"إضافة حساب بنكي\" لإنشاء أحدها.",
+      "createSuccess": "تم إنشاء الحساب البنكي",
+      "createError": "تعذّر إنشاء الحساب البنكي",
+      "deactivateSuccess": "تم إلغاء تفعيل الحساب البنكي",
+      "deactivateError": "تعذّر إلغاء تفعيل الحساب البنكي",
+      "columns": {
+        "name": "الاسم",
+        "bankName": "البنك",
+        "accountNumber": "رقم الحساب",
+        "ledgerCode": "دفتر الأستاذ",
+        "balance": "الرصيد",
+        "status": "الحالة",
+        "actions": "إجراءات"
+      },
+      "status": {
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "form": {
+        "title": "إضافة حساب بنكي",
+        "description": "يتم إنشاء دفتر أستاذ مرتبط تلقائياً تحت الأصول المتداولة.",
+        "name": "الاسم",
+        "namePlaceholder": "حساب جاري - بنك",
+        "bankName": "اسم البنك",
+        "bankNamePlaceholder": "اسم البنك",
+        "accountNumber": "رقم الحساب",
+        "openingBalance": "الرصيد الافتتاحي",
+        "currency": "العملة",
+        "cancel": "إلغاء",
+        "create": "إنشاء"
+      },
+      "deactivateConfirm": {
+        "title": "إلغاء تفعيل الحساب البنكي",
+        "description": "تظل المدفوعات والقيود الموجودة سليمة؛ يصبح الحساب غير متاح للمدفوعات الجديدة فقط. يمكن التراجع بإعادة التفعيل من الإعدادات."
+      }
+    },
+    "settings": {
+      "title": "إعدادات المحاسبة",
+      "description": "اضبط كيف تتكامل وحدة المحاسبة مع المبيعات والمشتريات والمدفوعات والمصروفات.",
+      "cogs": {
+        "title": "تكلفة البضاعة المباعة (COGS)",
+        "description": "عند التفعيل، كل عملية بيع منهَيَة تُسجِّل قيداً ثانياً (مدين COGS / دائن مخزون) محسوباً بطريقة FIFO من طبقات الشراء بحسب الأقدم. عمليات الشراء تُسجِّل طبقات جديدة.",
+        "toggleLabel": "احتساب COGS على المبيعات",
+        "toggleHint": "تحوّل من نقطة واحدة. المبيعات المنهَيَة قبل التفعيل لن تُعاد تكلفتها.",
+        "enabledToast": "تم تفعيل احتساب COGS",
+        "disabledToast": "تم إيقاف احتساب COGS",
+        "errorToast": "تعذّر تحديث إعداد COGS"
+      },
+      "defaults": {
+        "title": "الحسابات الافتراضية",
+        "description": "اربط كل دور بحساب من دليل الحسابات. تستخدم آليات الترحيل الآلي (مبيعات، مشتريات، مدفوعات، مصروفات) هذه الحسابات عند إنشاء قيود اليومية.",
+        "role": "الدور",
+        "account": "الحساب",
+        "notSet": "غير محدد",
+        "selectAccount": "اختر حساباً",
+        "updateSuccess": "تم تحديث الحساب الافتراضي",
+        "updateError": "فشل تحديث الحساب الافتراضي"
+      },
+      "roles": {
+        "cash_in_hand": "النقدية بالخزينة",
+        "accounts_receivable": "العملاء (المدينون)",
+        "accounts_payable": "الموردون (الدائنون)",
+        "sales_revenue": "إيرادات المبيعات",
+        "sales_tax_payable": "ضريبة المبيعات المستحقة",
+        "inventory_asset": "أصل المخزون",
+        "cogs": "تكلفة البضاعة المباعة",
+        "discount_allowed": "خصم مسموح به",
+        "discount_received": "خصم مكتسب",
+        "salary_expense": "مصروف الرواتب",
+        "salary_payable": "الرواتب المستحقة",
+        "general_expense": "مصروفات عامة",
+        "service_purchase_expense": "مصروف شراء خدمات"
+      }
     }
   },
   "hr": {

@@ -48,6 +48,12 @@ const navItems: NavItem[] = [
     permission: 'items:read',
   },
   {
+    labelKey: 'warehouses',
+    href: '/warehouses',
+    icon: <WarehouseIcon className="w-5 h-5" />,
+    permission: 'warehouses:read',
+  },
+  {
     labelKey: 'customers',
     href: '/customers',
     icon: <UsersIcon className="w-5 h-5" />,
@@ -66,16 +72,10 @@ const navItems: NavItem[] = [
     permission: 'payments:read',
   },
   {
-    labelKey: 'warehouses',
-    href: '/warehouses',
-    icon: <WarehouseIcon className="w-5 h-5" />,
-    permission: 'warehouses:read',
-  },
-  {
-    labelKey: 'pos',
-    href: '/pos',
-    icon: <StoreIcon className="w-5 h-5" />,
-    permission: 'pos:read',
+    labelKey: 'expenses',
+    href: '/expenses',
+    icon: <ReceiptIcon className="w-5 h-5" />,
+    permission: 'expenses:read',
   },
   {
     labelKey: 'accounting',
@@ -90,12 +90,6 @@ const navItems: NavItem[] = [
     icon: <BadgeIcon className="w-5 h-5" />,
     permission: 'hr:read',
     activePrefix: '/hr',
-  },
-  {
-    labelKey: 'expenses',
-    href: '/expenses',
-    icon: <ReceiptIcon className="w-5 h-5" />,
-    permission: 'expenses:read',
   },
   {
     labelKey: 'settings',

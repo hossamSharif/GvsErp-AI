@@ -47,6 +47,7 @@ import type { Account, AccountType, CreateAccountInput } from '@erp/shared';
 export default function ChartOfAccountsPage() {
   const { toast } = useToast();
   const t = useTranslations('accounting');
+  const tCommon = useTranslations('common');
   const [showActivation, setShowActivation] = useState(false);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -118,21 +119,21 @@ export default function ChartOfAccountsPage() {
           data: formData,
         });
         toast({
-          title: 'Success',
-          description: 'Account updated successfully',
+          title: tCommon('success'),
+          description: t('accounts.toast.updated'),
         });
       } else {
         await createMutation.mutateAsync(formData);
         toast({
-          title: 'Success',
-          description: 'Account created successfully',
+          title: tCommon('success'),
+          description: t('accounts.toast.created'),
         });
       }
       handleCloseDialog();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save account',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('accounts.toast.saveError'),
         variant: 'destructive',
       });
     }
@@ -144,13 +145,13 @@ export default function ChartOfAccountsPage() {
     try {
       await deleteMutation.mutateAsync(deleteAccountId);
       toast({
-        title: 'Success',
-        description: 'Account deleted successfully',
+        title: tCommon('success'),
+        description: t('accounts.toast.deleted'),
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete account',
+        title: tCommon('error'),
+        description: error instanceof Error ? error.message : t('accounts.toast.deleteError'),
         variant: 'destructive',
       });
     } finally {
@@ -187,7 +188,7 @@ export default function ChartOfAccountsPage() {
               {hasChildren ? (
                 <button
                   onClick={() => toggleNode(account.id)}
-                  aria-label={isExpanded ? `Collapse account ${account.code}` : `Expand account ${account.code}`}
+                  aria-label={isExpanded ? t('accounts.collapse', { code: account.code }) : t('accounts.expand', { code: account.code })}
                   className="mr-2 p-0.5 hover:bg-muted rounded"
                 >
                   {isExpanded ? (
@@ -204,9 +205,11 @@ export default function ChartOfAccountsPage() {
                   <span className="font-mono text-sm text-muted-foreground">
                     {account.code}
                   </span>
-                  <span className="font-medium">{account.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">
-                    ({account.type})
+                  <span className={account.is_group ? 'font-bold uppercase tracking-wide text-sm' : 'font-medium'}>
+                    {account.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({account.is_group ? t('accounts.groupLabel') : t(`accounts.type.${account.type}`)})
                   </span>
                 </div>
               </div>
@@ -329,7 +332,7 @@ export default function ChartOfAccountsPage() {
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No accounts found. Click "New Account" to create one.
+              {t('accounts.emptyState', { action: t('accounts.addAccount') })}
             </div>
           )}
         </CardContent>
@@ -340,18 +343,18 @@ export default function ChartOfAccountsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingAccount ? 'Edit Account' : 'Create Account'}
+              {editingAccount ? t('accounts.form.update') : t('accounts.form.create')}
             </DialogTitle>
             <DialogDescription>
               {editingAccount
-                ? 'Update account information'
-                : 'Add a new account to your chart of accounts'}
+                ? t('accounts.form.updateDescription')
+                : t('accounts.form.createDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Account Code</Label>
+              <Label htmlFor="code">{t('accounts.form.code')}</Label>
               <Input
                 id="code"
                 value={formData.code}
@@ -361,7 +364,7 @@ export default function ChartOfAccountsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Account Name</Label>
+              <Label htmlFor="name">{t('accounts.form.name')}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -371,7 +374,7 @@ export default function ChartOfAccountsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Account Type</Label>
+              <Label htmlFor="type">{t('accounts.form.type')}</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) =>
@@ -382,11 +385,11 @@ export default function ChartOfAccountsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="asset">Asset</SelectItem>
-                  <SelectItem value="liability">Liability</SelectItem>
-                  <SelectItem value="equity">Equity</SelectItem>
-                  <SelectItem value="revenue">Revenue</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="asset">{t('accounts.type.asset')}</SelectItem>
+                  <SelectItem value="liability">{t('accounts.type.liability')}</SelectItem>
+                  <SelectItem value="equity">{t('accounts.type.equity')}</SelectItem>
+                  <SelectItem value="revenue">{t('accounts.type.revenue')}</SelectItem>
+                  <SelectItem value="expense">{t('accounts.type.expense')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -394,7 +397,7 @@ export default function ChartOfAccountsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -403,7 +406,7 @@ export default function ChartOfAccountsPage() {
               {(createMutation.isPending || updateMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {editingAccount ? 'Update' : 'Create'}
+              {editingAccount ? t('accounts.form.submitUpdate') : t('accounts.form.submitCreate')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -413,14 +416,14 @@ export default function ChartOfAccountsPage() {
       <AlertDialog open={!!deleteAccountId} onOpenChange={(open) => !open && setDeleteAccountId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogTitle>{t('accounts.delete.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this account? This action cannot be undone.
+              {t('accounts.delete.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>{tCommon('delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

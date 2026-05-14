@@ -22,6 +22,7 @@ import type {
   UpdatePaymentInput,
   PaymentReportParams,
   PaymentReportResponse,
+  OutstandingInvoice,
 } from '@erp/shared';
 
 // =============================================================================
@@ -61,7 +62,27 @@ export const paymentKeys = {
   details: () => [...paymentKeys.all, 'detail'] as const,
   detail: (id: string) => [...paymentKeys.details(), id] as const,
   report: (params: PaymentReportParams) => [...paymentKeys.all, 'report', params] as const,
+  outstandingInvoices: (partyId: string) =>
+    [...paymentKeys.all, 'outstanding-invoices', partyId] as const,
 };
+
+/**
+ * Fetch outstanding (unpaid / partially-paid) invoices for a party.
+ * Drives the bill-wise picker on the payment form (plan Phase 3).
+ */
+export function usePaymentOutstandingInvoices(partyId: string | undefined) {
+  return useQuery({
+    queryKey: paymentKeys.outstandingInvoices(partyId ?? ''),
+    queryFn: async () => {
+      const res = await api.get<{ data: OutstandingInvoice[] }>(
+        '/payments/outstanding-invoices',
+        { party_id: partyId! }
+      );
+      return res.data;
+    },
+    enabled: !!partyId,
+  });
+}
 
 // =============================================================================
 // PAYMENT QUERIES

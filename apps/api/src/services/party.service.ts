@@ -9,6 +9,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { PartyRepository } from '../repositories/party.repository';
 import { BaseRepository } from '../repositories/base.repository';
+import { AccountingService } from './accounting.service';
 import type {
   Party,
   PartyWithSummary,
@@ -53,6 +54,8 @@ interface PartyRow {
   balance: number;
   is_active: boolean;
   notes: string | null;
+  /** Optional until DB types are regenerated after migration 023 */
+  ledger_account_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -72,6 +75,7 @@ interface BalanceSummaryRow {
  */
 export class PartyService {
   private readonly partyRepository: PartyRepository;
+  private readonly accountingService: AccountingService;
   private readonly tenantId: string;
   private readonly supabase: SupabaseClient<Database>;
 
@@ -81,6 +85,7 @@ export class PartyService {
   ) {
     this.supabase = supabase;
     this.partyRepository = new PartyRepository(supabase);
+    this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
   }
 
@@ -141,6 +146,22 @@ export class PartyService {
 
     const row = await this.partyRepository.create(this.tenantId, partyData);
 
+    // Phase 4: auto-create the party's dedicated ledger under Sundry
+    // Debtors (customer) / Sundry Creditors (supplier). Silently no-ops
+    // when accounting is disabled for the tenant.
+    try {
+      await this.accountingService.ensurePartyLedger(
+        this.tenantId,
+        row.id,
+        input.type
+      );
+    } catch (error) {
+      console.error(
+        `[party] Failed to auto-create ledger for party ${row.id}:`,
+        error
+      );
+    }
+
     return this.mapRow(row);
   }
 
@@ -172,6 +193,36 @@ export class PartyService {
 
     if (!row) {
       throw new PartyError('Failed to update party', 'UPDATE_FAILED', 500);
+    }
+
+    // Phase 4: keep the linked ledger's name in sync on party rename.
+    // Also ensure a ledger exists for parties created pre-P4 (lazy
+    // backfill — first edit after migration triggers creation).
+    if (input.name !== undefined) {
+      try {
+        await this.accountingService.syncPartyLedgerName(
+          this.tenantId,
+          id,
+          input.name.trim()
+        );
+      } catch (error) {
+        console.error(
+          `[party] Failed to sync ledger name for ${id}:`,
+          error
+        );
+      }
+    }
+    try {
+      await this.accountingService.ensurePartyLedger(
+        this.tenantId,
+        id,
+        existing.type as PartyType
+      );
+    } catch (error) {
+      console.error(
+        `[party] Failed to ensure ledger for ${id}:`,
+        error
+      );
     }
 
     return this.mapRow(row);
@@ -584,6 +635,8 @@ export class PartyService {
       balance: Number(row.balance || 0),
       isActive: row.is_active,
       notes: row.notes,
+      ledgerAccountId: row.ledger_account_id ?? null,
+      // ^ Phase 4 — falls back to null on rows from a pre-migration-023 DB.
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAccounts } from '@/hooks/use-accounts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ export function JournalEntryForm({
   onSubmit,
   isPending = false,
 }: JournalEntryFormProps) {
+  const t = useTranslations('accounting.journal.form');
   const [entryDate, setEntryDate] = useState(
     initialData?.entry_date || new Date().toISOString().split('T')[0]
   );
@@ -118,7 +120,7 @@ export function JournalEntryForm({
     e.preventDefault();
 
     if (!isBalanced) {
-      setValidationError('Journal entry must be balanced — debits must equal credits.');
+      setValidationError(t('errors.notBalanced'));
       return;
     }
 
@@ -129,7 +131,7 @@ export function JournalEntryForm({
     );
 
     if (validLines.length < 2) {
-      setValidationError('Journal entry must have at least 2 valid lines with an account and amount.');
+      setValidationError(t('errors.tooFewLines'));
       return;
     }
 
@@ -149,12 +151,12 @@ export function JournalEntryForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Entry Information</CardTitle>
+          <CardTitle>{t('entryInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="entry_date">Entry Date</Label>
+              <Label htmlFor="entry_date">{t('entryDate')}</Label>
               <Input
                 id="entry_date"
                 type="date"
@@ -166,12 +168,12 @@ export function JournalEntryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('descriptionLabel')}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of this journal entry"
+              placeholder={t('descriptionPlaceholder')}
               rows={2}
             />
           </div>
@@ -180,10 +182,10 @@ export function JournalEntryForm({
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Journal Lines</CardTitle>
+          <CardTitle>{t('lines')}</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={addLine}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Line
+            {t('addLine')}
           </Button>
         </CardHeader>
         {validationError && (
@@ -198,10 +200,10 @@ export function JournalEntryForm({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">Account</TableHead>
-                <TableHead className="w-[200px]">Description</TableHead>
-                <TableHead className="w-[150px] text-right">Debit</TableHead>
-                <TableHead className="w-[150px] text-right">Credit</TableHead>
+                <TableHead className="w-[300px]">{t('columns.account')}</TableHead>
+                <TableHead className="w-[200px]">{t('columns.description')}</TableHead>
+                <TableHead className="w-[150px] text-right">{t('columns.debit')}</TableHead>
+                <TableHead className="w-[150px] text-right">{t('columns.credit')}</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -213,8 +215,8 @@ export function JournalEntryForm({
                       value={line.account_id}
                       onValueChange={(value) => updateLine(index, 'account_id', value)}
                     >
-                      <SelectTrigger aria-label={`Account for line ${index + 1}`}>
-                        <SelectValue placeholder="Select account" />
+                      <SelectTrigger aria-label={t('aria.accountForLine', { n: index + 1 })}>
+                        <SelectValue placeholder={t('placeholders.selectAccount')} />
                       </SelectTrigger>
                       <SelectContent>
                         {accounts?.map((account) => (
@@ -231,8 +233,8 @@ export function JournalEntryForm({
                       onChange={(e) =>
                         updateLine(index, 'description', e.target.value)
                       }
-                      placeholder="Line description"
-                      aria-label={`Description for line ${index + 1}`}
+                      placeholder={t('placeholders.lineDescription')}
+                      aria-label={t('aria.descriptionForLine', { n: index + 1 })}
                     />
                   </TableCell>
                   <TableCell>
@@ -246,8 +248,8 @@ export function JournalEntryForm({
                         if (val > 0) updateLine(index, 'credit', 0);
                       }}
                       className="text-right"
-                      placeholder="0.00"
-                      aria-label={`Debit amount for line ${index + 1}`}
+                      placeholder={t('placeholders.amount')}
+                      aria-label={t('aria.debitForLine', { n: index + 1 })}
                     />
                   </TableCell>
                   <TableCell>
@@ -261,8 +263,8 @@ export function JournalEntryForm({
                         if (val > 0) updateLine(index, 'debit', 0);
                       }}
                       className="text-right"
-                      placeholder="0.00"
-                      aria-label={`Credit amount for line ${index + 1}`}
+                      placeholder={t('placeholders.amount')}
+                      aria-label={t('aria.creditForLine', { n: index + 1 })}
                     />
                   </TableCell>
                   <TableCell>
@@ -272,7 +274,7 @@ export function JournalEntryForm({
                       size="sm"
                       onClick={() => removeLine(index)}
                       disabled={lines.length <= 2}
-                      aria-label={`Remove line ${index + 1}`}
+                      aria-label={t('aria.removeLine', { n: index + 1 })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -283,7 +285,7 @@ export function JournalEntryForm({
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={2} className="font-semibold">
-                  Totals:
+                  {t('totals')}
                 </TableCell>
                 <TableCell className="text-right font-mono font-semibold">
                   {totalDebits.toFixed(2)}
@@ -301,8 +303,8 @@ export function JournalEntryForm({
               <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
                 <AlertCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  Entry is not balanced. Difference: {Math.abs(difference).toFixed(2)}{' '}
-                  {difference > 0 ? '(debits exceed credits)' : '(credits exceed debits)'}
+                  {t('notBalanced', { diff: Math.abs(difference).toFixed(2) })}{' '}
+                  {difference > 0 ? t('exceedDebit') : t('exceedCredit')}
                 </span>
               </div>
             </div>
@@ -312,7 +314,7 @@ export function JournalEntryForm({
             <div className="p-4 bg-green-50 dark:bg-green-900/20 border-t border-green-200 dark:border-green-800">
               <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
                 <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">Entry is balanced</span>
+                <span className="text-sm font-medium">{t('balanced')}</span>
               </div>
             </div>
           )}
@@ -325,7 +327,7 @@ export function JournalEntryForm({
           disabled={!isBalanced || isPending}
           size="lg"
         >
-          {isPending ? 'Saving...' : 'Save Journal Entry'}
+          {isPending ? t('saving') : t('save')}
         </Button>
       </div>
     </form>

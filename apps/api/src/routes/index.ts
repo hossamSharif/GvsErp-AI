@@ -22,6 +22,8 @@ import userRoutes from './users.routes';
 import settingsRoutes from './settings.routes';
 import auditRoutes from './audit.routes';
 import expensesRoutes from './expenses.routes';
+import banksRoutes from './banks.routes';
+import costCentersRoutes from './cost-centers.routes';
 
 const router: IRouter = Router();
 
@@ -48,5 +50,7 @@ router.use('/users', userRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/audit', auditRoutes);
 router.use('/expenses', expensesRoutes);
+router.use('/banks', banksRoutes);
+router.use('/cost-centers', costCentersRoutes);
 
 export default router;

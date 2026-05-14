@@ -8,7 +8,8 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { AccountingService } from '../services/accounting.service';
+import { z } from 'zod';
+import { AccountingService, type AccountingDefaultRole } from '../services/accounting.service';
 import {
   accountingActivationSchema,
   trialBalanceQuerySchema,
@@ -20,6 +21,30 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+
+const DEFAULT_ROLES: AccountingDefaultRole[] = [
+  'cash_in_hand',
+  'accounts_receivable',
+  'accounts_payable',
+  'sales_revenue',
+  'sales_tax_payable',
+  'inventory_asset',
+  'cogs',
+  'discount_allowed',
+  'discount_received',
+  'salary_expense',
+  'salary_payable',
+  'general_expense',
+  'service_purchase_expense',
+];
+
+const defaultRoleParamSchema = z.object({
+  role: z.enum(DEFAULT_ROLES as [AccountingDefaultRole, ...AccountingDefaultRole[]]),
+});
+
+const setDefaultAccountBodySchema = z.object({
+  account_id: z.string().uuid(),
+});
 
 const router: Router = Router();
 
@@ -78,6 +103,102 @@ router.post(
           accounts_created: accounts.length,
           accounts,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/cogs
+ *   Returns { enabled: boolean } — the Phase 5 COGS feature flag.
+ * PUT /accounting/cogs  { enabled: boolean }
+ *   Flips the flag. Cutover semantics: enabling at time T means sales
+ *   finalized after T post COGS; pre-T sales are not retroactively
+ *   re-costed.
+ */
+router.get(
+  '/cogs',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const enabled = await service.isCogsEnabled(tenantId);
+      res.json({ success: true, data: { enabled } });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.put(
+  '/cogs',
+  requirePermission('accounting:write'),
+  validateRequest({ body: z.object({ enabled: z.boolean() }) }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { enabled } = req.body as { enabled: boolean };
+      await service.setCogsEnabled(tenantId, enabled);
+      res.json({ success: true, data: { enabled } });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/defaults
+ * Return the configured default-role -> account_id mapping for this tenant.
+ * Used by the Settings page to render the role pickers.
+ */
+router.get(
+  '/defaults',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const defaults = await service.getDefaultAccountIds(tenantId);
+
+      res.json({
+        success: true,
+        data: {
+          roles: DEFAULT_ROLES,
+          mapping: defaults,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * PUT /accounting/defaults/:role
+ * Assign an account to a default role. Validates that the account exists in
+ * the tenant's chart of accounts. Body: { account_id: uuid }.
+ */
+router.put(
+  '/defaults/:role',
+  requirePermission('accounting:write'),
+  validateRequest({
+    params: defaultRoleParamSchema,
+    body: setDefaultAccountBodySchema,
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const role = req.params.role as AccountingDefaultRole;
+      const { account_id } = req.body as { account_id: string };
+
+      await service.setDefaultAccount(tenantId, role, account_id);
+
+      res.json({
+        success: true,
+        message: `Default account for role '${role}' updated`,
       });
     } catch (error) {
       next(error);
@@ -227,6 +348,103 @@ router.get(
         success: true,
         data: generalLedger,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/reports/stock-summary
+ *
+ * Phase 5: Tally Stock Summary. Qty + value per item, computed from the
+ * remaining FIFO layers. Only items with non-zero stock are included.
+ */
+router.get(
+  '/reports/stock-summary',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const summary = await service.generateStockSummary(tenantId);
+      res.json({ success: true, data: summary });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/reports/day-book?start_date=&end_date=
+ *
+ * Phase 6: chronological list of every posted voucher in the period with
+ * per-entry debit/credit totals. Tally's daily review surface.
+ */
+router.get(
+  '/reports/day-book',
+  validateRequest({
+    query: z.object({
+      start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { start_date, end_date } = req.query as {
+        start_date: string;
+        end_date: string;
+      };
+      const dayBook = await service.generateDayBook(tenantId, start_date, end_date);
+      res.json({ success: true, data: dayBook });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/reports/aging-receivables?as_of=YYYY-MM-DD
+ * GET /accounting/reports/aging-payables?as_of=YYYY-MM-DD
+ *
+ * Phase 6: outstanding by party with 0-30 / 31-60 / 61-90 / 90+ buckets.
+ * Aggregates each party's open invoices against payment_allocations.
+ */
+router.get(
+  '/reports/aging-receivables',
+  validateRequest({
+    query: z.object({
+      as_of: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { as_of } = req.query as { as_of: string };
+      const report = await service.generateAgingReport(tenantId, as_of, 'customer');
+      res.json({ success: true, data: report });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  '/reports/aging-payables',
+  validateRequest({
+    query: z.object({
+      as_of: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { as_of } = req.query as { as_of: string };
+      const report = await service.generateAgingReport(tenantId, as_of, 'supplier');
+      res.json({ success: true, data: report });
     } catch (error) {
       next(error);
     }
