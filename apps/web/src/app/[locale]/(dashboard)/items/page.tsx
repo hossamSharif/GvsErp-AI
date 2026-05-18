@@ -10,7 +10,7 @@
  * - Quick actions (add, edit, delete)
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
@@ -47,6 +47,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useCategories } from '@/hooks/use-categories';
+import { useDebounce } from '@/hooks/use-debounce';
 import type { ItemWithCategory, ItemQueryParams } from '@erp/shared';
 import {
   Plus,
@@ -80,6 +81,17 @@ export default function ItemsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
   const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
+
+  // Search input — debounced before promoting to the server query so we don't
+  // refetch on every keystroke.
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  useEffect(() => {
+    setQueryParams((prev) =>
+      prev.search === debouncedSearch ? prev : { ...prev, search: debouncedSearch, page: 1 }
+    );
+  }, [debouncedSearch]);
 
   // Fetch items and categories
   const { data, isLoading, error } = useItems(queryParams);
@@ -120,7 +132,7 @@ export default function ItemsPage() {
   }, []);
 
   const handleSearch = useCallback((value: string) => {
-    setQueryParams((prev) => ({ ...prev, search: value, page: 1 }));
+    setSearchInput(value);
   }, []);
 
   const handleAddItem = useCallback(() => {
@@ -355,6 +367,8 @@ export default function ItemsPage() {
             : []
         }
         onSortingChange={handleSortChange}
+        onSearchChange={handleSearch}
+        searchValue={searchInput}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -14,8 +14,10 @@
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { z } from 'zod';
+import Link from 'next/link';
+import { useDirection } from '@/hooks/use-direction';
 import {
   Form,
   FormControl,
@@ -183,6 +185,8 @@ export function ItemForm({
   const tUnits = useTranslations('items.units');
   const tTiers = useTranslations('items.priceTiers');
   const tCurrencies = useTranslations('items.currencies');
+  const locale = useLocale();
+  const { direction } = useDirection();
 
   const itemFormSchema = createItemFormSchema({
     nameRequired: t('validation.nameRequired'),
@@ -263,7 +267,7 @@ export function ItemForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir={direction}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">{tTabs('basic')}</TabsTrigger>
             <TabsTrigger value="pricing">{tTabs('pricing')}</TabsTrigger>
@@ -382,7 +386,23 @@ export function ItemForm({
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{tFields('category')}</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>{tFields('category')}</FormLabel>
+                          <Link
+                            href={`/${locale}/items/categories`}
+                            onClick={(e) => {
+                              if (
+                                form.formState.isDirty &&
+                                !window.confirm(tFields('leaveConfirm'))
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            {tFields('manageCategories')}
+                          </Link>
+                        </div>
                         <Select
                           onValueChange={(value) =>
                             field.onChange(value === '__none__' ? null : value)
@@ -396,11 +416,17 @@ export function ItemForm({
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="__none__">{tFields('categoryNone')}</SelectItem>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
+                            {categories.length === 0 ? (
+                              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                                {tFields('categoryEmpty')}
+                              </div>
+                            ) : (
+                              categories.map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />

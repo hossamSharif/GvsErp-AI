@@ -113,6 +113,8 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number, limit: number) => void;
   /** External search change handler */
   onSearchChange?: (value: string) => void;
+  /** Controlled search input value (use with onSearchChange for server-side search) */
+  searchValue?: string;
   /** External sorting state */
   sorting?: { id: string; desc: boolean }[];
   /** External sorting handler */
@@ -178,6 +180,7 @@ export function DataTable<TData, TValue>({
   pageIndex,
   onPageChange,
   onSearchChange,
+  searchValue,
   sorting: externalSorting,
   onSortingChange,
   className,
@@ -275,9 +278,12 @@ export function DataTable<TData, TValue>({
             <Input
               aria-label={resolvedSearchPlaceholder}
               placeholder={resolvedSearchPlaceholder}
-              value={searchColumn
-                ? (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
-                : globalFilter
+              value={
+                onSearchChange
+                  ? searchValue ?? ''
+                  : searchColumn
+                    ? (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
+                    : globalFilter
               }
               onChange={(event) => {
                 if (onSearchChange) {
