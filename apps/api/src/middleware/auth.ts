@@ -6,7 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
-import type { Permission, JWTClaims } from '@erp/shared';
+import type { Permission } from '@erp/shared';
 
 // Extend Express Request type
 declare global {
@@ -72,10 +72,33 @@ export async function authMiddleware(
       return;
     }
 
-    // Extract custom claims from user metadata
-    const claims = user.user_metadata as Partial<JWTClaims>;
+    // Resolve tenant, role, and permissions from the DB (source of truth).
+    // JWT user_metadata is kept in sync as a convenience for clients, but the
+    // API never trusts it for authorization — it can be stale (signed token)
+    // or out of sync after a role change.
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('tenant_id, is_active, role:roles(name, permissions)')
+      .eq('id', user.id)
+      .single();
 
-    if (!claims.tenant_id) {
+    if (profileError || !profile) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'User profile not found',
+      });
+      return;
+    }
+
+    if (!profile.is_active) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'Account is deactivated',
+      });
+      return;
+    }
+
+    if (!profile.tenant_id) {
       res.status(403).json({
         code: 'FORBIDDEN',
         message: 'User is not associated with a tenant',
@@ -83,12 +106,17 @@ export async function authMiddleware(
       return;
     }
 
+    const role = Array.isArray(profile.role) ? profile.role[0] : profile.role;
+    const permissions: Permission[] = role && Array.isArray(role.permissions)
+      ? (role.permissions as Permission[])
+      : [];
+
     req.user = {
       id: user.id,
       email: user.email!,
-      tenant_id: claims.tenant_id,
-      role: claims.role || '',
-      permissions: (claims.permissions || []) as Permission[],
+      tenant_id: profile.tenant_id,
+      role: role?.name ?? '',
+      permissions,
     };
     req.accessToken = token;
 

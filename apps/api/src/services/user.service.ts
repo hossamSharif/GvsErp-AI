@@ -5,30 +5,12 @@
  * role assignment, and user preferences.
  */
 
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
 import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput, Permission } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
-
-// Lazy service-role client for auth.admin.* operations.
-// The per-request supabase passed into UserService carries the user JWT,
-// which lacks the privileges needed to manage Supabase Auth users.
-let adminClient: SupabaseClient<Database> | null = null;
-function getAdminClient(): SupabaseClient<Database> {
-  if (adminClient) return adminClient;
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    throw new Error(
-      'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set for user-admin operations'
-    );
-  }
-  adminClient = createClient<Database>(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  return adminClient;
-}
+import { getAdminClient, resolveRoleClaims, syncUserAuthMetadata } from './auth-admin';
 
 /**
  * Application error for user-related operations
@@ -149,6 +131,8 @@ export class UserService {
 
       const user = await this.userRepository.create(this.tenantId, userData);
 
+      await this.syncMetadata(authData.user.id, input.role_id ?? null, input.full_name ?? null);
+
       return this.mapUser(user);
     } catch (error) {
       // Rollback: Delete auth user if database creation fails
@@ -202,15 +186,6 @@ export class UserService {
       }
     }
 
-    // Update full_name in auth metadata if changed
-    if (input.full_name && input.full_name !== existing.full_name) {
-      await getAdminClient().auth.admin.updateUserById(id, {
-        user_metadata: {
-          full_name: input.full_name,
-        },
-      });
-    }
-
     // Build update object
     const updates: Record<string, unknown> = {};
     if (input.email) updates.email = input.email.toLowerCase();
@@ -228,6 +203,14 @@ export class UserService {
 
     if (!user) {
       throw new UserError('Failed to update user', 'UPDATE_FAILED', 500);
+    }
+
+    // Re-sync auth metadata if role or full_name changed (also covers
+    // the full_name-only edit that used to be a separate call).
+    const roleChanged = input.role_id !== undefined && input.role_id !== existing.role_id;
+    const nameChanged = input.full_name !== undefined && input.full_name !== existing.full_name;
+    if (roleChanged || nameChanged) {
+      await this.syncMetadata(id, user.role_id ?? null, user.full_name ?? null);
     }
 
     return this.mapUser(user);
@@ -372,7 +355,32 @@ export class UserService {
       throw new UserError('User not found', 'USER_NOT_FOUND', 404);
     }
 
+    await this.syncMetadata(id, roleId, user.full_name ?? null);
+
     return this.mapUser(user);
+  }
+
+  /**
+   * Push the user's tenant/role/permissions/full_name into Supabase Auth's
+   * user_metadata. Best-effort: a failure here must not roll back the DB
+   * change — the auth middleware reads from the DB anyway.
+   */
+  private async syncMetadata(
+    userId: string,
+    roleId: string | null,
+    fullName: string | null
+  ): Promise<void> {
+    try {
+      const { role, permissions } = await resolveRoleClaims(this.supabase, roleId);
+      await syncUserAuthMetadata(userId, {
+        tenant_id: this.tenantId,
+        role,
+        permissions,
+        full_name: fullName,
+      });
+    } catch (err) {
+      console.error('Failed to sync user_metadata for user', userId, err);
+    }
   }
 
   /**

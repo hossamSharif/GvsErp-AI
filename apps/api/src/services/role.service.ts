@@ -9,6 +9,7 @@ import type { Database } from '@erp/database';
 import type { Role, Permission } from '@erp/shared';
 import { RoleRepository } from '../repositories/role.repository';
 import type { QueryResult } from '../repositories/base.repository';
+import { syncUserAuthMetadata } from './auth-admin';
 
 type RoleRow = { id: string; tenant_id: string; name: string; permissions: unknown; is_system: boolean; created_at: string };
 
@@ -32,8 +33,10 @@ export class RoleError extends Error {
 export class RoleService {
   private readonly repository: RoleRepository;
   private readonly tenantId: string;
+  private readonly supabase: SupabaseClient<Database>;
 
   constructor(supabase: SupabaseClient<Database>, tenantId: string) {
+    this.supabase = supabase;
     this.repository = new RoleRepository(supabase);
     this.tenantId = tenantId;
   }
@@ -123,7 +126,9 @@ export class RoleService {
       throw new RoleError('Failed to update role', 'UPDATE_FAILED', 500);
     }
 
-    return this.mapRow(role);
+    const mapped = this.mapRow(role);
+    await this.fanoutMetadata(mapped);
+    return mapped;
   }
 
   /**
@@ -149,7 +154,37 @@ export class RoleService {
     if (!role) {
       throw new RoleError('Role not found', 'ROLE_NOT_FOUND', 404);
     }
-    return this.mapRow(role);
+    const mapped = this.mapRow(role);
+    await this.fanoutMetadata(mapped);
+    return mapped;
+  }
+
+  /**
+   * After a role's name or permissions change, refresh user_metadata for every
+   * user assigned to it so JWT claims stay aligned with the DB. Best-effort —
+   * the auth middleware reads from the DB anyway.
+   */
+  private async fanoutMetadata(role: Role): Promise<void> {
+    try {
+      const { data: users } = await this.supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('tenant_id', this.tenantId)
+        .eq('role_id', role.id);
+      if (!users || users.length === 0) return;
+      await Promise.all(
+        users.map((u) =>
+          syncUserAuthMetadata(u.id, {
+            tenant_id: this.tenantId,
+            role: role.name,
+            permissions: role.permissions,
+            full_name: u.full_name ?? null,
+          })
+        )
+      );
+    } catch (err) {
+      console.error('Failed to fan-out metadata for role', role.id, err);
+    }
   }
 
   /**
