@@ -50,6 +50,8 @@ import {
   useFinalizeInvoice,
   useStockAvailability,
 } from '@/hooks/use-invoices';
+import { useItems } from '@/hooks/use-items';
+import { useDebounce } from '@/hooks/use-debounce';
 import type { DraftInvoice, DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
 
 // =============================================================================
@@ -74,14 +76,6 @@ interface InvoiceFormProps {
     email?: string | null;
     phone?: string | null;
   }>;
-  /** Available items for selection */
-  items: Array<{
-    id: string;
-    name: string;
-    sku: string | null;
-    unitPrice: number;
-    taxRate: number;
-  }>;
   /** Default warehouse ID */
   defaultWarehouseId?: string;
   /** Callback after successful save */
@@ -100,7 +94,6 @@ export function InvoiceForm({
   type,
   warehouses,
   parties,
-  items,
   defaultWarehouseId,
   onSaved,
   readOnly = false,
@@ -132,6 +125,25 @@ export function InvoiceForm({
   const [showItemSelect, setShowItemSelect] = useState(false);
   const [itemSearchQuery, setItemSearchQuery] = useState('');
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
+
+  // Server-side item search — only fetches while the picker is open, debounced
+  // so it searches the full tenant catalog (not just a pre-loaded page).
+  const debouncedItemSearch = useDebounce(itemSearchQuery, 300);
+  const { data: itemsData, isLoading: itemsLoading } = useItems(
+    { isActive: true, search: debouncedItemSearch || undefined, limit: 50 },
+    { enabled: showItemSelect }
+  );
+  const items = useMemo(
+    () =>
+      (itemsData?.data ?? []).map((i) => ({
+        id: i.id,
+        name: i.name,
+        sku: i.sku,
+        unitPrice: i.prices?.[0]?.price ?? 0,
+        taxRate: i.taxRate,
+      })),
+    [itemsData]
+  );
 
   // Mutations
   const createInvoice = useCreateInvoice();
@@ -445,17 +457,6 @@ export function InvoiceForm({
     }
   }, [draft, currentDraftId, createInvoice, finalizeInvoice, deleteDraft, toast, onSaved, t, tCommon]);
 
-  // Filtered items for selection
-  const filteredItems = useMemo(() => {
-    if (!itemSearchQuery) return items;
-    const search = itemSearchQuery.toLowerCase();
-    return items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(search) ||
-        item.sku?.toLowerCase().includes(search)
-    );
-  }, [items, itemSearchQuery]);
-
   // Calculate totals
   const subtotal = draft ? getDraftSubtotal(draft) : 0;
   const taxAmount = draft ? getDraftTaxAmount(draft) : 0;
@@ -600,12 +601,16 @@ export function InvoiceForm({
               aria-label={t('searchItems')}
             />
             <div className="max-h-48 overflow-auto border rounded-md">
-              {filteredItems.length === 0 ? (
+              {itemsLoading ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  {tCommon('loading')}
+                </div>
+              ) : items.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   {t('noItemsFound')}
                 </div>
               ) : (
-                filteredItems.slice(0, 20).map((item) => (
+                items.map((item) => (
                   <button
                     key={item.id}
                     className="w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b last:border-b-0"

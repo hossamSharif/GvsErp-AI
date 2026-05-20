@@ -15,7 +15,6 @@ import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvoiceForm } from '@/components/forms/invoice-form';
 import { useInvoice } from '@/hooks/use-invoices';
-import { useItems } from '@/hooks/use-items';
 import { useParties } from '@/hooks/use-parties';
 import { useWarehouses } from '@/hooks/use-warehouses';
 import type { InvoiceWithRelations } from '@erp/shared';
@@ -37,9 +36,8 @@ export default function EditPurchasePage() {
   // Fetch real data from API
   const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
   const { data: partiesData, isLoading: partiesLoading } = useParties({ type: 'supplier', limit: 100 });
-  const { data: itemsData, isLoading: itemsLoading } = useItems({ isActive: true, limit: 100 });
 
-  const isLoading = invoiceLoading || warehousesLoading || partiesLoading || itemsLoading;
+  const isLoading = invoiceLoading || warehousesLoading || partiesLoading;
 
   const warehouses = useMemo(() =>
     (warehousesData?.data ?? []).map((w) => ({ id: w.id, name: w.name })),
@@ -56,17 +54,6 @@ export default function EditPurchasePage() {
       phone: p.phone,
     })),
     [partiesData]
-  );
-
-  const items = useMemo(() =>
-    (itemsData?.data ?? []).map((i) => ({
-      id: i.id,
-      name: i.name,
-      sku: i.sku,
-      unitPrice: i.prices?.[0]?.price ?? 0,
-      taxRate: i.taxRate,
-    })),
-    [itemsData]
   );
 
   const handleSaved = useCallback((updatedInvoice: InvoiceWithRelations) => {
@@ -137,7 +124,6 @@ export default function EditPurchasePage() {
         existingInvoice={invoice}
         warehouses={warehouses}
         parties={parties}
-        items={items}
         onSaved={handleSaved}
       />
     </div>
