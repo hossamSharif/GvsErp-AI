@@ -8,6 +8,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
 import { useDirection } from '@/hooks/use-direction';
@@ -27,6 +28,10 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { isRtl } = useDirection();
   const router = useRouter();
   const params = useParams();
+
+  const tProfile = useTranslations('settings.profile');
+  const tSettings = useTranslations('settings.home');
+  const tAuth = useTranslations('auth');
 
   const currentLocale = params.locale as string;
 
@@ -90,8 +95,12 @@ export function Header({ onMenuClick }: HeaderProps) {
   }, [isUserMenuOpen, closeMenu]);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push(`/${currentLocale}/login`);
+    try {
+      await signOut();
+    } finally {
+      // Always navigate to login, even if the server-side sign-out errored.
+      router.push(`/${currentLocale}/login`);
+    }
   };
 
   return (
@@ -201,7 +210,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   className="w-full px-3 py-2 text-sm text-start hover:bg-muted transition-colors flex items-center gap-2"
                 >
                   <UserIcon className="w-4 h-4" />
-                  Profile
+                  {tProfile('title')}
                 </button>
                 <button
                   ref={(el) => { menuItemsRef.current[1] = el; }}
@@ -213,7 +222,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   className="w-full px-3 py-2 text-sm text-start hover:bg-muted transition-colors flex items-center gap-2"
                 >
                   <SettingsIcon className="w-4 h-4" />
-                  Settings
+                  {tSettings('title')}
                 </button>
               </div>
 
@@ -225,7 +234,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   className="w-full px-3 py-2 text-sm text-start hover:bg-muted transition-colors flex items-center gap-2 text-destructive"
                 >
                   <LogOutIcon className="w-4 h-4" />
-                  Sign out
+                  {tAuth('logout')}
                 </button>
               </div>
             </div>

@@ -10,7 +10,7 @@ import type { Database } from '@erp/database';
 import { UserRepository, UserWithRole } from '../repositories/user.repository';
 import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput, Permission } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
-import { getAdminClient, resolveRoleClaims, syncUserAuthMetadata } from './auth-admin';
+import { getAdminClient, createAnonClient, resolveRoleClaims, syncUserAuthMetadata } from './auth-admin';
 
 /**
  * Application error for user-related operations
@@ -317,6 +317,40 @@ export class UserService {
       password: newPassword,
     });
 
+    if (error) {
+      throw new UserError(
+        'Failed to change password',
+        'PASSWORD_CHANGE_FAILED',
+        500
+      );
+    }
+  }
+
+  /**
+   * Change the caller's own password after verifying their current one.
+   */
+  async changeOwnPassword(
+    userId: string,
+    email: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const anon = createAnonClient();
+    const { error: verifyErr } = await anon.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (verifyErr) {
+      throw new UserError(
+        'Current password is incorrect',
+        'INVALID_CURRENT_PASSWORD',
+        400
+      );
+    }
+
+    const { error } = await getAdminClient().auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
     if (error) {
       throw new UserError(
         'Failed to change password',

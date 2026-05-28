@@ -68,6 +68,7 @@ import {
 import { Save, Loader2, DollarSign } from 'lucide-react';
 import { useBanks } from '@/hooks/use-banks';
 import { usePaymentOutstandingInvoices } from '@/hooks/use-payments';
+import { CurrencySelect } from '@/components/forms/currency-select';
 
 const SENTINEL_CASH = '__cash__';
 
@@ -88,15 +89,6 @@ const paymentFormSchema = z.object({
 });
 
 type PaymentFormData = z.infer<typeof paymentFormSchema>;
-
-const CURRENCIES = [
-  { value: 'USD', label: 'US Dollar ($)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'GBP', label: 'British Pound (£)' },
-  { value: 'EGP', label: 'Egyptian Pound (E£)' },
-  { value: 'SAR', label: 'Saudi Riyal (﷼)' },
-  { value: 'AED', label: 'UAE Dirham (د.إ)' },
-];
 
 interface PaymentFormProps {
   paymentType: PaymentType;
@@ -340,20 +332,12 @@ export function PaymentForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Currency</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CURRENCIES.map((currency) => (
-                          <SelectItem key={currency.value} value={currency.value}>
-                            {currency.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <CurrencySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

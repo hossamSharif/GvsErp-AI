@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import type { CreateExpenseInput, UpdateExpenseInput, ExpenseWithCreator } from '@erp/shared';
 import { EXPENSE_CATEGORY_VALUES } from '@erp/shared';
+import { CurrencySelect } from '@/components/forms/currency-select';
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'check', 'credit_card', 'other'];
 const NONE_VALUE = '__none__';
@@ -191,13 +192,9 @@ export function ExpenseForm({
             {/* Currency */}
             <div className="space-y-2">
               <Label htmlFor="currency">{t('fields.currency')}</Label>
-              <Input
-                id="currency"
-                data-testid="expense-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                maxLength={3}
-              />
+              <div data-testid="expense-currency">
+                <CurrencySelect value={currency} onValueChange={setCurrency} />
+              </div>
             </div>
 
             {/* Payment Method */}

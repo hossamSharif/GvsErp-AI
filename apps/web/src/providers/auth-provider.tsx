@@ -26,6 +26,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, tenantName: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  sendPasswordReset: (email: string, redirectTo?: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -156,10 +158,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        throw error;
+        // The session may already be invalid (e.g. tokens were revoked after a
+        // password change). A global sign-out hits the server with the dead
+        // refresh token and fails — fall back to clearing the local session so
+        // logout always succeeds.
+        console.warn('Global sign-out failed, clearing local session:', error.message);
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
       }
-      setCurrentUser(null);
+    } catch (error) {
+      console.warn('Sign-out threw, clearing local session:', error);
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     } finally {
+      // Always clear client state regardless of server outcome.
+      setCurrentUser(null);
+      setSession(null);
+      setUser(null);
       setIsLoading(false);
     }
   };
@@ -168,6 +181,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data: { session } } = await supabase.auth.refreshSession();
     setSession(session);
     setUser(session?.user ?? null);
+    if (session?.access_token) {
+      await fetchCurrentUser(session.access_token);
+    }
+  };
+
+  // Send a password-reset email. The redirectTo URL is where the user lands
+  // after clicking the link in the email (our /{locale}/reset-password page).
+  const sendPasswordReset = async (email: string, redirectTo?: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo ? { redirectTo } : undefined
+    );
+    if (error) {
+      throw error;
+    }
+  };
+
+  // Set a new password for the current (recovery) session.
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      throw error;
+    }
   };
 
   return (
@@ -181,6 +217,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         signUp,
         signOut,
         refreshSession,
+        sendPasswordReset,
+        updatePassword,
       }}
     >
       {children}

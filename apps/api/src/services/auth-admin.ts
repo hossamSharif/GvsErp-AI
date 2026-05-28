@@ -28,6 +28,19 @@ export function getAdminClient(): SupabaseClient<Database> {
   return adminClient;
 }
 
+// Fresh anon client per call so signInWithPassword doesn't leak session state
+// across self-service password verifications. Do NOT reuse a singleton here.
+export function createAnonClient(): SupabaseClient<Database> {
+  const url = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set');
+  }
+  return createClient<Database>(url, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
 export interface UserAuthMetadata {
   tenant_id: string;
   role: string;

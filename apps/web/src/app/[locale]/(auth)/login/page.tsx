@@ -8,7 +8,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function LoginPage() {
@@ -20,7 +21,10 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
+  const t = useTranslations('auth');
+  const resetSuccess = searchParams.get('reset') === 'success';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +35,7 @@ export default function LoginPage() {
       await signIn(email, password);
       router.push(`/${locale}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t('loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -41,12 +45,17 @@ export default function LoginPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">Welcome back</h1>
-        <p className="text-muted-foreground">Sign in to your account</p>
+        <h1 className="text-2xl font-bold">{t('welcomeBack')}</h1>
+        <p className="text-muted-foreground">{t('signInSubtitle')}</p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {resetSuccess && !error && (
+          <div role="status" className="p-3 rounded-md bg-primary/10 text-sm">
+            {t('passwordUpdated')}
+          </div>
+        )}
         {error && (
           <div role="alert" className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
             {error}
@@ -55,7 +64,7 @@ export default function LoginPage() {
 
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">
-            Email
+            {t('email')}
           </label>
           <input
             id="email"
@@ -65,7 +74,7 @@ export default function LoginPage() {
             required
             autoComplete="email"
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="you@example.com"
+            placeholder={t('emailPlaceholder')}
             dir="ltr"
           />
         </div>
@@ -73,13 +82,13 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t('password')}
             </label>
             <Link
               href={`/${locale}/forgot-password`}
               className="text-sm text-primary hover:underline"
             >
-              Forgot password?
+              {t('forgotPassword')}
             </Link>
           </div>
           <input
@@ -90,7 +99,7 @@ export default function LoginPage() {
             required
             autoComplete="current-password"
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Enter your password"
+            placeholder={t('passwordPlaceholder')}
             dir="ltr"
           />
         </div>
@@ -100,18 +109,18 @@ export default function LoginPage() {
           disabled={isLoading}
           className="w-full py-2.5 px-4 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading ? 'Signing in...' : 'Sign in'}
+          {isLoading ? t('signingIn') : t('signIn')}
         </button>
       </form>
 
       {/* Footer */}
       <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{' '}
+        {t('noAccount')}{' '}
         <Link
           href={`/${locale}/register`}
           className="text-primary hover:underline font-medium"
         >
-          Create account
+          {t('createAccount')}
         </Link>
       </p>
     </div>

@@ -13,8 +13,8 @@
 import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTenantSettings, useUpdateTenantSettings } from '@/hooks/use-settings';
-import { useCurrencies } from '@/hooks/use-currencies';
 import { Button } from '@/components/ui/button';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import {
   Card,
   CardContent,
@@ -76,9 +76,6 @@ export default function GeneralSettingsPage() {
 
   // Fetch settings
   const { data: settingsData, isLoading } = useTenantSettings();
-
-  // Fetch currencies for dropdown
-  const { data: currenciesData } = useCurrencies({ limit: 100 });
 
   // Update mutation
   const updateMutation = useUpdateTenantSettings({
@@ -231,20 +228,12 @@ export default function GeneralSettingsPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Currency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {currenciesData?.data.map((currency) => (
-                          <SelectItem key={currency.id} value={currency.code}>
-                            {currency.code} - {currency.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <CurrencySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </FormControl>
                     <FormDescription>
                       Default currency for transactions and reports
                     </FormDescription>

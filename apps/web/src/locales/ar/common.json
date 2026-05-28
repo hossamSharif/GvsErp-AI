@@ -3,6 +3,11 @@
     "name": "نظام ERP",
     "description": "منصة ERP معيارية"
   },
+  "currency": {
+    "placeholder": "اختر العملة",
+    "loading": "جارٍ تحميل العملات…",
+    "empty": "لا توجد عملات مهيأة — أضف واحدة من الإعدادات ← العملات"
+  },
   "nav": {
     "dashboard": "لوحة التحكم",
     "items": "الأصناف",
@@ -30,7 +35,34 @@
     "noAccount": "ليس لديك حساب؟",
     "hasAccount": "لديك حساب بالفعل؟",
     "signUp": "إنشاء حساب",
-    "signIn": "تسجيل الدخول"
+    "signIn": "تسجيل الدخول",
+    "welcomeBack": "مرحبًا بعودتك",
+    "signInSubtitle": "سجّل الدخول إلى حسابك",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "createAccount": "إنشاء حساب",
+    "loginFailed": "فشل تسجيل الدخول",
+    "forgotPasswordTitle": "هل نسيت كلمة المرور؟",
+    "forgotPasswordSubtitle": "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيينها.",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "sendingResetLink": "جارٍ الإرسال...",
+    "resetLinkSent": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فقد تم إرسال رابط إعادة تعيين كلمة المرور. يُرجى التحقق من بريدك الوارد.",
+    "resetRequestFailed": "تعذّر إرسال رابط إعادة التعيين. يُرجى المحاولة مرة أخرى.",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+    "resetPasswordSubtitle": "اختر كلمة مرور جديدة لحسابك.",
+    "verifyingResetLink": "جارٍ التحقق من رابط إعادة التعيين...",
+    "invalidResetLink": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. يُرجى طلب رابط جديد.",
+    "newPassword": "كلمة المرور الجديدة",
+    "newPasswordPlaceholder": "8 أحرف على الأقل",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "confirmNewPasswordPlaceholder": "أعد إدخال كلمة المرور الجديدة",
+    "updatePassword": "تحديث كلمة المرور",
+    "updatingPassword": "جارٍ التحديث...",
+    "passwordUpdated": "تم تحديث كلمة المرور. يُرجى تسجيل الدخول.",
+    "passwordsMismatch": "كلمتا المرور غير متطابقتين",
+    "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل"
   },
   "common": {
     "save": "حفظ",
@@ -73,6 +105,7 @@
       "description": "إدارة أصناف المخزون والفئات والأسعار.",
       "addButton": "إضافة صنف",
       "exportButton": "تصدير",
+      "manageCategoriesButton": "إدارة الفئات",
       "updatePricesButton": "تحديث الأسعار ({count})",
       "searchPlaceholder": "ابحث عن الأصناف...",
       "emptyMessage": "لا توجد أصناف. أنشئ صنفك الأول للبدء.",
@@ -376,20 +409,6 @@
       "wholesale": "جملة",
       "vip": "كبار العملاء",
       "cost": "التكلفة"
-    },
-    "currencies": {
-      "usd": "دولار أمريكي ($)",
-      "eur": "يورو (€)",
-      "gbp": "جنيه إسترليني (£)",
-      "egp": "جنيه مصري (E£)",
-      "sar": "ريال سعودي",
-      "aed": "درهم إماراتي",
-      "usdShort": "دولار أمريكي ($)",
-      "eurShort": "يورو",
-      "gbpShort": "جنيه إسترليني",
-      "egpShort": "جنيه مصري",
-      "sarShort": "ريال سعودي",
-      "aedShort": "درهم إماراتي"
     },
     "status": {
       "active": "نشط",
@@ -2131,11 +2150,82 @@
     }
   },
   "settings": {
+    "currencies": {
+      "title": "العملات",
+      "subtitle": "إدارة العملات وتعيين العملة الافتراضية",
+      "addButton": "إضافة عملة",
+      "backAriaLabel": "العودة إلى الإعدادات",
+      "searchPlaceholder": "بحث في العملات…",
+      "columns": {
+        "code": "الرمز",
+        "name": "الاسم",
+        "symbol": "الإشارة",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "default": "افتراضية",
+        "active": "مفعّلة",
+        "defaultMarkerAriaLabel": "العملة الافتراضية"
+      },
+      "rowActions": {
+        "openMenu": "فتح القائمة",
+        "label": "الإجراءات",
+        "edit": "تعديل",
+        "setAsDefault": "تعيين كافتراضية",
+        "delete": "حذف"
+      },
+      "dialog": {
+        "titleAdd": "إضافة عملة",
+        "titleEdit": "تعديل العملة",
+        "descriptionAdd": "أدخل بيانات العملة أدناه.",
+        "descriptionEdit": "حدّث بيانات العملة أدناه."
+      },
+      "form": {
+        "codeLabel": "رمز العملة",
+        "codePlaceholder": "USD",
+        "codeHint": "رمز العملة وفق ISO من 3 أحرف (مثل USD أو EUR أو GBP)",
+        "nameLabel": "اسم العملة",
+        "namePlaceholder": "دولار أمريكي",
+        "symbolLabel": "الإشارة",
+        "symbolPlaceholder": "$",
+        "symbolHint": "إشارة العملة (مثل $ أو € أو £)",
+        "setAsDefaultLabel": "تعيين كافتراضية",
+        "setAsDefaultHint": "استخدام هذه العملة كافتراضية",
+        "cancel": "إلغاء",
+        "create": "إنشاء",
+        "update": "تحديث"
+      },
+      "validation": {
+        "codeLength": "يجب أن يتكون الرمز من 3 أحرف",
+        "nameRequired": "الاسم مطلوب"
+      },
+      "delete": {
+        "title": "هل أنت متأكد؟",
+        "description": "سيتم حذف العملة \"{code} — {name}\". لا يمكن التراجع عن هذا الإجراء.",
+        "cancel": "إلغاء",
+        "confirm": "حذف"
+      },
+      "toasts": {
+        "createdTitle": "تم إنشاء العملة",
+        "createdDescription": "تمت إضافة العملة بنجاح.",
+        "updatedTitle": "تم تحديث العملة",
+        "updatedDescription": "تم تحديث بيانات العملة بنجاح.",
+        "deletedTitle": "تم حذف العملة",
+        "deletedDescription": "تم حذف العملة بنجاح.",
+        "errorTitle": "خطأ",
+        "createFailed": "تعذّر إنشاء العملة",
+        "updateFailed": "تعذّر تحديث العملة",
+        "deleteFailed": "تعذّر حذف العملة"
+      }
+    },
     "home": {
       "title": "الإعدادات",
       "description": "إدارة تهيئة النظام والتفضيلات",
       "comingSoon": "قريبًا",
       "cards": {
+        "profile": "الملف الشخصي",
+        "profileDesc": "تحديث بياناتك الشخصية وتغيير كلمة المرور",
         "roles": "الأدوار والصلاحيات",
         "rolesDesc": "تهيئة الأدوار والتحكم في الوصول",
         "users": "المستخدمون",
@@ -2150,6 +2240,50 @@
         "currenciesDesc": "إدارة العملات والإعدادات الافتراضية",
         "auditLogs": "سجلات التدقيق",
         "auditLogsDesc": "مراجعة نشاط المستخدمين وأحداث النظام"
+      }
+    },
+    "profile": {
+      "title": "الملف الشخصي",
+      "description": "تحديث بياناتك الشخصية وتغيير كلمة المرور",
+      "backAriaLabel": "العودة إلى الإعدادات",
+      "info": {
+        "title": "المعلومات الشخصية",
+        "description": "حدّث اسمك. لا يمكن تغيير البريد الإلكتروني من هنا.",
+        "fullName": "الاسم الكامل",
+        "fullNamePlaceholder": "اسمك الكامل",
+        "email": "البريد الإلكتروني",
+        "emailHelp": "يدار البريد الإلكتروني من قبل مسؤول مؤسستك.",
+        "save": "حفظ التغييرات",
+        "saving": "جارٍ الحفظ...",
+        "savedTitle": "تم تحديث الملف الشخصي",
+        "savedDescription": "تم تحديث ملفك الشخصي بنجاح."
+      },
+      "password": {
+        "title": "تغيير كلمة المرور",
+        "description": "اختر كلمة مرور قوية لا تستخدمها في أماكن أخرى.",
+        "current": "كلمة المرور الحالية",
+        "new": "كلمة المرور الجديدة",
+        "confirm": "تأكيد كلمة المرور الجديدة",
+        "requirements": "8 أحرف على الأقل، مع حرف كبير وحرف صغير ورقم.",
+        "update": "تحديث كلمة المرور",
+        "updating": "جارٍ التحديث...",
+        "updatedTitle": "تم تغيير كلمة المرور",
+        "updatedDescription": "تم تحديث كلمة المرور بنجاح."
+      },
+      "validation": {
+        "fullNameRequired": "الاسم الكامل مطلوب",
+        "fullNameTooLong": "يجب ألا يزيد الاسم الكامل عن 255 حرفًا",
+        "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+        "passwordTooLong": "يجب ألا تزيد كلمة المرور عن 72 حرفًا",
+        "passwordNeedsUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير",
+        "passwordNeedsLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير",
+        "passwordNeedsNumber": "يجب أن تحتوي كلمة المرور على رقم",
+        "passwordsMismatch": "كلمتا المرور غير متطابقتين",
+        "sameAsCurrent": "يجب أن تختلف كلمة المرور الجديدة عن الحالية"
+      },
+      "errors": {
+        "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+        "currentIncorrect": "كلمة المرور الحالية غير صحيحة"
       }
     }
   }

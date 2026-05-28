@@ -57,6 +57,7 @@ import {
   Download,
   Filter,
   DollarSign,
+  FolderTree,
 } from 'lucide-react';
 
 export default function ItemsPage() {
@@ -300,6 +301,13 @@ export default function ItemsPage() {
           <Button variant="outline" onClick={handleExportPdf}>
             <Download className="mr-2 h-4 w-4" />
             {t('exportButton')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/${locale}/items/categories`)}
+          >
+            <FolderTree className="mr-2 h-4 w-4" />
+            {t('manageCategoriesButton')}
           </Button>
           <Button onClick={handleAddItem}>
             <Plus className="mr-2 h-4 w-4" />

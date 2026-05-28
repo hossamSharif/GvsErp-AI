@@ -44,6 +44,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useBulkUpdatePrices } from '@/hooks/use-items';
 import { useToast } from '@/components/ui/use-toast';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import type { ItemWithCategory, BulkPriceUpdateResult } from '@erp/shared';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -52,16 +53,6 @@ import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 // =============================================================================
 
 const TIER_KEYS = ['retail', 'wholesale', 'vip', 'cost'] as const;
-
-const CURRENCY_KEYS = ['usd', 'eur', 'gbp', 'egp', 'sar', 'aed'] as const;
-const CURRENCY_VALUES: Record<(typeof CURRENCY_KEYS)[number], string> = {
-  usd: 'USD',
-  eur: 'EUR',
-  gbp: 'GBP',
-  egp: 'EGP',
-  sar: 'SAR',
-  aed: 'AED',
-};
 
 // =============================================================================
 // FORM SCHEMA
@@ -125,7 +116,6 @@ export function BulkPriceDialog({
   const t = useTranslations('items.bulkPrice');
   const tCommon = useTranslations('common');
   const tTiers = useTranslations('items.priceTiers');
-  const tCurrencies = useTranslations('items.currencies');
 
   const bulkPriceFormSchema = createBulkPriceSchema({
     tierRequired: t('validation.tierRequired'),
@@ -318,20 +308,13 @@ export function BulkPriceDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('currency')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('currencyPlaceholder')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CURRENCY_KEYS.map((key) => (
-                          <SelectItem key={key} value={CURRENCY_VALUES[key]}>
-                            {tCurrencies(`${key}Short`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <CurrencySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder={t('currencyPlaceholder')}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

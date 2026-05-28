@@ -24,6 +24,7 @@ import {
   CreditCard,
   Globe,
   Palette,
+  UserCircle,
 } from 'lucide-react';
 
 interface SettingsSection {
@@ -41,6 +42,12 @@ export default function SettingsPage() {
   const t = useTranslations('settings.home');
 
   const sections: SettingsSection[] = [
+    {
+      title: t('cards.profile'),
+      description: t('cards.profileDesc'),
+      icon: <UserCircle className="h-6 w-6" />,
+      href: `/${locale}/settings/profile`,
+    },
     {
       title: t('cards.general'),
       description: t('cards.generalDesc'),

@@ -33,6 +33,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import type { ItemReportParams } from '@erp/shared';
 import { useAuth } from '@/providers/auth-provider';
 import { ArrowLeft, Download, FileText, Loader2, Eye } from 'lucide-react';
@@ -64,8 +65,6 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   AED: 'AED ',
 };
 
-const CURRENCY_CODES = ['USD', 'EUR', 'GBP', 'EGP', 'SAR', 'AED'] as const;
-
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -78,7 +77,6 @@ export default function ItemsReportPage() {
   const { currentUser } = useAuth();
   const t = useTranslations('items.report');
   const tCommon = useTranslations('common');
-  const tCurrencies = useTranslations('items.currencies');
   const tPdf = useTranslations('items.report.pdf');
   const companyName = currentUser?.tenant?.name || t('defaultCompanyName');
 
@@ -105,21 +103,6 @@ export default function ItemsReportPage() {
   // Get currency symbol
   const currencySymbol =
     CURRENCY_SYMBOLS[reportParams.currency || 'USD'] || '$';
-
-  // Localized currency label
-  const getCurrencyLabel = useCallback(
-    (code: string) => {
-      const key = code.toLowerCase() as
-        | 'usd'
-        | 'eur'
-        | 'gbp'
-        | 'egp'
-        | 'sar'
-        | 'aed';
-      return tCurrencies(key);
-    },
-    [tCurrencies]
-  );
 
   // Generate filter description
   const getFilterDescription = useCallback(() => {
@@ -301,23 +284,12 @@ export default function ItemsReportPage() {
             {/* Currency */}
             <div className="space-y-2">
               <Label>{t('currency')}</Label>
-              <Select
+              <CurrencySelect
                 value={reportParams.currency}
                 onValueChange={(value) =>
                   setReportParams((prev) => ({ ...prev, currency: value }))
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCY_CODES.map((code) => (
-                    <SelectItem key={code} value={code}>
-                      {getCurrencyLabel(code)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             {/* Include Prices */}

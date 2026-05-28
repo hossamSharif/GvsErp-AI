@@ -48,6 +48,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import { cn } from '@/lib/utils';
 import type {
   ItemWithRelations,
@@ -76,16 +77,6 @@ const UNIT_KEYS = [
 ] as const;
 
 const TIER_KEYS = ['retail', 'wholesale', 'vip', 'cost'] as const;
-
-const CURRENCY_KEYS = ['usd', 'eur', 'gbp', 'egp', 'sar', 'aed'] as const;
-const CURRENCY_VALUES: Record<(typeof CURRENCY_KEYS)[number], string> = {
-  usd: 'USD',
-  eur: 'EUR',
-  gbp: 'GBP',
-  egp: 'EGP',
-  sar: 'SAR',
-  aed: 'AED',
-};
 
 // =============================================================================
 // FORM SCHEMA
@@ -184,7 +175,6 @@ export function ItemForm({
   const tCommon = useTranslations('common');
   const tUnits = useTranslations('items.units');
   const tTiers = useTranslations('items.priceTiers');
-  const tCurrencies = useTranslations('items.currencies');
   const locale = useLocale();
   const { direction } = useDirection();
 
@@ -607,23 +597,12 @@ export function ItemForm({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{tPricing('currency')}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {CURRENCY_KEYS.map((key) => (
-                                  <SelectItem key={key} value={CURRENCY_VALUES[key]}>
-                                    {tCurrencies(key)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <CurrencySelect
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

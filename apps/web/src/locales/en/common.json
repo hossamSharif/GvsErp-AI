@@ -3,6 +3,11 @@
     "name": "ERP SaaS",
     "description": "Modular ERP Platform"
   },
+  "currency": {
+    "placeholder": "Select currency",
+    "loading": "Loading currencies…",
+    "empty": "No currencies configured — add one in Settings → Currencies"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "items": "Items",
@@ -30,7 +35,34 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signUp": "Sign Up",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "welcomeBack": "Welcome back",
+    "signInSubtitle": "Sign in to your account",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Enter your password",
+    "signingIn": "Signing in...",
+    "createAccount": "Create account",
+    "loginFailed": "Login failed",
+    "forgotPasswordTitle": "Forgot your password?",
+    "forgotPasswordSubtitle": "Enter your email and we'll send you a link to reset it.",
+    "sendResetLink": "Send reset link",
+    "sendingResetLink": "Sending...",
+    "resetLinkSent": "If an account exists for that email, a password reset link has been sent. Please check your inbox.",
+    "resetRequestFailed": "Could not send the reset link. Please try again.",
+    "backToLogin": "Back to login",
+    "resetPasswordTitle": "Reset password",
+    "resetPasswordSubtitle": "Choose a new password for your account.",
+    "verifyingResetLink": "Verifying reset link...",
+    "invalidResetLink": "This reset link is invalid or has expired. Please request a new one.",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "At least 8 characters",
+    "confirmNewPassword": "Confirm new password",
+    "confirmNewPasswordPlaceholder": "Repeat your new password",
+    "updatePassword": "Update password",
+    "updatingPassword": "Updating...",
+    "passwordUpdated": "Your password has been updated. Please sign in.",
+    "passwordsMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters"
   },
   "common": {
     "save": "Save",
@@ -73,6 +105,7 @@
       "description": "Manage your inventory items, categories, and pricing.",
       "addButton": "Add Item",
       "exportButton": "Export",
+      "manageCategoriesButton": "Manage Categories",
       "updatePricesButton": "Update Prices ({count})",
       "searchPlaceholder": "Search items...",
       "emptyMessage": "No items found. Create your first item to get started.",
@@ -376,20 +409,6 @@
       "wholesale": "Wholesale",
       "vip": "VIP",
       "cost": "Cost"
-    },
-    "currencies": {
-      "usd": "US Dollar ($)",
-      "eur": "Euro (€)",
-      "gbp": "British Pound (£)",
-      "egp": "Egyptian Pound (E£)",
-      "sar": "Saudi Riyal",
-      "aed": "UAE Dirham",
-      "usdShort": "US Dollar ($)",
-      "eurShort": "Euro",
-      "gbpShort": "British Pound",
-      "egpShort": "Egyptian Pound",
-      "sarShort": "Saudi Riyal",
-      "aedShort": "UAE Dirham"
     },
     "status": {
       "active": "Active",
@@ -2136,6 +2155,8 @@
       "description": "Manage your system configuration and preferences",
       "comingSoon": "Coming Soon",
       "cards": {
+        "profile": "My Profile",
+        "profileDesc": "Update your personal information and change your password",
         "roles": "Roles & Permissions",
         "rolesDesc": "Configure roles and access control",
         "users": "Users",
@@ -2150,6 +2171,119 @@
         "currenciesDesc": "Manage currencies and default settings",
         "auditLogs": "Audit Logs",
         "auditLogsDesc": "Review user activity and system events"
+      }
+    },
+    "profile": {
+      "title": "My Profile",
+      "description": "Update your personal information and change your password",
+      "backAriaLabel": "Back to settings",
+      "info": {
+        "title": "Personal Information",
+        "description": "Update your name. Your email address cannot be changed here.",
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "Your full name",
+        "email": "Email",
+        "emailHelp": "Email is managed by your organization administrator.",
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "savedTitle": "Profile updated",
+        "savedDescription": "Your profile has been updated successfully."
+      },
+      "password": {
+        "title": "Change Password",
+        "description": "Choose a strong password that you don't use elsewhere.",
+        "current": "Current Password",
+        "new": "New Password",
+        "confirm": "Confirm New Password",
+        "requirements": "At least 8 characters, with an uppercase letter, a lowercase letter, and a number.",
+        "update": "Update Password",
+        "updating": "Updating...",
+        "updatedTitle": "Password changed",
+        "updatedDescription": "Your password has been updated successfully."
+      },
+      "validation": {
+        "fullNameRequired": "Full name is required",
+        "fullNameTooLong": "Full name must be 255 characters or fewer",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "passwordTooLong": "Password must be 72 characters or fewer",
+        "passwordNeedsUppercase": "Password must contain an uppercase letter",
+        "passwordNeedsLowercase": "Password must contain a lowercase letter",
+        "passwordNeedsNumber": "Password must contain a number",
+        "passwordsMismatch": "Passwords do not match",
+        "sameAsCurrent": "New password must be different from current password"
+      },
+      "errors": {
+        "generic": "Something went wrong. Please try again.",
+        "currentIncorrect": "Current password is incorrect"
+      }
+    },
+    "currencies": {
+      "title": "Currencies",
+      "subtitle": "Manage currencies and set your default currency",
+      "addButton": "Add Currency",
+      "backAriaLabel": "Back to settings",
+      "searchPlaceholder": "Search currencies…",
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "symbol": "Symbol",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "default": "Default",
+        "active": "Active",
+        "defaultMarkerAriaLabel": "Default currency"
+      },
+      "rowActions": {
+        "openMenu": "Open menu",
+        "label": "Actions",
+        "edit": "Edit",
+        "setAsDefault": "Set as Default",
+        "delete": "Delete"
+      },
+      "dialog": {
+        "titleAdd": "Add Currency",
+        "titleEdit": "Edit Currency",
+        "descriptionAdd": "Fill in the currency details below.",
+        "descriptionEdit": "Update the currency details below."
+      },
+      "form": {
+        "codeLabel": "Currency Code",
+        "codePlaceholder": "USD",
+        "codeHint": "3-letter ISO currency code (e.g., USD, EUR, GBP)",
+        "nameLabel": "Currency Name",
+        "namePlaceholder": "US Dollar",
+        "symbolLabel": "Symbol",
+        "symbolPlaceholder": "$",
+        "symbolHint": "Currency symbol (e.g., $, €, £)",
+        "setAsDefaultLabel": "Set as Default",
+        "setAsDefaultHint": "Use this as the default currency",
+        "cancel": "Cancel",
+        "create": "Create",
+        "update": "Update"
+      },
+      "validation": {
+        "codeLength": "Code must be 3 characters",
+        "nameRequired": "Name is required"
+      },
+      "delete": {
+        "title": "Are you sure?",
+        "description": "This will delete the currency \"{code} — {name}\". This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "toasts": {
+        "createdTitle": "Currency created",
+        "createdDescription": "The currency has been created successfully.",
+        "updatedTitle": "Currency updated",
+        "updatedDescription": "The currency has been updated successfully.",
+        "deletedTitle": "Currency deleted",
+        "deletedDescription": "The currency has been deleted successfully.",
+        "errorTitle": "Error",
+        "createFailed": "Failed to create currency",
+        "updateFailed": "Failed to update currency",
+        "deleteFailed": "Failed to delete currency"
       }
     }
   }

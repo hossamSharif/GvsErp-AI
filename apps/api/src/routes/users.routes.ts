@@ -30,6 +30,54 @@ function getUserService(req: Request): UserService {
 }
 
 // =============================================================================
+// SELF-SERVICE ENDPOINTS (must precede /:id routes)
+// =============================================================================
+
+const changeOwnPasswordSchema = z
+  .object({
+    current_password: z.string().min(8).max(72),
+    new_password: z
+      .string()
+      .min(8)
+      .max(72)
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number'),
+    confirm_password: z.string(),
+  })
+  .refine((d) => d.new_password === d.confirm_password, {
+    message: 'Passwords do not match',
+    path: ['confirm_password'],
+  })
+  .refine((d) => d.new_password !== d.current_password, {
+    message: 'New password must be different from current password',
+    path: ['new_password'],
+  });
+
+/**
+ * POST /users/me/change-password
+ * Authenticated user changes their own password (verifies current first).
+ */
+router.post(
+  '/me/change-password',
+  validateRequest({ body: changeOwnPasswordSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getUserService(req);
+    await service.changeOwnPassword(
+      req.user!.id,
+      req.user!.email,
+      req.body.current_password,
+      req.body.new_password
+    );
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  })
+);
+
+// =============================================================================
 // USER CRUD ENDPOINTS
 // =============================================================================
 

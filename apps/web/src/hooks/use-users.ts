@@ -177,3 +177,31 @@ export function useDeleteUser(options?: UseMutationOptions<void, Error, string>)
     },
   });
 }
+
+// =============================================================================
+// SELF-SERVICE PROFILE MUTATIONS
+// =============================================================================
+
+interface ChangeOwnPasswordInput {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+/**
+ * Change the current user's own password (verifies current password).
+ */
+export function useChangeOwnPassword(
+  options?: UseMutationOptions<ApiResponse<null>, Error, ChangeOwnPasswordInput>
+) {
+  return useMutation({
+    mutationFn: async (input: ChangeOwnPasswordInput) => {
+      const response = await api.post<ApiResponse<null>>(
+        '/users/me/change-password',
+        input
+      );
+      return response;
+    },
+    ...options,
+  });
+}
