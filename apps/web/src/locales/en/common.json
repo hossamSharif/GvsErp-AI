@@ -79,7 +79,7 @@
     "deleting": "Deleting...",
     "generating": "Generating...",
     "updating": "Updating...",
-    "noResults": "No results found",
+    "noResults": "No results found.",
     "actions": "Actions",
     "close": "Close",
     "back": "Back",
@@ -90,7 +90,6 @@
     "success": "Success",
     "columns": "Columns",
     "searchPlaceholder": "Search...",
-    "noResults": "No results found.",
     "rowsPerPage": "Rows per page",
     "pageOf": "Page {page} of {total}",
     "selectedRows": "{selected} of {total} row(s) selected.",
@@ -650,7 +649,12 @@
         "finalized": "Invoice Finalized",
         "finalizedDescription": "Invoice {number} has been finalized",
         "finalizeFailed": "Failed to finalize invoice"
-      }
+      },
+      "scanOrSearch": "Scan barcode or search by name / SKU...",
+      "quickAddHint": "Scan a barcode or type to search, then press Enter to add",
+      "itemAdded": "Added {name}",
+      "itemsAddedCount": "{count} added",
+      "itemNotFound": "No item found for “{code}”"
     },
     "items": {
       "columns": {
@@ -675,7 +679,9 @@
       "ariaQuantity": "Quantity for {name}",
       "ariaUnitPrice": "Unit price for {name}",
       "ariaDiscountPercent": "Discount percent for {name}",
-      "ariaTaxRate": "Tax rate for {name}"
+      "ariaTaxRate": "Tax rate for {name}",
+      "ariaIncrement": "Increase quantity for {name}",
+      "ariaDecrement": "Decrease quantity for {name}"
     },
     "party": {
       "selectPlaceholder": "Select party...",
@@ -1040,8 +1046,8 @@
       "downloadPdf": "Download PDF",
       "generating": "Generating...",
       "preview": "Preview",
-      "customerSummary": "{count} customers \u2022 Net receivable: ${amount}",
-      "supplierSummary": "{count} suppliers \u2022 Net payable: ${amount}",
+      "customerSummary": "{count} customers • Net receivable: ${amount}",
+      "supplierSummary": "{count} suppliers • Net payable: ${amount}",
       "noCustomersMatch": "No customers match the current filters.",
       "noSuppliersMatch": "No suppliers match the current filters.",
       "pdfDownloaded": "PDF downloaded",

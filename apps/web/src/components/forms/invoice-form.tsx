@@ -6,7 +6,7 @@
  * Full invoice form with autosave support using the draft store.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Save, Send, FileText, AlertCircle, Check } from 'lucide-react';
@@ -44,15 +44,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
 import { PartySelect } from '@/components/forms/party-select';
+import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
 import {
   useCreateInvoice,
   useUpdateInvoice,
   useFinalizeInvoice,
   useStockAvailability,
 } from '@/hooks/use-invoices';
-import { useItems } from '@/hooks/use-items';
-import { useDebounce } from '@/hooks/use-debounce';
-import type { DraftInvoice, DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
+import type { DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
 
 // =============================================================================
 // TYPES
@@ -121,29 +120,23 @@ export function InvoiceForm({
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId || null);
   const draft = currentDraftId ? getDraft(currentDraftId) : undefined;
 
-  // Item selection dialog state
-  const [showItemSelect, setShowItemSelect] = useState(false);
-  const [itemSearchQuery, setItemSearchQuery] = useState('');
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
-  // Server-side item search — only fetches while the picker is open, debounced
-  // so it searches the full tenant catalog (not just a pre-loaded page).
-  const debouncedItemSearch = useDebounce(itemSearchQuery, 300);
-  const { data: itemsData, isLoading: itemsLoading } = useItems(
-    { isActive: true, search: debouncedItemSearch || undefined, limit: 50 },
-    { enabled: showItemSelect }
-  );
-  const items = useMemo(
-    () =>
-      (itemsData?.data ?? []).map((i) => ({
-        id: i.id,
-        name: i.name,
-        sku: i.sku,
-        unitPrice: i.prices?.[0]?.price ?? 0,
-        taxRate: i.taxRate,
-      })),
-    [itemsData]
-  );
+  // Quick-add bar: ref to focus the input, and a transient row highlight shown
+  // when a scan/selection increments an already-present line.
+  const quickAddInputRef = useRef<HTMLInputElement>(null);
+  const [flashLocalId, setFlashLocalId] = useState<string | null>(null);
+  const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flashRow = useCallback((localId: string) => {
+    setFlashLocalId(localId);
+    if (flashTimeout.current) clearTimeout(flashTimeout.current);
+    flashTimeout.current = setTimeout(() => setFlashLocalId(null), 800);
+  }, []);
+
+  useEffect(() => () => {
+    if (flashTimeout.current) clearTimeout(flashTimeout.current);
+  }, []);
 
   // Mutations
   const createInvoice = useCreateInvoice();
@@ -255,13 +248,24 @@ export function InvoiceForm({
     [currentDraftId, updateDraft]
   );
 
+  // Empty-state button now just focuses the always-visible quick-add bar.
   const handleAddItem = useCallback(() => {
-    setShowItemSelect(true);
+    quickAddInputRef.current?.focus();
   }, []);
 
+  // Add the scanned/selected item — or, if it is already on the invoice,
+  // increment that line's quantity and flash it (key for barcode scanning).
   const handleSelectItem = useCallback(
-    (selectedItem: typeof items[0]) => {
+    (selectedItem: QuickAddItem) => {
       if (!currentDraftId) return;
+      const existing = draft?.items.find((i) => i.itemId === selectedItem.id);
+      if (existing) {
+        updateItem(currentDraftId, existing.localId, {
+          quantity: existing.quantity + 1,
+        });
+        flashRow(existing.localId);
+        return;
+      }
       addItem(currentDraftId, {
         itemId: selectedItem.id,
         itemName: selectedItem.name,
@@ -272,10 +276,8 @@ export function InvoiceForm({
         discountPercent: 0,
         taxRate: selectedItem.taxRate,
       });
-      setShowItemSelect(false);
-      setItemSearchQuery('');
     },
-    [currentDraftId, addItem]
+    [currentDraftId, draft, addItem, updateItem, flashRow]
   );
 
   const handleRemoveItem = useCallback(
@@ -568,7 +570,14 @@ export function InvoiceForm({
             {t('addItemsHint', { type: type === 'sale' ? t('saleType') : t('purchaseType') })}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Persistent scan/search bar — always visible above the table */}
+          {!readOnly && (
+            <ItemQuickAdd
+              onSelect={handleSelectItem}
+              inputRef={quickAddInputRef}
+            />
+          )}
           <InvoiceItemsTable
             items={draft?.items || []}
             onItemsChange={(items) => {
@@ -581,68 +590,11 @@ export function InvoiceForm({
             onReorder={handleReorderItems}
             onItemUpdate={handleItemUpdate}
             stockAvailability={stockData?.data}
+            highlightLocalId={flashLocalId}
             readOnly={readOnly}
           />
         </CardContent>
       </Card>
-
-      {/* Item Selection Dialog */}
-      {showItemSelect && (
-        <Card className="border-primary">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t('addItem')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Input
-              placeholder={t('searchItems')}
-              value={itemSearchQuery}
-              onChange={(e) => setItemSearchQuery(e.target.value)}
-              autoFocus
-              aria-label={t('searchItems')}
-            />
-            <div className="max-h-48 overflow-auto border rounded-md">
-              {itemsLoading ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  {tCommon('loading')}
-                </div>
-              ) : items.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  {t('noItemsFound')}
-                </div>
-              ) : (
-                items.map((item) => (
-                  <button
-                    key={item.id}
-                    className="w-full px-3 py-2 text-left hover:bg-muted/50 flex justify-between items-center border-b last:border-b-0"
-                    onClick={() => handleSelectItem(item)}
-                    aria-label={`${item.name}${item.sku ? ` (${item.sku})` : ''} - ${item.unitPrice.toLocaleString()}`}
-                  >
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      {item.sku && (
-                        <p className="text-xs text-muted-foreground">{item.sku}</p>
-                      )}
-                    </div>
-                    <span className="text-sm">
-                      {item.unitPrice.toLocaleString()}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setShowItemSelect(false);
-                setItemSearchQuery('');
-              }}
-            >
-              {t('cancel')}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Notes & Discount */}
       <div className="grid gap-6 md:grid-cols-2">

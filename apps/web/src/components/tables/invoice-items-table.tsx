@@ -26,7 +26,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Plus, Search } from 'lucide-react';
+import { GripVertical, Trash2, Plus, Minus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,8 @@ interface InvoiceItemsTableProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onItemUpdate: (localId: string, field: keyof DraftInvoiceItem, value: unknown) => void;
   stockAvailability?: Record<string, number>;
+  /** localId of a row to briefly highlight (e.g. after a scan increments it). */
+  highlightLocalId?: string | null;
   readOnly?: boolean;
   className?: string;
 }
@@ -62,6 +64,7 @@ interface SortableRowProps {
   onRemove: (localId: string) => void;
   onUpdate: (localId: string, field: keyof DraftInvoiceItem, value: unknown) => void;
   stockAvailable?: number;
+  highlight?: boolean;
   readOnly?: boolean;
 }
 
@@ -186,6 +189,7 @@ function SortableRow({
   onRemove,
   onUpdate,
   stockAvailable,
+  highlight,
   readOnly,
 }: SortableRowProps) {
   const t = useTranslations('sales.items');
@@ -212,9 +216,10 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group',
+        'group transition-colors',
         isDragging && 'bg-muted',
-        hasInsufficientStock && 'bg-destructive/10'
+        hasInsufficientStock && 'bg-destructive/10',
+        highlight && 'bg-primary/10 ring-1 ring-inset ring-primary'
       )}
     >
       {/* Drag Handle */}
@@ -257,18 +262,46 @@ function SortableRow({
       </TableCell>
 
       {/* Quantity */}
-      <TableCell className="w-24">
+      <TableCell className="w-32">
         <div className="flex flex-col">
-          <EditableCell
-            value={item.quantity}
-            onChange={(v) => onUpdate(item.localId, 'quantity', Number(v))}
-            type="number"
-            min={0.001}
-            step={0.001}
-            readOnly={readOnly}
-            className="w-20"
-            aria-label={t('ariaQuantity', { name: item.itemName })}
-          />
+          <div className="flex items-center gap-1">
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={() =>
+                  onUpdate(item.localId, 'quantity', Math.max(0.001, item.quantity - 1))
+                }
+                aria-label={t('ariaDecrement', { name: item.itemName })}
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+            )}
+            <EditableCell
+              value={item.quantity}
+              onChange={(v) => onUpdate(item.localId, 'quantity', Number(v))}
+              type="number"
+              min={0.001}
+              step={0.001}
+              readOnly={readOnly}
+              className="w-16 text-center"
+              aria-label={t('ariaQuantity', { name: item.itemName })}
+            />
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={() => onUpdate(item.localId, 'quantity', item.quantity + 1)}
+                aria-label={t('ariaIncrement', { name: item.itemName })}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
           {stockAvailable !== undefined && (
             <span
               className={cn(
@@ -364,6 +397,7 @@ export function InvoiceItemsTable({
   onReorder,
   onItemUpdate,
   stockAvailability,
+  highlightLocalId,
   readOnly = false,
   className,
 }: InvoiceItemsTableProps) {
@@ -416,7 +450,7 @@ export function InvoiceItemsTable({
                 <TableHead className="w-12 text-center">{t('columns.row')}</TableHead>
                 <TableHead className="min-w-[200px]">{t('columns.item')}</TableHead>
                 <TableHead className="min-w-[150px]">{t('columns.description')}</TableHead>
-                <TableHead className="w-24">{t('columns.qty')}</TableHead>
+                <TableHead className="w-32">{t('columns.qty')}</TableHead>
                 <TableHead className="w-28">{t('columns.unitPrice')}</TableHead>
                 <TableHead className="w-20">{t('columns.discountPercent')}</TableHead>
                 <TableHead className="w-20">{t('columns.taxPercent')}</TableHead>
@@ -437,6 +471,7 @@ export function InvoiceItemsTable({
                     onRemove={onRemoveItem}
                     onUpdate={onItemUpdate}
                     stockAvailable={stockAvailability?.[item.itemId]}
+                    highlight={item.localId === highlightLocalId}
                     readOnly={readOnly}
                   />
                 ))}

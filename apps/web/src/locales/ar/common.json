@@ -79,7 +79,7 @@
     "deleting": "جاري الحذف...",
     "generating": "جاري الإنشاء...",
     "updating": "جاري التحديث...",
-    "noResults": "لا توجد نتائج",
+    "noResults": "لا توجد نتائج.",
     "actions": "الإجراءات",
     "close": "إغلاق",
     "back": "رجوع",
@@ -90,7 +90,6 @@
     "success": "تم بنجاح",
     "columns": "الأعمدة",
     "searchPlaceholder": "بحث...",
-    "noResults": "لا توجد نتائج.",
     "rowsPerPage": "صفوف لكل صفحة",
     "pageOf": "صفحة {page} من {total}",
     "selectedRows": "تم تحديد {selected} من {total} صف.",
@@ -650,7 +649,12 @@
         "finalized": "تم اعتماد الفاتورة",
         "finalizedDescription": "تم اعتماد الفاتورة {number}",
         "finalizeFailed": "فشل اعتماد الفاتورة"
-      }
+      },
+      "scanOrSearch": "امسح الباركود أو ابحث بالاسم / SKU...",
+      "quickAddHint": "امسح باركود أو اكتب للبحث ثم اضغط Enter للإضافة",
+      "itemAdded": "تمت إضافة {name}",
+      "itemsAddedCount": "{count} مضاف",
+      "itemNotFound": "لا يوجد صنف للرمز “{code}”"
     },
     "items": {
       "columns": {
@@ -675,7 +679,9 @@
       "ariaQuantity": "كمية {name}",
       "ariaUnitPrice": "سعر وحدة {name}",
       "ariaDiscountPercent": "نسبة خصم {name}",
-      "ariaTaxRate": "نسبة ضريبة {name}"
+      "ariaTaxRate": "نسبة ضريبة {name}",
+      "ariaIncrement": "زيادة كمية {name}",
+      "ariaDecrement": "إنقاص كمية {name}"
     },
     "party": {
       "selectPlaceholder": "اختر طرفاً...",
