@@ -13,6 +13,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
 import { useDirection } from '@/hooks/use-direction';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { SyncStatusBadge } from '@/components/pwa/sync-status-badge';
 import { cn, getInitials } from '@/lib/utils';
 
 interface HeaderProps {
@@ -130,6 +131,9 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
+        {/* Offline / pending-sync indicator */}
+        <SyncStatusBadge />
+
         {/* Language Switcher */}
         <LanguageSwitcher />
 

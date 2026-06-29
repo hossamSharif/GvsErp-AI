@@ -47,7 +47,22 @@ async function getAccessToken(): Promise<string | null> {
   return null;
 }
 
-async function request<T>(
+/**
+ * Offline transport bridge. Dynamically imported (browser-only) so Dexie never
+ * loads during SSR. Returns null when offline support isn't applicable, letting
+ * the normal network path run.
+ */
+async function offlineModule() {
+  if (typeof window === 'undefined') return null;
+  return import('@/lib/offline/transport');
+}
+
+/**
+ * Raw network call: builds the URL, attaches the bearer token, performs the
+ * fetch and parses/throws. Bypasses the offline layer entirely — used directly
+ * by the sync engine to replay queued mutations (with an Idempotency-Key).
+ */
+export async function networkRequest<T>(
   method: HttpMethod,
   endpoint: string,
   options: RequestOptions = {}
@@ -84,7 +99,6 @@ async function request<T>(
     requestHeaders['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  // Make request
   const response = await fetch(url.toString(), {
     method,
     headers: requestHeaders,
@@ -92,7 +106,6 @@ async function request<T>(
     credentials: 'include',
   });
 
-  // Handle response
   if (!response.ok) {
     let error: ApiError;
     try {
@@ -106,12 +119,55 @@ async function request<T>(
     throw new ApiClientError(error, response.status);
   }
 
-  // Handle empty response
   if (response.status === 204) {
     return undefined as T;
   }
 
   return response.json();
+}
+
+async function request<T>(
+  method: HttpMethod,
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const { params, body } = options;
+
+  const offline = await offlineModule();
+  const online = offline ? offline.isOnline() : true;
+
+  // ---- Offline read path: serve GETs from the local mirror -----------------
+  if (offline && method === 'GET' && !online) {
+    return offline.readOffline<T>(endpoint, params as Record<string, unknown>);
+  }
+  // ---- Offline write path: run the local engine + queue for sync -----------
+  if (offline && method !== 'GET' && !online) {
+    return offline.writeOffline<T>(method, endpoint, body);
+  }
+
+  // ---- Online path ---------------------------------------------------------
+  let data: T;
+  try {
+    data = await networkRequest<T>(method, endpoint, options);
+  } catch (err) {
+    // A genuine network failure (not an API error) while "online": fall back to
+    // the local mirror for reads before surfacing the error.
+    if (offline && method === 'GET' && !(err instanceof ApiClientError)) {
+      try {
+        return await offline.readOffline<T>(endpoint, params as Record<string, unknown>);
+      } catch {
+        /* fall through to original error */
+      }
+    }
+    throw err;
+  }
+
+  // Read-through cache: mirror successful GETs into the local store.
+  if (offline && method === 'GET') {
+    void offline.cacheGetResponse(endpoint, data);
+  }
+
+  return data;
 }
 
 // Typed API client methods

@@ -24,10 +24,12 @@
       "@erp/shared/*": ["../../packages/shared/src/*"],
       "@erp/database": ["../../packages/database/src"],
       "@erp/database/*": ["../../packages/database/src/*"],
+      "@erp/offline-engine": ["../../packages/offline-engine/src"],
+      "@erp/offline-engine/*": ["../../packages/offline-engine/src/*"],
       "@erp/ui": ["../../packages/ui/src"],
       "@erp/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/app/sw.ts"]
 }

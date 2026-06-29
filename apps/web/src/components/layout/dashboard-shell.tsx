@@ -12,11 +12,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/hooks/use-direction';
+import { useOnline } from '@/hooks/use-online';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
+import { OfflineUnlock } from '@/components/pwa/offline-unlock';
 import { cn } from '@/lib/utils';
 import { type ReactNode } from 'react';
+
+const OFFLINE_UNLOCK_KEY = 'erp-offline-unlocked';
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -30,14 +34,58 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const params = useParams();
   const { direction, isRtl } = useDirection();
+  const online = useOnline();
   const locale = params.locale as string;
 
-  // Redirect to login if not authenticated
+  // Offline PIN gate: null = still checking, true = PIN required, false = not.
+  const [pinRequired, setPinRequired] = useState<boolean | null>(null);
+  const [unlocked, setUnlocked] = useState(false);
+
+  // Redirect to login if not authenticated AND online. Offline we keep the
+  // shell (the cached session / PIN governs access); /login needs the network.
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !user && online) {
       router.push(`/${locale}/login`);
     }
-  }, [user, isLoading, router, locale]);
+  }, [user, isLoading, online, router, locale]);
+
+  // Decide whether an offline PIN unlock is needed.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (online || !user) {
+        if (active) setPinRequired(false);
+        return;
+      }
+      const alreadyUnlocked =
+        typeof window !== 'undefined' &&
+        sessionStorage.getItem(OFFLINE_UNLOCK_KEY) === '1';
+      if (alreadyUnlocked) {
+        if (active) {
+          setUnlocked(true);
+          setPinRequired(false);
+        }
+        return;
+      }
+      try {
+        const { hasPin } = await import('@/lib/offline/auth-local');
+        const need = await hasPin();
+        if (active) setPinRequired(need);
+      } catch {
+        if (active) setPinRequired(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [online, user]);
+
+  function handleUnlocked() {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(OFFLINE_UNLOCK_KEY, '1');
+    }
+    setUnlocked(true);
+  }
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -56,9 +104,15 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
-  // Don't render if not authenticated
+  // Don't render if not authenticated (online redirects to /login; offline we
+  // wait for the cached session to hydrate rather than blank out).
   if (!user) {
     return null;
+  }
+
+  // Offline PIN gate: block the dashboard until unlocked.
+  if (!online && pinRequired && !unlocked) {
+    return <OfflineUnlock onUnlocked={handleUnlocked} />;
   }
 
   return (

@@ -8,12 +8,13 @@
 
 import { type ReactNode } from 'react';
 import { AccountingSubNav } from '@/components/accounting/accounting-subnav';
+import { OnlineOnlyGuard } from '@/components/pwa/online-only-guard';
 
 export default function AccountingLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <OnlineOnlyGuard moduleName="Accounting">
       <AccountingSubNav />
       {children}
-    </>
+    </OnlineOnlyGuard>
   );
 }

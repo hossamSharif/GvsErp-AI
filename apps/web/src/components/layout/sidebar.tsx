@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useDirection } from '@/hooks/use-direction';
+import { useOnline } from '@/hooks/use-online';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -21,6 +22,8 @@ interface NavItem {
   permission?: string;
   /** Optional prefix for active state matching (e.g. '/accounting' matches all sub-routes) */
   activePrefix?: string;
+  /** Module is unavailable offline (accounting, HR). */
+  onlineOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -83,6 +86,7 @@ const navItems: NavItem[] = [
     icon: <CalculatorIcon className="w-5 h-5" />,
     permission: 'accounting:read',
     activePrefix: '/accounting',
+    onlineOnly: true,
   },
   {
     labelKey: 'hr',
@@ -90,6 +94,7 @@ const navItems: NavItem[] = [
     icon: <BadgeIcon className="w-5 h-5" />,
     permission: 'hr:read',
     activePrefix: '/hr',
+    onlineOnly: true,
   },
   {
     labelKey: 'settings',
@@ -107,6 +112,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const params = useParams();
   const { isRtl } = useDirection();
+  const online = useOnline();
   const t = useTranslations('nav');
   const locale = params.locale as string;
 
@@ -159,6 +165,26 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 : pathname.startsWith(matchPath);
 
             const label = t(item.labelKey);
+            const disabled = item.onlineOnly && !online;
+
+            if (disabled) {
+              return (
+                <li key={item.href}>
+                  <span
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground/50 cursor-not-allowed',
+                      isCollapsed && 'justify-center'
+                    )}
+                    title={`${label} — online only`}
+                    aria-disabled="true"
+                  >
+                    <span aria-hidden="true">{item.icon}</span>
+                    {!isCollapsed && <span>{label}</span>}
+                  </span>
+                </li>
+              );
+            }
+
             return (
               <li key={item.href}>
                 <Link

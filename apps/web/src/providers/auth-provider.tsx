@@ -97,6 +97,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (response.ok) {
         const data = await response.json();
         setCurrentUser(data.data);
+
+        // Snapshot identity for offline recognition (best-effort, browser-only).
+        const cu = data.data as { id?: string; tenant_id?: string; email?: string } | null;
+        if (cu?.id) {
+          try {
+            const { saveOfflineIdentity } = await import('@/lib/offline/auth-local');
+            await saveOfflineIdentity({
+              userId: cu.id,
+              tenantId: cu.tenant_id ?? '',
+              email: cu.email ?? '',
+              currentUser: cu,
+            });
+          } catch (e) {
+            console.warn('[offline] failed to save offline identity', e);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -169,6 +185,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.warn('Sign-out threw, clearing local session:', error);
       await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     } finally {
+      // Clear the offline identity so the PIN gate resets for the next user.
+      // Cached business data is left intact (and wiped on a different-user
+      // login) so any not-yet-synced changes survive an accidental sign-out.
+      try {
+        const { clearOfflineIdentity } = await import('@/lib/offline/auth-local');
+        await clearOfflineIdentity();
+      } catch {
+        /* best-effort */
+      }
       // Always clear client state regardless of server outcome.
       setCurrentUser(null);
       setSession(null);

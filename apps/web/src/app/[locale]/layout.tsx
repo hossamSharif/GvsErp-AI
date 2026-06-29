@@ -1,9 +1,11 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
 import { locales } from '@/i18n/request';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
+import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker-registrar';
+import { SyncManager } from '@/components/pwa/sync-manager';
 import '@/styles/globals.css';
 
 const inter = { className: 'font-sans' };
@@ -11,6 +13,12 @@ const inter = { className: 'font-sans' };
 export const metadata: Metadata = {
   title: 'ERP SaaS',
   description: 'Modular ERP Platform',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ERP' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
 };
 
 export function generateStaticParams() {
@@ -35,7 +43,11 @@ export default async function RootLayout({
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              {children}
+              <ServiceWorkerRegistrar />
+              <SyncManager />
+            </AuthProvider>
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

@@ -8,6 +8,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { DraftInvoice, DraftInvoiceItem, InvoiceType } from '@erp/shared';
+import {
+  calculateLineTotal as sharedCalculateLineTotal,
+  computeInvoiceTotals,
+} from '@erp/offline-engine';
 
 // =============================================================================
 // TYPES
@@ -56,12 +60,13 @@ type DraftStore = DraftStoreState & DraftStoreActions;
 // =============================================================================
 
 /**
- * Calculate line total for an item
+ * Calculate line total for an item.
+ * Delegates to the shared offline engine so client and server agree exactly.
  */
-function calculateLineTotal(item: Pick<DraftInvoiceItem, 'quantity' | 'unitPrice' | 'discountPercent' | 'taxRate'>): number {
-  return Math.round(
-    item.quantity * item.unitPrice * (1 - item.discountPercent / 100) * (1 + item.taxRate / 100) * 100
-  ) / 100;
+function calculateLineTotal(
+  item: Pick<DraftInvoiceItem, 'quantity' | 'unitPrice' | 'discountPercent' | 'taxRate'>
+): number {
+  return sharedCalculateLineTotal(item);
 }
 
 /**
@@ -312,30 +317,21 @@ export const useDraftStore = create<DraftStore>()(
  * Get draft subtotal
  */
 export function getDraftSubtotal(draft: DraftInvoice): number {
-  return draft.items.reduce(
-    (sum, item) => sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100),
-    0
-  );
+  return computeInvoiceTotals(draft.items, draft.discountAmount).subtotal;
 }
 
 /**
  * Get draft tax amount
  */
 export function getDraftTaxAmount(draft: DraftInvoice): number {
-  return draft.items.reduce(
-    (sum, item) =>
-      sum + item.quantity * item.unitPrice * (1 - item.discountPercent / 100) * (item.taxRate / 100),
-    0
-  );
+  return computeInvoiceTotals(draft.items, draft.discountAmount).taxAmount;
 }
 
 /**
  * Get draft total
  */
 export function getDraftTotal(draft: DraftInvoice): number {
-  const subtotal = getDraftSubtotal(draft);
-  const tax = getDraftTaxAmount(draft);
-  return Math.round((subtotal + tax - draft.discountAmount) * 100) / 100;
+  return computeInvoiceTotals(draft.items, draft.discountAmount).total;
 }
 
 /**

@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { OfflinePinSetup } from '@/components/pwa/offline-pin-setup';
 
 function createInfoSchema(messages: { required: string; tooLong: string }) {
   return z.object({
@@ -382,6 +383,9 @@ export default function ProfilePage() {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Offline access PIN */}
+      <OfflinePinSetup />
     </div>
   );
 }
