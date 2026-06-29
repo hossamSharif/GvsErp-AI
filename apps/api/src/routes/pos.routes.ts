@@ -8,6 +8,7 @@ import { POSService } from '../services/pos.service';
 import { validateBody, validateParams } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { idempotencyMiddleware } from '../middleware/idempotency';
 import {
   createPOSLocationSchema,
   updatePOSLocationSchema,
@@ -19,6 +20,8 @@ const router: Router = Router();
 
 // Apply authentication to all routes
 router.use(requireAuth);
+// Safe replay of offline-synced writes (Idempotency-Key header).
+router.use(idempotencyMiddleware);
 
 function getPOSService(req: Request) {
   const { supabase, tenantId } = getTenantContext(req);

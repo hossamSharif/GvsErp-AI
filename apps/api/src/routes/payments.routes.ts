@@ -17,11 +17,14 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
+import { idempotencyMiddleware } from '../middleware/idempotency';
 
 const router: Router = Router();
 
 // Apply authentication to all routes
 router.use(requireAuth);
+// Safe replay of offline-synced writes (Idempotency-Key header).
+router.use(idempotencyMiddleware);
 
 /**
  * Helper to create PaymentService with tenant context

@@ -7,6 +7,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
+import { calculateLineTotal as sharedCalculateLineTotal } from '@erp/offline-engine';
 import { InvoiceRepository, InvoiceQueryOptions } from '../repositories/invoice.repository';
 import { AccountingService } from './accounting.service';
 import { InventoryValuationService } from './inventory-valuation.service';
@@ -881,9 +882,8 @@ export class InvoiceService {
     discountPercent: number,
     taxRate: number
   ): number {
-    return Math.round(
-      quantity * unitPrice * (1 - discountPercent / 100) * (1 + taxRate / 100) * 100
-    ) / 100;
+    // Delegates to the shared offline engine so client and server agree exactly.
+    return sharedCalculateLineTotal({ quantity, unitPrice, discountPercent, taxRate });
   }
 
   /**
