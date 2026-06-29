@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.6
 # Multi-stage build for apps/api in a pnpm workspace monorepo.
-# Targets Fly.io / any container runtime. Builds @erp/database and
-# @erp/shared first (they are workspace deps of the API), then builds
-# the API and produces a minimal prod-only runtime image.
+# Targets Fly.io / any container runtime. Builds @erp/database,
+# @erp/shared and @erp/offline-engine first (they are workspace deps of the
+# API), then builds the API and produces a minimal prod-only runtime image.
 
 ARG NODE_VERSION=20-alpine
 
@@ -20,6 +20,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/offline-engine/package.json ./packages/offline-engine/
 
 RUN pnpm install --frozen-lockfile
 
@@ -27,10 +28,12 @@ RUN pnpm install --frozen-lockfile
 COPY apps/api ./apps/api
 COPY packages/database ./packages/database
 COPY packages/shared ./packages/shared
+COPY packages/offline-engine ./packages/offline-engine
 
 # Build deps before the API so their dist/ exists when the API resolves them.
 RUN pnpm --filter @erp/database build \
  && pnpm --filter @erp/shared build \
+ && pnpm --filter @erp/offline-engine build \
  && pnpm --filter @erp/api build
 
 # Self-contained prod bundle (workspace deps inlined into node_modules).
