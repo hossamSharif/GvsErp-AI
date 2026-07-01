@@ -139,6 +139,7 @@ export async function createInvoiceOffline(
     notes: input.notes ?? null,
     createdBy: userId,
     returnedFromId: null,
+    invoiceDate: input.invoiceDate ?? now.slice(0, 10),
     createdAt: now,
     updatedAt: now,
     finalizedAt: null,

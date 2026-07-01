@@ -9,7 +9,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Save, Send, FileText, AlertCircle, Check } from 'lucide-react';
+import { Save, Send, FileText, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
 import { PartySelect } from '@/components/forms/party-select';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
 import {
   useCreateInvoice,
@@ -189,6 +189,7 @@ export function InvoiceForm({
         partyId: existingInvoice.partyId,
         warehouseId: existingInvoice.warehouseId,
         currency: existingInvoice.currency,
+        invoiceDate: existingInvoice.invoiceDate,
         exchangeRate: existingInvoice.exchangeRate,
         discountAmount: existingInvoice.discountAmount,
         notes: existingInvoice.notes || '',
@@ -232,6 +233,22 @@ export function InvoiceForm({
     [currentDraftId, updateDraft]
   );
 
+  const handleCurrencyChange = useCallback(
+    (currency: string) => {
+      if (!currentDraftId) return;
+      updateDraft(currentDraftId, { currency });
+    },
+    [currentDraftId, updateDraft]
+  );
+
+  const handleDateChange = useCallback(
+    (invoiceDate: string) => {
+      if (!currentDraftId) return;
+      updateDraft(currentDraftId, { invoiceDate });
+    },
+    [currentDraftId, updateDraft]
+  );
+
   const handleNotesChange = useCallback(
     (notes: string) => {
       if (!currentDraftId) return;
@@ -255,13 +272,15 @@ export function InvoiceForm({
 
   // Add the scanned/selected item — or, if it is already on the invoice,
   // increment that line's quantity and flash it (key for barcode scanning).
+  // `opts` carries a manual quantity/price; scans omit it and default to qty 1.
   const handleSelectItem = useCallback(
-    (selectedItem: QuickAddItem) => {
+    (selectedItem: QuickAddItem, opts?: { quantity?: number; unitPrice?: number }) => {
       if (!currentDraftId) return;
+      const quantity = opts?.quantity ?? 1;
       const existing = draft?.items.find((i) => i.itemId === selectedItem.id);
       if (existing) {
         updateItem(currentDraftId, existing.localId, {
-          quantity: existing.quantity + 1,
+          quantity: existing.quantity + quantity,
         });
         flashRow(existing.localId);
         return;
@@ -271,8 +290,8 @@ export function InvoiceForm({
         itemName: selectedItem.name,
         itemSku: selectedItem.sku,
         description: '',
-        quantity: 1,
-        unitPrice: selectedItem.unitPrice,
+        quantity,
+        unitPrice: opts?.unitPrice ?? selectedItem.unitPrice,
         discountPercent: 0,
         taxRate: selectedItem.taxRate,
       });
@@ -342,6 +361,7 @@ export function InvoiceForm({
             partyId: draft.partyId,
             warehouseId: draft.warehouseId,
             currency: draft.currency,
+            invoiceDate: draft.invoiceDate,
             exchangeRate: draft.exchangeRate,
             discountAmount: draft.discountAmount,
             notes: draft.notes || undefined,
@@ -367,6 +387,7 @@ export function InvoiceForm({
         partyId: draft.partyId,
         warehouseId: draft.warehouseId,
         currency: draft.currency,
+        invoiceDate: draft.invoiceDate,
         exchangeRate: draft.exchangeRate,
         discountAmount: draft.discountAmount,
         notes: draft.notes || undefined,
@@ -420,6 +441,7 @@ export function InvoiceForm({
         partyId: draft.partyId,
         warehouseId: draft.warehouseId,
         currency: draft.currency,
+        invoiceDate: draft.invoiceDate,
         exchangeRate: draft.exchangeRate,
         discountAmount: draft.discountAmount,
         notes: draft.notes || undefined,
@@ -480,16 +502,11 @@ export function InvoiceForm({
 
   return (
     <div className="space-y-6">
-      {/* Header Info */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Party Selection */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">
-              {type === 'sale' ? t('customer') : t('supplier')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Header toolbar — party · warehouse · currency · date, kept compact so
+          the items area stays near the top of the page. */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-[180px] flex-1">
             <PartySelect
               value={draft?.partyId || null}
               onChange={handlePartyChange}
@@ -498,21 +515,14 @@ export function InvoiceForm({
               placeholder={type === 'sale' ? t('selectCustomer') : t('selectSupplier')}
               disabled={readOnly}
             />
-          </CardContent>
-        </Card>
-
-        {/* Warehouse Selection */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t('warehouse')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="min-w-[160px] flex-1">
             <Select
               value={draft?.warehouseId || ''}
               onValueChange={handleWarehouseChange}
               disabled={readOnly}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label={t('warehouse')}>
                 <SelectValue placeholder={t('selectWarehouse')} />
               </SelectTrigger>
               <SelectContent>
@@ -523,46 +533,28 @@ export function InvoiceForm({
                 ))}
               </SelectContent>
             </Select>
-          </CardContent>
-        </Card>
-
-        {/* Currency & Date */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t('details')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label className="text-xs text-muted-foreground">{t('currency')}</Label>
-                <p className="font-medium">{draft?.currency || 'USD'}</p>
-              </div>
-              <div className="flex-1">
-                <Label className="text-xs text-muted-foreground">{t('date')}</Label>
-                <p className="font-medium">
-                  {new Date().toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <div className="w-32">
+            <CurrencySelect
+              value={draft?.currency || 'USD'}
+              onValueChange={handleCurrencyChange}
+              disabled={readOnly}
+            />
+          </div>
+          <div className="w-40">
+            <Input
+              type="date"
+              aria-label={t('date')}
+              value={draft?.invoiceDate || ''}
+              onChange={(e) => handleDateChange(e.target.value)}
+              disabled={readOnly}
+              className="h-10"
+            />
+          </div>
+        </div>
+      </Card>
 
       {/* Items Table */}
-      {/* Validation guidance — visible before items are added */}
-      {!isValid && !readOnly && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {!draft?.warehouseId && (draft?.items?.length || 0) === 0
-              ? t('validation.warehouseAndItems')
-              : !draft?.warehouseId
-                ? t('validation.warehouseOnly')
-                : t('validation.itemsOnly')}
-          </AlertDescription>
-        </Alert>
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle>{t('items')}</CardTitle>
@@ -575,6 +567,7 @@ export function InvoiceForm({
           {!readOnly && (
             <ItemQuickAdd
               onSelect={handleSelectItem}
+              priceTier={type === 'sale' ? 'retail' : 'cost'}
               inputRef={quickAddInputRef}
             />
           )}

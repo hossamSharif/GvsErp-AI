@@ -111,6 +111,7 @@ export function PaymentForm({
 }: PaymentFormProps) {
   const tForm = useTranslations('payments.form');
   const tAlloc = useTranslations('payments.form.allocations');
+  const tConfirm = useTranslations('payments.form.confirm');
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -248,8 +249,10 @@ export function PaymentForm({
     setPendingData(null);
   }, [pendingData, onSubmit]);
 
-  const paymentLabel = paymentType === 'received' ? 'Payment Received' : 'Payment Made';
-  const partyTypeLabel = paymentType === 'received' ? 'Customer' : 'Supplier';
+  const isReceived = paymentType === 'received';
+  const paymentLabel = isReceived ? tForm('received') : tForm('made');
+  const partyTypeLabel = isReceived ? tForm('customer') : tForm('supplier');
+  const partyPlaceholder = isReceived ? tForm('selectCustomer') : tForm('selectSupplier');
 
   return (
     <Form {...form}>
@@ -258,8 +261,7 @@ export function PaymentForm({
           <CardHeader>
             <CardTitle>{paymentLabel}</CardTitle>
             <CardDescription>
-              Record a payment {paymentType === 'received' ? 'from' : 'to'} a{' '}
-              {partyTypeLabel.toLowerCase()}
+              {isReceived ? tForm('receivedSubtitle') : tForm('madeSubtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -274,7 +276,7 @@ export function PaymentForm({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={`Select ${partyTypeLabel.toLowerCase()}`} />
+                        <SelectValue placeholder={partyPlaceholder} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -283,11 +285,11 @@ export function PaymentForm({
                           {party.name}
                           {party.balance !== 0 && (
                             <span
-                              className={`ml-2 text-sm ${party.balance > 0 ? 'text-amber-600' : 'text-green-600'}`}
+                              className={`ms-2 text-sm ${party.balance > 0 ? 'text-amber-600' : 'text-green-600'}`}
                             >
                               ({party.balance > 0
-                                ? `Owes: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                : `Credit: ${Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`})
+                                ? tForm('owes', { amount: Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) })
+                                : tForm('credit', { amount: Math.abs(party.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) })})
                             </span>
                           )}
                         </SelectItem>
@@ -305,17 +307,17 @@ export function PaymentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Amount <span className="text-red-500">*</span>
+                    {tForm('amount')} <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <DollarSign className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
-                        placeholder="0.00"
-                        className="pl-10"
+                        placeholder={tForm('amountPlaceholder')}
+                        className="ps-10"
                         {...field}
                       />
                     </div>
@@ -331,7 +333,7 @@ export function PaymentForm({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{tForm('currency')}</FormLabel>
                     <FormControl>
                       <CurrencySelect
                         value={field.value}
@@ -348,7 +350,7 @@ export function PaymentForm({
                 name="exchangeRate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exchange Rate</FormLabel>
+                    <FormLabel>{tForm('exchangeRate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -358,7 +360,7 @@ export function PaymentForm({
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>Rate to USD</FormDescription>
+                    <FormDescription>{tForm('rateToUsd')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -370,7 +372,7 @@ export function PaymentForm({
               name="paymentDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Date</FormLabel>
+                  <FormLabel>{tForm('paymentDate')}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -403,7 +405,7 @@ export function PaymentForm({
                         .filter((b) => b.is_active)
                         .map((b) => (
                           <SelectItem key={b.id} value={b.id}>
-                            <span className="font-mono text-xs mr-2">
+                            <span className="font-mono text-xs me-2">
                               {b.ledger?.code ?? ''}
                             </span>
                             {b.name}
@@ -425,10 +427,10 @@ export function PaymentForm({
               name="reference"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Reference Number</FormLabel>
+                  <FormLabel>{tForm('reference')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Check number, transaction ID, etc."
+                      placeholder={tForm('referencePlaceholder')}
                       {...field}
                       value={field.value || ''}
                     />
@@ -444,12 +446,12 @@ export function PaymentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Notes{' '}
-                    <span className="text-muted-foreground font-normal">(Optional)</span>
+                    {tForm('notes')}{' '}
+                    <span className="text-muted-foreground font-normal">{tForm('optional')}</span>
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes about this payment"
+                      placeholder={tForm('notesPlaceholder')}
                       className="min-h-[80px]"
                       {...field}
                       value={field.value || ''}
@@ -512,11 +514,11 @@ export function PaymentForm({
                     <TableRow>
                       <TableHead>{tAlloc('invoice')}</TableHead>
                       <TableHead>{tAlloc('date')}</TableHead>
-                      <TableHead className="text-right">{tAlloc('total')}</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-end">{tAlloc('total')}</TableHead>
+                      <TableHead className="text-end">
                         {tAlloc('outstanding')}
                       </TableHead>
-                      <TableHead className="text-right w-40">
+                      <TableHead className="text-end w-40">
                         {tAlloc('applied')}
                       </TableHead>
                     </TableRow>
@@ -529,17 +531,17 @@ export function PaymentForm({
                         </TableCell>
                         <TableCell className="text-sm">
                           {inv.invoice_date}
-                          <span className="text-xs text-muted-foreground ml-2">
+                          <span className="text-xs text-muted-foreground ms-2">
                             ({tAlloc('days', { count: inv.days_outstanding })})
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell className="text-end font-mono">
                           {inv.total.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono">
+                        <TableCell className="text-end font-mono">
                           {inv.outstanding.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           <Input
                             type="number"
                             step="0.01"
@@ -547,7 +549,7 @@ export function PaymentForm({
                             max={inv.outstanding}
                             value={allocations[inv.invoice_id] ?? ''}
                             placeholder="0.00"
-                            className="text-right font-mono"
+                            className="text-end font-mono"
                             onChange={(e) =>
                               handleAllocationChange(
                                 inv.invoice_id,
@@ -587,19 +589,19 @@ export function PaymentForm({
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+              {tForm('cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading || allocationsExceed}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Recording...
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                {tForm('recording')}
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Record Payment
+                <Save className="me-2 h-4 w-4" />
+                {tForm('submit')}
               </>
             )}
           </Button>
@@ -609,23 +611,24 @@ export function PaymentForm({
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm payment?</AlertDialogTitle>
+            <AlertDialogTitle>{tConfirm('title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingData && (
-                <>
-                  You are about to record a{' '}
-                  {pendingData.type === 'received' ? 'received' : 'made'} payment of{' '}
-                  {pendingData.amount.toLocaleString(undefined, {
+              {pendingData &&
+                tConfirm('body', {
+                  type:
+                    pendingData.type === 'received'
+                      ? tConfirm('typeReceived')
+                      : tConfirm('typeMade'),
+                  amount: pendingData.amount.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
-                  })}{' '}
-                  {pendingData.currency}. This will update the party balance immediately.
-                </>
-              )}
+                  }),
+                  currency: pendingData.currency,
+                })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmPayment}>Record Payment</AlertDialogAction>
+            <AlertDialogCancel>{tConfirm('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPayment}>{tConfirm('submit')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

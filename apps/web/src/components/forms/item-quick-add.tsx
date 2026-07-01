@@ -4,29 +4,31 @@
  * Item Quick-Add Bar
  *
  * A persistent "scan or search" control that lives directly above the invoice
- * items table. It is optimized for barcode scanners (which type a code quickly
- * then emit Enter) while remaining fast for manual keyboard/mouse entry.
+ * items table. It supports two distinct flows:
  *
- * Behavior:
- *  - Typing shows a live, server-filtered result list (debounced) with
- *    ArrowUp/ArrowDown + Enter navigation.
- *  - Pressing Enter with no row highlighted resolves the *current input* exactly
- *    against barcode → SKU → first match via a fresh (non-debounced) lookup, so a
- *    scanner adds the right item even before the debounced list catches up.
- *  - The bar never closes: after each add the input clears, refocuses, and an
- *    ephemeral "Added ✓ {name}" confirmation + running counter is shown.
+ *  1. Barcode scan (instant) — a scanner types a code in a machine-speed burst
+ *     (or one paste-like jump). We detect that timing signature and auto-add an
+ *     exact barcode/SKU match with quantity 1, no Enter required.
  *
- * Parent owns the add-vs-increment decision (see `onSelect`).
+ *  2. Manual add (deliberate) — the user types, then picks an item from the
+ *     dropdown. The dropdown closes and the item is "staged": focus jumps to the
+ *     Quantity field, Tab moves to Price, and Enter (from either) commits the
+ *     line with the chosen quantity/price. This avoids the old glitch where the
+ *     dropdown reopened after a click.
+ *
+ * Parent owns the actual add/increment (see `onSelect`).
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ScanLine, Check, Loader2, AlertCircle } from 'lucide-react';
+import { ScanLine, Check, Loader2, AlertCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useItems } from '@/hooks/use-items';
 import { useDebounce } from '@/hooks/use-debounce';
 import { api } from '@/lib/api-client';
-import type { ItemWithCategory } from '@erp/shared';
+import type { ItemWithCategory, PriceTier } from '@erp/shared';
 
 // =============================================================================
 // TYPES
@@ -44,8 +46,13 @@ export interface QuickAddItem {
 }
 
 interface ItemQuickAddProps {
-  /** Called when an item is scanned/selected. Parent adds or increments. */
-  onSelect: (item: QuickAddItem) => void;
+  /**
+   * Called when an item is scanned/selected. `opts` carries a manual
+   * quantity/price; scans omit it so the parent defaults to quantity 1.
+   */
+  onSelect: (item: QuickAddItem, opts?: { quantity?: number; unitPrice?: number }) => void;
+  /** Price tier to default the unit price from — 'retail' for sales, 'cost' for purchases. */
+  priceTier: PriceTier;
   /** Optional external ref so callers can focus the input (e.g. empty state). */
   inputRef?: React.RefObject<HTMLInputElement>;
   disabled?: boolean;
@@ -55,30 +62,66 @@ interface ItemQuickAddProps {
 // HELPERS
 // =============================================================================
 
-function toQuickAddItem(i: ItemWithCategory): QuickAddItem {
+function toQuickAddItem(i: ItemWithCategory, priceTier: PriceTier): QuickAddItem {
+  const prices = i.prices ?? [];
+  // Sales default to the first retail price, purchases to the first cost price;
+  // fall back to whatever price exists so an item is never priced at 0 by accident.
+  const tierPrice = prices.find((p) => p.priceTier === priceTier)?.price;
   return {
     id: i.id,
     name: i.name,
     sku: i.sku,
     barcode: i.barcode,
     unitOfMeasure: i.unitOfMeasure,
-    unitPrice: i.prices?.[0]?.price ?? 0,
+    unitPrice: tierPrice ?? prices[0]?.price ?? 0,
     taxRate: i.taxRate,
   };
 }
+
+// --- Barcode-scanner auto-detection tuning -----------------------------------
+// Scanners emit characters in a tight machine-speed burst (or one paste-like
+// jump), then go quiet. We use that signature to auto-add without an Enter key.
+const SCAN_CHAR_GAP_MS = 40; // keystrokes faster than this look machine-generated
+const SCAN_MIN_BURST = 3; // consecutive fast chars before we call it a scan
+const SCAN_SETTLE_MS = 110; // quiet period after the burst before auto-adding
+const SCAN_MIN_LEN = 3; // ignore very short bursts
 
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: ItemQuickAddProps) {
+export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disabled }: ItemQuickAddProps) {
   const t = useTranslations('sales.form');
   const tCommon = useTranslations('common');
 
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = externalRef ?? internalRef;
-  const listRef = useRef<HTMLDivElement>(null);
+  const qtyRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // Scanner auto-detect bookkeeping (see SCAN_* constants above).
+  const queryRef = useRef('');
+  const lastChangeRef = useRef(0);
+  const prevLenRef = useRef(0);
+  const fastCountRef = useRef(0);
+  const pasteRef = useRef(false);
+  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearScanTimer = useCallback(() => {
+    if (scanTimerRef.current) {
+      clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+  }, []);
+
+  const resetScanState = useCallback(() => {
+    clearScanTimer();
+    queryRef.current = '';
+    prevLenRef.current = 0;
+    fastCountRef.current = 0;
+    pasteRef.current = false;
+  }, [clearScanTimer]);
 
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -88,7 +131,12 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
   const [addedCount, setAddedCount] = useState(0);
   const [notFoundCode, setNotFoundCode] = useState<string | null>(null);
 
-  // Server-side search — always enabled so an empty query shows a browse list.
+  // Manual-add staging: an item awaiting a quantity/price before it is committed.
+  const [stagedItem, setStagedItem] = useState<QuickAddItem | null>(null);
+  const [qty, setQty] = useState('1');
+  const [price, setPrice] = useState('');
+
+  // Server-side search.
   const debouncedQuery = useDebounce(query, 250);
   const { data, isLoading } = useItems({
     isActive: true,
@@ -97,8 +145,8 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
   });
 
   const results = useMemo(
-    () => (data?.data ?? []).map(toQuickAddItem),
-    [data]
+    () => (data?.data ?? []).map((i) => toQuickAddItem(i, priceTier)),
+    [data, priceTier]
   );
 
   // Reset the manual highlight whenever the result set changes.
@@ -113,28 +161,73 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
     }
   }, [highlightedIndex]);
 
-  const handleSelect = useCallback(
-    (item: QuickAddItem) => {
-      onSelect(item);
+  // Cancel any pending scan timer if the component unmounts mid-burst.
+  useEffect(() => () => clearScanTimer(), [clearScanTimer]);
+
+  /** Commit an add and reset the bar back to a fresh "ready to scan" state. */
+  const finishAdd = useCallback(
+    (item: QuickAddItem, opts?: { quantity?: number; unitPrice?: number }) => {
+      onSelect(item, opts);
+      resetScanState();
+      setStagedItem(null);
       setQuery('');
+      setQty('1');
+      setPrice('');
       setHighlightedIndex(-1);
       setNotFoundCode(null);
       setLastAdded(item.name);
       setAddedCount((c) => c + 1);
-      // Refocus for the next scan once the DOM settles.
+      // Refocus the search for the next scan once the DOM settles.
       requestAnimationFrame(() => inputRef.current?.focus());
     },
-    [onSelect, inputRef]
+    [onSelect, resetScanState, inputRef]
   );
 
+  /** Stage a manually-picked item: close dropdown, fill qty/price, focus qty. */
+  const stageItem = useCallback(
+    (item: QuickAddItem) => {
+      clearScanTimer();
+      setStagedItem(item);
+      setQuery(item.name);
+      setQty('1');
+      setPrice(item.unitPrice ? String(item.unitPrice) : '0');
+      setHighlightedIndex(-1);
+      setNotFoundCode(null);
+      requestAnimationFrame(() => {
+        qtyRef.current?.focus();
+        qtyRef.current?.select();
+      });
+    },
+    [clearScanTimer]
+  );
+
+  const commitStaged = useCallback(() => {
+    if (!stagedItem) return;
+    const quantity = Math.max(0.001, parseFloat(qty) || 1);
+    const unitPrice = Math.max(0, parseFloat(price) || 0);
+    finishAdd(stagedItem, { quantity, unitPrice });
+  }, [stagedItem, qty, price, finishAdd]);
+
+  const cancelStaged = useCallback(() => {
+    setStagedItem(null);
+    setQuery('');
+    setQty('1');
+    setPrice('');
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, [inputRef]);
+
   /**
-   * Resolve the raw input exactly (barcode → SKU → first match) via a fresh
-   * lookup that bypasses the debounce. This is the reliable scanner path.
+   * Resolve a code via a fresh lookup that bypasses the debounce.
+   *  - exactOnly (scanner path): add only on a confident barcode/SKU match;
+   *    on a miss stay silent and let the normal search list show fuzzy results.
+   *  - lenient (Enter path): fall back to the first match and flash "not found".
+   * Both paths add instantly (quantity 1) — staging is only for dropdown picks.
    */
   const resolveExact = useCallback(
-    async (code: string) => {
+    async (code: string, opts?: { exactOnly?: boolean }) => {
+      const exactOnly = opts?.exactOnly ?? false;
       setIsResolving(true);
-      setNotFoundCode(null);
+      if (!exactOnly) setNotFoundCode(null);
       try {
         const resp = await api.get<{ data: ItemWithCategory[] }>('/items', {
           isActive: true,
@@ -143,33 +236,80 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
         });
         const candidates = resp.data ?? [];
         const exact = candidates.find((i) => i.barcode === code || i.sku === code);
-        const chosen = exact ?? candidates[0];
+        const chosen = exact ?? (exactOnly ? undefined : candidates[0]);
         if (chosen) {
-          handleSelect(toQuickAddItem(chosen));
-        } else {
+          finishAdd(toQuickAddItem(chosen, priceTier));
+        } else if (!exactOnly) {
           setNotFoundCode(code);
           inputRef.current?.focus();
         }
       } catch {
-        setNotFoundCode(code);
+        if (!exactOnly) setNotFoundCode(code);
       } finally {
         setIsResolving(false);
       }
     },
-    [handleSelect, inputRef]
+    [finishAdd, inputRef, priceTier]
   );
 
   const handleEnter = useCallback(() => {
+    clearScanTimer();
+    if (stagedItem) {
+      commitStaged();
+      return;
+    }
     if (highlightedIndex >= 0 && results[highlightedIndex]) {
-      handleSelect(results[highlightedIndex]);
+      stageItem(results[highlightedIndex]);
       return;
     }
     const code = query.trim();
     if (!code) return;
     void resolveExact(code);
-  }, [highlightedIndex, results, query, handleSelect, resolveExact]);
+  }, [clearScanTimer, stagedItem, commitStaged, highlightedIndex, results, query, stageItem, resolveExact]);
 
-  const handleKeyDown = useCallback(
+  /**
+   * Search-field change handler with scanner auto-detect: when characters arrive
+   * in a machine-speed burst (or one paste-like jump) and the input then settles,
+   * we auto-resolve an exact barcode/SKU match and add it — no Enter needed.
+   */
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      // Typing over a staged selection cancels staging and searches anew.
+      if (stagedItem) setStagedItem(null);
+
+      const now = Date.now();
+      const val = e.target.value;
+      const delta = now - lastChangeRef.current;
+      const grew = val.length - prevLenRef.current;
+      lastChangeRef.current = now;
+      prevLenRef.current = val.length;
+      queryRef.current = val;
+      setQuery(val);
+      setNotFoundCode(null);
+
+      if (grew >= 4) {
+        pasteRef.current = true; // HID/keyboard-wedge scanner dumps the code at once
+      } else if (grew === 1 && delta < SCAN_CHAR_GAP_MS) {
+        fastCountRef.current += 1;
+      } else if (grew === 1) {
+        fastCountRef.current = 0; // a human-paced keystroke breaks the burst
+      }
+
+      clearScanTimer();
+      scanTimerRef.current = setTimeout(() => {
+        const isScan = pasteRef.current || fastCountRef.current >= SCAN_MIN_BURST;
+        pasteRef.current = false;
+        fastCountRef.current = 0;
+        const code = queryRef.current.trim();
+        if (isScan && code.length >= SCAN_MIN_LEN) {
+          void resolveExact(code, { exactOnly: true });
+        }
+      }, SCAN_SETTLE_MS);
+    },
+    [stagedItem, clearScanTimer, resolveExact]
+  );
+
+  const handleSearchKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       switch (e.key) {
         case 'ArrowDown':
@@ -185,54 +325,176 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
           handleEnter();
           break;
         case 'Escape':
+          resetScanState();
           setQuery('');
           setHighlightedIndex(-1);
           setNotFoundCode(null);
           break;
       }
     },
-    [results.length, handleEnter]
+    [results.length, handleEnter, resetScanState]
   );
 
+  // Enter on Qty/Price commits the staged line; Escape cancels staging.
+  const handleFieldKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitStaged();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelStaged();
+      }
+    },
+    [commitStaged, cancelStaged]
+  );
+
+  const fieldsDisabled = disabled || !stagedItem;
   const showDropdown =
-    isFocused && !disabled && (query.length > 0 || results.length > 0 || isLoading);
+    isFocused && !stagedItem && !disabled && query.trim().length > 0;
 
   return (
-    <div className="relative">
-      {/* Input row */}
-      <div
-        className={cn(
-          'flex items-center gap-2 rounded-md border bg-background px-3 transition-colors',
-          isFocused ? 'border-primary ring-1 ring-primary' : 'border-input',
-          disabled && 'opacity-50'
-        )}
-      >
-        <ScanLine className="h-5 w-5 shrink-0 text-muted-foreground" />
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="text"
-          autoComplete="off"
-          enterKeyHint="enter"
-          disabled={disabled}
-          value={query}
-          placeholder={t('scanOrSearch')}
-          aria-label={t('scanOrSearch')}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          // Delay blur so a result click registers before the dropdown closes.
-          onBlur={() => setTimeout(() => setIsFocused(false), 150)}
-          className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+    <div>
+      <div className="flex items-stretch gap-2">
+        {/* Search + dropdown */}
+        <div className="relative flex-1">
+          <div
+            className={cn(
+              'flex h-11 items-center gap-2 rounded-md border bg-background px-3 transition-colors',
+              isFocused ? 'border-primary ring-1 ring-primary' : 'border-input',
+              disabled && 'opacity-50'
+            )}
+          >
+            <ScanLine className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              enterKeyHint="enter"
+              disabled={disabled}
+              value={query}
+              placeholder={t('scanOrSearch')}
+              aria-label={t('scanOrSearch')}
+              onChange={handleChange}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={() => setIsFocused(true)}
+              // Delay blur so a result click registers before the dropdown closes.
+              onBlur={() => setTimeout(() => setIsFocused(false), 150)}
+              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+            />
+            {isResolving && (
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+            )}
+          </div>
+
+          {showDropdown && (
+            <div
+              className="absolute inset-x-0 top-full z-50 mt-1 max-h-72 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md"
+              role="listbox"
+            >
+              {isLoading && results.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  {tCommon('loading')}
+                </div>
+              ) : results.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  {t('noItemsFound')}
+                </div>
+              ) : (
+                results.map((item, index) => (
+                  <button
+                    key={item.id}
+                    ref={(el) => {
+                      rowRefs.current[index] = el;
+                    }}
+                    type="button"
+                    role="option"
+                    aria-selected={index === highlightedIndex}
+                    // Use onMouseDown so selection fires before the input blur.
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      stageItem(item);
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-3 border-b px-3 py-2 text-start last:border-b-0',
+                      index === highlightedIndex
+                        ? 'bg-accent text-accent-foreground'
+                        : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{item.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {[item.sku, item.barcode].filter(Boolean).join(' · ') ||
+                          item.unitOfMeasure}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-end">
+                      <p className="text-sm font-medium">{item.unitPrice.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{item.unitOfMeasure}</p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quantity */}
+        <Input
+          ref={qtyRef}
+          type="number"
+          inputMode="decimal"
+          value={qty}
+          disabled={fieldsDisabled}
+          min={0.001}
+          step={0.001}
+          placeholder={t('quantity')}
+          aria-label={t('quantity')}
+          onChange={(e) => setQty(e.target.value)}
+          onKeyDown={handleFieldKeyDown}
+          onFocus={(e) => e.currentTarget.select()}
+          className="h-11 w-20 text-center"
         />
-        {isResolving && (
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
-        )}
+
+        {/* Price */}
+        <Input
+          ref={priceRef}
+          type="number"
+          inputMode="decimal"
+          value={price}
+          disabled={fieldsDisabled}
+          min={0}
+          step={0.01}
+          placeholder={t('price')}
+          aria-label={t('price')}
+          onChange={(e) => setPrice(e.target.value)}
+          onKeyDown={handleFieldKeyDown}
+          onFocus={(e) => e.currentTarget.select()}
+          className="h-11 w-28 text-end"
+        />
+
+        {/* Add */}
+        <Button
+          type="button"
+          onClick={commitStaged}
+          disabled={fieldsDisabled}
+          className="h-11 shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="ms-1 hidden sm:inline">{t('add')}</span>
+        </Button>
       </div>
 
-      {/* Status line: confirmation / not-found / hint */}
+      {/* Status line: staging / confirmation / not-found / hint */}
       <div className="mt-1 min-h-[1.25rem] px-1 text-xs">
-        {notFoundCode ? (
+        {stagedItem ? (
+          <span className="text-muted-foreground">
+            {t('stagedHint', { name: stagedItem.name })}
+          </span>
+        ) : notFoundCode ? (
           <span className="flex items-center gap-1 text-destructive">
             <AlertCircle className="h-3.5 w-3.5" />
             {t('itemNotFound', { code: notFoundCode })}
@@ -249,58 +511,6 @@ export function ItemQuickAdd({ onSelect, inputRef: externalRef, disabled }: Item
           <span className="text-muted-foreground">{t('quickAddHint')}</span>
         )}
       </div>
-
-      {/* Results dropdown */}
-      {showDropdown && (
-        <div
-          ref={listRef}
-          className="absolute inset-x-0 top-full z-50 mt-1 max-h-72 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md"
-          role="listbox"
-        >
-          {isLoading && results.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              {tCommon('loading')}
-            </div>
-          ) : results.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              {t('noItemsFound')}
-            </div>
-          ) : (
-            results.map((item, index) => (
-              <button
-                key={item.id}
-                ref={(el) => {
-                  rowRefs.current[index] = el;
-                }}
-                type="button"
-                role="option"
-                aria-selected={index === highlightedIndex}
-                // Use onMouseDown so selection fires before the input blur.
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleSelect(item);
-                }}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                className={cn(
-                  'flex w-full items-center justify-between gap-3 border-b px-3 py-2 text-start last:border-b-0',
-                  index === highlightedIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-muted/50'
-                )}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{item.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {[item.sku, item.barcode].filter(Boolean).join(' · ') || item.unitOfMeasure}
-                  </p>
-                </div>
-                <div className="shrink-0 text-end">
-                  <p className="text-sm font-medium">{item.unitPrice.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{item.unitOfMeasure}</p>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      )}
     </div>
   );
 }

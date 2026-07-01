@@ -233,7 +233,7 @@ export default function WarehousesPage() {
                   <TableHead>{t('name')}</TableHead>
                   <TableHead>{t('address')}</TableHead>
                   <TableHead className="text-center">{t('status')}</TableHead>
-                  <TableHead className="text-right">{t('actions')}</TableHead>
+                  <TableHead className="text-end">{t('actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -250,7 +250,7 @@ export default function WarehousesPage() {
                         {warehouse.isActive ? t('active') : t('inactive')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" className="h-8 w-8 p-0">

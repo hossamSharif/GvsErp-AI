@@ -43,6 +43,8 @@ export interface Invoice {
   notes: string | null;
   createdBy: string | null;
   returnedFromId: string | null;
+  /** User-selected invoice date (YYYY-MM-DD). Defaults to the creation date. */
+  invoiceDate: string;
   createdAt: string;
   updatedAt: string;
   finalizedAt: string | null;
@@ -159,6 +161,8 @@ export interface CreateInvoiceInput {
   exchangeRate?: number;
   discountAmount?: number;
   notes?: string | null;
+  /** Invoice date (YYYY-MM-DD). Defaults to the current date if omitted. */
+  invoiceDate?: string;
   items: CreateInvoiceItemInput[];
 }
 
@@ -172,6 +176,8 @@ export interface UpdateInvoiceInput {
   exchangeRate?: number;
   discountAmount?: number;
   notes?: string | null;
+  /** Invoice date (YYYY-MM-DD). */
+  invoiceDate?: string;
   items?: UpdateInvoiceItemInput[];
 }
 
@@ -445,6 +451,8 @@ export interface DraftInvoice {
   partyId: string | null;
   warehouseId: string | null;
   currency: string;
+  /** Invoice date (YYYY-MM-DD). */
+  invoiceDate: string;
   exchangeRate: number;
   discountAmount: number;
   notes: string;

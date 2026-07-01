@@ -11,6 +11,7 @@ import { useState, useCallback } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PaymentForm } from '@/components/forms/payment-form';
@@ -25,6 +26,7 @@ export default function NewPaymentPage() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const t = useTranslations('payments.new');
 
   // Pre-fill from query params (e.g., from customer/supplier detail pages)
   const prefilledPartyId = searchParams.get('partyId') || undefined;
@@ -42,15 +44,18 @@ export default function NewPaymentPage() {
   const createPayment = useCreatePayment({
     onSuccess: (data) => {
       toast({
-        title: 'Payment recorded',
-        description: `Payment of ${data.data.amount} ${data.data.currency} has been recorded.`,
+        title: t('toast.recorded'),
+        description: t('toast.recordedDesc', {
+          amount: data.data.amount,
+          currency: data.data.currency,
+        }),
       });
       router.push(`/${locale}/payments`);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to record payment',
+        title: t('toast.error'),
+        description: error.message || t('toast.errorDesc'),
         variant: 'destructive',
       });
     },
@@ -68,16 +73,14 @@ export default function NewPaymentPage() {
     <div className="space-y-6 p-8">
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Go back to payments">
+        <Button variant="ghost" size="icon" asChild aria-label={t('back')}>
           <Link href={`/${locale}/payments`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Record Payment</h1>
-          <p className="text-muted-foreground">
-            Record a payment received from a customer or made to a supplier
-          </p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
       </div>
 
@@ -89,8 +92,8 @@ export default function NewPaymentPage() {
       ) : (
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as PaymentType)}>
           <TabsList>
-            <TabsTrigger value="received">Payment Received</TabsTrigger>
-            <TabsTrigger value="made">Payment Made</TabsTrigger>
+            <TabsTrigger value="received">{t('tabReceived')}</TabsTrigger>
+            <TabsTrigger value="made">{t('tabMade')}</TabsTrigger>
           </TabsList>
           <TabsContent value="received" className="mt-6">
             <PaymentForm

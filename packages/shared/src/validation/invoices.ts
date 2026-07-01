@@ -116,6 +116,9 @@ export const createInvoiceSchema = z.object({
     .max(2000, 'Notes must be 2000 characters or less')
     .nullable()
     .optional(),
+  invoiceDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invoice date must be in YYYY-MM-DD format')
+    .optional(),
   items: z.array(createInvoiceItemSchema)
     .min(1, 'Invoice must have at least one item'),
 });
@@ -139,6 +142,9 @@ export const updateInvoiceSchema = z.object({
   notes: z.string()
     .max(2000, 'Notes must be 2000 characters or less')
     .nullable()
+    .optional(),
+  invoiceDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invoice date must be in YYYY-MM-DD format')
     .optional(),
   items: z.array(updateInvoiceItemSchema).optional(),
 });

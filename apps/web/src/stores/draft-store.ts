@@ -80,6 +80,7 @@ function createEmptyDraft(type: InvoiceType, warehouseId?: string): DraftInvoice
     partyId: null,
     warehouseId: warehouseId || null,
     currency: 'USD',
+    invoiceDate: now.slice(0, 10),
     exchangeRate: 1,
     discountAmount: 0,
     notes: '',

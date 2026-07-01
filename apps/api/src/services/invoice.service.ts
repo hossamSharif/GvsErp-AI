@@ -143,6 +143,7 @@ export class InvoiceService {
       exchange_rate: input.exchangeRate || 1,
       discount_amount: input.discountAmount || 0,
       notes: input.notes || null,
+      invoice_date: input.invoiceDate || undefined,
       created_by: this.userId || null,
     };
 
@@ -995,6 +996,7 @@ export class InvoiceService {
     if (input.exchangeRate !== undefined) updateData.exchange_rate = input.exchangeRate;
     if (input.discountAmount !== undefined) updateData.discount_amount = input.discountAmount;
     if (input.notes !== undefined) updateData.notes = input.notes;
+    if (input.invoiceDate !== undefined) updateData.invoice_date = input.invoiceDate;
     return updateData;
   }
 
@@ -1333,6 +1335,7 @@ export class InvoiceService {
       notes: row.notes,
       createdBy: row.created_by,
       returnedFromId: row.returned_from_id,
+      invoiceDate: row.invoice_date,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       finalizedAt: row.finalized_at,

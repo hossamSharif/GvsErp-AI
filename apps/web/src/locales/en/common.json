@@ -651,10 +651,14 @@
         "finalizeFailed": "Failed to finalize invoice"
       },
       "scanOrSearch": "Scan barcode or search by name / SKU...",
-      "quickAddHint": "Scan a barcode or type to search, then press Enter to add",
+      "quickAddHint": "Scan a barcode to add it instantly, or type a name to search",
       "itemAdded": "Added {name}",
       "itemsAddedCount": "{count} added",
-      "itemNotFound": "No item found for “{code}”"
+      "itemNotFound": "No item found for “{code}”",
+      "quantity": "Qty",
+      "price": "Price",
+      "add": "Add",
+      "stagedHint": "Set quantity & price, then press Enter to add “{name}”"
     },
     "items": {
       "columns": {
@@ -1600,11 +1604,56 @@
         "updateError": "Failed to update payment"
       }
     },
+    "new": {
+      "title": "Record Payment",
+      "description": "Record a payment received from a customer or made to a supplier",
+      "back": "Go back to payments",
+      "tabReceived": "Payment Received",
+      "tabMade": "Payment Made",
+      "toast": {
+        "recorded": "Payment recorded",
+        "recordedDesc": "Payment of {amount} {currency} has been recorded.",
+        "error": "Error",
+        "errorDesc": "Failed to record payment"
+      }
+    },
     "form": {
       "bankAccountLabel": "Bank / Cash Account",
       "bankAccountPlaceholder": "Select where the money moved",
       "bankAccountCash": "Cash (no bank)",
       "noBanksHint": "No bank accounts yet. Create one in Accounting → Bank Accounts.",
+      "received": "Payment Received",
+      "made": "Payment Made",
+      "receivedSubtitle": "Record a payment from a customer",
+      "madeSubtitle": "Record a payment to a supplier",
+      "customer": "Customer",
+      "supplier": "Supplier",
+      "selectCustomer": "Select customer",
+      "selectSupplier": "Select supplier",
+      "owes": "Owes: {amount}",
+      "credit": "Credit: {amount}",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "currency": "Currency",
+      "exchangeRate": "Exchange Rate",
+      "rateToUsd": "Rate to USD",
+      "paymentDate": "Payment Date",
+      "reference": "Reference Number",
+      "referencePlaceholder": "Check number, transaction ID, etc.",
+      "notes": "Notes",
+      "optional": "(Optional)",
+      "notesPlaceholder": "Additional notes about this payment",
+      "cancel": "Cancel",
+      "recording": "Recording...",
+      "submit": "Record Payment",
+      "confirm": {
+        "title": "Confirm payment?",
+        "body": "You are about to record a {type} payment of {amount} {currency}. This will update the party balance immediately.",
+        "typeReceived": "received",
+        "typeMade": "made",
+        "cancel": "Cancel",
+        "submit": "Record Payment"
+      },
       "allocations": {
         "title": "Allocate to bills",
         "subtitle": "Apply this payment to specific invoices. Unallocated amount is recorded as advance.",

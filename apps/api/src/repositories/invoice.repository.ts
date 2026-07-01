@@ -475,6 +475,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
       notes: row.notes,
       createdBy: row.created_by,
       returnedFromId: row.returned_from_id,
+      invoiceDate: row.invoice_date,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       finalizedAt: row.finalized_at,

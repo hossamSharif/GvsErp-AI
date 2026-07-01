@@ -651,10 +651,14 @@
         "finalizeFailed": "فشل اعتماد الفاتورة"
       },
       "scanOrSearch": "امسح الباركود أو ابحث بالاسم / SKU...",
-      "quickAddHint": "امسح باركود أو اكتب للبحث ثم اضغط Enter للإضافة",
+      "quickAddHint": "امسح باركود لإضافته فورًا، أو اكتب اسمًا للبحث",
       "itemAdded": "تمت إضافة {name}",
       "itemsAddedCount": "{count} مضاف",
-      "itemNotFound": "لا يوجد صنف للرمز “{code}”"
+      "itemNotFound": "لا يوجد صنف للرمز “{code}”",
+      "quantity": "الكمية",
+      "price": "السعر",
+      "add": "إضافة",
+      "stagedHint": "حدد الكمية والسعر ثم اضغط Enter لإضافة “{name}”"
     },
     "items": {
       "columns": {
@@ -1600,11 +1604,56 @@
         "updateError": "تعذّر تحديث الدفعة"
       }
     },
+    "new": {
+      "title": "تسجيل دفعة",
+      "description": "سجّل دفعة مستلمة من عميل أو مدفوعة إلى مورّد",
+      "back": "العودة إلى المدفوعات",
+      "tabReceived": "دفعة مستلمة",
+      "tabMade": "دفعة مدفوعة",
+      "toast": {
+        "recorded": "تم تسجيل الدفعة",
+        "recordedDesc": "تم تسجيل دفعة بقيمة {amount} {currency}.",
+        "error": "خطأ",
+        "errorDesc": "فشل تسجيل الدفعة"
+      }
+    },
     "form": {
       "bankAccountLabel": "الحساب البنكي / النقدي",
       "bankAccountPlaceholder": "اختر الحساب الذي مرّت من خلاله الأموال",
       "bankAccountCash": "نقدية (بدون بنك)",
       "noBanksHint": "لا توجد حسابات بنكية بعد. أنشئ واحداً من المحاسبة ← الحسابات البنكية.",
+      "received": "دفعة مستلمة",
+      "made": "دفعة مدفوعة",
+      "receivedSubtitle": "سجّل دفعة مستلمة من عميل",
+      "madeSubtitle": "سجّل دفعة مدفوعة إلى مورّد",
+      "customer": "العميل",
+      "supplier": "المورّد",
+      "selectCustomer": "اختر العميل",
+      "selectSupplier": "اختر المورّد",
+      "owes": "مدين بـ: {amount}",
+      "credit": "رصيد دائن: {amount}",
+      "amount": "المبلغ",
+      "amountPlaceholder": "0.00",
+      "currency": "العملة",
+      "exchangeRate": "سعر الصرف",
+      "rateToUsd": "السعر مقابل الدولار",
+      "paymentDate": "تاريخ الدفع",
+      "reference": "رقم المرجع",
+      "referencePlaceholder": "رقم الشيك، رقم المعاملة، إلخ.",
+      "notes": "ملاحظات",
+      "optional": "(اختياري)",
+      "notesPlaceholder": "ملاحظات إضافية حول هذه الدفعة",
+      "cancel": "إلغاء",
+      "recording": "جارٍ التسجيل...",
+      "submit": "تسجيل الدفعة",
+      "confirm": {
+        "title": "تأكيد الدفعة؟",
+        "body": "أنت على وشك تسجيل دفعة {type} بقيمة {amount} {currency}. سيؤدي ذلك إلى تحديث رصيد الطرف فوراً.",
+        "typeReceived": "مستلمة",
+        "typeMade": "مدفوعة",
+        "cancel": "إلغاء",
+        "submit": "تسجيل الدفعة"
+      },
       "allocations": {
         "title": "ربط بفواتير محددة",
         "subtitle": "اربط هذه الدفعة بفواتير محددة. أي مبلغ متبقٍ يُسجَّل كدفعة مقدمة.",

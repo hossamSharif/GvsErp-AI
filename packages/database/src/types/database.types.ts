@@ -601,6 +601,7 @@ export type Database = {
           exchange_rate: number
           finalized_at: string | null
           id: string
+          invoice_date: string
           invoice_number: string
           notes: string | null
           party_id: string | null
@@ -622,6 +623,7 @@ export type Database = {
           exchange_rate?: number
           finalized_at?: string | null
           id?: string
+          invoice_date?: string
           invoice_number: string
           notes?: string | null
           party_id?: string | null
@@ -643,6 +645,7 @@ export type Database = {
           exchange_rate?: number
           finalized_at?: string | null
           id?: string
+          invoice_date?: string
           invoice_number?: string
           notes?: string | null
           party_id?: string | null
