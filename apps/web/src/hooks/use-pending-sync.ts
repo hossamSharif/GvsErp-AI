@@ -1,25 +1,40 @@
 'use client';
 
 /**
- * usePendingSyncCount
+ * usePendingSync
  *
- * Live count of unsynced outbox entries, driving the "pending sync" indicator.
+ * Live counts of unsynced outbox entries: `total` (everything not yet synced)
+ * and `failed` (entries that errored on their last replay). Drives the sync
+ * status badge.
  */
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getDB } from '@/lib/offline/db';
 
-export function usePendingSyncCount(): number {
-  const count = useLiveQuery(async () => {
-    if (typeof window === 'undefined') return 0;
+export interface PendingSyncStats {
+  total: number;
+  failed: number;
+}
+
+export function usePendingSync(): PendingSyncStats {
+  const stats = useLiveQuery(async () => {
+    if (typeof window === 'undefined') return { total: 0, failed: 0 };
     try {
       const all = await getDB().outbox.toArray();
-      return all.filter((e) => e.status !== 'synced').length;
+      return {
+        total: all.filter((e) => e.status !== 'synced').length,
+        failed: all.filter((e) => e.status === 'failed').length,
+      };
     } catch (err) {
       // Never let an offline-store problem crash the app shell.
       console.warn('[offline] pending-sync count failed', err);
-      return 0;
+      return { total: 0, failed: 0 };
     }
   });
-  return count ?? 0;
+  return stats ?? { total: 0, failed: 0 };
+}
+
+/** Backwards-compatible total-only count. */
+export function usePendingSyncCount(): number {
+  return usePendingSync().total;
 }

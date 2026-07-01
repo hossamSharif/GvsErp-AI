@@ -14,6 +14,7 @@
 import { networkRequest } from '@/lib/api-client';
 import { getDB, type OutboxEntry, type CachedRecord } from './db';
 import { pendingEntries, markStatus, pruneSynced, mapId, getMappedServerId } from './outbox';
+import { useSyncStore } from '@/stores/sync-store';
 
 export interface SyncResult {
   pushed: number;
@@ -108,9 +109,11 @@ export async function runSync(): Promise<SyncResult> {
     return { pushed: 0, failed: 0, skipped: 0 };
   }
   syncing = true;
+  useSyncStore.setState({ isSyncing: true });
   let pushed = 0;
   let failed = 0;
   let skipped = 0;
+  let lastError: string | null = null;
   const failedIds = new Set<string>();
 
   try {
@@ -129,6 +132,7 @@ export async function runSync(): Promise<SyncResult> {
         pushed++;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        lastError = message;
         await markStatus(entry.id, 'failed', message);
         failedIds.add(entry.id);
         failed++;
@@ -137,6 +141,12 @@ export async function runSync(): Promise<SyncResult> {
     await pruneSynced();
   } finally {
     syncing = false;
+    useSyncStore.setState({
+      isSyncing: false,
+      lastPushed: pushed,
+      // Keep the error only if something is still failing this run.
+      lastError: failed > 0 ? lastError : null,
+    });
   }
 
   return { pushed, failed, skipped };
