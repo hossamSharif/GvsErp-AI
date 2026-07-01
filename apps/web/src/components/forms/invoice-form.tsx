@@ -174,8 +174,16 @@ export function InvoiceForm({
     existingDrafts.filter((d) => !hasContent(d)).forEach((d) => deleteDraft(d.id));
 
     const newDraftId = createDraft(type, defaultWarehouseId);
+    // Pre-select the first party of the matching type so a new invoice opens
+    // with a customer/supplier already chosen (common single-customer flows).
+    const defaultParty = parties.find(
+      (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
+    );
+    if (defaultParty) {
+      updateDraft(newDraftId, { partyId: defaultParty.id });
+    }
     setCurrentDraftId(newDraftId);
-  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft, listDrafts, deleteDraft]);
+  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft, listDrafts, deleteDraft, parties, updateDraft]);
 
   // Sync existing invoice to draft
   useEffect(() => {
