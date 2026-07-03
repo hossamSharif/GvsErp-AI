@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useBanks, useCreateBank, useDeactivateBank } from '@/hooks/use-banks';
+import { useBanks, useCreateBank, useUpdateBank, useDeactivateBank } from '@/hooks/use-banks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CurrencySelect } from '@/components/forms/currency-select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,9 +45,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Landmark, Loader2, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, Landmark, Loader2, ExternalLink, Trash2, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { CreateBankAccountInput } from '@erp/shared';
+import type {
+  CreateBankAccountInput,
+  UpdateBankAccountInput,
+  BankAccountWithLedger,
+} from '@erp/shared';
 
 const EMPTY_FORM: CreateBankAccountInput = {
   name: '',
@@ -63,18 +68,25 @@ export default function BankAccountsPage() {
 
   const { data: banks, isLoading } = useBanks();
   const createMutation = useCreateBank();
+  const updateMutation = useUpdateBank();
   const deactivateMutation = useDeactivateBank();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState<CreateBankAccountInput>(EMPTY_FORM);
   const [deactivateId, setDeactivateId] = useState<string | null>(null);
+  const [editBank, setEditBank] = useState<BankAccountWithLedger | null>(null);
+  const [editForm, setEditForm] = useState<UpdateBankAccountInput>({});
 
   const handleCreate = async () => {
     try {
+      const currency = formData.currency?.trim()
+        ? formData.currency.trim().toUpperCase()
+        : undefined;
       await createMutation.mutateAsync({
         ...formData,
         account_number: formData.account_number?.trim() || undefined,
         bank_name: formData.bank_name?.trim() || undefined,
+        currency,
       });
       toast({ title: t('createSuccess') });
       setDialogOpen(false);
@@ -82,6 +94,39 @@ export default function BankAccountsPage() {
     } catch (error) {
       toast({
         title: t('createError'),
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openEdit = (bank: BankAccountWithLedger) => {
+    setEditBank(bank);
+    setEditForm({
+      name: bank.name,
+      bank_name: bank.bank_name ?? '',
+      account_number: bank.account_number ?? '',
+      notes: bank.notes ?? '',
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!editBank) return;
+    try {
+      await updateMutation.mutateAsync({
+        id: editBank.id,
+        input: {
+          name: editForm.name?.trim() || undefined,
+          bank_name: editForm.bank_name?.trim() || null,
+          account_number: editForm.account_number?.trim() || null,
+          notes: editForm.notes?.trim() || null,
+        },
+      });
+      toast({ title: t('editSuccess') });
+      setEditBank(null);
+    } catch (error) {
+      toast({
+        title: t('editError'),
         description: error instanceof Error ? error.message : undefined,
         variant: 'destructive',
       });
@@ -172,6 +217,14 @@ export default function BankAccountsPage() {
                             </Link>
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(b)}
+                          aria-label={t('editBank')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         {b.is_active && (
                           <Button
                             variant="ghost"
@@ -248,11 +301,9 @@ export default function BankAccountsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bank-currency">{t('form.currency')}</Label>
-                <Input
-                  id="bank-currency"
+                <CurrencySelect
                   value={formData.currency ?? 'USD'}
-                  onChange={(e) => setFormData({ ...formData, currency: e.target.value.toUpperCase() })}
-                  maxLength={3}
+                  onValueChange={(code) => setFormData({ ...formData, currency: code })}
                 />
               </div>
             </div>
@@ -268,6 +319,94 @@ export default function BankAccountsPage() {
             >
               {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('form.create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editBank} onOpenChange={(open) => !open && setEditBank(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('form.editTitle')}</DialogTitle>
+            <DialogDescription>{t('form.editDescription')}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-bank-name">{t('form.name')}</Label>
+              <Input
+                id="edit-bank-name"
+                value={editForm.name ?? ''}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                placeholder={t('form.namePlaceholder')}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-bank-bankName">{t('form.bankName')}</Label>
+                <Input
+                  id="edit-bank-bankName"
+                  value={editForm.bank_name ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, bank_name: e.target.value })}
+                  placeholder={t('form.bankNamePlaceholder')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-bank-accountNumber">{t('form.accountNumber')}</Label>
+                <Input
+                  id="edit-bank-accountNumber"
+                  value={editForm.account_number ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, account_number: e.target.value })}
+                  placeholder="****1234"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-bank-notes">{t('form.notes')}</Label>
+              <Input
+                id="edit-bank-notes"
+                value={editForm.notes ?? ''}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-bank-openingBalance">{t('form.openingBalance')}</Label>
+                <Input
+                  id="edit-bank-openingBalance"
+                  value={editBank?.opening_balance ?? 0}
+                  disabled
+                />
+                <p className="text-xs text-muted-foreground">{t('form.currencyLocked')}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-bank-currency">{t('form.currency')}</Label>
+                <Input id="edit-bank-currency" value={editBank?.currency ?? ''} disabled />
+                <p className="text-xs text-muted-foreground">{t('form.currencyLocked')}</p>
+              </div>
+            </div>
+            {editBank?.ledger && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-bank-ledger">{t('form.ledgerCode')}</Label>
+                <Input
+                  id="edit-bank-ledger"
+                  value={`${editBank.ledger.code} — ${editBank.ledger.name}`}
+                  disabled
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditBank(null)}>
+              {t('form.cancel')}
+            </Button>
+            <Button
+              onClick={handleUpdate}
+              disabled={updateMutation.isPending || !editForm.name?.trim()}
+            >
+              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('form.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

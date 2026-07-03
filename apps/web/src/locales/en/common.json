@@ -2096,6 +2096,9 @@
       "createError": "Failed to create bank account",
       "deactivateSuccess": "Bank account deactivated",
       "deactivateError": "Failed to deactivate bank account",
+      "editBank": "Edit",
+      "editSuccess": "Bank account updated",
+      "editError": "Failed to update bank account",
       "columns": {
         "name": "Name",
         "bankName": "Bank",
@@ -2119,8 +2122,14 @@
         "accountNumber": "Account Number",
         "openingBalance": "Opening Balance",
         "currency": "Currency",
+        "notes": "Notes",
         "cancel": "Cancel",
-        "create": "Create"
+        "create": "Create",
+        "save": "Save Changes",
+        "editTitle": "Edit Bank Account",
+        "editDescription": "Update the bank details. Currency and opening balance are fixed at creation and cannot be changed.",
+        "currencyLocked": "Fixed at creation",
+        "ledgerCode": "Linked Ledger"
       },
       "deactivateConfirm": {
         "title": "Deactivate Bank Account",
