@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { currencySchema, sortDirectionSchema } from './items';
+import { currencySchema, sortDirectionSchema, qsBool } from './items';
 
 // =============================================================================
 // COMMON SCHEMAS
@@ -224,7 +224,7 @@ export const salesReportParamsSchema = z.object({
     invoiceStatusSchema,
     z.array(invoiceStatusSchema),
   ]).optional(),
-  includeSummary: z.coerce.boolean().default(true),
+  includeSummary: qsBool.default(true),
 }).refine(
   (data) => {
     if (data.dateFrom && data.dateTo) {
@@ -247,7 +247,7 @@ export const purchaseReportParamsSchema = z.object({
     invoiceStatusSchema,
     z.array(invoiceStatusSchema),
   ]).optional(),
-  includeSummary: z.coerce.boolean().default(true),
+  includeSummary: qsBool.default(true),
 }).refine(
   (data) => {
     if (data.dateFrom && data.dateTo) {

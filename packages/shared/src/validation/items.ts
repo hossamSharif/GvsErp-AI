@@ -15,6 +15,18 @@ import { z } from 'zod';
 export const uuidSchema = z.string().uuid('Invalid UUID format');
 
 /**
+ * Parse a querystring value as a boolean. z.coerce.boolean() uses JS Boolean(),
+ * which treats the string "false" as truthy — use this helper instead.
+ */
+export const qsBool = z
+  .union([z.boolean(), z.string(), z.undefined()])
+  .transform((v) => {
+    if (typeof v === 'boolean') return v;
+    if (v === undefined) return undefined;
+    return v === 'true' || v === '1';
+  });
+
+/**
  * Unit of measure validation
  */
 export const unitOfMeasureSchema = z.enum([
@@ -94,7 +106,7 @@ export const updateCategorySchema = z.object({
  */
 export const categoryQuerySchema = z.object({
   parentId: z.string().uuid().nullable().optional(),
-  includeTree: z.coerce.boolean().default(false),
+  includeTree: qsBool.default(false),
 });
 
 // =============================================================================
@@ -288,7 +300,7 @@ export const updateItemSchema = z.object({
 export const itemQuerySchema = z.object({
   search: z.string().max(255).optional(),
   categoryId: z.string().uuid('Invalid category ID').optional(),
-  isActive: z.coerce.boolean().optional(),
+  isActive: qsBool.optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sortBy: itemSortFieldSchema,
@@ -325,18 +337,6 @@ export const bulkPriceUpdateSchema = z.object({
   },
   { message: 'Percentage adjustment must be between -100% and 1000%' }
 );
-
-/**
- * Parse a querystring value as a boolean. z.coerce.boolean() uses JS Boolean(),
- * which treats the string "false" as truthy — use this helper instead.
- */
-const qsBool = z
-  .union([z.boolean(), z.string(), z.undefined()])
-  .transform((v) => {
-    if (typeof v === 'boolean') return v;
-    if (v === undefined) return undefined;
-    return v === 'true' || v === '1';
-  });
 
 /**
  * Schema for item report parameters

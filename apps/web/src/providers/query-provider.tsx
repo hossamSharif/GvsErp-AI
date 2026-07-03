@@ -9,12 +9,12 @@
  * cache is for fast first paint and offline read continuity.
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { get, set, del } from 'idb-keyval';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -67,9 +67,29 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     typeof window === 'undefined' ? null : createPersister()
   );
 
+  // Devtools portal a <div> into <body>. Rendering it during the first client
+  // render would not match the server HTML (the server never renders it),
+  // causing a hydration mismatch. Gate it until after mount so hydration sees
+  // the same tree the server produced, then mount it client-side only.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const devtools =
+    mounted && process.env.NODE_ENV === 'development' ? (
+      <ReactQueryDevtools initialIsOpen={false} />
+    ) : null;
+
   if (!persister) {
-    // SSR / no-window: render children without persistence.
-    return <>{children}</>;
+    // SSR / no-window: still provide the QueryClient (without persistence) so
+    // components that call useQueryClient during server render don't throw.
+    return (
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {devtools}
+      </QueryClientProvider>
+    );
   }
 
   return (
@@ -78,9 +98,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       persistOptions={{ persister, maxAge: CACHE_MAX_AGE }}
     >
       {children}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      {devtools}
     </PersistQueryClientProvider>
   );
 }

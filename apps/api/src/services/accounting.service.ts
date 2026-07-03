@@ -132,6 +132,52 @@ const DEFAULT_ROLE_TO_CODE: Partial<Record<AccountingDefaultRole, string>> = {
   salary_expense: '5210',
 };
 
+/**
+ * Daily Journal report shapes (simple owner/manager daily snapshot).
+ * Kept local to the service — this report is not part of @erp/shared.
+ */
+export interface DailyJournalInvoiceItem {
+  id: string;
+  number: string;
+  party: string | null;
+  amount: number;
+}
+
+export interface DailyJournalSection {
+  total: number;
+  items: DailyJournalInvoiceItem[];
+}
+
+export interface DailyJournalExpenseItem {
+  id: string;
+  category: string | null;
+  description: string | null;
+  amount: number;
+}
+
+export interface DailyJournalExpenseSection {
+  total: number;
+  items: DailyJournalExpenseItem[];
+}
+
+export interface DailyJournalReport {
+  date: string;
+  sales: DailyJournalSection;
+  purchases: DailyJournalSection;
+  expenses: DailyJournalExpenseSection;
+  kpis: {
+    totalSales: number;
+    totalPurchases: number;
+    totalExpenses: number;
+    netCashFlow: number;
+  };
+  balances: {
+    cash: number;
+    bank: number;
+    totalLiquid: number;
+  };
+}
+
 export class AccountingService {
   private accountRepo: AccountRepository;
   private journalRepo: JournalEntryRepository;
@@ -1695,6 +1741,147 @@ export class AccountingService {
       total_debit: totalDebit,
       total_credit: totalCredit,
       count: entries.length,
+    };
+  }
+
+  // ==================== Daily Journal (simple owner view) ====================
+
+  /**
+   * Daily Journal: a deliberately simple, read-only snapshot of a single
+   * day's money movement for owners/managers — NOT the double-entry day book.
+   *
+   * For the chosen date it returns the day's final sales, final purchases and
+   * expenses (each a total plus a compact line list), a few headline KPIs, and
+   * the *current* cash & bank balances (live stored ledger balances, not
+   * as-of-date). Cash = the tenant's `cash_in_hand` default ledger; bank = the
+   * sum of all bank-account ledgers.
+   */
+  async generateDailyJournal(
+    tenantId: string,
+    date: string
+  ): Promise<DailyJournalReport> {
+    // --- Sales & purchases: final invoices dated on `date` ---
+    const { data: invoiceRows, error: invErr } = await this.supabase
+      .from('invoices')
+      .select('id, invoice_number, type, total, party_id, invoice_date')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'final')
+      .eq('invoice_date', date)
+      .is('returned_from_id', null);
+    if (invErr) throw invErr;
+
+    const invoices = (invoiceRows ?? []) as Array<{
+      id: string;
+      invoice_number: string;
+      type: 'sale' | 'purchase';
+      total: number | null;
+      party_id: string | null;
+      invoice_date: string;
+    }>;
+
+    // Attach party names in one round-trip.
+    const partyIds = Array.from(
+      new Set(invoices.map((i) => i.party_id).filter((x): x is string => !!x))
+    );
+    const partyMap = new Map<string, string>();
+    if (partyIds.length > 0) {
+      const { data: parties, error: pErr } = await this.supabase
+        .from('parties')
+        .select('id, name')
+        .in('id', partyIds);
+      if (pErr) throw pErr;
+      for (const p of parties ?? []) partyMap.set(p.id, p.name);
+    }
+
+    const buildInvoiceSection = (type: 'sale' | 'purchase'): DailyJournalSection => {
+      const items = invoices
+        .filter((i) => i.type === type)
+        .map((i) => ({
+          id: i.id,
+          number: i.invoice_number,
+          party: i.party_id ? partyMap.get(i.party_id) ?? null : null,
+          amount: Number(i.total ?? 0),
+        }));
+      const total = items.reduce((s, i) => s + i.amount, 0);
+      return { total, items };
+    };
+
+    const sales = buildInvoiceSection('sale');
+    const purchases = buildInvoiceSection('purchase');
+
+    // --- Expenses dated on `date` ---
+    const { data: expenseRows, error: expErr } = await this.supabase
+      .from('expenses')
+      .select('id, category, description, amount, expense_date')
+      .eq('tenant_id', tenantId)
+      .eq('expense_date', date);
+    if (expErr) throw expErr;
+
+    const expenseItems = ((expenseRows ?? []) as Array<{
+      id: string;
+      category: string | null;
+      description: string | null;
+      amount: number | null;
+    }>).map((e) => ({
+      id: e.id,
+      category: e.category,
+      description: e.description,
+      amount: Number(e.amount ?? 0),
+    }));
+    const expensesTotal = expenseItems.reduce((s, e) => s + e.amount, 0);
+    const expenses: DailyJournalExpenseSection = {
+      total: expensesTotal,
+      items: expenseItems,
+    };
+
+    // --- Current cash & bank balances (live stored ledger balances) ---
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    let cash = 0;
+    const cashAccountId = defaults.cash_in_hand;
+    if (cashAccountId) {
+      const { data: cashAcc, error: cErr } = await this.supabase
+        .from('accounts')
+        .select('balance')
+        .eq('tenant_id', tenantId)
+        .eq('id', cashAccountId)
+        .maybeSingle();
+      if (cErr) throw cErr;
+      cash = Number(cashAcc?.balance ?? 0);
+    }
+
+    let bank = 0;
+    const { data: banks, error: bErr } = await this.supabase
+      .from('bank_accounts' as any)
+      .select('ledger_account_id')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true);
+    if (bErr) throw bErr;
+    const bankLedgerIds = ((banks as unknown) as Array<{ ledger_account_id: string }>)
+      .map((b) => b.ledger_account_id)
+      .filter(Boolean);
+    if (bankLedgerIds.length > 0) {
+      const { data: bankLedgers, error: blErr } = await this.supabase
+        .from('accounts')
+        .select('balance')
+        .in('id', bankLedgerIds);
+      if (blErr) throw blErr;
+      bank = (bankLedgers ?? []).reduce((s, l) => s + Number(l.balance ?? 0), 0);
+    }
+
+    const kpis = {
+      totalSales: sales.total,
+      totalPurchases: purchases.total,
+      totalExpenses: expenses.total,
+      netCashFlow: sales.total - purchases.total - expenses.total,
+    };
+
+    return {
+      date,
+      sales,
+      purchases,
+      expenses,
+      kpis,
+      balances: { cash, bank, totalLiquid: cash + bank },
     };
   }
 

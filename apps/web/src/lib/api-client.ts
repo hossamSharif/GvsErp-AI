@@ -33,15 +33,25 @@ class ApiClientError extends Error {
   }
 }
 
+// Reuse a single browser Supabase client across all requests. Creating a fresh
+// client per call made concurrent requests (e.g. the many hooks that fire on a
+// page load) each independently trigger a token refresh, racing on refresh-token
+// rotation and producing spurious 401s. A singleton shares one refresh lock.
+let browserSupabase: ReturnType<
+  typeof import('@supabase/ssr').createBrowserClient
+> | null = null;
+
 async function getAccessToken(): Promise<string | null> {
   // Get token from Supabase session
   if (typeof window !== 'undefined') {
-    const { createBrowserClient } = await import('@supabase/ssr');
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    const { data: { session } } = await supabase.auth.getSession();
+    if (!browserSupabase) {
+      const { createBrowserClient } = await import('@supabase/ssr');
+      browserSupabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+    }
+    const { data: { session } } = await browserSupabase.auth.getSession();
     return session?.access_token ?? null;
   }
   return null;

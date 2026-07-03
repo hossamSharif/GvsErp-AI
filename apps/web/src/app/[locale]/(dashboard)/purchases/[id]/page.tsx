@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -59,12 +60,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useInvoice, useFinalizeInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import { useInvoice, useFinalizeInvoice, useDeleteInvoice, invoiceKeys } from '@/hooks/use-invoices';
 import { usePrintInvoice } from '@/hooks/use-print-invoice';
 import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog';
+import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
 import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
-import type { InvoiceStatus } from '@erp/shared';
+import type { InvoiceStatus, InvoiceWithRelations } from '@erp/shared';
 
 const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   draft: { icon: Clock, variant: 'secondary' },
@@ -83,6 +85,8 @@ export default function PurchaseDetailPage() {
   const tStatus = useTranslations('sales.status');
   const tCommon = useTranslations('common');
   const tCols = useTranslations('sales.detail.itemsTable');
+  const tPrompt = useTranslations('sales.form');
+  const queryClient = useQueryClient();
 
   const invoiceId = params.id as string;
   const locale = params.locale as string;
@@ -100,14 +104,25 @@ export default function PurchaseDetailPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
 
+  // Post-finalize payment workflow (same as the invoice form): after finalizing
+  // a draft from the detail page, offer to record a payment against it.
+  const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
   const handleFinalize = useCallback(async () => {
     try {
-      await finalizeInvoice.mutateAsync({ id: invoiceId });
+      const result = await finalizeInvoice.mutateAsync({ id: invoiceId });
       setShowFinalizeDialog(false);
       toast({
         title: t('toasts.finalized'),
         description: t('toasts.finalizedDescription'),
       });
+      // Offer to record a payment for party invoices; walk-ins just finalize.
+      if (result.data.partyId) {
+        setSavedInvoice(result.data);
+        setShowPaymentPrompt(true);
+      }
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -414,6 +429,41 @@ export default function PurchaseDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Post-finalize: offer to record a payment now */}
+      <Dialog open={showPaymentPrompt} onOpenChange={setShowPaymentPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tPrompt('paymentPrompt.title')}</DialogTitle>
+            <DialogDescription>{tPrompt('paymentPrompt.body')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentPrompt(false)}>
+              {tPrompt('paymentPrompt.later')}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowPaymentPrompt(false);
+                setShowPaymentModal(true);
+              }}
+            >
+              {tPrompt('paymentPrompt.addNow')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {savedInvoice && (
+        <RecordPaymentDialog
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          invoice={savedInvoice}
+          onDone={() => {
+            setShowPaymentModal(false);
+            queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+          }}
+        />
+      )}
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>

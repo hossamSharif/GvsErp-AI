@@ -250,6 +250,8 @@ export function useUpdateInvoice(
     onSuccess: (response, variables) => {
       queryClient.setQueryData(invoiceKeys.detail(variables.id), response);
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      // Editing a final invoice re-applies stock server-side; refresh warehouse views.
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
     },
     ...options,
   });
@@ -273,6 +275,8 @@ export function useDeleteInvoice(
       queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: [...invoiceKeys.all, 'stock'] });
+      // Delete reverses stock movements; refresh warehouse views.
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
     },
     ...options,
   });
@@ -309,6 +313,8 @@ export function useFinalizeInvoice(
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       // Invalidate stock queries since stock levels changed
       queryClient.invalidateQueries({ queryKey: [...invoiceKeys.all, 'stock'] });
+      // Finalizing applies stock movements; refresh warehouse detail + stats.
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
     },
     ...options,
   });
@@ -349,6 +355,8 @@ export function useCreateReturn(
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       // Invalidate stock queries
       queryClient.invalidateQueries({ queryKey: [...invoiceKeys.all, 'stock'] });
+      // Returns move stock; refresh warehouse views.
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
     },
     ...options,
   });

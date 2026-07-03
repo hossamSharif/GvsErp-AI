@@ -61,10 +61,47 @@ export async function authMiddleware(
       },
     });
 
-    // Get user from token
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    // Verify the token against Supabase. This is a network call, so a transient
+    // connectivity blip (ECONNRESET / connect timeout) must not be mistaken for
+    // an invalid token — retry a few times before giving up. auth-js may either
+    // throw or return the failure as a retryable `error`, so handle both. Only a
+    // genuine auth error (invalid/expired token) or a missing user rejects.
+    let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null;
+    let authError: { message?: string; status?: number; name?: string } | null = null;
+    let networkError: unknown = null;
 
-    if (error || !user) {
+    const isRetryable = (err: { name?: string; status?: number; message?: string } | null) =>
+      !!err &&
+      (err.name === 'AuthRetryableFetchError' ||
+        err.status === 0 ||
+        err.status === undefined ||
+        /fetch failed|network|timeout|ECONNRESET|ETIMEDOUT/i.test(err.message ?? ''));
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      networkError = null;
+      try {
+        const result = await supabase.auth.getUser(token);
+        user = result.data.user;
+        authError = result.error;
+        if (!isRetryable(authError)) break; // Definitive answer (valid or invalid).
+        networkError = authError; // Retryable upstream failure — try again.
+        authError = null;
+      } catch (err) {
+        networkError = err; // Transport failure (throw) — try again.
+      }
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
+    }
+
+    if (networkError) {
+      console.error('Auth verification network failure:', networkError);
+      res.status(503).json({
+        code: 'AUTH_UPSTREAM_UNAVAILABLE',
+        message: 'Could not verify session, please retry',
+      });
+      return;
+    }
+
+    if (authError || !user) {
       res.status(401).json({
         code: 'UNAUTHORIZED',
         message: 'Invalid or expired token',
@@ -75,12 +112,51 @@ export async function authMiddleware(
     // Resolve tenant, role, and permissions from the DB (source of truth).
     // JWT user_metadata is kept in sync as a convenience for clients, but the
     // API never trusts it for authorization — it can be stale (signed token)
-    // or out of sync after a role change.
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('tenant_id, is_active, role:roles(name, permissions)')
-      .eq('id', user.id)
-      .single();
+    // or out of sync after a role change. Like getUser above, this is a network
+    // call to Supabase; retry transient failures so a blip doesn't 403 a valid
+    // user (a genuinely-missing profile still returns after the retries).
+    type ProfileRole = { name?: string; permissions?: unknown };
+    type ProfileRow = {
+      tenant_id: string | null;
+      is_active: boolean | null;
+      role: ProfileRole | ProfileRole[] | null;
+    };
+    let profile: ProfileRow | null = null;
+    let profileError: { message?: string; code?: string } | null = null;
+    let profileNetworkError: unknown = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      profileNetworkError = null;
+      try {
+        const result = await supabase
+          .from('users')
+          .select('tenant_id, is_active, role:roles(name, permissions)')
+          .eq('id', user.id)
+          .single();
+        profile = (result.data as unknown) as ProfileRow | null;
+        profileError = result.error;
+        // PGRST116 = no rows; that's a real "not found", not a network blip.
+        const transient =
+          profileError && profileError.code !== 'PGRST116' &&
+          /fetch failed|network|timeout|ECONNRESET|ETIMEDOUT|503|502/i.test(
+            (profileError.message ?? '') + (profileError.code ?? '')
+          );
+        if (!transient) break;
+        profileNetworkError = profileError;
+        profileError = null;
+      } catch (err) {
+        profileNetworkError = err;
+      }
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
+    }
+
+    if (profileNetworkError) {
+      console.error('Auth profile lookup network failure:', profileNetworkError);
+      res.status(503).json({
+        code: 'AUTH_UPSTREAM_UNAVAILABLE',
+        message: 'Could not verify session, please retry',
+      });
+      return;
+    }
 
     if (profileError || !profile) {
       res.status(403).json({

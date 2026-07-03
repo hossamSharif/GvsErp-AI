@@ -54,6 +54,20 @@ async function remap(entry: OutboxEntry): Promise<{ endpoint: string; payload: u
         if (serverId) p[key] = serverId;
       }
     }
+    // Bill-wise payment allocations carry the invoice id nested in an array —
+    // remap each one so a payment created offline stays linked to its invoice.
+    if (Array.isArray(p.allocations)) {
+      p.allocations = await Promise.all(
+        (p.allocations as Array<Record<string, unknown>>).map(async (alloc) => {
+          const local = alloc?.invoice_id;
+          if (typeof local === 'string') {
+            const serverId = await getMappedServerId(local);
+            if (serverId) return { ...alloc, invoice_id: serverId };
+          }
+          return alloc;
+        })
+      );
+    }
     payload = p;
   }
 

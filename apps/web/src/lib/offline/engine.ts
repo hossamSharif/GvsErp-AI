@@ -378,15 +378,27 @@ export async function createPaymentOffline(
     await db.parties.put({ ...party, balance: Number(party.balance ?? 0) + delta, _syncedAt: now });
   }
 
-  // A payment against an offline invoice must sync after that invoice.
-  const dependsOnId = input.invoiceId ? await openEntryId(input.invoiceId) : undefined;
+  // A payment against an offline invoice must sync after that invoice. The link
+  // can come via the deprecated `invoiceId` or, for the post-finalize modal,
+  // via bill-wise `allocations[].invoice_id` — gather open outbox entries for
+  // every referenced invoice so the payment replays after all of them.
+  const linkedInvoiceIds = new Set<string>();
+  if (input.invoiceId) linkedInvoiceIds.add(input.invoiceId);
+  for (const alloc of input.allocations ?? []) {
+    if (alloc.invoice_id) linkedInvoiceIds.add(alloc.invoice_id);
+  }
+  const dependsOn: string[] = [];
+  for (const invoiceId of linkedInvoiceIds) {
+    const entryId = await openEntryId(invoiceId);
+    if (entryId && !dependsOn.includes(entryId)) dependsOn.push(entryId);
+  }
   await enqueue({
     type: 'payment.create',
     entityLocalId: id,
     endpoint: '/payments',
     method: 'POST',
     payload: { ...input, id },
-    dependsOn: dependsOnId ? [dependsOnId] : [],
+    dependsOn,
   });
 
   return { success: true, data: payment };

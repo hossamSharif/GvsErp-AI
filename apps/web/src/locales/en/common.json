@@ -21,8 +21,50 @@
     "accounting": "Accounting",
     "hr": "HR",
     "expenses": "Expenses",
+    "dailyJournal": "Daily Journal",
     "reports": "Reports",
     "settings": "Settings"
+  },
+  "dailyJournal": {
+    "title": "Daily Journal",
+    "description": "A simple daily snapshot of sales, purchases, expenses and your current balances.",
+    "date": "Date",
+    "today": "Today",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "print": "Print",
+    "loading": "Loading…",
+    "kpis": {
+      "sales": "Total Sales",
+      "purchases": "Total Purchases",
+      "expenses": "Total Expenses",
+      "netCashFlow": "Net Cash Flow"
+    },
+    "balances": {
+      "title": "Current Balances",
+      "cash": "Cash",
+      "bank": "Bank",
+      "totalLiquid": "Total Liquid",
+      "asOfNote": "Live current balance"
+    },
+    "sections": {
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "expenses": "Expenses"
+    },
+    "columns": {
+      "number": "Number",
+      "party": "Party",
+      "category": "Category",
+      "description": "Description",
+      "amount": "Amount",
+      "total": "Total"
+    },
+    "empty": {
+      "sales": "No sales on this day.",
+      "purchases": "No purchases on this day.",
+      "expenses": "No expenses on this day."
+    }
   },
   "auth": {
     "login": "Login",
@@ -639,6 +681,12 @@
         "body": "Finalizing locks the invoice and updates stock quantities and party balances. This action cannot be undone. If you need to make changes later, you will need to create a return invoice.",
         "cancel": "Cancel",
         "confirm": "Finalize Invoice"
+      },
+      "paymentPrompt": {
+        "title": "Add a payment now?",
+        "body": "The invoice is finalized. Would you like to record a payment for it now?",
+        "later": "Not now",
+        "addNow": "Yes, add payment"
       },
       "toasts": {
         "selectWarehouse": "Please select a warehouse",
@@ -1672,6 +1720,23 @@
         "advance": "{amount} unallocated (advance)",
         "exceeds": "Allocations exceed the payment amount."
       }
+    },
+    "recordDialog": {
+      "title": "Record Payment",
+      "subtitleReceived": "Record the amount received for this invoice.",
+      "subtitleMade": "Record the amount paid for this invoice.",
+      "invoiceLabel": "Invoice #{number}",
+      "totalDue": "Total due: {amount} {currency}",
+      "paymentWay": "Payment Way",
+      "note": "Note",
+      "notePlaceholder": "Optional note",
+      "skip": "Skip",
+      "save": "Save Payment",
+      "saving": "Saving...",
+      "toastSuccess": "Payment recorded",
+      "toastSuccessDesc": "Payment of {amount} {currency} has been recorded.",
+      "toastError": "Error",
+      "toastErrorDesc": "Failed to record payment"
     }
   },
   "auditTrail": {

@@ -148,7 +148,7 @@ export default function WarehouseDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" aria-label="Go back to warehouses" onClick={() => router.push(`/${locale}/warehouses`)}>
+          <Button variant="ghost" size="icon" aria-label={t('backToWarehouses')} onClick={() => router.push(`/${locale}/warehouses`)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -161,11 +161,11 @@ export default function WarehouseDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/${warehouseId}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Edit className="me-2 h-4 w-4" />
             {t('edit')}
           </Button>
           <Button onClick={() => router.push(`/${locale}/warehouses/transfers/new?from=${warehouseId}`)}>
-            <TruckIcon className="mr-2 h-4 w-4" />
+            <TruckIcon className="me-2 h-4 w-4" />
             {t('newTransfer')}
           </Button>
         </div>
@@ -232,7 +232,7 @@ export default function WarehouseDetailPage() {
           <TabsTrigger value="alerts">
             {t('alerts')}
             {alerts.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
+              <Badge variant="destructive" className="ms-2">
                 {alerts.length}
               </Badge>
             )}
@@ -260,7 +260,7 @@ export default function WarehouseDetailPage() {
                 setInventoryParams(prev => ({ ...prev, page: 1 }));
               }}
             >
-              <AlertTriangle className="mr-2 h-4 w-4" />
+              <AlertTriangle className="me-2 h-4 w-4" />
               {t('lowStockOnly')}
             </Button>
           </div>
@@ -284,12 +284,12 @@ export default function WarehouseDetailPage() {
                     <TableRow>
                       <TableHead>{t('item')}</TableHead>
                       <TableHead>{t('sku')}</TableHead>
-                      <TableHead className="text-right">{t('quantity')}</TableHead>
-                      <TableHead className="text-right">{t('available')}</TableHead>
-                      <TableHead className="text-right">{t('threshold')}</TableHead>
-                      <TableHead className="text-right">{t('value')}</TableHead>
+                      <TableHead className="text-end">{t('quantity')}</TableHead>
+                      <TableHead className="text-end">{t('available')}</TableHead>
+                      <TableHead className="text-end">{t('threshold')}</TableHead>
+                      <TableHead className="text-end">{t('value')}</TableHead>
                       <TableHead className="text-center">{t('status')}</TableHead>
-                      <TableHead className="text-right">{t('actions')}</TableHead>
+                      <TableHead className="text-end">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -297,29 +297,29 @@ export default function WarehouseDetailPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.itemName}</TableCell>
                         <TableCell>{item.itemSku || '-'}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {formatNumber(item.quantity)} {item.unitOfMeasure}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {formatNumber(item.availableQuantity)} {item.unitOfMeasure}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {item.lowStockThreshold ? formatNumber(item.lowStockThreshold) : '-'}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {formatCurrency(item.estimatedValue)}
                         </TableCell>
                         <TableCell className="text-center">
                           {item.isLowStock ? (
                             <Badge variant="destructive">
-                              <AlertTriangle className="mr-1 h-3 w-3" />
+                              <AlertTriangle className="me-1 h-3 w-3" />
                               {t('lowStock')}
                             </Badge>
                           ) : (
                             <Badge variant="outline">{t('inStock')}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -388,9 +388,9 @@ export default function WarehouseDetailPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t('item')}</TableHead>
-                      <TableHead className="text-right">{t('currentQty')}</TableHead>
-                      <TableHead className="text-right">{t('threshold')}</TableHead>
-                      <TableHead className="text-right">{t('deficit')}</TableHead>
+                      <TableHead className="text-end">{t('currentQty')}</TableHead>
+                      <TableHead className="text-end">{t('threshold')}</TableHead>
+                      <TableHead className="text-end">{t('deficit')}</TableHead>
                       <TableHead className="text-center">{t('severity')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -398,13 +398,13 @@ export default function WarehouseDetailPage() {
                     {alerts.map((alert) => (
                       <TableRow key={`${alert.itemId}-${alert.warehouseId}`}>
                         <TableCell className="font-medium">{alert.itemName}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {formatNumber(alert.quantity)}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end">
                           {formatNumber(alert.lowStockThreshold)}
                         </TableCell>
-                        <TableCell className="text-right text-red-500">
+                        <TableCell className="text-end text-red-500">
                           -{formatNumber(alert.deficit)}
                         </TableCell>
                         <TableCell className="text-center">

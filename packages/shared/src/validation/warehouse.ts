@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { sortDirectionSchema } from './items';
+import { sortDirectionSchema, qsBool } from './items';
 
 // =============================================================================
 // COMMON SCHEMAS
@@ -66,7 +66,7 @@ export const updateWarehouseSchema = z.object({
  */
 export const warehouseQuerySchema = z.object({
   search: z.string().max(255).optional(),
-  isActive: z.coerce.boolean().optional(),
+  isActive: qsBool.optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sortBy: warehouseSortFieldSchema,
@@ -120,7 +120,7 @@ export const inventoryQuerySchema = z.object({
   warehouseId: z.string().uuid('Invalid warehouse ID').optional(),
   itemId: z.string().uuid('Invalid item ID').optional(),
   search: z.string().max(255).optional(),
-  lowStockOnly: z.coerce.boolean().default(false),
+  lowStockOnly: qsBool.default(false),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sortBy: inventorySortFieldSchema,
@@ -219,8 +219,8 @@ export const transferQuerySchema = z.object({
 export const inventoryReportParamsSchema = z.object({
   warehouseId: z.string().uuid('Invalid warehouse ID').optional(),
   categoryId: z.string().uuid('Invalid category ID').optional(),
-  lowStockOnly: z.coerce.boolean().default(false),
-  includeZeroQuantity: z.coerce.boolean().default(false),
+  lowStockOnly: qsBool.default(false),
+  includeZeroQuantity: qsBool.default(false),
   currency: z.string()
     .min(3, 'Currency code must be 3 characters')
     .max(3, 'Currency code must be 3 characters')

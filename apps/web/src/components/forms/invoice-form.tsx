@@ -25,7 +25,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -45,6 +44,7 @@ import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
 import { PartySelect } from '@/components/forms/party-select';
 import { CurrencySelect } from '@/components/forms/currency-select';
 import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
+import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
 import {
   useCreateInvoice,
   useUpdateInvoice,
@@ -121,6 +121,14 @@ export function InvoiceForm({
   const draft = currentDraftId ? getDraft(currentDraftId) : undefined;
 
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
+
+  // Post-finalize payment workflow: after a final invoice is saved, offer to
+  // record the receipt/disbursement immediately. `savedInvoice` holds the
+  // finalized invoice while the prompt/modal are open, deferring `onSaved`
+  // (the parent's redirect) until the user finishes or skips the payment.
+  const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Quick-add bar: ref to focus the input, and a transient row highlight shown
   // when a scan/selection increments an already-present line.
@@ -479,7 +487,14 @@ export function InvoiceForm({
         description: t('toasts.finalizedDescription', { number: finalizeResult.data.invoiceNumber }),
       });
 
-      onSaved?.(finalizeResult.data);
+      // Offer to record a payment against a party invoice. Walk-in invoices
+      // (no party) skip straight to the parent's redirect.
+      if (finalizeResult.data.partyId) {
+        setSavedInvoice(finalizeResult.data);
+        setShowPaymentPrompt(true);
+      } else {
+        onSaved?.(finalizeResult.data);
+      }
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -500,10 +515,61 @@ export function InvoiceForm({
     (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
   );
 
+  // Post-finalize payment workflow dialogs. Rendered in both the loading branch
+  // and the main return, because finalizing deletes the local draft (so the
+  // form falls into the loading state below) while the prompt/modal must stay
+  // mounted until the user records the payment or skips.
+  const paymentWorkflowDialogs = (
+    <>
+      {/* Post-finalize: offer to record a payment now */}
+      <AlertDialog open={showPaymentPrompt} onOpenChange={setShowPaymentPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('paymentPrompt.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('paymentPrompt.body')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowPaymentPrompt(false);
+                if (savedInvoice) onSaved?.(savedInvoice);
+              }}
+            >
+              {t('paymentPrompt.later')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowPaymentPrompt(false);
+                setShowPaymentModal(true);
+              }}
+            >
+              {t('paymentPrompt.addNow')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {savedInvoice && (
+        <RecordPaymentDialog
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          invoice={savedInvoice}
+          onDone={() => {
+            setShowPaymentModal(false);
+            onSaved?.(savedInvoice);
+          }}
+        />
+      )}
+    </>
+  );
+
   if (!draft && !existingInvoice) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-muted-foreground">{t('loading')}</p>
+        {paymentWorkflowDialogs}
       </div>
     );
   }
@@ -564,11 +630,8 @@ export function InvoiceForm({
 
       {/* Items Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>{t('items')}</CardTitle>
-          <CardDescription>
-            {t('addItemsHint', { type: type === 'sale' ? t('saleType') : t('purchaseType') })}
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Persistent scan/search bar — always visible above the table */}
@@ -699,6 +762,8 @@ export function InvoiceForm({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {paymentWorkflowDialogs}
 
     </div>
   );

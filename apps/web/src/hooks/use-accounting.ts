@@ -54,6 +54,8 @@ export const accountingKeys = {
     [...accountingKeys.all, 'general-ledger', accountId, startDate, endDate] as const,
   dayBook: (start: string, end: string) =>
     [...accountingKeys.all, 'day-book', start, end] as const,
+  dailyJournal: (date: string) =>
+    [...accountingKeys.all, 'daily-journal', date] as const,
   agingReceivables: (asOf: string) =>
     [...accountingKeys.all, 'aging-receivables', asOf] as const,
   agingPayables: (asOf: string) =>
@@ -132,6 +134,52 @@ export function useDayBook(startDate: string, endDate: string) {
       return res.data;
     },
     enabled: !!startDate && !!endDate,
+  });
+}
+
+/**
+ * Daily Journal — simple owner/manager daily snapshot: totals + line lists for
+ * sales, purchases and expenses on a single day, headline KPIs, and current
+ * cash & bank balances.
+ */
+export interface DailyJournalInvoiceItem {
+  id: string;
+  number: string;
+  party: string | null;
+  amount: number;
+}
+
+export interface DailyJournalExpenseItem {
+  id: string;
+  category: string | null;
+  description: string | null;
+  amount: number;
+}
+
+export interface DailyJournalReport {
+  date: string;
+  sales: { total: number; items: DailyJournalInvoiceItem[] };
+  purchases: { total: number; items: DailyJournalInvoiceItem[] };
+  expenses: { total: number; items: DailyJournalExpenseItem[] };
+  kpis: {
+    totalSales: number;
+    totalPurchases: number;
+    totalExpenses: number;
+    netCashFlow: number;
+  };
+  balances: { cash: number; bank: number; totalLiquid: number };
+}
+
+export function useDailyJournal(date: string) {
+  return useQuery({
+    queryKey: accountingKeys.dailyJournal(date),
+    queryFn: async () => {
+      const res = await api.get<{ data: DailyJournalReport }>(
+        `/accounting/reports/daily-journal?date=${date}`
+      );
+      return res.data;
+    },
+    enabled: !!date,
   });
 }
 

@@ -405,6 +405,33 @@ router.get(
 );
 
 /**
+ * GET /accounting/reports/daily-journal?date=YYYY-MM-DD
+ *
+ * Simple owner/manager daily snapshot: the day's final sales, purchases and
+ * expenses (totals + line lists), headline KPIs, and current cash & bank
+ * balances. Deliberately simpler than the double-entry day book.
+ */
+router.get(
+  '/reports/daily-journal',
+  validateRequest({
+    query: z.object({
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { date } = req.query as { date: string };
+      const report = await service.generateDailyJournal(tenantId, date);
+      res.json({ success: true, data: report });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * GET /accounting/reports/aging-receivables?as_of=YYYY-MM-DD
  * GET /accounting/reports/aging-payables?as_of=YYYY-MM-DD
  *
