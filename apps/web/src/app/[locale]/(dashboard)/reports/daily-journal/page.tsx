@@ -178,6 +178,17 @@ export default function DailyJournalPage() {
                   emphasize
                 />
               </div>
+              {data.balances.banks.length > 1 && (
+                <div className="mt-4 pt-4 border-t space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('balances.perBank')}</p>
+                  {data.balances.banks.map((b) => (
+                    <div key={b.id} className="flex items-center justify-between text-sm">
+                      <span>{b.name}</span>
+                      <span className="font-mono">{nf.format(b.balance)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

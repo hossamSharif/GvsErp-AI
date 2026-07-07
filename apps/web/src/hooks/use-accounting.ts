@@ -31,7 +31,8 @@ export type AccountingDefaultRole =
   | 'salary_expense'
   | 'salary_payable'
   | 'general_expense'
-  | 'service_purchase_expense';
+  | 'service_purchase_expense'
+  | 'opening_balance_equity';
 
 export interface AccountingDefaultsResponse {
   roles: AccountingDefaultRole[];
@@ -56,6 +57,8 @@ export const accountingKeys = {
     [...accountingKeys.all, 'day-book', start, end] as const,
   dailyJournal: (date: string) =>
     [...accountingKeys.all, 'daily-journal', date] as const,
+  userDailySummary: (start: string, end: string) =>
+    [...accountingKeys.all, 'user-daily-summary', start, end] as const,
   agingReceivables: (asOf: string) =>
     [...accountingKeys.all, 'aging-receivables', asOf] as const,
   agingPayables: (asOf: string) =>
@@ -167,7 +170,12 @@ export interface DailyJournalReport {
     totalExpenses: number;
     netCashFlow: number;
   };
-  balances: { cash: number; bank: number; totalLiquid: number };
+  balances: {
+    cash: number;
+    bank: number;
+    banks: Array<{ id: string; name: string; balance: number }>;
+    totalLiquid: number;
+  };
 }
 
 export function useDailyJournal(date: string) {
@@ -180,6 +188,58 @@ export function useDailyJournal(date: string) {
       return res.data;
     },
     enabled: !!date,
+  });
+}
+
+/**
+ * Per-User Daily Summary — comparison of sales/purchases/payments/expenses
+ * per user for a day or range. Not real shift tracking.
+ */
+export interface UserSummaryAmount {
+  count: number;
+  amount: number;
+}
+
+export type UserSummaryByBank = Record<string, UserSummaryAmount>;
+
+export interface UserSummaryRow {
+  userId: string;
+  userName: string;
+  isActive: boolean;
+  sales: UserSummaryAmount;
+  purchases: UserSummaryAmount;
+  paymentsReceived: { cash: UserSummaryAmount; bank: UserSummaryAmount; byBank: UserSummaryByBank };
+  paymentsMade: { cash: UserSummaryAmount; bank: UserSummaryAmount; byBank: UserSummaryByBank };
+  expenses: UserSummaryAmount;
+  net: number;
+}
+
+export interface UserDailySummaryReport {
+  startDate: string;
+  endDate: string;
+  /** Active bank accounts referenced anywhere in `rows`, for labeling `byBank` keys. */
+  banks: Array<{ id: string; name: string }>;
+  rows: UserSummaryRow[];
+  totals: {
+    sales: UserSummaryAmount;
+    purchases: UserSummaryAmount;
+    paymentsReceived: { cash: number; bank: number; byBank: Record<string, number> };
+    paymentsMade: { cash: number; bank: number; byBank: Record<string, number> };
+    expenses: UserSummaryAmount;
+    net: number;
+  };
+}
+
+export function useUserDailySummary(startDate: string, endDate: string) {
+  return useQuery({
+    queryKey: accountingKeys.userDailySummary(startDate, endDate),
+    queryFn: async () => {
+      const res = await api.get<{ data: UserDailySummaryReport }>(
+        `/accounting/reports/user-daily-summary?start_date=${startDate}&end_date=${endDate}`
+      );
+      return res.data;
+    },
+    enabled: !!startDate && !!endDate,
   });
 }
 

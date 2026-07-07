@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 import { ColumnDef } from '@tanstack/react-table';
 import { useItems, useDeleteItem } from '@/hooks/use-items';
 import { BulkPriceDialog } from '@/components/dialogs/bulk-price-dialog';
+import { ItemQuickModal } from '@/components/forms/item-quick-modal';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -82,6 +83,7 @@ export default function ItemsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
   const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   // Search input — debounced before promoting to the server query so we don't
   // refetch on every keystroke.
@@ -139,6 +141,10 @@ export default function ItemsPage() {
   const handleAddItem = useCallback(() => {
     router.push(`/${locale}/items/new`);
   }, [router, locale]);
+
+  const handleQuickAdd = useCallback(() => {
+    setQuickAddOpen(true);
+  }, []);
 
   const handleViewItem = useCallback(
     (item: ItemWithCategory) => {
@@ -309,12 +315,23 @@ export default function ItemsPage() {
             <FolderTree className="mr-2 h-4 w-4" />
             {t('manageCategoriesButton')}
           </Button>
+          <Button variant="outline" onClick={handleQuickAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('quickAddButton')}
+          </Button>
           <Button onClick={handleAddItem}>
             <Plus className="mr-2 h-4 w-4" />
             {t('addButton')}
           </Button>
         </div>
       </div>
+
+      <ItemQuickModal
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        mode="create"
+        onSaved={() => {}}
+      />
 
       {/* Category Filter */}
       {categoriesData?.data && categoriesData.data.length > 0 && (

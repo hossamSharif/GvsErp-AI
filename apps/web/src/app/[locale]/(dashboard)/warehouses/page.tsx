@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, Package, AlertTriangle, Building2, Search, MoreHorizontal, Settings, TruckIcon, FileBarChart } from 'lucide-react';
+import { Plus, Package, AlertTriangle, Building2, Search, MoreHorizontal, Settings, TruckIcon, FileBarChart, PackagePlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -122,6 +122,10 @@ export default function WarehousesPage() {
           <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/transfers`)}>
             <TruckIcon className="mr-2 h-4 w-4" />
             {t('transfers')}
+          </Button>
+          <Button variant="outline" onClick={() => router.push(`/${locale}/warehouses/opening-stock`)}>
+            <PackagePlus className="mr-2 h-4 w-4" />
+            {t('openingStock')}
           </Button>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />

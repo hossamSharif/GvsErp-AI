@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { WarehouseService } from '../services/warehouse.service';
+import { OpeningStockService } from '../services/opening-stock.service';
 import {
   createWarehouseSchema,
   updateWarehouseSchema,
@@ -14,6 +15,7 @@ import {
   updateInventoryThresholdSchema,
   bulkUpdateInventoryThresholdSchema,
   lowStockAlertQuerySchema,
+  setOpeningStockSchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
@@ -31,6 +33,14 @@ router.use(requireAuth);
 function getWarehouseService(req: Request): WarehouseService {
   const { supabase, tenantId } = getTenantContext(req);
   return new WarehouseService(supabase, tenantId);
+}
+
+/**
+ * Helper to create OpeningStockService with tenant context
+ */
+function getOpeningStockService(req: Request): OpeningStockService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new OpeningStockService(supabase, tenantId);
 }
 
 // =============================================================================
@@ -378,6 +388,47 @@ router.get(
     res.json({
       success: true,
       data: values,
+    });
+  })
+);
+
+// =============================================================================
+// OPENING STOCK ENDPOINTS
+// =============================================================================
+
+/**
+ * GET /warehouses/:id/opening-stock
+ * Get all active items with their current qty, suggested cost and opening-entry flag
+ */
+router.get(
+  '/:id/opening-stock',
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getOpeningStockService(req);
+    const rows = await service.getOpeningStockRows(req.params.id);
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  })
+);
+
+/**
+ * POST /warehouses/:id/opening-stock
+ * Set opening stock for a batch of items (additive)
+ */
+router.post(
+  '/:id/opening-stock',
+  requirePermission('warehouses:write'),
+  validateRequest({ body: setOpeningStockSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getOpeningStockService(req);
+    const { userId } = getTenantContext(req);
+    const result = await service.setOpeningStock(req.params.id, req.body, userId);
+
+    res.status(201).json({
+      success: true,
+      data: result,
     });
   })
 );

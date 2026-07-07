@@ -149,6 +149,8 @@ export interface UpdateItemInput {
   taxRate?: number;
   isActive?: boolean;
   images?: string[];
+  prices?: CreateItemPriceInput[];
+  packagings?: CreateItemPackagingInput[];
 }
 
 // =============================================================================

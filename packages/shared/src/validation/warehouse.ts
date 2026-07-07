@@ -245,3 +245,24 @@ export const lowStockAlertQuerySchema = z.object({
 // Duplicate type aliases removed — authoritative types live in types/warehouse.ts
 // LowStockAlertQueryParams is unique to validation (no type equivalent)
 export type LowStockAlertQueryParams = z.infer<typeof lowStockAlertQuerySchema>;
+
+// =============================================================================
+// OPENING STOCK SCHEMAS
+// =============================================================================
+
+export const openingStockItemSchema = z.object({
+  itemId: z.string().uuid('Invalid item ID'),
+  quantity: z.coerce.number()
+    .positive('Quantity must be greater than 0')
+    .multipleOf(0.001, 'Quantity can have at most 3 decimal places'),
+  unitCost: z.coerce.number()
+    .min(0, 'Unit cost cannot be negative')
+    .multipleOf(0.0001, 'Unit cost can have at most 4 decimal places'),
+});
+
+export const setOpeningStockSchema = z.object({
+  asOfDate: z.string().date('Invalid date format'),
+  items: z.array(openingStockItemSchema)
+    .min(1, 'At least one item is required')
+    .max(500, 'Cannot set opening stock for more than 500 items at once'),
+});

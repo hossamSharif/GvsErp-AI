@@ -82,7 +82,11 @@ export default function EditItemPage() {
   // Handle form submission
   const handleSubmit = useCallback(
     async (data: UpdateItemInput) => {
-      await updateMutation.mutateAsync({ id: itemId, data });
+      try {
+        await updateMutation.mutateAsync({ id: itemId, data });
+      } catch {
+        // Already surfaced via updateMutation's onError toast.
+      }
     },
     [updateMutation, itemId]
   );

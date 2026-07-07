@@ -22,8 +22,38 @@
     "hr": "HR",
     "expenses": "Expenses",
     "dailyJournal": "Daily Journal",
+    "userDailySummary": "User Daily Summary",
     "reports": "Reports",
     "settings": "Settings"
+  },
+  "openingStock": {
+    "draftSaved": "Draft saved",
+    "title": "Opening Stock",
+    "description": "Set the initial inventory quantities and costs for items in a warehouse.",
+    "selectWarehouse": "Select a warehouse",
+    "asOfDate": "As of date",
+    "loadRows": "Load Items",
+    "save": "Save Opening Stock",
+    "saving": "Saving…",
+    "saved": "Opening stock saved successfully",
+    "saveError": "Failed to save opening stock",
+    "itemName": "Item",
+    "sku": "SKU",
+    "unit": "Unit",
+    "currentQty": "Current Qty",
+    "quantity": "Quantity",
+    "unitCost": "Unit Cost",
+    "noItems": "No active items found.",
+    "alreadyEntered": "Opening entry exists",
+    "confirmTitle": "Confirm Overwrite",
+    "confirmDescription": "One or more items already have an opening-stock entry. Adding more will increase their quantity and post an additional journal entry. Continue?",
+    "searchItems": "Search items...",
+    "noResults": "No items match '{query}'",
+    "addItem": "New Item",
+    "totalItems": "{count} items",
+    "itemsWithQty": "{count} items with quantity",
+    "confirmProceed": "Yes, proceed",
+    "confirmCancel": "Cancel"
   },
   "dailyJournal": {
     "title": "Daily Journal",
@@ -45,7 +75,8 @@
       "cash": "Cash",
       "bank": "Bank",
       "totalLiquid": "Total Liquid",
-      "asOfNote": "Live current balance"
+      "asOfNote": "Live current balance",
+      "perBank": "Per bank account"
     },
     "sections": {
       "sales": "Sales",
@@ -64,6 +95,33 @@
       "sales": "No sales on this day.",
       "purchases": "No purchases on this day.",
       "expenses": "No expenses on this day."
+    }
+  },
+  "userDailySummary": {
+    "title": "User Daily Summary",
+    "description": "Compare each user's sales, purchases, cash collected and expenses for a day or range.",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "today": "Today",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "print": "Print",
+    "loading": "Loading…",
+    "empty": "No activity for any user in this period.",
+    "unknownUser": "Unknown / System",
+    "columns": {
+      "user": "User",
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "cashIn": "Cash In",
+      "bankIn": "Bank In",
+      "bankInNamed": "In ({name})",
+      "cashOut": "Cash Out",
+      "bankOut": "Bank Out",
+      "bankOutNamed": "Out ({name})",
+      "expenses": "Expenses",
+      "net": "Net",
+      "total": "Total"
     }
   },
   "auth": {
@@ -145,6 +203,7 @@
       "title": "Items",
       "description": "Manage your inventory items, categories, and pricing.",
       "addButton": "Add Item",
+      "quickAddButton": "Quick Add",
       "exportButton": "Export",
       "manageCategoriesButton": "Manage Categories",
       "updatePricesButton": "Update Prices ({count})",
@@ -192,7 +251,8 @@
       "DUPLICATE_SKU": "An item with this SKU already exists",
       "DUPLICATE_BARCODE": "An item with this barcode already exists",
       "ITEM_NOT_FOUND": "Item not found",
-      "CATEGORY_NOT_FOUND": "Category not found"
+      "CATEGORY_NOT_FOUND": "Category not found",
+      "AUTH_UPSTREAM_UNAVAILABLE": "Could not verify your session. Please try again."
     },
     "edit": {
       "description": "Edit item details, pricing, and packaging options.",
@@ -289,6 +349,27 @@
         "nameMaxLength": "Name must be 255 characters or less",
         "skuMaxLength": "SKU must be 100 characters or less",
         "barcodeMaxLength": "Barcode must be 100 characters or less"
+      }
+    },
+    "quickModal": {
+      "createTitle": "Quick Add Item",
+      "createDescription": "Add a new item with the essentials. You can fill in the rest later.",
+      "editTitle": "Quick Edit Item",
+      "editDescription": "Update the essentials for this item.",
+      "pricingTitle": "Prices",
+      "addPriceButton": "Add Price",
+      "removePriceAriaLabel": "Remove price",
+      "cancel": "Cancel",
+      "create": "Create Item",
+      "save": "Save Changes",
+      "offlineNotice": "You're offline. Reconnect to add or update items.",
+      "toasts": {
+        "created": "Item created",
+        "createdDescription": "{name} has been created successfully.",
+        "createFailed": "Failed to create item",
+        "updated": "Item updated",
+        "updatedDescription": "{name} has been updated successfully.",
+        "updateFailed": "Failed to update item"
       }
     },
     "bulkPrice": {
@@ -706,7 +787,10 @@
       "quantity": "Qty",
       "price": "Price",
       "add": "Add",
-      "stagedHint": "Set quantity & price, then press Enter to add “{name}”"
+      "stagedHint": "Set quantity & price, then press Enter to add “{name}”",
+      "quickAddNewItem": "Quick add new item",
+      "editStagedItem": "Edit “{name}”",
+      "quickAddOfflineTitle": "Adding items requires an internet connection"
     },
     "items": {
       "columns": {
@@ -1118,6 +1202,7 @@
     "settings": "Settings",
     "settingsDescription": "Configure low-stock thresholds and warehouse preferences.",
     "transfers": "Transfers",
+    "openingStock": "Opening Stock",
     "addWarehouse": "Add Warehouse",
     "totalWarehouses": "Total Warehouses",
     "lowStockAlerts": "Low Stock Alerts",

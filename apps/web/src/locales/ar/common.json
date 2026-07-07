@@ -22,8 +22,38 @@
     "hr": "الموارد البشرية",
     "expenses": "المصروفات",
     "dailyJournal": "اليومية",
+    "userDailySummary": "ملخص أداء الموظفين",
     "reports": "التقارير",
     "settings": "الإعدادات"
+  },
+  "openingStock": {
+    "draftSaved": "تم حفظ المسودة",
+    "title": "المخزون الافتتاحي",
+    "description": "حدد كميات وتكاليف المخزون الأولية للأصناف في المستودع.",
+    "selectWarehouse": "اختر مستودعاً",
+    "asOfDate": "التاريخ الافتتاحي",
+    "loadRows": "تحميل الأصناف",
+    "save": "حفظ المخزون الافتتاحي",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم حفظ المخزون الافتتاحي بنجاح",
+    "saveError": "فشل حفظ المخزون الافتتاحي",
+    "itemName": "الصنف",
+    "sku": "الرمز",
+    "unit": "الوحدة",
+    "currentQty": "الكمية الحالية",
+    "quantity": "الكمية",
+    "unitCost": "سعر التكلفة",
+    "noItems": "لا توجد أصناف نشطة.",
+    "alreadyEntered": "يوجد قيد افتتاحي",
+    "confirmTitle": "تأكيد الإضافة",
+    "confirmDescription": "صنف واحد أو أكثر لديه قيد افتتاحي بالفعل. ستؤدي الإضافة إلى زيادة كميته وترحيل قيد محاسبي إضافي. هل تريد المتابعة؟",
+    "searchItems": "البحث عن الأصناف...",
+    "noResults": "لا توجد أصناف تطابق '{query}'",
+    "addItem": "صنف جديد",
+    "totalItems": "{count} صنف",
+    "itemsWithQty": "{count} أصناف بكمية",
+    "confirmProceed": "نعم، متابعة",
+    "confirmCancel": "إلغاء"
   },
   "dailyJournal": {
     "title": "اليومية",
@@ -45,7 +75,8 @@
       "cash": "النقدية",
       "bank": "البنك",
       "totalLiquid": "إجمالي السيولة",
-      "asOfNote": "الرصيد الحالي المباشر"
+      "asOfNote": "الرصيد الحالي المباشر",
+      "perBank": "لكل حساب بنكي"
     },
     "sections": {
       "sales": "المبيعات",
@@ -64,6 +95,33 @@
       "sales": "لا توجد مبيعات في هذا اليوم.",
       "purchases": "لا توجد مشتريات في هذا اليوم.",
       "expenses": "لا توجد مصروفات في هذا اليوم."
+    }
+  },
+  "userDailySummary": {
+    "title": "ملخص أداء الموظفين",
+    "description": "قارن مبيعات ومشتريات ونقدية ومصروفات كل مستخدم خلال يوم أو فترة.",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "today": "اليوم",
+    "prevDay": "اليوم السابق",
+    "nextDay": "اليوم التالي",
+    "print": "طباعة",
+    "loading": "جارٍ التحميل…",
+    "empty": "لا يوجد نشاط لأي مستخدم في هذه الفترة.",
+    "unknownUser": "غير معروف / النظام",
+    "columns": {
+      "user": "المستخدم",
+      "sales": "المبيعات",
+      "purchases": "المشتريات",
+      "cashIn": "نقدي وارد",
+      "bankIn": "بنك وارد",
+      "bankInNamed": "وارد ({name})",
+      "cashOut": "نقدي صادر",
+      "bankOut": "بنك صادر",
+      "bankOutNamed": "صادر ({name})",
+      "expenses": "المصروفات",
+      "net": "الصافي",
+      "total": "الإجمالي"
     }
   },
   "auth": {
@@ -145,6 +203,7 @@
       "title": "الأصناف",
       "description": "إدارة أصناف المخزون والفئات والأسعار.",
       "addButton": "إضافة صنف",
+      "quickAddButton": "إضافة سريعة",
       "exportButton": "تصدير",
       "manageCategoriesButton": "إدارة الفئات",
       "updatePricesButton": "تحديث الأسعار ({count})",
@@ -192,7 +251,8 @@
       "DUPLICATE_SKU": "يوجد صنف بنفس رمز المنتج بالفعل",
       "DUPLICATE_BARCODE": "يوجد صنف بنفس الباركود بالفعل",
       "ITEM_NOT_FOUND": "الصنف غير موجود",
-      "CATEGORY_NOT_FOUND": "الفئة غير موجودة"
+      "CATEGORY_NOT_FOUND": "الفئة غير موجودة",
+      "AUTH_UPSTREAM_UNAVAILABLE": "تعذر التحقق من الجلسة. يرجى المحاولة مرة أخرى."
     },
     "edit": {
       "description": "تعديل تفاصيل الصنف والأسعار وخيارات التعبئة.",
@@ -289,6 +349,27 @@
         "nameMaxLength": "يجب ألا يتجاوز الاسم 255 حرفًا",
         "skuMaxLength": "يجب ألا يتجاوز رمز المنتج 100 حرف",
         "barcodeMaxLength": "يجب ألا يتجاوز الباركود 100 حرف"
+      }
+    },
+    "quickModal": {
+      "createTitle": "إضافة صنف سريعة",
+      "createDescription": "أضف صنفًا جديدًا بالحقول الأساسية فقط. يمكنك إكمال الباقي لاحقًا.",
+      "editTitle": "تعديل سريع للصنف",
+      "editDescription": "حدّث الحقول الأساسية لهذا الصنف.",
+      "pricingTitle": "الأسعار",
+      "addPriceButton": "إضافة سعر",
+      "removePriceAriaLabel": "إزالة السعر",
+      "cancel": "إلغاء",
+      "create": "إنشاء الصنف",
+      "save": "حفظ التغييرات",
+      "offlineNotice": "أنت غير متصل بالإنترنت. أعد الاتصال لإضافة الأصناف أو تحديثها.",
+      "toasts": {
+        "created": "تم إنشاء الصنف",
+        "createdDescription": "تم إنشاء {name} بنجاح.",
+        "createFailed": "فشل إنشاء الصنف",
+        "updated": "تم تحديث الصنف",
+        "updatedDescription": "تم تحديث {name} بنجاح.",
+        "updateFailed": "فشل تحديث الصنف"
       }
     },
     "bulkPrice": {
@@ -706,7 +787,10 @@
       "quantity": "الكمية",
       "price": "السعر",
       "add": "إضافة",
-      "stagedHint": "حدد الكمية والسعر ثم اضغط Enter لإضافة “{name}”"
+      "stagedHint": "حدد الكمية والسعر ثم اضغط Enter لإضافة “{name}”",
+      "quickAddNewItem": "إضافة صنف جديد بسرعة",
+      "editStagedItem": "تعديل “{name}”",
+      "quickAddOfflineTitle": "تتطلب إضافة الأصناف اتصالاً بالإنترنت"
     },
     "items": {
       "columns": {
@@ -1118,6 +1202,7 @@
     "settings": "الإعدادات",
     "settingsDescription": "اضبط حدود نقص المخزون وتفضيلات المستودعات.",
     "transfers": "التحويلات",
+    "openingStock": "المخزون الافتتاحي",
     "addWarehouse": "إضافة مستودع",
     "totalWarehouses": "إجمالي المستودعات",
     "lowStockAlerts": "تنبيهات نقص المخزون",

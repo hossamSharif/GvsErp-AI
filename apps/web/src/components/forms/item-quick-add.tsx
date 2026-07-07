@@ -21,14 +21,16 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ScanLine, Check, Loader2, AlertCircle, Plus } from 'lucide-react';
+import { ScanLine, Check, Loader2, AlertCircle, Plus, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useItems } from '@/hooks/use-items';
+import { useItems, useItem } from '@/hooks/use-items';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useOnline } from '@/hooks/use-online';
+import { ItemQuickModal } from '@/components/forms/item-quick-modal';
 import { api } from '@/lib/api-client';
-import type { ItemWithCategory, PriceTier } from '@erp/shared';
+import type { ItemWithCategory, ItemWithRelations, PriceTier } from '@erp/shared';
 
 // =============================================================================
 // TYPES
@@ -93,6 +95,14 @@ const SCAN_MIN_LEN = 3; // ignore very short bursts
 export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disabled }: ItemQuickAddProps) {
   const t = useTranslations('sales.form');
   const tCommon = useTranslations('common');
+  const online = useOnline();
+
+  // Quick add/edit item modal state — lets the user create or fix an item
+  // without leaving the invoice. Editing fetches the full item on demand so
+  // the modal has prices/etc. even though the search result is a lighter shape.
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const { data: editItemData } = useItem(editItemId ?? undefined);
 
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = externalRef ?? internalRef;
@@ -199,6 +209,16 @@ export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disab
       });
     },
     [clearScanTimer]
+  );
+
+  /** After a quick create/edit save, stage the item immediately — no extra click. */
+  const handleQuickModalSaved = useCallback(
+    (saved: ItemWithRelations) => {
+      stageItem(toQuickAddItem(saved, priceTier));
+      setQuickCreateOpen(false);
+      setEditItemId(null);
+    },
+    [stageItem, priceTier]
   );
 
   const commitStaged = useCallback(() => {
@@ -486,13 +506,36 @@ export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disab
           <Plus className="h-4 w-4" />
           <span className="ms-1 hidden sm:inline">{t('add')}</span>
         </Button>
+
+        {/* Quick create a new item without leaving the invoice */}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 shrink-0"
+          disabled={disabled || !online}
+          title={online ? t('quickAddNewItem') : t('quickAddOfflineTitle')}
+          aria-label={t('quickAddNewItem')}
+          onClick={() => setQuickCreateOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Status line: staging / confirmation / not-found / hint */}
       <div className="mt-1 min-h-[1.25rem] px-1 text-xs">
         {stagedItem ? (
-          <span className="text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground">
             {t('stagedHint', { name: stagedItem.name })}
+            <button
+              type="button"
+              className="text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
+              disabled={!online}
+              title={online ? t('editStagedItem', { name: stagedItem.name }) : t('quickAddOfflineTitle')}
+              onClick={() => setEditItemId(stagedItem.id)}
+            >
+              <Pencil className="inline h-3 w-3" />
+            </button>
           </span>
         ) : notFoundCode ? (
           <span className="flex items-center gap-1 text-destructive">
@@ -511,6 +554,22 @@ export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disab
           <span className="text-muted-foreground">{t('quickAddHint')}</span>
         )}
       </div>
+
+      <ItemQuickModal
+        open={quickCreateOpen}
+        onOpenChange={setQuickCreateOpen}
+        mode="create"
+        onSaved={handleQuickModalSaved}
+      />
+      <ItemQuickModal
+        open={!!editItemId}
+        onOpenChange={(next) => {
+          if (!next) setEditItemId(null);
+        }}
+        mode="edit"
+        item={editItemData?.data ?? null}
+        onSaved={handleQuickModalSaved}
+      />
     </div>
   );
 }

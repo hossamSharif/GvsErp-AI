@@ -420,6 +420,36 @@ export interface TransferHistoryEntry {
 }
 
 // =============================================================================
+// OPENING STOCK TYPES
+// =============================================================================
+
+export interface OpeningStockItemInput {
+  itemId: string;
+  quantity: number;
+  unitCost: number;
+}
+
+export interface SetOpeningStockInput {
+  asOfDate: string;
+  items: OpeningStockItemInput[];
+}
+
+export interface OpeningStockRow {
+  itemId: string;
+  itemName: string;
+  sku: string | null;
+  unitOfMeasure: string;
+  currentQuantity: number;
+  suggestedUnitCost: number;
+  hasOpeningEntry: boolean;
+}
+
+export interface OpeningStockResult {
+  updated: number;
+  journalEntryId: string | null;
+}
+
+// =============================================================================
 // STOCK MOVEMENT TYPES
 // =============================================================================
 

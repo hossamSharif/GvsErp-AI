@@ -231,6 +231,25 @@ export class ItemService {
 
     await this.itemRepository.update(this.tenantId, id, updateData);
 
+    // Replace prices/packagings if provided (client submits the full desired set)
+    if (input.prices !== undefined || input.packagings !== undefined) {
+      const prices = input.prices?.map((p) => ({
+        price_tier: p.priceTier,
+        price: p.price,
+        currency: p.currency || 'USD',
+        effective_from: p.effectiveFrom || null,
+        effective_to: p.effectiveTo || null,
+      }));
+
+      const packagings = input.packagings?.map((p) => ({
+        name: p.name,
+        quantity: p.quantity,
+        barcode: p.barcode || null,
+      }));
+
+      await this.itemRepository.replaceRelations(this.tenantId, id, prices, packagings);
+    }
+
     // Return updated item with relations
     const updated = await this.itemRepository.findByIdWithRelations(this.tenantId, id);
     if (!updated) {

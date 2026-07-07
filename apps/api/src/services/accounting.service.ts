@@ -109,7 +109,8 @@ export type AccountingDefaultRole =
   | 'salary_expense'
   | 'salary_payable'
   | 'general_expense'
-  | 'service_purchase_expense';
+  | 'service_purchase_expense'
+  | 'opening_balance_equity';
 
 export type AccountingDefaults = Partial<Record<AccountingDefaultRole, string>>;
 
@@ -130,6 +131,7 @@ const DEFAULT_ROLE_TO_CODE: Partial<Record<AccountingDefaultRole, string>> = {
   general_expense: '5200',
   service_purchase_expense: '5200',
   salary_expense: '5210',
+  opening_balance_equity: '3200',
 };
 
 /**
@@ -173,9 +175,91 @@ export interface DailyJournalReport {
   };
   balances: {
     cash: number;
+    /** Sum of all active bank-account ledger balances (kept for backward compat). */
     bank: number;
+    /** Per-bank-account breakdown backing `bank` — one tenant may have several banks. */
+    banks: Array<{ id: string; name: string; balance: number }>;
     totalLiquid: number;
   };
+}
+
+/**
+ * Per-User Daily Summary report shapes. Not real shift tracking (no clock
+ * in/out concept exists) — this is a per-user, per-day/range breakdown built
+ * from the created_by columns already present on invoices/payments/expenses.
+ */
+export interface UserSummaryAmount {
+  count: number;
+  amount: number;
+}
+
+/**
+ * Bank-account breakdown of a payments bucket, keyed by bank_account_id.
+ * A tenant may have several bank accounts — `bank` stays as the lumped
+ * total (backward-compatible), `byBank` lets a caller show per-bank figures.
+ */
+export type UserSummaryByBank = Record<string, UserSummaryAmount>;
+
+export interface UserSummaryRow {
+  /** 'unknown' for the created_by IS NULL bucket. */
+  userId: string;
+  /** 'Unknown / System' for the unknown bucket. */
+  userName: string;
+  isActive: boolean;
+  sales: UserSummaryAmount;
+  purchases: UserSummaryAmount;
+  paymentsReceived: { cash: UserSummaryAmount; bank: UserSummaryAmount; byBank: UserSummaryByBank };
+  paymentsMade: { cash: UserSummaryAmount; bank: UserSummaryAmount; byBank: UserSummaryByBank };
+  expenses: UserSummaryAmount;
+  net: number;
+}
+
+export interface UserDailySummaryReport {
+  startDate: string;
+  endDate: string;
+  /** Active bank accounts referenced anywhere in `rows`, for labeling `byBank` keys. */
+  banks: Array<{ id: string; name: string }>;
+  rows: UserSummaryRow[];
+  totals: {
+    sales: UserSummaryAmount;
+    purchases: UserSummaryAmount;
+    paymentsReceived: { cash: number; bank: number; byBank: Record<string, number> };
+    paymentsMade: { cash: number; bank: number; byBank: Record<string, number> };
+    expenses: UserSummaryAmount;
+    net: number;
+  };
+}
+
+const UNKNOWN_USER_ID = 'unknown';
+const UNKNOWN_USER_NAME = 'Unknown / System';
+
+function emptyUserSummaryRow(userId: string, userName: string, isActive: boolean): UserSummaryRow {
+  return {
+    userId,
+    userName,
+    isActive,
+    sales: { count: 0, amount: 0 },
+    purchases: { count: 0, amount: 0 },
+    paymentsReceived: {
+      cash: { count: 0, amount: 0 },
+      bank: { count: 0, amount: 0 },
+      byBank: {},
+    },
+    paymentsMade: {
+      cash: { count: 0, amount: 0 },
+      bank: { count: 0, amount: 0 },
+      byBank: {},
+    },
+    expenses: { count: 0, amount: 0 },
+    net: 0,
+  };
+}
+
+function addToByBank(byBank: UserSummaryByBank, bankAccountId: string, amount: number): void {
+  const bucket = byBank[bankAccountId] ?? { count: 0, amount: 0 };
+  bucket.count += 1;
+  bucket.amount += amount;
+  byBank[bankAccountId] = bucket;
 }
 
 export class AccountingService {
@@ -270,6 +354,37 @@ export class AccountingService {
     if (error) {
       throw error;
     }
+  }
+
+  /**
+   * Get or lazily create the Opening Balance Equity account (code 3200) and
+   * ensure it is mapped to the 'opening_balance_equity' default role.
+   * Returns the account ID.
+   */
+  async getOrCreateOpeningBalanceEquityAccount(tenantId: string): Promise<string> {
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    if (defaults.opening_balance_equity) {
+      return defaults.opening_balance_equity;
+    }
+
+    const existing = await this.accountRepo.findByCode(tenantId, '3200');
+    let accountId: string;
+    if (existing) {
+      accountId = existing.id;
+    } else {
+      // Resolve the Equity parent (3000) if it exists.
+      const equityParent = await this.accountRepo.findByCode(tenantId, '3000');
+      const created = await this.accountRepo.create(tenantId, {
+        code: '3200',
+        name: 'Opening Balance Equity',
+        type: 'equity',
+        parent_id: equityParent?.id,
+      });
+      accountId = created.id;
+    }
+
+    await this.setDefaultAccount(tenantId, 'opening_balance_equity', accountId);
+    return accountId;
   }
 
   /**
@@ -1092,6 +1207,7 @@ export class AccountingService {
       // Equity
       { code: '3000', name: 'Equity', type: 'equity' },
       { code: '3100', name: 'Retained Earnings', type: 'equity', parent_id: '3000' },
+      { code: '3200', name: 'Opening Balance Equity', type: 'equity', parent_id: '3000' },
 
       // Revenue
       { code: '4000', name: 'Revenue', type: 'revenue' },
@@ -1850,22 +1966,33 @@ export class AccountingService {
     }
 
     let bank = 0;
-    const { data: banks, error: bErr } = await this.supabase
+    const banksBreakdown: Array<{ id: string; name: string; balance: number }> = [];
+    const { data: bankAccounts, error: bErr } = await this.supabase
       .from('bank_accounts' as any)
-      .select('ledger_account_id')
+      .select('id, name, ledger_account_id')
       .eq('tenant_id', tenantId)
       .eq('is_active', true);
     if (bErr) throw bErr;
-    const bankLedgerIds = ((banks as unknown) as Array<{ ledger_account_id: string }>)
-      .map((b) => b.ledger_account_id)
-      .filter(Boolean);
+    const bankAccountRows = (bankAccounts as unknown) as Array<{
+      id: string;
+      name: string;
+      ledger_account_id: string;
+    }>;
+    const bankLedgerIds = bankAccountRows.map((b) => b.ledger_account_id).filter(Boolean);
     if (bankLedgerIds.length > 0) {
       const { data: bankLedgers, error: blErr } = await this.supabase
         .from('accounts')
-        .select('balance')
+        .select('id, balance')
         .in('id', bankLedgerIds);
       if (blErr) throw blErr;
-      bank = (bankLedgers ?? []).reduce((s, l) => s + Number(l.balance ?? 0), 0);
+      const ledgerBalanceMap = new Map(
+        (bankLedgers ?? []).map((l) => [l.id, Number(l.balance ?? 0)])
+      );
+      for (const b of bankAccountRows) {
+        const balance = ledgerBalanceMap.get(b.ledger_account_id) ?? 0;
+        banksBreakdown.push({ id: b.id, name: b.name, balance });
+        bank += balance;
+      }
     }
 
     const kpis = {
@@ -1881,8 +2008,190 @@ export class AccountingService {
       purchases,
       expenses,
       kpis,
-      balances: { cash, bank, totalLiquid: cash + bank },
+      balances: { cash, bank, banks: banksBreakdown, totalLiquid: cash + bank },
     };
+  }
+
+  // ==================== Per-User Daily Summary ====================
+
+  /**
+   * Per-user, per-day (or range) breakdown of sales/purchases/payments/
+   * expenses — NOT real shift tracking (no clock-in/out exists). Built
+   * entirely from the created_by columns already present on invoices,
+   * payments and expenses. Records with created_by IS NULL are bucketed
+   * into an explicit "Unknown / System" row so totals reconcile with the
+   * tenant-wide Daily Journal totals for the same range, instead of being
+   * silently dropped.
+   */
+  async generateUserDailySummary(
+    tenantId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<UserDailySummaryReport> {
+    const rows = new Map<string, UserSummaryRow>();
+    const getRow = (userId: string | null): UserSummaryRow => {
+      const key = userId ?? UNKNOWN_USER_ID;
+      let row = rows.get(key);
+      if (!row) {
+        row = emptyUserSummaryRow(key, key === UNKNOWN_USER_ID ? UNKNOWN_USER_NAME : key, true);
+        rows.set(key, row);
+      }
+      return row;
+    };
+
+    const { data: invoiceRows, error: invErr } = await this.supabase
+      .from('invoices')
+      .select('id, type, total, created_by, invoice_date')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'final')
+      .gte('invoice_date', startDate)
+      .lte('invoice_date', endDate)
+      .is('returned_from_id', null);
+    if (invErr) throw invErr;
+
+    for (const inv of ((invoiceRows ?? []) as Array<{
+      type: 'sale' | 'purchase';
+      total: number | null;
+      created_by: string | null;
+    }>)) {
+      const row = getRow(inv.created_by);
+      const bucket = inv.type === 'sale' ? row.sales : row.purchases;
+      bucket.count += 1;
+      bucket.amount += Number(inv.total ?? 0);
+    }
+
+    const { data: paymentRows, error: payErr } = await this.supabase
+      .from('payments')
+      .select('id, type, amount, created_by, bank_account_id, payment_date')
+      .eq('tenant_id', tenantId)
+      .gte('payment_date', startDate)
+      .lte('payment_date', endDate);
+    if (payErr) throw payErr;
+
+    const usedBankAccountIds = new Set<string>();
+    for (const p of ((paymentRows ?? []) as unknown as Array<{
+      type: 'received' | 'made';
+      amount: number | null;
+      created_by: string | null;
+      bank_account_id: string | null;
+    }>)) {
+      const row = getRow(p.created_by);
+      const section = p.type === 'received' ? row.paymentsReceived : row.paymentsMade;
+      const amount = Number(p.amount ?? 0);
+      if (p.bank_account_id) {
+        section.bank.count += 1;
+        section.bank.amount += amount;
+        addToByBank(section.byBank, p.bank_account_id, amount);
+        usedBankAccountIds.add(p.bank_account_id);
+      } else {
+        section.cash.count += 1;
+        section.cash.amount += amount;
+      }
+    }
+
+    // Bank names for labeling byBank keys.
+    let banks: Array<{ id: string; name: string }> = [];
+    if (usedBankAccountIds.size > 0) {
+      const { data: bankAccounts, error: baErr } = await this.supabase
+        .from('bank_accounts' as any)
+        .select('id, name')
+        .eq('tenant_id', tenantId)
+        .in('id', Array.from(usedBankAccountIds));
+      if (baErr) throw baErr;
+      banks = ((bankAccounts as unknown) as Array<{ id: string; name: string }>) ?? [];
+    }
+
+    const { data: expenseRows, error: expErr } = await this.supabase
+      .from('expenses')
+      .select('id, amount, created_by, expense_date')
+      .eq('tenant_id', tenantId)
+      .gte('expense_date', startDate)
+      .lte('expense_date', endDate);
+    if (expErr) throw expErr;
+
+    for (const e of ((expenseRows ?? []) as Array<{
+      amount: number | null;
+      created_by: string | null;
+    }>)) {
+      const row = getRow(e.created_by);
+      row.expenses.count += 1;
+      row.expenses.amount += Number(e.amount ?? 0);
+    }
+
+    // Hydrate real user names/active flags in one round-trip.
+    const userIds = Array.from(rows.keys()).filter((id) => id !== UNKNOWN_USER_ID);
+    if (userIds.length > 0) {
+      const { data: users, error: uErr } = await this.supabase
+        .from('users')
+        .select('id, full_name, email, is_active')
+        .eq('tenant_id', tenantId)
+        .in('id', userIds);
+      if (uErr) throw uErr;
+      for (const u of (users ?? []) as Array<{
+        id: string;
+        full_name: string | null;
+        email: string;
+        is_active: boolean | null;
+      }>) {
+        const row = rows.get(u.id);
+        if (row) {
+          row.userName = u.full_name || u.email;
+          row.isActive = u.is_active ?? true;
+        }
+      }
+    }
+
+    for (const row of rows.values()) {
+      row.net =
+        row.sales.amount +
+        row.paymentsReceived.cash.amount +
+        row.paymentsReceived.bank.amount -
+        row.purchases.amount -
+        row.paymentsMade.cash.amount -
+        row.paymentsMade.bank.amount -
+        row.expenses.amount;
+    }
+
+    const sortedRows = Array.from(rows.values()).sort((a, b) => {
+      if (a.userId === UNKNOWN_USER_ID) return 1;
+      if (b.userId === UNKNOWN_USER_ID) return -1;
+      return a.userName.localeCompare(b.userName);
+    });
+
+    const addByBankTotals = (target: Record<string, number>, source: UserSummaryByBank) => {
+      for (const [bankAccountId, bucket] of Object.entries(source)) {
+        target[bankAccountId] = (target[bankAccountId] ?? 0) + bucket.amount;
+      }
+    };
+
+    const totals = sortedRows.reduce(
+      (acc, row) => {
+        acc.sales.count += row.sales.count;
+        acc.sales.amount += row.sales.amount;
+        acc.purchases.count += row.purchases.count;
+        acc.purchases.amount += row.purchases.amount;
+        acc.paymentsReceived.cash += row.paymentsReceived.cash.amount;
+        acc.paymentsReceived.bank += row.paymentsReceived.bank.amount;
+        addByBankTotals(acc.paymentsReceived.byBank, row.paymentsReceived.byBank);
+        acc.paymentsMade.cash += row.paymentsMade.cash.amount;
+        acc.paymentsMade.bank += row.paymentsMade.bank.amount;
+        addByBankTotals(acc.paymentsMade.byBank, row.paymentsMade.byBank);
+        acc.expenses.count += row.expenses.count;
+        acc.expenses.amount += row.expenses.amount;
+        acc.net += row.net;
+        return acc;
+      },
+      {
+        sales: { count: 0, amount: 0 },
+        purchases: { count: 0, amount: 0 },
+        paymentsReceived: { cash: 0, bank: 0, byBank: {} as Record<string, number> },
+        paymentsMade: { cash: 0, bank: 0, byBank: {} as Record<string, number> },
+        expenses: { count: 0, amount: 0 },
+        net: 0,
+      }
+    );
+
+    return { startDate, endDate, banks, rows: sortedRows, totals };
   }
 
   // ==================== Stock Summary (Phase 5) ====================

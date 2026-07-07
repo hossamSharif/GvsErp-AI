@@ -36,6 +36,7 @@ const DEFAULT_ROLES: AccountingDefaultRole[] = [
   'salary_payable',
   'general_expense',
   'service_purchase_expense',
+  'opening_balance_equity',
 ];
 
 const defaultRoleParamSchema = z.object({
@@ -424,6 +425,37 @@ router.get(
       const { tenantId } = getContext(req);
       const { date } = req.query as { date: string };
       const report = await service.generateDailyJournal(tenantId, date);
+      res.json({ success: true, data: report });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /accounting/reports/user-daily-summary?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+ *
+ * Per-user breakdown of sales/purchases/payments/expenses for a day or
+ * range — NOT real shift tracking. Comparison view across all tenant users.
+ */
+router.get(
+  '/reports/user-daily-summary',
+  requirePermission('reports:read'),
+  validateRequest({
+    query: z.object({
+      start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getAccountingService(req);
+      const { tenantId } = getContext(req);
+      const { start_date, end_date } = req.query as {
+        start_date: string;
+        end_date: string;
+      };
+      const report = await service.generateUserDailySummary(tenantId, start_date, end_date);
       res.json({ success: true, data: report });
     } catch (error) {
       next(error);

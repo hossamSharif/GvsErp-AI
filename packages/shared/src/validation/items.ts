@@ -292,6 +292,8 @@ export const updateItemSchema = z.object({
     .optional(),
   isActive: z.boolean().optional(),
   images: z.array(z.string().url('Invalid image URL')).optional(),
+  prices: z.array(createItemPriceSchema).optional(),
+  packagings: z.array(createItemPackagingSchema).optional(),
 });
 
 /**

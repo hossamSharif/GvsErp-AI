@@ -260,6 +260,85 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
     };
   }
 
+  /**
+   * Replace all prices and/or packagings for an existing item.
+   * Used by update flows where the client submits the full desired set of
+   * prices/packagings rather than incremental add/update/delete operations.
+   */
+  async replaceRelations(
+    tenantId: string,
+    itemId: string,
+    prices?: Omit<ItemPriceInsert, 'tenant_id' | 'id' | 'item_id'>[],
+    packagings?: Omit<ItemPackagingInsert, 'tenant_id' | 'id' | 'item_id'>[]
+  ): Promise<{ prices: ItemPriceRow[]; packagings: ItemPackagingRow[] }> {
+    let resultPrices: ItemPriceRow[] = [];
+    let resultPackagings: ItemPackagingRow[] = [];
+
+    if (prices !== undefined) {
+      const { error: deleteError } = await this.supabase
+        .from('item_prices')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .eq('item_id', itemId);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      if (prices.length > 0) {
+        const priceInserts = prices.map((price) => ({
+          ...price,
+          tenant_id: tenantId,
+          item_id: itemId,
+        }));
+
+        const { data, error } = await this.supabase
+          .from('item_prices')
+          .insert(priceInserts)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        resultPrices = data || [];
+      }
+    }
+
+    if (packagings !== undefined) {
+      const { error: deleteError } = await this.supabase
+        .from('item_packagings')
+        .delete()
+        .eq('tenant_id', tenantId)
+        .eq('item_id', itemId);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      if (packagings.length > 0) {
+        const packagingInserts = packagings.map((packaging) => ({
+          ...packaging,
+          tenant_id: tenantId,
+          item_id: itemId,
+        }));
+
+        const { data, error } = await this.supabase
+          .from('item_packagings')
+          .insert(packagingInserts)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        resultPackagings = data || [];
+      }
+    }
+
+    return { prices: resultPrices, packagings: resultPackagings };
+  }
+
   // ==========================================================================
   // ITEM PRICES
   // ==========================================================================
