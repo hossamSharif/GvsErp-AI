@@ -235,8 +235,8 @@ export default function DailyJournalPage() {
           {/* Payments Received */}
           <PaymentSection
             title={t('sections.paymentsReceived')}
-            items={data.payments.received.items}
-            total={data.payments.received.total}
+            items={data.payments?.received?.items ?? []}
+            total={data.payments?.received?.total ?? 0}
             emptyLabel={t('empty.paymentsReceived')}
             partyLabel={t('columns.party')}
             methodLabel={t('columns.method')}
@@ -248,8 +248,8 @@ export default function DailyJournalPage() {
           {/* Payments Made */}
           <PaymentSection
             title={t('sections.paymentsMade')}
-            items={data.payments.made.items}
-            total={data.payments.made.total}
+            items={data.payments?.made?.items ?? []}
+            total={data.payments?.made?.total ?? 0}
             emptyLabel={t('empty.paymentsMade')}
             partyLabel={t('columns.party')}
             methodLabel={t('columns.method')}

@@ -7,7 +7,7 @@
  * Loads real warehouses, suppliers, and items from the API.
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -47,9 +47,11 @@ export default function NewPurchasePage() {
     [partiesData]
   );
 
-  const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
-    router.push(`/${locale}/purchases/${invoice.id}`);
-  }, [router, locale]);
+  const [formKey, setFormKey] = useState(0);
+
+  const handleSaved = useCallback((_invoice: InvoiceWithRelations) => {
+    setFormKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -73,6 +75,7 @@ export default function NewPurchasePage() {
         </div>
       ) : (
         <InvoiceForm
+          key={formKey}
           type="purchase"
           warehouses={warehouses}
           parties={parties}

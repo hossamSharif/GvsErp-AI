@@ -7,8 +7,8 @@
  * Loads real warehouses, customers, and items from the API.
  */
 
-import React, { useCallback, useMemo } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -19,7 +19,6 @@ import { useWarehouses } from '@/hooks/use-warehouses';
 import type { InvoiceWithRelations } from '@erp/shared';
 
 export default function NewSalePage() {
-  const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('sales.new');
@@ -48,9 +47,11 @@ export default function NewSalePage() {
     [partiesData]
   );
 
-  const handleSaved = useCallback((invoice: InvoiceWithRelations) => {
-    router.push(`/${locale}/sales/${invoice.id}`);
-  }, [router, locale]);
+  const [formKey, setFormKey] = useState(0);
+
+  const handleSaved = useCallback((_invoice: InvoiceWithRelations) => {
+    setFormKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -76,6 +77,7 @@ export default function NewSalePage() {
         </div>
       ) : (
         <InvoiceForm
+          key={formKey}
           type="sale"
           warehouses={warehouses}
           parties={parties}
