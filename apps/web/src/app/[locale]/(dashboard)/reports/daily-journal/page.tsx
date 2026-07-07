@@ -178,7 +178,7 @@ export default function DailyJournalPage() {
                   emphasize
                 />
               </div>
-              {data.balances.banks.length > 1 && (
+              {(data.balances.banks ?? []).length > 1 && (
                 <div className="mt-4 pt-4 border-t space-y-1">
                   <p className="text-xs text-muted-foreground">{t('balances.perBank')}</p>
                   {data.balances.banks.map((b) => (
