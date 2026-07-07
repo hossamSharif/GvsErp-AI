@@ -159,11 +159,23 @@ export interface DailyJournalExpenseItem {
   amount: number;
 }
 
+export interface DailyJournalPaymentItem {
+  id: string;
+  party: string | null;
+  /** 'Cash' or the specific bank account name. */
+  method: string;
+  amount: number;
+}
+
 export interface DailyJournalReport {
   date: string;
   sales: { total: number; items: DailyJournalInvoiceItem[] };
   purchases: { total: number; items: DailyJournalInvoiceItem[] };
   expenses: { total: number; items: DailyJournalExpenseItem[] };
+  payments: {
+    received: { total: number; items: DailyJournalPaymentItem[] };
+    made: { total: number; items: DailyJournalPaymentItem[] };
+  };
   kpis: {
     totalSales: number;
     totalPurchases: number;

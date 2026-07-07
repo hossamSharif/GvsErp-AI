@@ -16,6 +16,7 @@ import { useDailyJournal } from '@/hooks/use-accounting';
 import type {
   DailyJournalInvoiceItem,
   DailyJournalExpenseItem,
+  DailyJournalPaymentItem,
 } from '@/hooks/use-accounting';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -230,6 +231,32 @@ export default function DailyJournalPage() {
             totalLabel={t('columns.total')}
             format={nf.format}
           />
+
+          {/* Payments Received */}
+          <PaymentSection
+            title={t('sections.paymentsReceived')}
+            items={data.payments.received.items}
+            total={data.payments.received.total}
+            emptyLabel={t('empty.paymentsReceived')}
+            partyLabel={t('columns.party')}
+            methodLabel={t('columns.method')}
+            amountLabel={t('columns.amount')}
+            totalLabel={t('columns.total')}
+            format={nf.format}
+          />
+
+          {/* Payments Made */}
+          <PaymentSection
+            title={t('sections.paymentsMade')}
+            items={data.payments.made.items}
+            total={data.payments.made.total}
+            emptyLabel={t('empty.paymentsMade')}
+            partyLabel={t('columns.party')}
+            methodLabel={t('columns.method')}
+            amountLabel={t('columns.amount')}
+            totalLabel={t('columns.total')}
+            format={nf.format}
+          />
         </div>
       )}
     </div>
@@ -383,6 +410,70 @@ function ExpenseSection({
                 <TableRow key={it.id}>
                   <TableCell className="text-sm">{it.category || '-'}</TableCell>
                   <TableCell className="text-sm">{it.description || '-'}</TableCell>
+                  <TableCell className="text-right font-mono">{format(it.amount)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={2} className="font-medium">
+                  {totalLabel}
+                </TableCell>
+                <TableCell className="text-right font-mono font-medium">
+                  {format(total)}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function PaymentSection({
+  title,
+  items,
+  total,
+  emptyLabel,
+  partyLabel,
+  methodLabel,
+  amountLabel,
+  totalLabel,
+  format,
+}: {
+  title: string;
+  items: DailyJournalPaymentItem[];
+  total: number;
+  emptyLabel: string;
+  partyLabel: string;
+  methodLabel: string;
+  amountLabel: string;
+  totalLabel: string;
+  format: (n: number) => string;
+}) {
+  return (
+    <Card className="avoid-break">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {items.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">{emptyLabel}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{partyLabel}</TableHead>
+                <TableHead>{methodLabel}</TableHead>
+                <TableHead className="text-right">{amountLabel}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((it) => (
+                <TableRow key={it.id}>
+                  <TableCell className="text-sm">{it.party || '-'}</TableCell>
+                  <TableCell className="text-sm">{it.method}</TableCell>
                   <TableCell className="text-right font-mono">{format(it.amount)}</TableCell>
                 </TableRow>
               ))}

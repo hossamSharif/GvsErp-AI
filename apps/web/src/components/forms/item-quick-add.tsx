@@ -21,7 +21,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ScanLine, Check, Loader2, AlertCircle, Plus, Pencil } from 'lucide-react';
+import { ScanLine, Check, Loader2, AlertCircle, Plus, Pencil, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -148,7 +148,7 @@ export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disab
 
   // Server-side search.
   const debouncedQuery = useDebounce(query, 250);
-  const { data, isLoading } = useItems({
+  const { data, isLoading, isFetching, refetch } = useItems({
     isActive: true,
     search: debouncedQuery || undefined,
     limit: 50,
@@ -406,6 +406,17 @@ export function ItemQuickAdd({ onSelect, priceTier, inputRef: externalRef, disab
             {isResolving && (
               <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
             )}
+            <button
+              type="button"
+              aria-label={tCommon('refresh')}
+              title={tCommon('refresh')}
+              disabled={disabled || isFetching}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => void refetch()}
+              className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
+            </button>
           </div>
 
           {showDropdown && (

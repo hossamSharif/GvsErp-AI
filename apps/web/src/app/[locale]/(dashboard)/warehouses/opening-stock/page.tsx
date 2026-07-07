@@ -205,6 +205,16 @@ export default function OpeningStockPage() {
     [mutation, asOfDate, t, toast]
   );
 
+  const handleDiscardDraft = useCallback(() => {
+    if (draftKey) {
+      try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+    }
+    setQuantities({});
+    setCosts({});
+    setAsOfDate(new Date().toISOString().slice(0, 10));
+    setIsDraftDirty(false);
+  }, [draftKey]);
+
   // After quick-creating an item, reload rows and highlight the new item in the search box
   const handleItemCreated = useCallback(
     (item: ItemWithRelations) => {
@@ -312,6 +322,24 @@ export default function OpeningStockPage() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Draft restored banner */}
+            {isDraftDirty && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-2.5 mb-4 text-sm">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                  <Save className="w-4 h-4 flex-shrink-0" />
+                  <span>{t('draftRestoredNotice')}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-amber-700 hover:text-amber-900 dark:text-amber-400 h-7 px-2 flex-shrink-0"
+                  onClick={handleDiscardDraft}
+                >
+                  {t('discardDraft')}
+                </Button>
+              </div>
+            )}
+
             {rowsQuery.isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -397,18 +425,8 @@ export default function OpeningStockPage() {
                 </div>
 
                 <div className="sticky bottom-0 z-10 bg-background border-t -mx-6 -mb-6 px-6 py-3 flex items-center justify-between rounded-b-lg mt-0">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    {isDraftDirty && (
-                      <>
-                        <Save className="w-3.5 h-3.5" />
-                        {t('draftSaved')}
-                      </>
-                    )}
-                    {submittableItems.length > 0 && (
-                      <span className={isDraftDirty ? 'ms-3' : ''}>
-                        {t('itemsWithQty', { count: submittableItems.length })}
-                      </span>
-                    )}
+                  <span className="text-sm text-muted-foreground">
+                    {submittableItems.length > 0 && t('itemsWithQty', { count: submittableItems.length })}
                   </span>
                   <Button
                     onClick={handleSave}

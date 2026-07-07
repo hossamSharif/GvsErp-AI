@@ -27,7 +27,8 @@
     "settings": "Settings"
   },
   "openingStock": {
-    "draftSaved": "Draft saved",
+    "draftRestoredNotice": "You have unsaved changes from a previous session — review and save, or discard them.",
+    "discardDraft": "Discard changes",
     "title": "Opening Stock",
     "description": "Set the initial inventory quantities and costs for items in a warehouse.",
     "selectWarehouse": "Select a warehouse",
@@ -81,20 +82,25 @@
     "sections": {
       "sales": "Sales",
       "purchases": "Purchases",
-      "expenses": "Expenses"
+      "expenses": "Expenses",
+      "paymentsReceived": "Payments Received",
+      "paymentsMade": "Payments Made"
     },
     "columns": {
       "number": "Number",
       "party": "Party",
       "category": "Category",
       "description": "Description",
+      "method": "Method",
       "amount": "Amount",
       "total": "Total"
     },
     "empty": {
       "sales": "No sales on this day.",
       "purchases": "No purchases on this day.",
-      "expenses": "No expenses on this day."
+      "expenses": "No expenses on this day.",
+      "paymentsReceived": "No payments received on this day.",
+      "paymentsMade": "No payments made on this day."
     }
   },
   "userDailySummary": {
@@ -184,6 +190,7 @@
     "close": "Close",
     "back": "Back",
     "optional": "Optional",
+    "refresh": "Refresh",
     "retry": "Retry",
     "tryAgain": "Try again",
     "error": "Error",

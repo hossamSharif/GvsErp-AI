@@ -27,7 +27,8 @@
     "settings": "الإعدادات"
   },
   "openingStock": {
-    "draftSaved": "تم حفظ المسودة",
+    "draftRestoredNotice": "لديك تغييرات غير محفوظة من جلسة سابقة — راجعها واحفظها أو تجاهلها.",
+    "discardDraft": "تجاهل التغييرات",
     "title": "المخزون الافتتاحي",
     "description": "حدد كميات وتكاليف المخزون الأولية للأصناف في المستودع.",
     "selectWarehouse": "اختر مستودعاً",
@@ -81,20 +82,25 @@
     "sections": {
       "sales": "المبيعات",
       "purchases": "المشتريات",
-      "expenses": "المصروفات"
+      "expenses": "المصروفات",
+      "paymentsReceived": "المدفوعات المستلمة",
+      "paymentsMade": "المدفوعات الصادرة"
     },
     "columns": {
       "number": "الرقم",
       "party": "الطرف",
       "category": "الفئة",
       "description": "الوصف",
+      "method": "طريقة الدفع",
       "amount": "المبلغ",
       "total": "الإجمالي"
     },
     "empty": {
       "sales": "لا توجد مبيعات في هذا اليوم.",
       "purchases": "لا توجد مشتريات في هذا اليوم.",
-      "expenses": "لا توجد مصروفات في هذا اليوم."
+      "expenses": "لا توجد مصروفات في هذا اليوم.",
+      "paymentsReceived": "لا توجد مدفوعات مستلمة في هذا اليوم.",
+      "paymentsMade": "لا توجد مدفوعات صادرة في هذا اليوم."
     }
   },
   "userDailySummary": {
@@ -184,6 +190,7 @@
     "close": "إغلاق",
     "back": "رجوع",
     "optional": "اختياري",
+    "refresh": "تحديث",
     "retry": "إعادة المحاولة",
     "tryAgain": "حاول مرة أخرى",
     "error": "خطأ",

@@ -162,11 +162,28 @@ export interface DailyJournalExpenseSection {
   items: DailyJournalExpenseItem[];
 }
 
+export interface DailyJournalPaymentItem {
+  id: string;
+  party: string | null;
+  /** 'Cash' or the specific bank account name. */
+  method: string;
+  amount: number;
+}
+
+export interface DailyJournalPaymentSection {
+  total: number;
+  items: DailyJournalPaymentItem[];
+}
+
 export interface DailyJournalReport {
   date: string;
   sales: DailyJournalSection;
   purchases: DailyJournalSection;
   expenses: DailyJournalExpenseSection;
+  payments: {
+    received: DailyJournalPaymentSection;
+    made: DailyJournalPaymentSection;
+  };
   kpis: {
     totalSales: number;
     totalPurchases: number;
@@ -1895,9 +1912,29 @@ export class AccountingService {
       invoice_date: string;
     }>;
 
-    // Attach party names in one round-trip.
+    // --- Payments dated on `date` (fetched early so its party_ids can join the shared lookup) ---
+    const { data: paymentRows, error: payErr } = await this.supabase
+      .from('payments')
+      .select('id, type, amount, party_id, bank_account_id, payment_date')
+      .eq('tenant_id', tenantId)
+      .eq('payment_date', date);
+    if (payErr) throw payErr;
+
+    const payments = (paymentRows ?? []) as unknown as Array<{
+      id: string;
+      type: 'received' | 'made';
+      amount: number | null;
+      party_id: string | null;
+      bank_account_id: string | null;
+    }>;
+
+    // Attach party names in one round-trip (invoices + payments share this lookup).
     const partyIds = Array.from(
-      new Set(invoices.map((i) => i.party_id).filter((x): x is string => !!x))
+      new Set(
+        [...invoices.map((i) => i.party_id), ...payments.map((p) => p.party_id)].filter(
+          (x): x is string => !!x
+        )
+      )
     );
     const partyMap = new Map<string, string>();
     if (partyIds.length > 0) {
@@ -1908,6 +1945,38 @@ export class AccountingService {
       if (pErr) throw pErr;
       for (const p of parties ?? []) partyMap.set(p.id, p.name);
     }
+
+    // Bank names for the payment method label ('Cash' when bank_account_id is null).
+    const paymentBankIds = Array.from(
+      new Set(payments.map((p) => p.bank_account_id).filter((x): x is string => !!x))
+    );
+    const paymentBankNameMap = new Map<string, string>();
+    if (paymentBankIds.length > 0) {
+      const { data: paymentBanks, error: pbErr } = await this.supabase
+        .from('bank_accounts' as any)
+        .select('id, name')
+        .in('id', paymentBankIds);
+      if (pbErr) throw pbErr;
+      for (const b of ((paymentBanks as unknown) as Array<{ id: string; name: string }>) ?? []) {
+        paymentBankNameMap.set(b.id, b.name);
+      }
+    }
+
+    const buildPaymentSection = (type: 'received' | 'made'): DailyJournalPaymentSection => {
+      const items = payments
+        .filter((p) => p.type === type)
+        .map((p) => ({
+          id: p.id,
+          party: p.party_id ? partyMap.get(p.party_id) ?? null : null,
+          method: p.bank_account_id ? paymentBankNameMap.get(p.bank_account_id) ?? 'Bank' : 'Cash',
+          amount: Number(p.amount ?? 0),
+        }));
+      const total = items.reduce((s, i) => s + i.amount, 0);
+      return { total, items };
+    };
+
+    const paymentsReceived = buildPaymentSection('received');
+    const paymentsMade = buildPaymentSection('made');
 
     const buildInvoiceSection = (type: 'sale' | 'purchase'): DailyJournalSection => {
       const items = invoices
@@ -2007,6 +2076,7 @@ export class AccountingService {
       sales,
       purchases,
       expenses,
+      payments: { received: paymentsReceived, made: paymentsMade },
       kpis,
       balances: { cash, bank, banks: banksBreakdown, totalLiquid: cash + bank },
     };

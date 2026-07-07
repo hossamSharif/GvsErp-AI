@@ -22,6 +22,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const { user, currentUser, signOut } = useAuth();
@@ -95,6 +96,20 @@ export function Header({ onMenuClick }: HeaderProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isUserMenuOpen, closeMenu]);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        await reg?.update();
+      }
+    } catch {
+      // best-effort; reload regardless
+    } finally {
+      window.location.reload();
+    }
+  }, []);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -133,6 +148,17 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center gap-2">
         {/* Offline / pending-sync indicator */}
         <SyncStatusBadge />
+
+        {/* Refresh / Reload */}
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-60"
+          aria-label="Refresh"
+          title="Refresh"
+        >
+          <RefreshIcon className={cn('w-5 h-5', isRefreshing && 'animate-spin')} />
+        </button>
 
         {/* Language Switcher */}
         <LanguageSwitcher />
@@ -265,6 +291,17 @@ function SearchIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function RefreshIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M3 21v-5h5" />
     </svg>
   );
 }
