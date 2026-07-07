@@ -90,7 +90,6 @@ export default function SaleDetailPage() {
   const t = useTranslations('sales.detail');
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('sales.actions');
-  const tPrompt = useTranslations('sales.form');
   const queryClient = useQueryClient();
 
   const invoiceId = params.id as string;
@@ -116,7 +115,6 @@ export default function SaleDetailPage() {
   // Post-finalize payment workflow (same as the invoice form): after finalizing
   // a draft from the detail page, offer to record a payment against it.
   const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
-  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Handle finalize
@@ -131,7 +129,7 @@ export default function SaleDetailPage() {
       // Offer to record a payment for party invoices; walk-ins just finalize.
       if (result.data.partyId) {
         setSavedInvoice(result.data);
-        setShowPaymentPrompt(true);
+        setShowPaymentModal(true);
       }
     } catch (error) {
       toast({
@@ -433,29 +431,6 @@ export default function SaleDetailPage() {
             </Button>
             <Button onClick={handleFinalize} disabled={finalizeInvoice.isPending}>
               {finalizeInvoice.isPending ? t('finalizeDialog.pending') : t('finalizeDialog.confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Post-finalize: offer to record a payment now */}
-      <Dialog open={showPaymentPrompt} onOpenChange={setShowPaymentPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tPrompt('paymentPrompt.title')}</DialogTitle>
-            <DialogDescription>{tPrompt('paymentPrompt.body')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentPrompt(false)}>
-              {tPrompt('paymentPrompt.later')}
-            </Button>
-            <Button
-              onClick={() => {
-                setShowPaymentPrompt(false);
-                setShowPaymentModal(true);
-              }}
-            >
-              {tPrompt('paymentPrompt.addNow')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -168,7 +168,10 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : handleSkip())}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent
+        className="sm:max-w-xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
@@ -344,7 +347,7 @@ export function RecordPaymentDialog({
               >
                 {t('skip')}
               </Button>
-              <Button type="submit" disabled={createPayment.isPending || banksLoading}>
+              <Button type="submit" disabled={createPayment.isPending || banksLoading} autoFocus>
                 {createPayment.isPending ? (
                   <>
                     <Loader2 className="me-2 h-4 w-4 animate-spin" />

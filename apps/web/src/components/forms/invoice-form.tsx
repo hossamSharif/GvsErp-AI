@@ -127,7 +127,6 @@ export function InvoiceForm({
   // finalized invoice while the prompt/modal are open, deferring `onSaved`
   // (the parent's redirect) until the user finishes or skips the payment.
   const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
-  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Quick-add bar: ref to focus the input, and a transient row highlight shown
@@ -491,7 +490,7 @@ export function InvoiceForm({
       // (no party) skip straight to the parent's redirect.
       if (finalizeResult.data.partyId) {
         setSavedInvoice(finalizeResult.data);
-        setShowPaymentPrompt(true);
+        setShowPaymentModal(true);
       } else {
         onSaved?.(finalizeResult.data);
       }
@@ -521,36 +520,6 @@ export function InvoiceForm({
   // mounted until the user records the payment or skips.
   const paymentWorkflowDialogs = (
     <>
-      {/* Post-finalize: offer to record a payment now */}
-      <AlertDialog open={showPaymentPrompt} onOpenChange={setShowPaymentPrompt}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('paymentPrompt.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('paymentPrompt.body')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setShowPaymentPrompt(false);
-                if (savedInvoice) onSaved?.(savedInvoice);
-              }}
-            >
-              {t('paymentPrompt.later')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowPaymentPrompt(false);
-                setShowPaymentModal(true);
-              }}
-            >
-              {t('paymentPrompt.addNow')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {savedInvoice && (
         <RecordPaymentDialog
           open={showPaymentModal}
