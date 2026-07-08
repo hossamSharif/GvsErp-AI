@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
 import { useLowStockSummary } from '@/hooks/use-warehouses';
+import { useExpirySummary } from '@/hooks/use-expiry';
 import {
   DollarSign,
   FileText,
@@ -14,6 +15,7 @@ import {
   Plus,
   BarChart3,
   AlertTriangle,
+  CalendarClock,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -23,6 +25,8 @@ export default function DashboardPage() {
   const locale = params.locale as string;
   const { data: alertSummaryResponse } = useLowStockSummary();
   const alertSummary = alertSummaryResponse?.data;
+  const { data: expirySummaryResponse } = useExpirySummary();
+  const expirySummary = expirySummaryResponse?.data;
 
   const firstName = currentUser?.full_name?.split(' ')[0] || 'User';
 
@@ -101,7 +105,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
         <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-semibold mb-4">{t('topProducts.title')}</h2>
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
@@ -163,6 +167,50 @@ export default function DashboardPage() {
               <p className="text-sm">{t('lowStock.empty')}</p>
               <Link href={`/${locale}/warehouses`} className="text-xs text-primary hover:underline mt-1">
                 {t('lowStock.configure')}
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card rounded-lg border p-6">
+          <h2 className="text-lg font-semibold mb-4">{t('expiry.title')}</h2>
+          {expirySummary && expirySummary.totalAlerts > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{t('expiry.totalAlerts')}</span>
+                <span className="text-lg font-bold">{expirySummary.totalAlerts}</span>
+              </div>
+              {expirySummary.expiredCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-red-600 font-medium">{t('expiry.expired')}</span>
+                  <span className="text-sm font-bold text-red-600">{expirySummary.expiredCount}</span>
+                </div>
+              )}
+              {expirySummary.criticalCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-orange-600 font-medium">{t('expiry.critical')}</span>
+                  <span className="text-sm font-bold text-orange-600">{expirySummary.criticalCount}</span>
+                </div>
+              )}
+              {expirySummary.warningCount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-yellow-600 font-medium">{t('expiry.warning')}</span>
+                  <span className="text-sm font-bold text-yellow-600">{expirySummary.warningCount}</span>
+                </div>
+              )}
+              <Link
+                href={`/${locale}/items/expiry-report`}
+                className="text-xs text-primary hover:underline block mt-2"
+              >
+                {t('expiry.viewAll')}
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+              <CalendarClock className="w-10 h-10 mb-2 opacity-50" />
+              <p className="text-sm">{t('expiry.empty')}</p>
+              <Link href={`/${locale}/items/expiry-report`} className="text-xs text-primary hover:underline mt-1">
+                {t('expiry.configure')}
               </Link>
             </div>
           )}

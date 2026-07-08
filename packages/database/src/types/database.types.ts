@@ -799,6 +799,7 @@ export type Database = {
           brand: string | null
           category_id: string | null
           created_at: string
+          expiry_date: string | null
           id: string
           images: string[] | null
           is_active: boolean
@@ -807,6 +808,7 @@ export type Database = {
           sku: string | null
           tax_rate: number
           tenant_id: string
+          tracks_expiry: boolean
           unit_of_measure: string
           updated_at: string
         }
@@ -815,6 +817,7 @@ export type Database = {
           brand?: string | null
           category_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean
@@ -823,6 +826,7 @@ export type Database = {
           sku?: string | null
           tax_rate?: number
           tenant_id: string
+          tracks_expiry?: boolean
           unit_of_measure?: string
           updated_at?: string
         }
@@ -831,6 +835,7 @@ export type Database = {
           brand?: string | null
           category_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean
@@ -839,6 +844,7 @@ export type Database = {
           sku?: string | null
           tax_rate?: number
           tenant_id?: string
+          tracks_expiry?: boolean
           unit_of_measure?: string
           updated_at?: string
         }
@@ -1687,6 +1693,16 @@ export type Database = {
           p_price_tier?: string
         }
         Returns: number
+      }
+      get_expiring_items: {
+        Args: { p_days_threshold?: number; p_tenant_id: string }
+        Returns: {
+          days_until_expiry: number
+          expiry_date: string
+          item_id: string
+          item_name: string
+          item_sku: string
+        }[]
       }
       get_low_stock_items: {
         Args: { p_tenant_id: string; p_warehouse_id?: string }

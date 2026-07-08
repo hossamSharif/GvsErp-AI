@@ -69,6 +69,7 @@ export default function EditItemPage() {
         title: t('toasts.updated'),
         description: t('toasts.updatedDescription', { name: response.data.name }),
       });
+      router.push(`/${locale}/items`);
     },
     onError: (error) => {
       toast({

@@ -34,6 +34,8 @@ interface ItemQueryOptions extends QueryOptions {
   categoryId?: string;
   /** If set, filter to exactly this is_active value. Overrides includeInactive. */
   isActive?: boolean;
+  /** If set, filter to tracked items expiring within this many days */
+  expiringWithinDays?: number;
 }
 
 /**
@@ -62,6 +64,7 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       isActive,
       search,
       categoryId,
+      expiringWithinDays,
     } = options;
 
     const offset = (page - 1) * limit;
@@ -84,6 +87,16 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
 
     if (categoryId) {
       query = query.eq('category_id', categoryId);
+    }
+
+    if (typeof expiringWithinDays === 'number') {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() + expiringWithinDays);
+      const cutoffDate = cutoff.toISOString().split('T')[0];
+      query = query
+        .eq('tracks_expiry', true)
+        .not('expiry_date', 'is', null)
+        .lte('expiry_date', cutoffDate);
     }
 
     // Apply search using full-text search or ILIKE
@@ -143,6 +156,37 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
     }
 
     return this.mapItemWithRelations(data);
+  }
+
+  /**
+   * Get active items expiring within N days (default 30), via get_expiring_items()
+   */
+  async getExpiringItems(
+    tenantId: string,
+    daysThreshold: number = 30
+  ): Promise<Array<{
+    itemId: string;
+    itemName: string;
+    itemSku: string | null;
+    expiryDate: string;
+    daysUntilExpiry: number;
+  }>> {
+    const { data, error } = await this.supabase.rpc('get_expiring_items', {
+      p_tenant_id: tenantId,
+      p_days_threshold: daysThreshold,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map((row) => ({
+      itemId: row.item_id,
+      itemName: row.item_name,
+      itemSku: row.item_sku,
+      expiryDate: row.expiry_date,
+      daysUntilExpiry: row.days_until_expiry,
+    }));
   }
 
   /**
@@ -708,6 +752,8 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
       taxRate: Number(row.tax_rate),
       isActive: row.is_active,
       images: row.images || [],
+      tracksExpiry: row.tracks_expiry,
+      expiryDate: row.expiry_date,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

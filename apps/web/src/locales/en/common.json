@@ -212,6 +212,7 @@
       "addButton": "Add Item",
       "quickAddButton": "Quick Add",
       "exportButton": "Export",
+      "expiryReportButton": "Expiry Report",
       "manageCategoriesButton": "Manage Categories",
       "updatePricesButton": "Update Prices ({count})",
       "searchPlaceholder": "Search items...",
@@ -220,6 +221,16 @@
       "filterAllCategories": "All Categories",
       "uncategorized": "Uncategorized",
       "menuOpen": "Open menu",
+      "filters": {
+        "expiringWithin": "Expiring Within",
+        "expiringOptions": {
+          "expired": "Already expired",
+          "7": "Next 7 days",
+          "30": "Next 30 days",
+          "60": "Next 60 days",
+          "90": "Next 90 days"
+        }
+      },
       "columns": {
         "name": "Name",
         "sku": "SKU",
@@ -260,6 +271,36 @@
       "ITEM_NOT_FOUND": "Item not found",
       "CATEGORY_NOT_FOUND": "Category not found",
       "AUTH_UPSTREAM_UNAVAILABLE": "Could not verify your session. Please try again."
+    },
+    "expiryReport": {
+      "title": "Expiry Report",
+      "subtitle": "Items expiring within the selected time window",
+      "backAriaLabel": "Go back to items",
+      "daysThreshold": "Days Threshold",
+      "daysThresholdOptions": {
+        "7": "Next 7 days",
+        "30": "Next 30 days",
+        "60": "Next 60 days",
+        "90": "Next 90 days"
+      },
+      "severityFilter": "Status",
+      "severityOptions": {
+        "all": "All statuses"
+      },
+      "columns": {
+        "item": "Item",
+        "sku": "SKU",
+        "expiryDate": "Expiry Date",
+        "daysRemaining": "Days Remaining",
+        "status": "Status"
+      },
+      "status": {
+        "expired": "Expired",
+        "critical": "Critical",
+        "warning": "Warning"
+      },
+      "empty": "No items expiring in this window",
+      "errorLoading": "Failed to load expiry report"
     },
     "edit": {
       "description": "Edit item details, pricing, and packaging options.",
@@ -308,7 +349,10 @@
         "taxRatePlaceholder": "e.g. 15 for 15%",
         "taxRateDescription": "Enter the tax percentage (0-100)",
         "active": "Active",
-        "activeDescription": "Inactive items won't appear in search results"
+        "activeDescription": "Inactive items won't appear in search results",
+        "tracksExpiry": "Tracks Expiry Date",
+        "tracksExpiryDescription": "Enable to set and monitor an expiry date for this item",
+        "expiryDate": "Expiry Date"
       },
       "pricing": {
         "title": "Pricing Tiers",
@@ -355,7 +399,8 @@
         "taxRateRange": "Tax rate must be between 0 and 100",
         "nameMaxLength": "Name must be 255 characters or less",
         "skuMaxLength": "SKU must be 100 characters or less",
-        "barcodeMaxLength": "Barcode must be 100 characters or less"
+        "barcodeMaxLength": "Barcode must be 100 characters or less",
+        "expiryDateRequired": "Expiry date is required when expiry tracking is enabled"
       }
     },
     "quickModal": {
@@ -1651,6 +1696,16 @@
       "viewAll": "View all alerts",
       "empty": "No alerts",
       "configure": "Configure stock alerts"
+    },
+    "expiry": {
+      "title": "Expiring Items",
+      "totalAlerts": "Total Alerts",
+      "expired": "Expired",
+      "critical": "Critical",
+      "warning": "Warning",
+      "viewAll": "View expiry report",
+      "empty": "No expiring items",
+      "configure": "Set up item expiry dates"
     }
   },
   "payments": {

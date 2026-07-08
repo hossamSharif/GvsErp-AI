@@ -76,6 +76,7 @@ export class ItemService {
       search: params.search,
       categoryId: params.categoryId,
       includeInactive: params.isActive === false ? true : !params.isActive,
+      expiringWithinDays: params.expiringWithinDays,
     });
   }
 
@@ -112,6 +113,8 @@ export class ItemService {
       taxRate: Number(item.tax_rate),
       isActive: item.is_active,
       images: item.images || [],
+      tracksExpiry: item.tracks_expiry,
+      expiryDate: item.expiry_date,
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     };
@@ -137,6 +140,8 @@ export class ItemService {
       taxRate: Number(item.tax_rate),
       isActive: item.is_active,
       images: item.images || [],
+      tracksExpiry: item.tracks_expiry,
+      expiryDate: item.expiry_date,
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     };
@@ -169,6 +174,8 @@ export class ItemService {
       tax_rate: input.taxRate || 0,
       is_active: input.isActive ?? true,
       images: input.images || [],
+      tracks_expiry: input.tracksExpiry ?? false,
+      expiry_date: input.tracksExpiry ? input.expiryDate || null : null,
     };
 
     // Map prices if provided
@@ -228,6 +235,12 @@ export class ItemService {
     if (input.taxRate !== undefined) updateData.tax_rate = input.taxRate;
     if (input.isActive !== undefined) updateData.is_active = input.isActive;
     if (input.images !== undefined) updateData.images = input.images;
+    if (input.tracksExpiry !== undefined) {
+      updateData.tracks_expiry = input.tracksExpiry;
+      updateData.expiry_date = input.tracksExpiry ? (input.expiryDate ?? existing.expiry_date ?? null) : null;
+    } else if (input.expiryDate !== undefined) {
+      updateData.expiry_date = input.expiryDate;
+    }
 
     await this.itemRepository.update(this.tenantId, id, updateData);
 
@@ -472,6 +485,17 @@ export class ItemService {
         isActive: item.isActive,
       };
     });
+  }
+
+  // ==========================================================================
+  // EXPIRY
+  // ==========================================================================
+
+  /**
+   * Get active items expiring within N days (default 30)
+   */
+  async getExpiringItems(daysThreshold: number = 30) {
+    return this.itemRepository.getExpiringItems(this.tenantId, daysThreshold);
   }
 
   // ==========================================================================

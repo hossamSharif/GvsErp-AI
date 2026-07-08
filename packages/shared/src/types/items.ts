@@ -86,6 +86,8 @@ export interface Item {
   taxRate: number;
   isActive: boolean;
   images: string[];
+  tracksExpiry: boolean;
+  expiryDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -131,6 +133,8 @@ export interface CreateItemInput {
   taxRate?: number;
   isActive?: boolean;
   images?: string[];
+  tracksExpiry?: boolean;
+  expiryDate?: string | null;
   prices?: CreateItemPriceInput[];
   packagings?: CreateItemPackagingInput[];
 }
@@ -149,6 +153,8 @@ export interface UpdateItemInput {
   taxRate?: number;
   isActive?: boolean;
   images?: string[];
+  tracksExpiry?: boolean;
+  expiryDate?: string | null;
   prices?: CreateItemPriceInput[];
   packagings?: CreateItemPackagingInput[];
 }
@@ -261,6 +267,8 @@ export interface ItemQueryParams {
   sortBy?: ItemSortField;
   /** Sort direction */
   sortDir?: SortDirection;
+  /** Filter to items expiring within this many days */
+  expiringWithinDays?: number;
 }
 
 /**
@@ -343,4 +351,45 @@ export interface ItemReportParams {
   priceTier?: string;
   /** Currency for prices (default: USD) */
   currency?: string;
+}
+
+// =============================================================================
+// EXPIRY TYPES
+// =============================================================================
+
+/**
+ * Expiry alert severity bucket
+ */
+export type ExpirySeverity = 'expired' | 'critical' | 'warning';
+
+/**
+ * A single item expiring within the requested threshold
+ */
+export interface ExpiringItemAlert {
+  itemId: string;
+  itemName: string;
+  itemSku: string | null;
+  expiryDate: string;
+  daysUntilExpiry: number;
+  severity: ExpirySeverity;
+}
+
+/**
+ * Summary counts for the expiry dashboard widget
+ */
+export interface ExpirySummary {
+  totalAlerts: number;
+  expiredCount: number;
+  criticalCount: number;
+  warningCount: number;
+}
+
+/**
+ * Parameters for the expiry report/alerts endpoints
+ */
+export interface ExpiryReportParams {
+  /** Days threshold (default: 30) */
+  daysThreshold?: number;
+  /** Filter to a specific severity bucket */
+  severity?: ExpirySeverity;
 }

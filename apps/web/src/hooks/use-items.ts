@@ -96,6 +96,7 @@ export function useItems(
         limit: params.limit,
         sortBy: params.sortBy,
         sortDir: params.sortDir,
+        expiringWithinDays: params.expiringWithinDays,
       });
       return response;
     },
@@ -271,17 +272,16 @@ export function useDeleteItem(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: async (id: string) => {
       const response = await api.delete<ApiResponse<{ message: string }>>(`/items/${id}`);
       return response;
     },
-    onSuccess: (_, id) => {
-      // Remove from cache
+    onSuccess: (data, id, context) => {
       queryClient.removeQueries({ queryKey: itemKeys.detail(id) });
-      // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+      options?.onSuccess?.(data, id, context);
     },
-    ...options,
   });
 }
 

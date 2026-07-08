@@ -93,6 +93,7 @@ type ValidationMessages = {
   nameMaxLength: string;
   skuMaxLength: string;
   barcodeMaxLength: string;
+  expiryDateRequired: string;
 };
 
 function createItemFormSchema(messages: ValidationMessages) {
@@ -125,9 +126,14 @@ function createItemFormSchema(messages: ValidationMessages) {
       .default(0),
     isActive: z.boolean().default(true),
     images: z.array(z.string()).default([]),
+    tracksExpiry: z.boolean().default(false),
+    expiryDate: z.string().nullable().optional(),
     prices: z.array(priceSchema).optional(),
     packagings: z.array(packagingSchema).optional(),
-  });
+  }).refine(
+    (data) => !data.tracksExpiry || !!data.expiryDate,
+    { message: messages.expiryDateRequired, path: ['expiryDate'] }
+  );
 }
 
 type ItemFormData = z.infer<ReturnType<typeof createItemFormSchema>>;
@@ -189,6 +195,7 @@ export function ItemForm({
     nameMaxLength: t('validation.nameMaxLength'),
     skuMaxLength: t('validation.skuMaxLength'),
     barcodeMaxLength: t('validation.barcodeMaxLength'),
+    expiryDateRequired: t('validation.expiryDateRequired'),
   });
 
   // Initialize form with default values or existing item data
@@ -205,6 +212,8 @@ export function ItemForm({
       taxRate: item?.taxRate || 0,
       isActive: item?.isActive ?? true,
       images: item?.images || [],
+      tracksExpiry: item?.tracksExpiry ?? false,
+      expiryDate: item?.expiryDate || null,
       prices: item?.prices?.map((p) => ({
         priceTier: p.priceTier,
         price: p.price,
@@ -249,6 +258,7 @@ export function ItemForm({
       barcode: data.barcode || null,
       brand: data.brand || null,
       categoryId: data.categoryId || null,
+      expiryDate: data.tracksExpiry ? data.expiryDate || null : null,
     };
 
     await onSubmit(submitData);
@@ -500,6 +510,54 @@ export function ItemForm({
                     </FormItem>
                   )}
                 />
+
+                {/* Tracks Expiry */}
+                <FormField
+                  control={form.control}
+                  name="tracksExpiry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">{tFields('tracksExpiry')}</FormLabel>
+                        <FormDescription>
+                          {tFields('tracksExpiryDescription')}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (!checked) {
+                              form.setValue('expiryDate', null);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Expiry Date */}
+                {form.watch('tracksExpiry') && (
+                  <FormField
+                    control={form.control}
+                    name="expiryDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{tFields('expiryDate')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>

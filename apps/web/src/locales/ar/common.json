@@ -212,6 +212,7 @@
       "addButton": "إضافة صنف",
       "quickAddButton": "إضافة سريعة",
       "exportButton": "تصدير",
+      "expiryReportButton": "تقرير انتهاء الصلاحية",
       "manageCategoriesButton": "إدارة الفئات",
       "updatePricesButton": "تحديث الأسعار ({count})",
       "searchPlaceholder": "ابحث عن الأصناف...",
@@ -220,6 +221,16 @@
       "filterAllCategories": "كل الفئات",
       "uncategorized": "بدون فئة",
       "menuOpen": "فتح القائمة",
+      "filters": {
+        "expiringWithin": "تنتهي صلاحيته خلال",
+        "expiringOptions": {
+          "expired": "منتهية الصلاحية بالفعل",
+          "7": "خلال 7 أيام",
+          "30": "خلال 30 يومًا",
+          "60": "خلال 60 يومًا",
+          "90": "خلال 90 يومًا"
+        }
+      },
       "columns": {
         "name": "الاسم",
         "sku": "رمز المنتج",
@@ -260,6 +271,36 @@
       "ITEM_NOT_FOUND": "الصنف غير موجود",
       "CATEGORY_NOT_FOUND": "الفئة غير موجودة",
       "AUTH_UPSTREAM_UNAVAILABLE": "تعذر التحقق من الجلسة. يرجى المحاولة مرة أخرى."
+    },
+    "expiryReport": {
+      "title": "تقرير انتهاء الصلاحية",
+      "subtitle": "الأصناف التي تنتهي صلاحيتها ضمن الفترة المحددة",
+      "backAriaLabel": "العودة إلى الأصناف",
+      "daysThreshold": "عدد الأيام",
+      "daysThresholdOptions": {
+        "7": "خلال 7 أيام",
+        "30": "خلال 30 يومًا",
+        "60": "خلال 60 يومًا",
+        "90": "خلال 90 يومًا"
+      },
+      "severityFilter": "الحالة",
+      "severityOptions": {
+        "all": "كل الحالات"
+      },
+      "columns": {
+        "item": "الصنف",
+        "sku": "رمز المنتج",
+        "expiryDate": "تاريخ الانتهاء",
+        "daysRemaining": "الأيام المتبقية",
+        "status": "الحالة"
+      },
+      "status": {
+        "expired": "منتهي الصلاحية",
+        "critical": "حرج",
+        "warning": "تحذير"
+      },
+      "empty": "لا توجد أصناف تنتهي صلاحيتها ضمن هذه الفترة",
+      "errorLoading": "فشل تحميل تقرير انتهاء الصلاحية"
     },
     "edit": {
       "description": "تعديل تفاصيل الصنف والأسعار وخيارات التعبئة.",
@@ -308,7 +349,10 @@
         "taxRatePlaceholder": "مثال: 15 تعني 15%",
         "taxRateDescription": "أدخل نسبة الضريبة (0-100)",
         "active": "نشط",
-        "activeDescription": "الأصناف غير النشطة لن تظهر في نتائج البحث"
+        "activeDescription": "الأصناف غير النشطة لن تظهر في نتائج البحث",
+        "tracksExpiry": "تتبع تاريخ الانتهاء",
+        "tracksExpiryDescription": "فعّل هذا الخيار لتحديد ومراقبة تاريخ انتهاء صلاحية هذا الصنف",
+        "expiryDate": "تاريخ الانتهاء"
       },
       "pricing": {
         "title": "فئات الأسعار",
@@ -355,7 +399,8 @@
         "taxRateRange": "يجب أن تكون نسبة الضريبة بين 0 و 100",
         "nameMaxLength": "يجب ألا يتجاوز الاسم 255 حرفًا",
         "skuMaxLength": "يجب ألا يتجاوز رمز المنتج 100 حرف",
-        "barcodeMaxLength": "يجب ألا يتجاوز الباركود 100 حرف"
+        "barcodeMaxLength": "يجب ألا يتجاوز الباركود 100 حرف",
+        "expiryDateRequired": "تاريخ الانتهاء مطلوب عند تفعيل تتبع الصلاحية"
       }
     },
     "quickModal": {
@@ -1651,6 +1696,16 @@
       "viewAll": "عرض جميع التنبيهات",
       "empty": "لا توجد تنبيهات",
       "configure": "تهيئة تنبيهات المخزون"
+    },
+    "expiry": {
+      "title": "الأصناف قريبة الانتهاء",
+      "totalAlerts": "إجمالي التنبيهات",
+      "expired": "منتهي الصلاحية",
+      "critical": "حرج",
+      "warning": "تحذير",
+      "viewAll": "عرض تقرير انتهاء الصلاحية",
+      "empty": "لا توجد أصناف قريبة الانتهاء",
+      "configure": "إعداد تواريخ انتهاء الأصناف"
     }
   },
   "payments": {

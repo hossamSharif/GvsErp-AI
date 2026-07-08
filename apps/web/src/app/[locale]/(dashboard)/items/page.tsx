@@ -59,6 +59,7 @@ import {
   Filter,
   DollarSign,
   FolderTree,
+  CalendarClock,
 } from 'lucide-react';
 
 export default function ItemsPage() {
@@ -310,6 +311,13 @@ export default function ItemsPage() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => router.push(`/${locale}/items/expiry-report`)}
+          >
+            <CalendarClock className="mr-2 h-4 w-4" />
+            {t('expiryReportButton')}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => router.push(`/${locale}/items/categories`)}
           >
             <FolderTree className="mr-2 h-4 w-4" />
@@ -333,34 +341,66 @@ export default function ItemsPage() {
         onSaved={() => {}}
       />
 
-      {/* Category Filter */}
-      {categoriesData?.data && categoriesData.data.length > 0 && (
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        {categoriesData?.data && categoriesData.data.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select
+              value={queryParams.categoryId || 'all'}
+              onValueChange={(value) =>
+                setQueryParams((prev) => ({
+                  ...prev,
+                  categoryId: value === 'all' ? undefined : value,
+                  page: 1,
+                }))
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={t('filterAllCategories')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('filterAllCategories')}</SelectItem>
+                {categoriesData.data.map((cat: { id: string; name: string }) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Expiring Within Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
           <Select
-            value={queryParams.categoryId || 'all'}
+            value={
+              queryParams.expiringWithinDays !== undefined
+                ? String(queryParams.expiringWithinDays)
+                : 'all'
+            }
             onValueChange={(value) =>
               setQueryParams((prev) => ({
                 ...prev,
-                categoryId: value === 'all' ? undefined : value,
+                expiringWithinDays: value === 'all' ? undefined : Number(value),
                 page: 1,
               }))
             }
           >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder={t('filterAllCategories')} />
+              <SelectValue placeholder={t('filters.expiringWithin')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('filterAllCategories')}</SelectItem>
-              {categoriesData.data.map((cat: { id: string; name: string }) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">{t('filters.expiringWithin')}</SelectItem>
+              <SelectItem value="0">{t('filters.expiringOptions.expired')}</SelectItem>
+              <SelectItem value="7">{t('filters.expiringOptions.7')}</SelectItem>
+              <SelectItem value="30">{t('filters.expiringOptions.30')}</SelectItem>
+              <SelectItem value="60">{t('filters.expiringOptions.60')}</SelectItem>
+              <SelectItem value="90">{t('filters.expiringOptions.90')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      )}
+      </div>
 
       {/* Data Table */}
       <DataTable

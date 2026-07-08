@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { ItemService } from '../services/item.service';
+import { ExpiryAlertsService } from '../services/expiry-alerts.service';
 import {
   createItemSchema,
   updateItemSchema,
@@ -16,6 +17,7 @@ import {
   createItemPackagingSchema,
   updateItemPackagingSchema,
   itemReportParamsSchema,
+  expiryQuerySchema,
 } from '@erp/shared';
 import type { ItemQueryParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
@@ -34,6 +36,14 @@ router.use(requireAuth);
 function getItemService(req: Request): ItemService {
   const { supabase, tenantId } = getTenantContext(req);
   return new ItemService(supabase, tenantId);
+}
+
+/**
+ * Helper to create ExpiryAlertsService with tenant context
+ */
+function getExpiryAlertsService(req: Request): ExpiryAlertsService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new ExpiryAlertsService(supabase, tenantId);
 }
 
 // =============================================================================
@@ -99,6 +109,72 @@ router.get(
     };
 
     const data = await service.getItemsForReport(params);
+
+    res.json({
+      success: true,
+      data,
+      meta: {
+        total: data.length,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+// =============================================================================
+// EXPIRY ENDPOINTS
+// Registered BEFORE /:id so literal paths are not captured by the param route.
+// =============================================================================
+
+/**
+ * GET /items/alerts/expiring
+ * Get items expiring within N days, with severity
+ */
+router.get(
+  '/alerts/expiring',
+  validateRequest({ query: expiryQuerySchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getExpiryAlertsService(req);
+    const { days, severity } = req.query as unknown as { days: number; severity?: 'expired' | 'critical' | 'warning' };
+
+    const alerts = await service.getExpiringAlerts(days, severity);
+
+    res.json({
+      success: true,
+      data: alerts,
+    });
+  })
+);
+
+/**
+ * GET /items/alerts/expiry-summary
+ * Get expiry alert summary counts
+ */
+router.get(
+  '/alerts/expiry-summary',
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getExpiryAlertsService(req);
+    const summary = await service.getExpirySummary();
+
+    res.json({
+      success: true,
+      data: summary,
+    });
+  })
+);
+
+/**
+ * GET /items/report/expiry
+ * Get items expiring within N days for the dedicated expiry report page
+ */
+router.get(
+  '/report/expiry',
+  validateRequest({ query: expiryQuerySchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getExpiryAlertsService(req);
+    const { days, severity } = req.query as unknown as { days: number; severity?: 'expired' | 'critical' | 'warning' };
+
+    const data = await service.getExpiringAlerts(days, severity);
 
     res.json({
       success: true,

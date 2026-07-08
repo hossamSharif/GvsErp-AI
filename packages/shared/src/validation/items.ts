@@ -248,14 +248,19 @@ export const createItemSchema = z.object({
     .default(0),
   isActive: z.boolean().default(true),
   images: z.array(z.string().url('Invalid image URL')).default([]),
+  tracksExpiry: z.boolean().default(false),
+  expiryDate: z.string().date('Invalid date format').nullable().optional(),
   prices: z.array(createItemPriceSchema).optional(),
   packagings: z.array(createItemPackagingSchema).optional(),
-});
+}).refine(
+  (data) => !data.tracksExpiry || !!data.expiryDate,
+  { message: 'Expiry date is required when expiry tracking is enabled', path: ['expiryDate'] }
+);
 
 /**
  * Schema for updating an item
  */
-export const updateItemSchema = z.object({
+export const updateItemSchemaBase = z.object({
   name: z.string()
     .min(1, 'Item name is required')
     .max(255, 'Item name must be 255 characters or less')
@@ -292,9 +297,19 @@ export const updateItemSchema = z.object({
     .optional(),
   isActive: z.boolean().optional(),
   images: z.array(z.string().url('Invalid image URL')).optional(),
+  tracksExpiry: z.boolean().optional(),
+  expiryDate: z.string().date('Invalid date format').nullable().optional(),
   prices: z.array(createItemPriceSchema).optional(),
   packagings: z.array(createItemPackagingSchema).optional(),
 });
+
+/**
+ * Schema for updating an item
+ */
+export const updateItemSchema = updateItemSchemaBase.refine(
+  (data) => !data.tracksExpiry || !!data.expiryDate,
+  { message: 'Expiry date is required when expiry tracking is enabled', path: ['expiryDate'] }
+);
 
 /**
  * Schema for item query parameters
@@ -307,6 +322,19 @@ export const itemQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sortBy: itemSortFieldSchema,
   sortDir: sortDirectionSchema,
+  expiringWithinDays: z.coerce.number().int().min(0).max(3650).optional(),
+});
+
+// =============================================================================
+// EXPIRY SCHEMAS
+// =============================================================================
+
+/**
+ * Schema for expiry alert/report query parameters
+ */
+export const expiryQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(3650).default(30),
+  severity: z.enum(['expired', 'critical', 'warning']).optional(),
 });
 
 // =============================================================================
