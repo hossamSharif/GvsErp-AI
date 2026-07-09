@@ -1984,7 +1984,7 @@
         "quantity": 4,
         "unit": "",
         "barcode": "",
-        "cost_price": "",
+        "cost_price": "7500",
         "unit_price": "9000",
         "alternative_name": "Salbutamol inhaler"
     },
@@ -2006,7 +2006,7 @@
         "quantity": 1,
         "unit": "",
         "barcode": "7321839711961",
-        "cost_price": "",
+        "cost_price": "35000",
         "unit_price": "45000",
         "alternative_name": "Symbicort"
     },
@@ -2050,7 +2050,7 @@
         "quantity": 12,
         "unit": "",
         "barcode": "5285006312066",
-        "cost_price": "",
+        "cost_price": "2100",
         "unit_price": "4500",
         "alternative_name": "R Sipdon"
     },
@@ -2094,8 +2094,8 @@
         "quantity": 12,
         "unit": "strip",
         "barcode": "",
-        "cost_price": "",
-        "unit_price": "2500",
+        "cost_price": "2400",
+        "unit_price": "3000",
         "alternative_name": "UniClavix 75"
     },
     {
@@ -2150,7 +2150,7 @@
         "unit": "",
         "barcode": "",
         "cost_price": "2500",
-        "unit_price": "5000"
+        "unit_price": "5000",
         "alternative_name": "Rumafen syrup"
     },
     {
@@ -2281,8 +2281,7 @@
         "expiry_date": "01/12/2028",
         "quantity": 20,
         "unit": "",
-        "barcode": "6223003950101
-        ",
+        "barcode": "6223003950101",
         "cost_price": "3300",
         "unit_price": "5000",
         "alternative_name": "D10% drip"
@@ -2293,8 +2292,7 @@
         "expiry_date": "01/03/2029",
         "quantity": 29,
         "unit": "",
-        "barcode": "08906040830978
-        ",
+        "barcode": "08906040830978",
         "cost_price": "3300",
         "unit_price": "5000",
         "alternative_name": "R.L drip"
@@ -2305,8 +2303,7 @@
         "expiry_date": "01/08/2027",
         "quantity": 14,
         "unit": "",
-        "barcode": "8901086090058
-        ",
+        "barcode": "8901086090058",
         "cost_price": "3300",
         "unit_price": "5000",
         "alternative_name": "Cipro drip"
@@ -2328,8 +2325,7 @@
         "expiry_date": "01/06/2029",
         "quantity": 3,
         "unit": "",
-        "barcode": "6222039757272
-        ",
+        "barcode": "6222039757272",
         "cost_price": "12000",
         "unit_price": "18000",
         "alternative_name": "Skin stapler"
@@ -2352,10 +2348,10 @@
         "quantity": 10,
         "unit": "amp",
         "barcode": "Brand Name: Metoclop",
-        "cost_price": "1600",Generic Name : Metoclopramide Injection BP 10mg/2ml
-        "unit_price": "3000",Pack Size : Pack of 10 x 2 ml ampoules
-        "alternative_name": "Metoclop"Manufactured by : KILITCH DRUGS (INDIA) LTD.
-      },GTIN NO.: 08903494303317
+        "cost_price": "1600",
+        "unit_price": "3000",
+        "alternative_name": "Metoclop"
+      }, 
 
       {
         "id": 211,
@@ -2363,8 +2359,7 @@
         "expiry_date": "01/02/2027",
         "quantity": 95,
         "unit": "amp",
-        "barcode": "(01)18906064464361(17)270228(10)NL2352501(21)SA10033790
-        ",
+        "barcode": "(01)18906064464361(17)270228(10)NL2352501(21)SA10033790",
         "cost_price": "1600",
         "unit_price": "3000",
         "alternative_name": "Allermine"
@@ -2386,8 +2381,7 @@
         "expiry_date": "01/01/2028",
         "quantity": 13,
         "unit": "ample",
-        "barcode": "8902412008167
-        ",
+        "barcode": "8902412008167",
         "cost_price": "3200",
         "unit_price": "5000",
         "alternative_name": "Potcl"
@@ -2431,8 +2425,7 @@
         "expiry_date": "01/08/2028",
         "quantity": 60,
         "unit": "",
-        "barcode": "6223004867347
-        ",
+        "barcode": "6223004867347",
         "cost_price": "1500",
         "unit_price": "3500",
         "alternative_name": "pharmapore"
@@ -2487,8 +2480,7 @@
         "expiry_date": "01/01/2028",
         "quantity": 2,
         "unit": "",
-        "barcode": "6944932757028
-        ",
+        "barcode": "6944932757028",
         "cost_price": "1800",
         "unit_price": "3000",
         "alternative_name": "casther size 18"
@@ -2521,8 +2513,7 @@
         "expiry_date": "01/10/2030",
         "quantity": 100,
         "unit": "",
-        "barcode": "785614820229
-        ",
+        "barcode": "785614820229",
         "cost_price": "1500",
         "unit_price": "3000",
         "alternative_name": "surgical gloves"
@@ -2566,8 +2557,7 @@
         "expiry_date": "01/11/2030",
         "quantity": 56,
         "unit": "",
-        "barcode": "785614820496
-        ",
+        "barcode": "785614820496",
         "cost_price": "1500",
         "unit_price": "3000",
         "alternative_name": "Glovmax gloves"
@@ -2589,8 +2579,7 @@
         "expiry_date": "01/01/2030",
         "quantity": 60,
         "unit": "",
-        "barcode": "8680131204427
-        ",
+        "barcode": "8680131204427",
         "cost_price": "1500",
         "unit_price": "2500",
         "alternative_name": "Bed sheet"
@@ -2612,8 +2601,7 @@
         "expiry_date": "01/12/2028",
         "quantity": 39,
         "unit": "",
-        "barcode": "6931149446814
-        ",
+        "barcode": "6931149446814",
         "cost_price": "3750",
         "unit_price": "5000",
         "alternative_name": "ultramax"

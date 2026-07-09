@@ -117,24 +117,21 @@ export default function OpeningStockPage() {
     setIsDraftDirty(false);
   }, []);
 
-  // Pre-fill cost when rows load (if nothing entered yet)
-  const handleRowsLoaded = useCallback(() => {
-    if (!rows.length) return;
-    setCosts((prev) => {
-      const next = { ...prev };
-      rows.forEach((row) => {
-        if (!next[row.itemId] && row.suggestedUnitCost > 0) {
-          next[row.itemId] = String(row.suggestedUnitCost);
-        }
-      });
-      return next;
+  // Pre-fill suggested unit costs once rows load, without clobbering any
+  // cost the user has already typed (or a restored draft). Runs in an effect
+  // — never during render — and only sets state when there is actually a
+  // suggested cost to apply, so it can't loop when every suggestion is 0.
+  useEffect(() => {
+    if (rows.length === 0) return;
+    const additions: Record<string, string> = {};
+    rows.forEach((row) => {
+      if (!costs[row.itemId] && row.suggestedUnitCost > 0) {
+        additions[row.itemId] = String(row.suggestedUnitCost);
+      }
     });
-  }, [rows]);
-
-  // Trigger pre-fill when rows arrive
-  if (rows.length > 0 && Object.keys(costs).length === 0) {
-    handleRowsLoaded();
-  }
+    if (Object.keys(additions).length === 0) return;
+    setCosts((prev) => ({ ...prev, ...additions }));
+  }, [rows, costs]);
 
   // Persist quantities/costs to localStorage with 800ms debounce
   useEffect(() => {
