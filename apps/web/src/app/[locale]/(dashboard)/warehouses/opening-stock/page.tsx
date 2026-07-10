@@ -72,6 +72,8 @@ export default function OpeningStockPage() {
   const [costs, setCosts] = useState<Record<string, string>>({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [search, setSearch] = useState('');
+  const [costZeroOnly, setCostZeroOnly] = useState(false);
+  const [qtyNotEnteredOnly, setQtyNotEnteredOnly] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [isDraftDirty, setIsDraftDirty] = useState(false);
 
@@ -87,13 +89,22 @@ export default function OpeningStockPage() {
   // Client-side filter — instant, preserves unsaved qty/cost state across searches
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter(
-      (r) =>
-        r.itemName.toLowerCase().includes(term) ||
-        (r.sku && r.sku.toLowerCase().includes(term))
-    );
-  }, [rows, search]);
+    return rows.filter((r) => {
+      if (term) {
+        const matches =
+          r.itemName.toLowerCase().includes(term) ||
+          (r.sku && r.sku.toLowerCase().includes(term)) ||
+          (r.barcode && r.barcode.toLowerCase().includes(term));
+        if (!matches) return false;
+      }
+      if (costZeroOnly && r.suggestedUnitCost !== 0) return false;
+      if (qtyNotEnteredOnly) {
+        const qty = parseFloat(quantities[r.itemId] || '0');
+        if (qty > 0) return false;
+      }
+      return true;
+    });
+  }, [rows, search, costZeroOnly, qtyNotEnteredOnly, quantities]);
 
   const handleWarehouseChange = useCallback((id: string) => {
     setWarehouseId(id);
@@ -306,6 +317,24 @@ export default function OpeningStockPage() {
                     )}
                   </div>
                   <Button
+                    variant={costZeroOnly ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9"
+                    onClick={() => setCostZeroOnly((v) => !v)}
+                    aria-pressed={costZeroOnly}
+                  >
+                    {t('filterCostZero')}
+                  </Button>
+                  <Button
+                    variant={qtyNotEnteredOnly ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9"
+                    onClick={() => setQtyNotEnteredOnly((v) => !v)}
+                    aria-pressed={qtyNotEnteredOnly}
+                  >
+                    {t('filterNoQty')}
+                  </Button>
+                  <Button
                     variant="outline"
                     size="sm"
                     className="h-9 gap-1"
@@ -345,7 +374,9 @@ export default function OpeningStockPage() {
               <p className="text-muted-foreground py-8 text-center">{t('noItems')}</p>
             ) : filteredRows.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center">
-                {t('noResults', { query: search })}
+                {search.trim()
+                  ? t('noResults', { query: search })
+                  : t('noFilterResults')}
               </p>
             ) : (
               <>

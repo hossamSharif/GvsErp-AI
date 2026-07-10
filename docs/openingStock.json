@@ -2212,7 +2212,7 @@
         "id": 198,
         "name": "canula size 18",
         "expiry_date": "01/01/2030",
-        "quantity": null,
+        "quantity": 0,
         "unit": "pcs",
         "barcode": "",
         "cost_price": "500",

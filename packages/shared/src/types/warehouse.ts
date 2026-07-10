@@ -438,6 +438,7 @@ export interface OpeningStockRow {
   itemId: string;
   itemName: string;
   sku: string | null;
+  barcode: string | null;
   unitOfMeasure: string;
   currentQuantity: number;
   suggestedUnitCost: number;

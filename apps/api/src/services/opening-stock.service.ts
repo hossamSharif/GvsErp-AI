@@ -133,6 +133,7 @@ export class OpeningStockService {
         itemId: item.id,
         itemName: item.name,
         sku: item.sku ?? null,
+        barcode: item.barcode ?? null,
         unitOfMeasure: item.unitOfMeasure,
         currentQuantity: quantityMap.get(item.id) ?? 0,
         suggestedUnitCost: costPrice,
