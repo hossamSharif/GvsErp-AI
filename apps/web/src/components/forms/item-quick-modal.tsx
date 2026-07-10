@@ -6,7 +6,7 @@
  * A compact, tab-less create/edit dialog for items — used from the invoice
  * quick-add bar and the items list page so users can add or fix an item
  * without leaving what they were doing. Only the essentials are exposed
- * (name, alternative name, barcode, prices); everything else is submitted
+ * (name, alternative name, barcode, expiry tracking, prices); everything else is submitted
  * at the same defaults ItemForm uses. Packaging and images are out of scope
  * here — use the full item page for those.
  */
@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -63,6 +64,7 @@ type ValidationMessages = {
   pricePositive: string;
   nameMaxLength: string;
   barcodeMaxLength: string;
+  expiryDateRequired: string;
 };
 
 function createQuickItemSchema(messages: ValidationMessages) {
@@ -77,8 +79,13 @@ function createQuickItemSchema(messages: ValidationMessages) {
     name: z.string().min(1, messages.nameRequired).max(255, messages.nameMaxLength),
     nameAlias: z.string().max(255, messages.nameMaxLength).nullable().optional(),
     barcode: z.string().max(100, messages.barcodeMaxLength).nullable().optional(),
+    tracksExpiry: z.boolean().default(false),
+    expiryDate: z.string().nullable().optional(),
     prices: z.array(priceSchema).default([]),
-  });
+  }).refine(
+    (data) => !data.tracksExpiry || !!data.expiryDate,
+    { message: messages.expiryDateRequired, path: ['expiryDate'] }
+  );
 }
 
 type QuickItemFormData = z.infer<ReturnType<typeof createQuickItemSchema>>;
@@ -114,6 +121,7 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
     pricePositive: t('validation.pricePositive'),
     nameMaxLength: t('validation.nameMaxLength'),
     barcodeMaxLength: t('validation.barcodeMaxLength'),
+    expiryDateRequired: t('validation.expiryDateRequired'),
   });
 
   const form = useForm<QuickItemFormData>({
@@ -122,6 +130,8 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
       name: '',
       nameAlias: '',
       barcode: '',
+      tracksExpiry: false,
+      expiryDate: null,
       prices: [],
     },
   });
@@ -138,6 +148,8 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
       name: item?.name ?? '',
       nameAlias: item?.nameAlias ?? '',
       barcode: item?.barcode ?? '',
+      tracksExpiry: item?.tracksExpiry ?? false,
+      expiryDate: item?.expiryDate || null,
       prices:
         item?.prices?.map((p) => ({
           id: p.id,
@@ -157,6 +169,8 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
       name: data.name,
       nameAlias: data.nameAlias || null,
       barcode: data.barcode || null,
+      tracksExpiry: data.tracksExpiry,
+      expiryDate: data.tracksExpiry ? data.expiryDate || null : null,
     };
 
     try {
@@ -289,6 +303,46 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="tracksExpiry"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">{tFields('tracksExpiry')}</FormLabel>
+                    <FormDescription>{tFields('tracksExpiryDescription')}</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        if (!checked) {
+                          form.setValue('expiryDate', null);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {form.watch('tracksExpiry') && (
+              <FormField
+                control={form.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{tFields('expiryDate')}</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">

@@ -51,6 +51,7 @@ import {
   useFinalizeInvoice,
   useStockAvailability,
 } from '@/hooks/use-invoices';
+import { useCurrencies } from '@/hooks/use-currencies';
 import type { DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
 
 // =============================================================================
@@ -150,6 +151,21 @@ export function InvoiceForm({
   const updateInvoiceMutation = useUpdateInvoice();
   const finalizeInvoice = useFinalizeInvoice();
 
+  // Tenant default currency — pre-selected on new invoices to save data entry.
+  // Same query params as CurrencySelect so the fetch is shared from cache.
+  const { data: currenciesData } = useCurrencies({
+    limit: 100,
+    sortBy: 'code',
+    sortDir: 'asc',
+  });
+  const defaultCurrencyCode = currenciesData?.data.find((c) => c.is_default)?.code;
+
+  // Tracks the draft we created fresh (vs. a recovered one) and whether we've
+  // already applied the default currency to it, so we set it exactly once and
+  // never clobber a currency the user changed on a recovered draft.
+  const freshDraftIdRef = useRef<string | null>(null);
+  const defaultCurrencyAppliedRef = useRef(false);
+
   // Stock availability
   const itemIds = draft?.items.map((i) => i.itemId) || [];
   const { data: stockData } = useStockAvailability(
@@ -181,16 +197,41 @@ export function InvoiceForm({
     existingDrafts.filter((d) => !hasContent(d)).forEach((d) => deleteDraft(d.id));
 
     const newDraftId = createDraft(type, defaultWarehouseId);
-    // Pre-select the first party of the matching type so a new invoice opens
-    // with a customer/supplier already chosen (common single-customer flows).
+    freshDraftIdRef.current = newDraftId;
+    // Pre-select the first party of the matching type and the tenant default
+    // currency so a new invoice opens ready to enter items (common single-
+    // customer flows). Currencies may still be loading — the effect below
+    // applies the default currency once it arrives.
     const defaultParty = parties.find(
       (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
     );
-    if (defaultParty) {
-      updateDraft(newDraftId, { partyId: defaultParty.id });
+    const initialUpdates: Parameters<typeof updateDraft>[1] = {};
+    if (defaultParty) initialUpdates.partyId = defaultParty.id;
+    // Default to the configured warehouse, else the first available one.
+    const initialWarehouseId = defaultWarehouseId || warehouses[0]?.id;
+    if (initialWarehouseId) initialUpdates.warehouseId = initialWarehouseId;
+    if (defaultCurrencyCode) {
+      initialUpdates.currency = defaultCurrencyCode;
+      defaultCurrencyAppliedRef.current = true;
+    }
+    if (Object.keys(initialUpdates).length > 0) {
+      updateDraft(newDraftId, initialUpdates);
     }
     setCurrentDraftId(newDraftId);
-  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, createDraft, listDrafts, deleteDraft, parties, updateDraft]);
+  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, warehouses, createDraft, listDrafts, deleteDraft, parties, updateDraft, defaultCurrencyCode]);
+
+  // If currencies finish loading after the fresh draft was created, apply the
+  // tenant default currency then. Guarded to the draft we created (not a
+  // recovered one) and to run once, so a user's currency change is never
+  // overwritten.
+  useEffect(() => {
+    if (existingInvoice) return;
+    if (defaultCurrencyAppliedRef.current) return;
+    if (!defaultCurrencyCode || !currentDraftId) return;
+    if (currentDraftId !== freshDraftIdRef.current) return;
+    updateDraft(currentDraftId, { currency: defaultCurrencyCode });
+    defaultCurrencyAppliedRef.current = true;
+  }, [defaultCurrencyCode, currentDraftId, existingInvoice, updateDraft]);
 
   // Sync existing invoice to draft
   useEffect(() => {
