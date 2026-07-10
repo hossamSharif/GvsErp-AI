@@ -277,10 +277,10 @@ export function useDeleteItem(
       const response = await api.delete<ApiResponse<{ message: string }>>(`/items/${id}`);
       return response;
     },
-    onSuccess: (data, id, context) => {
+    onSuccess: (data, id, onMutateResult, context) => {
       queryClient.removeQueries({ queryKey: itemKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
-      options?.onSuccess?.(data, id, context);
+      options?.onSuccess?.(data, id, onMutateResult, context);
     },
   });
 }
