@@ -50,6 +50,8 @@ interface InvoiceListResponse {
     limit: number;
     total: number;
     total_pages: number;
+    /** Summed `total` across all rows matching the filters (not just this page). */
+    totalAmount?: number;
   };
 }
 
@@ -114,6 +116,7 @@ export function useInvoices(
         status: params.status,
         partyId: params.partyId,
         warehouseId: params.warehouseId,
+        createdBy: params.createdBy,
         search: params.search,
         dateFrom: params.dateFrom,
         dateTo: params.dateTo,

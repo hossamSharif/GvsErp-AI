@@ -32,6 +32,7 @@ export interface InvoiceQueryOptions extends QueryOptions {
   status?: InvoiceStatus | InvoiceStatus[];
   partyId?: string;
   warehouseId?: string;
+  createdBy?: string;
   search?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -50,7 +51,40 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
   }
 
   /**
-   * Find all invoices with filters
+   * Apply the shared invoice list filters to a query builder. Used by both the
+   * paginated list query and the aggregate (grand-total) query so the two stay
+   * in lock-step.
+   */
+  private applyInvoiceFilters<T>(query: T, options: InvoiceQueryOptions): T {
+    const { type, status, partyId, warehouseId, createdBy, search, dateFrom, dateTo } = options;
+    // The Supabase builder returns a new builder from each call; cast keeps the
+    // fluent chaining without fighting its generics.
+    let q = query as any;
+
+    if (type) q = q.eq('type', type);
+
+    if (status) {
+      q = Array.isArray(status) ? q.in('status', status) : q.eq('status', status);
+    }
+
+    if (partyId) q = q.eq('party_id', partyId);
+    if (warehouseId) q = q.eq('warehouse_id', warehouseId);
+    if (createdBy) q = q.eq('created_by', createdBy);
+
+    if (search) {
+      q = q.ilike('invoice_number', `%${BaseRepository.escapeILike(search)}%`);
+    }
+
+    if (dateFrom) q = q.gte('created_at', `${dateFrom}T00:00:00Z`);
+    if (dateTo) q = q.lte('created_at', `${dateTo}T23:59:59Z`);
+
+    return q as T;
+  }
+
+  /**
+   * Find all invoices with filters. `meta.totalAmount` carries the summed
+   * `total` across ALL rows matching the filters (not just this page), so the
+   * UI can show a filter-aware grand total independent of pagination.
    */
   async findAllWithFilters(options: InvoiceQueryOptions): Promise<QueryResult<InvoiceWithParty>> {
     const {
@@ -59,13 +93,6 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
       limit = 20,
       sort_by = 'created_at',
       sort_order = 'desc',
-      type,
-      status,
-      partyId,
-      warehouseId,
-      search,
-      dateFrom,
-      dateTo,
     } = options;
 
     const offset = (page - 1) * limit;
@@ -78,38 +105,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
       `, { count: 'exact' })
       .eq('tenant_id', tenantId);
 
-    // Apply filters
-    if (type) {
-      query = query.eq('type', type);
-    }
-
-    if (status) {
-      if (Array.isArray(status)) {
-        query = query.in('status', status);
-      } else {
-        query = query.eq('status', status);
-      }
-    }
-
-    if (partyId) {
-      query = query.eq('party_id', partyId);
-    }
-
-    if (warehouseId) {
-      query = query.eq('warehouse_id', warehouseId);
-    }
-
-    if (search) {
-      query = query.ilike('invoice_number', `%${BaseRepository.escapeILike(search)}%`);
-    }
-
-    if (dateFrom) {
-      query = query.gte('created_at', `${dateFrom}T00:00:00Z`);
-    }
-
-    if (dateTo) {
-      query = query.lte('created_at', `${dateTo}T23:59:59Z`);
-    }
+    query = this.applyInvoiceFilters(query, options);
 
     // Map sort field
     const sortField = this.mapSortField(sort_by);
@@ -126,6 +122,7 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
     }
 
     const invoices = (data || []).map(this.mapInvoiceWithParty);
+    const totalAmount = await this.sumTotalWithFilters(tenantId, options);
 
     return {
       data: invoices,
@@ -134,8 +131,34 @@ export class InvoiceRepository extends BaseRepository<'invoices', InvoiceRow, In
         limit,
         total: count || 0,
         total_pages: Math.ceil((count || 0) / limit),
+        totalAmount,
       },
     };
+  }
+
+  /**
+   * Sum the `total` column across all invoices matching the same filters,
+   * ignoring pagination. Mirrors the JS-side aggregation used elsewhere in this
+   * repo (see {@link getStatsByDateRange}); invoice volumes per tenant are
+   * bounded, so a single scan of the filtered rows is acceptable.
+   */
+  private async sumTotalWithFilters(
+    tenantId: string,
+    options: InvoiceQueryOptions
+  ): Promise<number> {
+    let query = this.supabase
+      .from('invoices')
+      .select('total')
+      .eq('tenant_id', tenantId);
+
+    query = this.applyInvoiceFilters(query, options);
+
+    const { data, error } = await query;
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).reduce((sum, row) => sum + Number((row as { total: number }).total), 0);
   }
 
   /**

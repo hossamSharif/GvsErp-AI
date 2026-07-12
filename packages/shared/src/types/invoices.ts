@@ -264,6 +264,8 @@ export interface InvoiceQueryParams {
   partyId?: string;
   /** Filter by warehouse ID */
   warehouseId?: string;
+  /** Filter by the user who created the invoice */
+  createdBy?: string;
   /** Search by invoice number */
   search?: string;
   /** Filter by date range - start */

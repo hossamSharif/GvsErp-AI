@@ -655,16 +655,25 @@
       "searchPlaceholder": "Search by invoice number...",
       "searchAriaLabel": "Search sales invoices",
       "filterPlaceholder": "Filter by status",
+      "filters": {
+        "userPlaceholder": "Filter by user",
+        "allUsers": "All Users",
+        "dateFrom": "From date",
+        "dateTo": "To date",
+        "clear": "Clear filters"
+      },
       "stats": {
         "totalSales": "Total Sales",
         "showing": "Showing",
         "showingOf": "of {count}",
         "drafts": "Drafts on Page",
-        "pageTotal": "Page Total"
+        "pageTotal": "Page Total",
+        "filteredTotal": "Filtered Total"
       },
       "columns": {
         "invoiceNumber": "Invoice #",
         "customer": "Customer",
+        "user": "User",
         "date": "Date",
         "status": "Status",
         "total": "Total"
@@ -972,16 +981,25 @@
       "searchPlaceholder": "Search by invoice number...",
       "searchAriaLabel": "Search purchase orders",
       "filterPlaceholder": "Filter by status",
+      "filters": {
+        "userPlaceholder": "Filter by user",
+        "allUsers": "All Users",
+        "dateFrom": "From date",
+        "dateTo": "To date",
+        "clear": "Clear filters"
+      },
       "stats": {
         "totalPurchases": "Total Purchases",
         "showing": "Showing",
         "showingOf": "of {count}",
         "drafts": "Drafts on Page",
-        "pageTotal": "Page Total"
+        "pageTotal": "Page Total",
+        "filteredTotal": "Filtered Total"
       },
       "columns": {
         "invoiceNumber": "Invoice #",
         "supplier": "Supplier",
+        "user": "User",
         "date": "Date",
         "status": "Status",
         "total": "Total"

@@ -24,6 +24,8 @@ import {
   XCircle,
   RotateCcw,
   Trash2,
+  User,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +64,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
+import { useUsers } from '@/hooks/use-users';
 import { ApiClientError } from '@/lib/api-client';
 import type { InvoiceStatus, InvoiceQueryParams, InvoiceWithParty } from '@erp/shared';
 
@@ -105,7 +108,28 @@ export default function SalesListPage() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
+
+  // Users for the "created by" filter + resolving creator names in the table.
+  // Degrades gracefully offline (the /users list is network-only).
+  const { data: usersData } = useUsers({ limit: 100, includeInactive: true });
+  const users = usersData?.data ?? [];
+  const usersById = useMemo(
+    () => new Map(users.map((u) => [u.id, u.full_name || u.email])),
+    [users]
+  );
+  const hasActiveFilters =
+    statusFilter !== 'all' || userFilter !== 'all' || dateFrom !== '' || dateTo !== '';
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setUserFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
 
   // Delete dialog state
   const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceWithParty | null>(null);
@@ -173,11 +197,14 @@ export default function SalesListPage() {
     type: 'sale',
     search: searchQuery || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
+    createdBy: userFilter !== 'all' ? userFilter : undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     page,
     limit: 20,
     sortBy: 'createdAt',
     sortDir: 'desc',
-  }), [searchQuery, statusFilter, page]);
+  }), [searchQuery, statusFilter, userFilter, dateFrom, dateTo, page]);
 
   // Fetch invoices
   const { data, isLoading, error, refetch } = useInvoices(queryParams);
@@ -242,10 +269,9 @@ export default function SalesListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>{t('stats.pageTotal')}</CardDescription>
+            <CardDescription>{t('stats.filteredTotal')}</CardDescription>
             <CardTitle className="text-2xl">
-              {invoices
-                .reduce((sum, i) => sum + i.total, 0)
+              {(meta?.totalAmount ?? invoices.reduce((sum, i) => sum + i.total, 0))
                 .toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </CardTitle>
           </CardHeader>
@@ -253,8 +279,8 @@ export default function SalesListPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder={t('searchPlaceholder')}
@@ -274,7 +300,7 @@ export default function SalesListPage() {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder={t('filterPlaceholder')} />
           </SelectTrigger>
@@ -286,6 +312,62 @@ export default function SalesListPage() {
             <SelectItem value="canceled">{tStatus('canceled')}</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Filter by the user who created the invoice */}
+        <Select
+          value={userFilter}
+          onValueChange={(value) => {
+            setUserFilter(value);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <User className="h-4 w-4 mr-2" />
+            <SelectValue placeholder={t('filters.userPlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('filters.allUsers')}</SelectItem>
+            {users.map((u) => (
+              <SelectItem key={u.id} value={u.id}>
+                {u.full_name || u.email}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Filter by date range (invoice creation date) */}
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            aria-label={t('filters.dateFrom')}
+            value={dateFrom}
+            max={dateTo || undefined}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setPage(1);
+            }}
+            className="w-full sm:w-[150px]"
+          />
+          <span className="text-muted-foreground text-sm">–</span>
+          <Input
+            type="date"
+            aria-label={t('filters.dateTo')}
+            value={dateTo}
+            min={dateFrom || undefined}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setPage(1);
+            }}
+            className="w-full sm:w-[150px]"
+          />
+        </div>
+
+        {hasActiveFilters && (
+          <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+            <X className="h-4 w-4 mr-2" />
+            {t('filters.clear')}
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -296,6 +378,7 @@ export default function SalesListPage() {
               <TableRow>
                 <TableHead>{t('columns.invoiceNumber')}</TableHead>
                 <TableHead>{t('columns.customer')}</TableHead>
+                <TableHead>{t('columns.user')}</TableHead>
                 <TableHead>{t('columns.date')}</TableHead>
                 <TableHead>{t('columns.status')}</TableHead>
                 <TableHead className="text-right">{t('columns.total')}</TableHead>
@@ -305,13 +388,13 @@ export default function SalesListPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center">
+                  <TableCell colSpan={7} className="h-32 text-center">
                     {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center">
+                  <TableCell colSpan={7} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-destructive">
                       <p>{t('errorLoad')}</p>
                       <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -322,7 +405,7 @@ export default function SalesListPage() {
                 </TableRow>
               ) : invoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center">
+                  <TableCell colSpan={7} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <FileText className="h-8 w-8" />
                       <p>{t('empty')}</p>
@@ -360,6 +443,13 @@ export default function SalesListPage() {
                       <TableCell>
                         {invoice.party?.name || (
                           <span className="text-muted-foreground">{t('walkIn')}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {invoice.createdBy && usersById.get(invoice.createdBy) ? (
+                          usersById.get(invoice.createdBy)
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
                       <TableCell>

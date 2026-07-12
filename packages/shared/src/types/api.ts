@@ -18,6 +18,12 @@ export interface PaginationMeta {
   limit: number;
   total: number;
   total_pages: number;
+  /**
+   * Sum of the monetary `total` across ALL rows matching the current filters
+   * (not just the returned page). Populated by list endpoints that expose a
+   * filtered grand total — e.g. the invoices list. Optional elsewhere.
+   */
+  totalAmount?: number;
 }
 
 export interface PaginatedResponse<T> {

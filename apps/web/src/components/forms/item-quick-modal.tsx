@@ -11,7 +11,7 @@
  * here — use the full item page for those.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CurrencySelect } from '@/components/forms/currency-select';
+import { useCurrencies } from '@/hooks/use-currencies';
 import { useOnline } from '@/hooks/use-online';
 import {
   useCreateItem,
@@ -140,6 +141,12 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
     control: form.control,
     name: 'prices',
   });
+  const priceInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  // Tenant's configured default currency, used to pre-select new price rows.
+  const { data: currenciesData } = useCurrencies({ limit: 100 });
+  const defaultCurrencyCode =
+    currenciesData?.data.find((c) => c.is_default)?.code ?? 'USD';
 
   // Reset the form whenever the modal opens (fresh create, or the item being edited).
   useEffect(() => {
@@ -296,6 +303,11 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
                         placeholder={tFields('barcodePlaceholder')}
                         {...field}
                         value={field.value || ''}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -351,7 +363,14 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ priceTier: 'retail', price: 0, currency: 'USD' })}
+                  onClick={() => {
+                    const newIndex = fields.length;
+                    append({ priceTier: 'retail', price: 0, currency: defaultCurrencyCode });
+                    requestAnimationFrame(() => {
+                      priceInputRefs.current[newIndex]?.focus();
+                      priceInputRefs.current[newIndex]?.select();
+                    });
+                  }}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   {tModal('addPriceButton')}
@@ -395,7 +414,16 @@ export function ItemQuickModal({ open, onOpenChange, mode, item, onSaved }: Item
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input type="number" min="0" step="0.01" {...field} />
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                {...field}
+                                ref={(el) => {
+                                  field.ref(el);
+                                  priceInputRefs.current[index] = el;
+                                }}
+                              />
                             </FormControl>
                           </FormItem>
                         )}

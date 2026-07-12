@@ -241,24 +241,15 @@ function SortableRow({
         {index + 1}
       </TableCell>
 
-      {/* Item Name */}
-      <TableCell className="min-w-[200px]">
+      {/* Item Name (description removed to keep the row within view — the
+          delete button stays reachable without horizontal scrolling) */}
+      <TableCell className="min-w-[180px]">
         <div className="flex flex-col">
           <span className="font-medium">{item.itemName}</span>
           {item.itemSku && (
             <span className="text-xs text-muted-foreground">{item.itemSku}</span>
           )}
         </div>
-      </TableCell>
-
-      {/* Description */}
-      <TableCell className="min-w-[150px]">
-        <EditableCell
-          value={item.description}
-          onChange={(v) => onUpdate(item.localId, 'description', String(v))}
-          readOnly={readOnly}
-          aria-label={t('ariaDescription', { name: item.itemName })}
-        />
       </TableCell>
 
       {/* Quantity */}
@@ -448,8 +439,7 @@ export function InvoiceItemsTable({
               <TableRow>
                 <TableHead className="w-10"></TableHead>
                 <TableHead className="w-12 text-center">{t('columns.row')}</TableHead>
-                <TableHead className="min-w-[200px]">{t('columns.item')}</TableHead>
-                <TableHead className="min-w-[150px]">{t('columns.description')}</TableHead>
+                <TableHead className="min-w-[180px]">{t('columns.item')}</TableHead>
                 <TableHead className="w-32">{t('columns.qty')}</TableHead>
                 <TableHead className="w-28">{t('columns.unitPrice')}</TableHead>
                 <TableHead className="w-20">{t('columns.discountPercent')}</TableHead>
@@ -479,7 +469,7 @@ export function InvoiceItemsTable({
 
               {items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="h-32 text-center">
+                  <TableCell colSpan={9} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Search className="h-8 w-8" />
                       <p>{t('empty')}</p>

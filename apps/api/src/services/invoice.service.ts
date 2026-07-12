@@ -116,6 +116,7 @@ export class InvoiceService {
       status: params.status,
       partyId: params.partyId,
       warehouseId: params.warehouseId,
+      createdBy: params.createdBy,
       search: params.search,
       dateFrom: params.dateFrom,
       dateTo: params.dateTo,

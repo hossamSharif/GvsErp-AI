@@ -195,6 +195,7 @@ export const invoiceQuerySchema = z.object({
   ]).optional(),
   partyId: z.string().uuid('Invalid party ID').optional(),
   warehouseId: z.string().uuid('Invalid warehouse ID').optional(),
+  createdBy: z.string().uuid('Invalid user ID').optional(),
   search: z.string().max(255).optional(),
   dateFrom: z.string().date('Invalid date format').optional(),
   dateTo: z.string().date('Invalid date format').optional(),

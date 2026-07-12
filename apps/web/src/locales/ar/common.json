@@ -655,16 +655,25 @@
       "searchPlaceholder": "البحث برقم الفاتورة...",
       "searchAriaLabel": "البحث في فواتير المبيعات",
       "filterPlaceholder": "تصفية حسب الحالة",
+      "filters": {
+        "userPlaceholder": "تصفية حسب المستخدم",
+        "allUsers": "كل المستخدمين",
+        "dateFrom": "من تاريخ",
+        "dateTo": "إلى تاريخ",
+        "clear": "مسح الفلاتر"
+      },
       "stats": {
         "totalSales": "إجمالي المبيعات",
         "showing": "المعروض",
         "showingOf": "من {count}",
         "drafts": "المسودات في الصفحة",
-        "pageTotal": "إجمالي الصفحة"
+        "pageTotal": "إجمالي الصفحة",
+        "filteredTotal": "إجمالي المُصفّى"
       },
       "columns": {
         "invoiceNumber": "رقم الفاتورة",
         "customer": "العميل",
+        "user": "المستخدم",
         "date": "التاريخ",
         "status": "الحالة",
         "total": "الإجمالي"
@@ -972,16 +981,25 @@
       "searchPlaceholder": "ابحث برقم الفاتورة...",
       "searchAriaLabel": "ابحث في أوامر الشراء",
       "filterPlaceholder": "فلترة حسب الحالة",
+      "filters": {
+        "userPlaceholder": "تصفية حسب المستخدم",
+        "allUsers": "كل المستخدمين",
+        "dateFrom": "من تاريخ",
+        "dateTo": "إلى تاريخ",
+        "clear": "مسح الفلاتر"
+      },
       "stats": {
         "totalPurchases": "إجمالي المشتريات",
         "showing": "يعرض",
         "showingOf": "من {count}",
         "drafts": "المسودات في الصفحة",
-        "pageTotal": "إجمالي الصفحة"
+        "pageTotal": "إجمالي الصفحة",
+        "filteredTotal": "إجمالي المُصفّى"
       },
       "columns": {
         "invoiceNumber": "رقم الفاتورة",
         "supplier": "المورد",
+        "user": "المستخدم",
         "date": "التاريخ",
         "status": "الحالة",
         "total": "الإجمالي"

@@ -11,7 +11,7 @@
  * - Image upload
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations, useLocale } from 'next-intl';
@@ -49,6 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CurrencySelect } from '@/components/forms/currency-select';
+import { useCurrencies } from '@/hooks/use-currencies';
 import { cn } from '@/lib/utils';
 import type {
   ItemWithRelations,
@@ -238,6 +239,12 @@ export function ItemForm({
     control: form.control,
     name: 'prices',
   });
+  const priceInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  // Tenant's configured default currency, used to pre-select new price rows.
+  const { data: currenciesData } = useCurrencies({ limit: 100 });
+  const defaultCurrencyCode =
+    currenciesData?.data.find((c) => c.is_default)?.code ?? 'USD';
 
   // Packagings field array
   const {
@@ -352,6 +359,11 @@ export function ItemForm({
                             placeholder={tFields('barcodePlaceholder')}
                             {...field}
                             value={field.value || ''}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -574,15 +586,20 @@ export function ItemForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
+                  onClick={() => {
+                    const newIndex = priceFields.length;
                     appendPrice({
                       priceTier: 'retail',
                       price: 0,
-                      currency: 'USD',
+                      currency: defaultCurrencyCode,
                       effectiveFrom: null,
                       effectiveTo: null,
-                    })
-                  }
+                    });
+                    requestAnimationFrame(() => {
+                      priceInputRefs.current[newIndex]?.focus();
+                      priceInputRefs.current[newIndex]?.select();
+                    });
+                  }}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   {tPricing('addButton')}
@@ -641,6 +658,10 @@ export function ItemForm({
                                 min="0"
                                 step="0.01"
                                 {...field}
+                                ref={(el) => {
+                                  field.ref(el);
+                                  priceInputRefs.current[index] = el;
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -781,6 +802,11 @@ export function ItemForm({
                                 placeholder={tPackaging('barcodeOptional')}
                                 {...field}
                                 value={field.value || ''}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                  }
+                                }}
                               />
                             </FormControl>
                             <FormMessage />

@@ -20,6 +20,8 @@ interface ListMeta {
   limit: number;
   total: number;
   total_pages: number;
+  /** Summed `total` across all matching rows (invoices lists only). */
+  totalAmount?: number;
 }
 
 /** Thrown when an offline request hits an endpoint with no offline support. */
@@ -150,6 +152,11 @@ export async function readOffline<T>(
     total,
     total_pages: Math.max(1, Math.ceil(total / limit)),
   };
+  // Filter-aware grand total for invoices, mirroring the server's meta.totalAmount
+  // so the records pages show a consistent total online and offline.
+  if (match.route.table === 'invoices') {
+    meta.totalAmount = rows.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
+  }
   return { success: true, data: pageRows, meta } as T;
 }
 
@@ -251,9 +258,27 @@ function applyListFilters(
     });
   }
 
-  // Invoices list is filtered by `type` (sale|purchase) in the UI.
-  if (table === 'invoices' && typeof params.type === 'string') {
-    out = out.filter((r) => r.type === params.type);
+  // Invoices list is filtered by `type` (sale|purchase) in the UI, plus the
+  // records-page filters: status, creator, and date range. Cached invoice rows
+  // carry camelCase fields (createdBy/createdAt/status) from the API mapper.
+  if (table === 'invoices') {
+    if (typeof params.type === 'string') {
+      out = out.filter((r) => r.type === params.type);
+    }
+    if (typeof params.status === 'string') {
+      out = out.filter((r) => r.status === params.status);
+    }
+    if (typeof params.createdBy === 'string') {
+      out = out.filter((r) => r.createdBy === params.createdBy);
+    }
+    if (typeof params.dateFrom === 'string') {
+      const from = `${params.dateFrom}T00:00:00Z`;
+      out = out.filter((r) => String(r.createdAt ?? '') >= from);
+    }
+    if (typeof params.dateTo === 'string') {
+      const to = `${params.dateTo}T23:59:59Z`;
+      out = out.filter((r) => String(r.createdAt ?? '') <= to);
+    }
   }
   // Parties list is filtered by `type` (customer|supplier).
   if (table === 'parties' && typeof params.type === 'string') {

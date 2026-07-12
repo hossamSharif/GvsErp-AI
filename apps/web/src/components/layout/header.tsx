@@ -12,6 +12,7 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
 import { useThemeStore } from '@/stores/theme-store';
 import { useDirection } from '@/hooks/use-direction';
+import { useOnline } from '@/hooks/use-online';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { SyncStatusBadge } from '@/components/pwa/sync-status-badge';
 import { cn, getInitials } from '@/lib/utils';
@@ -28,6 +29,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, currentUser, signOut } = useAuth();
   const { theme, setTheme } = useThemeStore();
   const { isRtl } = useDirection();
+  const isOnline = useOnline();
   const router = useRouter();
   const params = useParams();
 
@@ -97,6 +99,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   }, [isUserMenuOpen, closeMenu]);
 
   const handleRefresh = useCallback(async () => {
+    if (!isOnline) return;
     setIsRefreshing(true);
     try {
       if ('serviceWorker' in navigator) {
@@ -108,7 +111,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     } finally {
       window.location.reload();
     }
-  }, []);
+  }, [isOnline]);
 
   const handleSignOut = async () => {
     try {
@@ -152,10 +155,10 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Refresh / Reload */}
         <button
           onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-60"
+          disabled={isRefreshing || !isOnline}
+          className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           aria-label="Refresh"
-          title="Refresh"
+          title={isOnline ? 'Refresh' : 'Refresh unavailable while offline'}
         >
           <RefreshIcon className={cn('w-5 h-5', isRefreshing && 'animate-spin')} />
         </button>
