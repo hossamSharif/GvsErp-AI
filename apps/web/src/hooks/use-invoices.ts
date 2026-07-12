@@ -258,25 +258,41 @@ export function useUpdateInvoice(
 }
 
 /**
+ * Variable accepted by {@link useDeleteInvoice}. A bare string keeps the
+ * existing callers working; the object form opts into cascade-deleting the
+ * payments linked solely to this invoice (`deletePayments: true`).
+ */
+export type DeleteInvoiceVars = string | { id: string; deletePayments?: boolean };
+
+/**
  * Hard-delete an invoice (any status). Stock + party balance are reversed
- * on the server before the row is removed.
+ * on the server before the row is removed. Pass `{ id, deletePayments: true }`
+ * to also delete payments linked solely to this invoice.
  */
 export function useDeleteInvoice(
-  options?: UseMutationOptions<ApiResponse<{ id: string }>, Error, string>
+  options?: UseMutationOptions<ApiResponse<{ id: string }>, Error, DeleteInvoiceVars>
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.delete<ApiResponse<{ id: string }>>(`/invoices/${id}`);
+    mutationFn: async (vars: DeleteInvoiceVars) => {
+      const id = typeof vars === 'string' ? vars : vars.id;
+      const deletePayments = typeof vars === 'string' ? false : vars.deletePayments;
+      const query = deletePayments ? '?deletePayments=true' : '';
+      const response = await api.delete<ApiResponse<{ id: string }>>(
+        `/invoices/${id}${query}`
+      );
       return response;
     },
-    onSuccess: (_, id) => {
+    onSuccess: (_, vars) => {
+      const id = typeof vars === 'string' ? vars : vars.id;
       queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: [...invoiceKeys.all, 'stock'] });
       // Delete reverses stock movements; refresh warehouse views.
       queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      // A cascade delete removes payments too — refresh payment views.
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
     ...options,
   });

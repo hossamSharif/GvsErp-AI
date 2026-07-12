@@ -64,6 +64,9 @@ export interface ApiError {
   code: ErrorCode;
   message: string;
   details?: ValidationError[];
+  // Structured, error-specific context (e.g. the payments blocking an invoice
+  // delete). Distinct from `details`, which is reserved for field validation.
+  meta?: Record<string, unknown>;
   request_id?: string;
 }
 

@@ -11,6 +11,7 @@ import { calculateLineTotal as sharedCalculateLineTotal } from '@erp/offline-eng
 import { InvoiceRepository, InvoiceQueryOptions } from '../repositories/invoice.repository';
 import { AccountingService } from './accounting.service';
 import { InventoryValuationService } from './inventory-valuation.service';
+import { PaymentService } from './payment.service';
 import type {
   Invoice,
   InvoiceWithParty,
@@ -42,11 +43,25 @@ export class InvoiceError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly statusCode: number = 400
+    public readonly statusCode: number = 400,
+    // Optional structured context surfaced to the client as `error.meta`
+    // (e.g. the linked payments that block/accompany a delete).
+    public readonly details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'InvoiceError';
   }
+}
+
+/**
+ * A payment linked to an invoice, with whether it is exclusive to that invoice
+ * (all its allocations point at it) or shared with other invoices.
+ */
+export interface LinkedPayment {
+  id: string;
+  reference: string | null;
+  amount: number;
+  shared: boolean;
 }
 
 /**
@@ -59,6 +74,8 @@ export class InvoiceService {
   private readonly supabase: SupabaseClient<Database>;
   private readonly tenantId: string;
   private readonly userId?: string;
+  // Lazily constructed to reverse linked payments during a cascade delete.
+  private paymentService?: PaymentService;
 
   constructor(
     supabase: SupabaseClient<Database>,
@@ -71,6 +88,14 @@ export class InvoiceService {
     this.supabase = supabase;
     this.tenantId = tenantId;
     this.userId = userId;
+  }
+
+  /** PaymentService for the same tenant, built on demand (cascade delete). */
+  private getPaymentService(): PaymentService {
+    if (!this.paymentService) {
+      this.paymentService = new PaymentService(this.supabase, this.tenantId);
+    }
+    return this.paymentService;
   }
 
   // ==========================================================================
@@ -298,16 +323,62 @@ export class InvoiceService {
    * - final: revert stock, subtract total from party balance.
    * - returned: undo the return's stock-add and balance-subtract.
    *
-   * Blocks delete if linked payments exist, or if a finalized invoice has
-   * a child return row.
+   * Linked payments block the delete unless `opts.deletePayments` is set, in
+   * which case each payment linked *solely* to this invoice is deleted first
+   * (reversing its journal entry, party-balance change and allocations).
+   * Payments shared with other invoices are never auto-deleted — the delete is
+   * refused so the user can resolve them manually. A finalized invoice with a
+   * child return row is also blocked.
    */
-  async deleteInvoice(id: string): Promise<{ id: string }> {
+  async deleteInvoice(
+    id: string,
+    opts?: { deletePayments?: boolean }
+  ): Promise<{ id: string }> {
     const existing = await this.invoiceRepository.findByIdWithRelations(this.tenantId, id);
     if (!existing) {
       throw new InvoiceError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
     }
 
-    await this.assertNoLinkedPayments(existing.id);
+    const linkedPayments = await this.getLinkedPayments(existing.id);
+    if (linkedPayments.length > 0) {
+      const hasSharedPayments = linkedPayments.some((p) => p.shared);
+      const paymentsMeta = {
+        paymentCount: linkedPayments.length,
+        totalPaid: linkedPayments.reduce((s, p) => s + p.amount, 0),
+        hasSharedPayments,
+        payments: linkedPayments,
+      };
+
+      if (!opts?.deletePayments) {
+        // Block, but hand the client enough context to offer a cascade delete.
+        throw new InvoiceError(
+          'Cannot delete an invoice that has linked payments. Remove the payments first.',
+          'INVOICE_HAS_PAYMENTS',
+          409,
+          paymentsMeta
+        );
+      }
+
+      if (hasSharedPayments) {
+        // A payment that also covers other invoices can't be safely removed by
+        // deleting this invoice — reversing it would wrongly unwind the others.
+        throw new InvoiceError(
+          'One or more linked payments also cover other invoices and cannot be ' +
+            'deleted automatically. Remove or re-allocate those payments first.',
+          'INVOICE_HAS_SHARED_PAYMENTS',
+          409,
+          paymentsMeta
+        );
+      }
+
+      // Delete each exclusive payment first. deletePayment reverses the payment
+      // journal entry, the party-balance change (DB trigger) and cascades the
+      // payment_allocations. Payment-first ordering is also fail-safe: if the
+      // invoice delete below fails, we're left with a valid unpaid invoice.
+      for (const p of linkedPayments) {
+        await this.getPaymentService().deletePayment(p.id);
+      }
+    }
 
     if (existing.status === 'final') {
       await this.assertNoChildReturn(existing.id);
@@ -329,7 +400,8 @@ export class InvoiceService {
       }
     }
 
-    // invoice_items have ON DELETE CASCADE; payments are blocked above.
+    // invoice_items have ON DELETE CASCADE; linked payments were deleted above
+    // (or the delete was blocked).
     await this.invoiceRepository.delete(this.tenantId, id, false);
 
     return { id };
@@ -1025,17 +1097,78 @@ export class InvoiceService {
   }
 
   /**
-   * Reject if any payment is linked to this invoice.
+   * Return the payments linked to an invoice, via either the legacy
+   * `payments.invoice_id` column or a `payment_allocations` row. Each result is
+   * flagged `shared` when the payment also has an allocation to a *different*
+   * invoice (so deleting this invoice must not silently unwind it).
    */
-  private async assertNoLinkedPayments(invoiceId: string): Promise<void> {
-    const { count, error } = await this.supabase
+  private async getLinkedPayments(invoiceId: string): Promise<LinkedPayment[]> {
+    // 1. Legacy single-invoice link (payments.invoice_id).
+    const { data: legacy, error: legacyErr } = await this.supabase
       .from('payments')
-      .select('id', { count: 'exact', head: true })
+      .select('id')
       .eq('tenant_id', this.tenantId)
       .eq('invoice_id', invoiceId);
+    if (legacyErr) throw legacyErr;
 
-    if (error) throw error;
-    if ((count ?? 0) > 0) {
+    // 2. Bill-wise link (payment_allocations.invoice_id) — multi-invoice payments
+    //    leave payments.invoice_id NULL, so they only show up here.
+    const { data: allocRows, error: allocErr } = await this.supabase
+      .from('payment_allocations' as any)
+      .select('payment_id')
+      .eq('tenant_id', this.tenantId)
+      .eq('invoice_id', invoiceId);
+    if (allocErr) throw allocErr;
+
+    const paymentIds = new Set<string>();
+    for (const p of legacy ?? []) paymentIds.add(p.id);
+    for (const a of ((allocRows as unknown) as { payment_id: string }[]) ?? []) {
+      paymentIds.add(a.payment_id);
+    }
+    if (paymentIds.size === 0) return [];
+
+    const ids = Array.from(paymentIds);
+
+    // Fetch the payment rows (the legacy list alone can miss allocation-only ones).
+    const { data: payments, error: payErr } = await this.supabase
+      .from('payments')
+      .select('id, reference, amount')
+      .eq('tenant_id', this.tenantId)
+      .in('id', ids);
+    if (payErr) throw payErr;
+
+    // A payment is "shared" if it has any allocation to a different invoice.
+    const { data: otherAllocs, error: otherErr } = await this.supabase
+      .from('payment_allocations' as any)
+      .select('payment_id, invoice_id')
+      .eq('tenant_id', this.tenantId)
+      .in('payment_id', ids);
+    if (otherErr) throw otherErr;
+
+    const sharedIds = new Set<string>();
+    for (const row of ((otherAllocs as unknown) as {
+      payment_id: string;
+      invoice_id: string;
+    }[]) ?? []) {
+      if (row.invoice_id !== invoiceId) sharedIds.add(row.payment_id);
+    }
+
+    return (payments ?? []).map((p) => ({
+      id: p.id,
+      reference: (p as { reference: string | null }).reference ?? null,
+      amount: Number(p.amount),
+      shared: sharedIds.has(p.id),
+    }));
+  }
+
+  /**
+   * Reject if any payment is linked to this invoice (via the legacy column or a
+   * bill-wise allocation). Used by the update path, where cascade delete of
+   * payments is not offered.
+   */
+  private async assertNoLinkedPayments(invoiceId: string): Promise<void> {
+    const linked = await this.getLinkedPayments(invoiceId);
+    if (linked.length > 0) {
       throw new InvoiceError(
         'Cannot modify or delete an invoice that has linked payments. Remove the payments first.',
         'INVOICE_HAS_PAYMENTS',

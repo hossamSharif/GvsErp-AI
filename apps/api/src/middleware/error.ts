@@ -85,7 +85,9 @@ export function notFoundHandler(
  * Type guard for domain service errors (ItemError, CategoryError, etc.)
  * All domain errors share { code: string, statusCode: number } on an Error instance.
  */
-function isServiceError(err: unknown): err is Error & { code: string; statusCode: number } {
+function isServiceError(
+  err: unknown
+): err is Error & { code: string; statusCode: number; details?: unknown } {
   if (!(err instanceof Error)) return false;
   const obj = err as unknown as Record<string, unknown>;
   return typeof obj.code === 'string' && typeof obj.statusCode === 'number';
@@ -130,11 +132,16 @@ export function errorHandler(
 
   // Handle domain service errors (ItemError, CategoryError, PaymentError, etc.)
   if (isServiceError(err)) {
-    res.status(err.statusCode).json({
-      code: err.code,
+    const body: ApiError = {
+      code: err.code as ErrorCode,
       message: err.message,
       request_id: requestId,
-    } as ApiError);
+    };
+    // Surface structured context (e.g. InvoiceError's linked-payment details).
+    if (err.details && typeof err.details === 'object' && !Array.isArray(err.details)) {
+      body.meta = err.details as Record<string, unknown>;
+    }
+    res.status(err.statusCode).json(body);
     return;
   }
 

@@ -23,6 +23,8 @@ class ApiClientError extends Error {
   public readonly code: string;
   public readonly status: number;
   public readonly details?: Array<{ field: string; message: string }>;
+  // Structured, error-specific context (e.g. payments blocking an invoice delete).
+  public readonly meta?: Record<string, unknown>;
 
   constructor(error: ApiError, status: number) {
     super(error.message);
@@ -30,6 +32,7 @@ class ApiClientError extends Error {
     this.code = error.code;
     this.status = status;
     this.details = error.details;
+    this.meta = error.meta;
   }
 }
 

@@ -13,7 +13,7 @@ import {
   finalizeInvoiceSchema,
   returnInvoiceSchema,
 } from '@erp/shared';
-import type { InvoiceQueryParams } from '@erp/shared';
+import type { InvoiceQueryParams, Permission } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -135,14 +135,33 @@ router.put(
  * Hard-delete an invoice. Reverses stock + party-balance side effects
  * before removing the row. Blocked when the invoice has linked payments
  * or, for finalized invoices, when a return invoice references it.
+ *
+ * Pass `?deletePayments=true` to also delete payments linked *solely* to this
+ * invoice (requires the `payments:delete` permission). Payments shared with
+ * other invoices are still refused.
  */
 router.delete(
   '/:id',
   requirePermission('invoices:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const deletePayments =
+        req.query.deletePayments === 'true' || req.query.deletePayments === '1';
+
+      // Cascading into payments needs the payments:delete permission too.
+      if (deletePayments) {
+        const perms = req.user?.permissions ?? [];
+        if (!perms.includes('*' as Permission) && !perms.includes('payments:delete')) {
+          res.status(403).json({
+            code: 'FORBIDDEN',
+            message: 'Required permission: payments:delete',
+          });
+          return;
+        }
+      }
+
       const service = getInvoiceService(req);
-      const result = await service.deleteInvoice(req.params.id);
+      const result = await service.deleteInvoice(req.params.id, { deletePayments });
 
       res.json({
         success: true,

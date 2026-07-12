@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { InvoiceService, InvoiceError } from '../../src/services/invoice.service';
 
 /**
@@ -323,5 +323,165 @@ describe('InvoiceService.mapRowToInvoice', () => {
     const row = { ...sampleRow, currency: 'EUR' };
     const result = invoiceService.mapRowToInvoice(row);
     expect(result.currency).toBe('EUR');
+  });
+});
+
+// ==========================================================================
+// InvoiceError.details (structured context surfaced to the client)
+// ==========================================================================
+
+describe('InvoiceError.details', () => {
+  it('defaults to undefined', () => {
+    const err = new InvoiceError('x', 'CODE', 409);
+    expect(err.details).toBeUndefined();
+  });
+
+  it('carries a structured payload', () => {
+    const meta = { paymentCount: 2, totalPaid: 150, hasSharedPayments: false };
+    const err = new InvoiceError('has payments', 'INVOICE_HAS_PAYMENTS', 409, meta);
+    expect(err.details).toEqual(meta);
+  });
+});
+
+// ==========================================================================
+// getLinkedPayments — union of legacy + allocation links, shared detection
+// ==========================================================================
+
+/**
+ * Minimal thenable Supabase stub. `.from().select().eq().in()` all return the
+ * same builder, which resolves to `{ data, error }` chosen by `resolve(ctx)`
+ * based on the table + selected columns.
+ */
+function mockSupabase(resolve: (ctx: { table: string; select: string }) => unknown) {
+  return {
+    from(table: string) {
+      const ctx = { table, select: '' };
+      const builder: Record<string, unknown> = {
+        select(cols: string) {
+          ctx.select = cols;
+          return builder;
+        },
+        eq() {
+          return builder;
+        },
+        in() {
+          return builder;
+        },
+        then(onOk: (v: unknown) => unknown, onErr?: (e: unknown) => unknown) {
+          return Promise.resolve({ data: resolve(ctx), error: null }).then(onOk, onErr);
+        },
+      };
+      return builder;
+    },
+  };
+}
+
+describe('InvoiceService.getLinkedPayments', () => {
+  it('unions legacy invoice_id and allocation links, flagging shared payments', async () => {
+    const supabase = mockSupabase(({ table, select }) => {
+      if (table === 'payments' && select === 'id') {
+        // Legacy link: pay-1 references inv-1 directly.
+        return [{ id: 'pay-1' }];
+      }
+      if (table === 'payment_allocations' && select === 'payment_id') {
+        // Allocation link: pay-2 is allocated to inv-1.
+        return [{ payment_id: 'pay-2' }];
+      }
+      if (table === 'payments' && select === 'id, reference, amount') {
+        return [
+          { id: 'pay-1', reference: 'RCV-1', amount: 100 },
+          { id: 'pay-2', reference: 'RCV-2', amount: 50 },
+        ];
+      }
+      if (table === 'payment_allocations' && select === 'payment_id, invoice_id') {
+        // pay-2 also covers inv-9 → shared; pay-1 has no allocations → exclusive.
+        return [
+          { payment_id: 'pay-2', invoice_id: 'inv-1' },
+          { payment_id: 'pay-2', invoice_id: 'inv-9' },
+        ];
+      }
+      return [];
+    });
+
+    const svc = new (InvoiceService as any)(supabase, 'tenant-1');
+    const linked = await (svc as any).getLinkedPayments('inv-1');
+
+    expect(linked).toHaveLength(2);
+    const byId = Object.fromEntries(linked.map((p: any) => [p.id, p]));
+    expect(byId['pay-1'].shared).toBe(false);
+    expect(byId['pay-1'].amount).toBe(100);
+    expect(byId['pay-2'].shared).toBe(true);
+  });
+
+  it('returns empty when no payments are linked', async () => {
+    const supabase = mockSupabase(() => []);
+    const svc = new (InvoiceService as any)(supabase, 'tenant-1');
+    expect(await (svc as any).getLinkedPayments('inv-1')).toEqual([]);
+  });
+});
+
+// ==========================================================================
+// deleteInvoice — linked-payment cascade decisions
+// ==========================================================================
+
+describe('InvoiceService.deleteInvoice (linked payments)', () => {
+  /** Wire a service whose repo returns a draft invoice and records deletes. */
+  function setup(linked: Array<{ id: string; reference: string | null; amount: number; shared: boolean }>) {
+    const svc = new (InvoiceService as any)(null, 'tenant-1', 'user-1');
+    const deleteRow = vi.fn(async () => true);
+    const deletePayment = vi.fn(async () => undefined);
+    svc.invoiceRepository = {
+      findByIdWithRelations: async () => ({ id: 'inv-1', status: 'draft', type: 'sale', partyId: null, total: 100 }),
+      delete: deleteRow,
+    };
+    svc.getLinkedPayments = async () => linked;
+    svc.getPaymentService = () => ({ deletePayment });
+    return { svc, deleteRow, deletePayment };
+  }
+
+  it('blocks with INVOICE_HAS_PAYMENTS + meta when payments exist and no flag', async () => {
+    const { svc, deleteRow, deletePayment } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 100, shared: false },
+    ]);
+    await expect(svc.deleteInvoice('inv-1')).rejects.toMatchObject({
+      code: 'INVOICE_HAS_PAYMENTS',
+      statusCode: 409,
+      details: { paymentCount: 1, totalPaid: 100, hasSharedPayments: false },
+    });
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(deleteRow).not.toHaveBeenCalled();
+  });
+
+  it('refuses INVOICE_HAS_SHARED_PAYMENTS even with the flag', async () => {
+    const { svc, deleteRow, deletePayment } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 100, shared: true },
+    ]);
+    await expect(svc.deleteInvoice('inv-1', { deletePayments: true })).rejects.toMatchObject({
+      code: 'INVOICE_HAS_SHARED_PAYMENTS',
+      statusCode: 409,
+    });
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(deleteRow).not.toHaveBeenCalled();
+  });
+
+  it('cascade-deletes exclusive payments then the invoice', async () => {
+    const { svc, deleteRow, deletePayment } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 60, shared: false },
+      { id: 'pay-2', reference: 'RCV-2', amount: 40, shared: false },
+    ]);
+    const result = await svc.deleteInvoice('inv-1', { deletePayments: true });
+    expect(result).toEqual({ id: 'inv-1' });
+    expect(deletePayment).toHaveBeenCalledTimes(2);
+    expect(deletePayment).toHaveBeenCalledWith('pay-1');
+    expect(deletePayment).toHaveBeenCalledWith('pay-2');
+    expect(deleteRow).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes directly when there are no linked payments', async () => {
+    const { svc, deleteRow, deletePayment } = setup([]);
+    const result = await svc.deleteInvoice('inv-1');
+    expect(result).toEqual({ id: 'inv-1' });
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(deleteRow).toHaveBeenCalledTimes(1);
   });
 });

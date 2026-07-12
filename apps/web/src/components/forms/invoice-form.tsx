@@ -28,16 +28,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
@@ -121,7 +111,6 @@ export function InvoiceForm({
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId || null);
   const draft = currentDraftId ? getDraft(currentDraftId) : undefined;
 
-  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   // Post-finalize payment workflow: after a final invoice is saved, offer to
   // record the receipt/disbursement immediately. `savedInvoice` holds the
@@ -723,7 +712,7 @@ export function InvoiceForm({
 
       {/* Actions */}
       {!readOnly && (
-        <div className="flex items-center gap-3 justify-end">
+        <div className="sticky bottom-0 z-10 bg-background border-t -mx-4 md:-mx-6 -mb-4 md:-mb-6 px-4 md:px-6 py-3 flex items-center gap-3 justify-end">
           {draft?.lastSavedAt && !existingInvoice && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Check className="h-3 w-3 text-green-500" />
@@ -740,7 +729,7 @@ export function InvoiceForm({
           </Button>
           {!existingInvoice && (
             <Button
-              onClick={() => setShowFinalizeConfirm(true)}
+              onClick={handleFinalize}
               disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
             >
               <Send className="h-4 w-4 mr-2" />
@@ -749,29 +738,6 @@ export function InvoiceForm({
           )}
         </div>
       )}
-
-      {/* Finalize Confirmation Dialog */}
-      <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('finalizeConfirm.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('finalizeConfirm.body')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('finalizeConfirm.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowFinalizeConfirm(false);
-                handleFinalize();
-              }}
-            >
-              {t('finalizeConfirm.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {paymentWorkflowDialogs}
 
