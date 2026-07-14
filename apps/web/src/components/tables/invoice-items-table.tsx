@@ -488,14 +488,6 @@ export function InvoiceItemsTable({
         </DndContext>
       </div>
 
-      {/* Add Item Button */}
-      {!readOnly && items.length > 0 && (
-        <Button variant="outline" onClick={onAddItem}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('addItem')}
-        </Button>
-      )}
-
       {/* Totals */}
       {items.length > 0 && (
         <div className="flex justify-end">

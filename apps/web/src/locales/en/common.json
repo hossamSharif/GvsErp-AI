@@ -800,6 +800,7 @@
       "selectSupplier": "Select supplier...",
       "warehouse": "Warehouse",
       "selectWarehouse": "Select warehouse...",
+      "toggleHeader": "Toggle invoice details",
       "details": "Details",
       "currency": "Currency",
       "date": "Date",

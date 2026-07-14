@@ -153,16 +153,24 @@ export const useDraftStore = create<DraftStore>()(
           const newItem: DraftInvoiceItem = {
             ...item,
             localId: crypto.randomUUID(),
-            sortOrder: draft.items.length,
+            sortOrder: 0,
             lineTotal: calculateLineTotal(item),
           };
+
+          // Prepend the newest item so it shows in the first row (easy for the
+          // user to recognise the last item added without scrolling), then
+          // renumber sortOrder to keep it aligned with array order.
+          const items = [newItem, ...draft.items].map((item, index) => ({
+            ...item,
+            sortOrder: index,
+          }));
 
           return {
             drafts: {
               ...state.drafts,
               [draftId]: {
                 ...draft,
-                items: [...draft.items, newItem],
+                items,
                 lastSavedAt: new Date().toISOString(),
               },
             },

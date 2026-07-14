@@ -9,7 +9,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Save, Send, FileText, Check } from 'lucide-react';
+import { Save, Send, FileText, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +84,6 @@ export function InvoiceForm({
   type,
   warehouses,
   parties,
-  defaultWarehouseId,
   onSaved,
   readOnly = false,
 }: InvoiceFormProps) {
@@ -118,6 +117,11 @@ export function InvoiceForm({
   // (the parent's redirect) until the user finishes or skips the payment.
   const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Party/warehouse header card starts collapsed to keep the item-entry area
+  // near the top; a chevron toggles it open when the user needs to change
+  // the customer/supplier, warehouse, currency, or date.
+  const [headerOpen, setHeaderOpen] = useState(false);
 
   // Quick-add bar: ref to focus the input, and a transient row highlight shown
   // when a scan/selection increments an already-present line.
@@ -185,20 +189,19 @@ export function InvoiceForm({
     // Purge empty orphan drafts so we don't leak them across sessions
     existingDrafts.filter((d) => !hasContent(d)).forEach((d) => deleteDraft(d.id));
 
-    const newDraftId = createDraft(type, defaultWarehouseId);
+    const newDraftId = createDraft(type);
     freshDraftIdRef.current = newDraftId;
-    // Pre-select the first party of the matching type and the tenant default
-    // currency so a new invoice opens ready to enter items (common single-
-    // customer flows). Currencies may still be loading — the effect below
-    // applies the default currency once it arrives.
-    const defaultParty = parties.find(
-      (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
-    );
     const initialUpdates: Parameters<typeof updateDraft>[1] = {};
-    if (defaultParty) initialUpdates.partyId = defaultParty.id;
-    // Default to the configured warehouse, else the first available one.
-    const initialWarehouseId = defaultWarehouseId || warehouses[0]?.id;
-    if (initialWarehouseId) initialUpdates.warehouseId = initialWarehouseId;
+    // For sales, pre-select the first customer and first warehouse so a new
+    // invoice opens ready to enter items (common single-customer flows).
+    if (type === 'sale') {
+      const firstCustomer = parties.find((p) => p.type === 'customer');
+      if (firstCustomer) initialUpdates.partyId = firstCustomer.id;
+      const firstWarehouseId = warehouses[0]?.id;
+      if (firstWarehouseId) initialUpdates.warehouseId = firstWarehouseId;
+    }
+    // Tenant default currency is pre-filled for both types. Currencies may
+    // still be loading — the effect below applies it once ready.
     if (defaultCurrencyCode) {
       initialUpdates.currency = defaultCurrencyCode;
       defaultCurrencyAppliedRef.current = true;
@@ -207,7 +210,7 @@ export function InvoiceForm({
       updateDraft(newDraftId, initialUpdates);
     }
     setCurrentDraftId(newDraftId);
-  }, [currentDraftId, existingInvoice, type, defaultWarehouseId, warehouses, createDraft, listDrafts, deleteDraft, parties, updateDraft, defaultCurrencyCode]);
+  }, [currentDraftId, existingInvoice, type, createDraft, listDrafts, deleteDraft, updateDraft, defaultCurrencyCode, parties, warehouses]);
 
   // If currencies finish loading after the fresh draft was created, apply the
   // tenant default currency then. Guarded to the draft we created (not a
@@ -260,6 +263,22 @@ export function InvoiceForm({
     if (!draft || readOnly) return;
     // The draft store automatically updates lastSavedAt on every change
   }, [draft, readOnly]);
+
+  // Focus the item search field once the form is ready (new or edit mode) so
+  // the user can start scanning/searching items immediately. Runs once per
+  // mounted form; the quick-add bar only renders when the form is editable.
+  const initialFocusDoneRef = useRef(false);
+  useEffect(() => {
+    if (readOnly || initialFocusDoneRef.current) return;
+    if (!currentDraftId) return;
+    // Defer to the next frame so the input is mounted and any autofocus from
+    // child selects has settled before we claim focus.
+    const id = requestAnimationFrame(() => {
+      quickAddInputRef.current?.focus();
+      initialFocusDoneRef.current = true;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [currentDraftId, readOnly]);
 
   // Handlers
   const handlePartyChange = useCallback(
@@ -544,6 +563,32 @@ export function InvoiceForm({
     (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
   );
 
+  // Ctrl/Cmd+S finalizes the invoice (overriding the browser's save-page
+  // dialog). When editing an existing invoice there is no finalize step, so it
+  // saves the changes instead. Guarded by the same conditions as the buttons.
+  const actionPending =
+    createInvoice.isPending || updateInvoiceMutation.isPending || finalizeInvoice.isPending;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === 's' || e.key === 'S') &&
+        (e.ctrlKey || e.metaKey) &&
+        !e.altKey &&
+        !e.shiftKey
+      ) {
+        e.preventDefault();
+        if (readOnly || !isValid || actionPending) return;
+        if (existingInvoice) {
+          handleSaveDraft();
+        } else {
+          handleFinalize();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [readOnly, isValid, actionPending, existingInvoice, handleSaveDraft, handleFinalize]);
+
   // Post-finalize payment workflow dialogs. Rendered in both the loading branch
   // and the main return, because finalizing deletes the local draft (so the
   // form falls into the loading state below) while the prompt/modal must stay
@@ -575,64 +620,98 @@ export function InvoiceForm({
 
   return (
     <div className="space-y-6">
-      {/* Header toolbar — party · warehouse · currency · date, kept compact so
-          the items area stays near the top of the page. */}
+      {/* Header toolbar — party · warehouse · currency · date. Collapsed by
+          default (showing a compact summary) so the items area stays near the
+          top of the page; the chevron toggles the full controls. */}
       <Card className="p-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="min-w-[180px] flex-1">
-            <PartySelect
-              value={draft?.partyId || null}
-              onChange={handlePartyChange}
-              parties={filteredParties}
-              partyType={type === 'sale' ? 'customer' : 'supplier'}
-              placeholder={type === 'sale' ? t('selectCustomer') : t('selectSupplier')}
-              disabled={readOnly}
-            />
+        {/* Always-visible summary row with the collapse toggle */}
+        <button
+          type="button"
+          onClick={() => setHeaderOpen((o) => !o)}
+          aria-expanded={headerOpen}
+          aria-label={t('toggleHeader')}
+          className="flex w-full items-center justify-between gap-3 text-start"
+        >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm min-w-0">
+            <span className="font-medium truncate">
+              {filteredParties.find((p) => p.id === draft?.partyId)?.name ||
+                (type === 'sale' ? t('selectCustomer') : t('selectSupplier'))}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground truncate">
+              {warehouses.find((w) => w.id === draft?.warehouseId)?.name ||
+                t('selectWarehouse')}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{draft?.currency || 'USD'}</span>
+            {draft?.invoiceDate && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{draft.invoiceDate}</span>
+              </>
+            )}
           </div>
-          <div className="min-w-[160px] flex-1">
-            <Select
-              value={draft?.warehouseId || ''}
-              onValueChange={handleWarehouseChange}
-              disabled={readOnly}
-            >
-              <SelectTrigger aria-label={t('warehouse')}>
-                <SelectValue placeholder={t('selectWarehouse')} />
-              </SelectTrigger>
-              <SelectContent>
-                {warehouses.map((warehouse) => (
-                  <SelectItem key={warehouse.id} value={warehouse.id}>
-                    {warehouse.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {headerOpen ? (
+            <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+          )}
+        </button>
+
+        {headerOpen && (
+          <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t">
+            <div className="min-w-[180px] flex-1">
+              <PartySelect
+                value={draft?.partyId || null}
+                onChange={handlePartyChange}
+                parties={filteredParties}
+                partyType={type === 'sale' ? 'customer' : 'supplier'}
+                placeholder={type === 'sale' ? t('selectCustomer') : t('selectSupplier')}
+                disabled={readOnly}
+              />
+            </div>
+            <div className="min-w-[160px] flex-1">
+              <Select
+                value={draft?.warehouseId || ''}
+                onValueChange={handleWarehouseChange}
+                disabled={readOnly}
+              >
+                <SelectTrigger aria-label={t('warehouse')}>
+                  <SelectValue placeholder={t('selectWarehouse')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehouses.map((warehouse) => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-32">
+              <CurrencySelect
+                value={draft?.currency || 'USD'}
+                onValueChange={handleCurrencyChange}
+                disabled={readOnly}
+              />
+            </div>
+            <div className="w-40">
+              <Input
+                type="date"
+                aria-label={t('date')}
+                value={draft?.invoiceDate || ''}
+                onChange={(e) => handleDateChange(e.target.value)}
+                disabled={readOnly}
+                className="h-10"
+              />
+            </div>
           </div>
-          <div className="w-32">
-            <CurrencySelect
-              value={draft?.currency || 'USD'}
-              onValueChange={handleCurrencyChange}
-              disabled={readOnly}
-            />
-          </div>
-          <div className="w-40">
-            <Input
-              type="date"
-              aria-label={t('date')}
-              value={draft?.invoiceDate || ''}
-              onChange={(e) => handleDateChange(e.target.value)}
-              disabled={readOnly}
-              className="h-10"
-            />
-          </div>
-        </div>
+        )}
       </Card>
 
       {/* Items Table */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>{t('items')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-4">
           {/* Persistent scan/search bar — always visible above the table */}
           {!readOnly && (
             <ItemQuickAdd
@@ -712,30 +791,41 @@ export function InvoiceForm({
 
       {/* Actions */}
       {!readOnly && (
-        <div className="sticky bottom-0 z-10 bg-background border-t -mx-4 md:-mx-6 -mb-4 md:-mb-6 px-4 md:px-6 py-3 flex items-center gap-3 justify-end">
-          {draft?.lastSavedAt && !existingInvoice && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Check className="h-3 w-3 text-green-500" />
-              {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
+        <div className="sticky bottom-0 z-10 bg-background border-t -mx-4 md:-mx-6 -mb-4 md:-mb-6 px-4 md:px-6 py-3 flex items-center gap-3 justify-between">
+          {/* Running total — always visible, opposite the action buttons */}
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm text-muted-foreground">{t('total')}</span>
+            <span className="text-lg font-semibold">
+              {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
-          )}
-          <Button
-            variant={existingInvoice ? 'default' : 'outline'}
-            onClick={handleSaveDraft}
-            disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {existingInvoice ? t('saveChanges') : t('saveDraft')}
-          </Button>
-          {!existingInvoice && (
+          </div>
+          <div className="flex items-center gap-3">
+            {draft?.lastSavedAt && !existingInvoice && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Check className="h-3 w-3 text-green-500" />
+                {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
+              </span>
+            )}
             <Button
-              onClick={handleFinalize}
-              disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
+              variant={existingInvoice ? 'default' : 'outline'}
+              onClick={handleSaveDraft}
+              disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
+              title={existingInvoice ? 'Ctrl+S' : undefined}
             >
-              <Send className="h-4 w-4 mr-2" />
-              {t('finalize')}
+              <Save className="h-4 w-4 mr-2" />
+              {existingInvoice ? t('saveChanges') : t('saveDraft')}
             </Button>
-          )}
+            {!existingInvoice && (
+              <Button
+                onClick={handleFinalize}
+                disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
+                title="Ctrl+S"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {t('finalize')}
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
