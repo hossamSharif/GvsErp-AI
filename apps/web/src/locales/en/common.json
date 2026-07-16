@@ -1074,6 +1074,13 @@
         "confirm": "Delete",
         "pending": "Deleting..."
       },
+      "paymentsDeleteDialog": {
+        "title": "Also delete linked payment(s)?",
+        "body": "This purchase has {count} linked payment(s) totaling {total}. Deleting the purchase will also delete them and reverse the related cash and accounting entries. This cannot be undone.",
+        "cancel": "Keep",
+        "confirm": "Delete purchase + payment(s)",
+        "pending": "Deleting..."
+      },
       "toasts": {
         "finalized": "Purchase Finalized",
         "finalizedDescription": "The purchase has been finalized successfully",
@@ -1082,6 +1089,7 @@
         "deletedDescription": "The purchase has been deleted and any side effects reversed",
         "deleteFailed": "Failed to delete purchase",
         "blockedByPayments": "Cannot delete: linked payments",
+        "blockedBySharedPayment": "Cannot delete: a linked payment also covers other purchases. Remove or re-allocate it first.",
         "blockedByReturn": "Cannot delete: a return references this purchase",
         "returnCreated": "Return Created",
         "returnCreatedDescription": "The return invoice has been created"

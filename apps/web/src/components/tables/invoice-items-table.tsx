@@ -222,17 +222,18 @@ function SortableRow({
         highlight && 'bg-primary/10 ring-1 ring-inset ring-primary'
       )}
     >
-      {/* Drag Handle */}
-      <TableCell className="w-10 px-2">
+      {/* Delete (leading cell — at the start/right of the row) */}
+      <TableCell className="w-12 px-2">
         {!readOnly && (
-          <button
-            {...attributes}
-            {...listeners}
-            className="cursor-grab touch-none p-1 opacity-50 hover:opacity-100"
-            aria-label={t('ariaReorder', { name: item.itemName })}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 opacity-40 hover:opacity-100 focus-visible:opacity-100"
+            onClick={() => onRemove(item.localId)}
+            aria-label={t('ariaRemove', { name: item.itemName })}
           >
-            <GripVertical className="h-4 w-4" />
-          </button>
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
         )}
       </TableCell>
 
@@ -358,18 +359,17 @@ function SortableRow({
         })}
       </TableCell>
 
-      {/* Actions */}
-      <TableCell className="w-12">
+      {/* Drag Handle (trailing cell — at the end/left of the row) */}
+      <TableCell className="w-10 px-2">
         {!readOnly && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 opacity-40 hover:opacity-100 focus-visible:opacity-100"
-            onClick={() => onRemove(item.localId)}
-            aria-label={t('ariaRemove', { name: item.itemName })}
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab touch-none p-1 opacity-50 hover:opacity-100"
+            aria-label={t('ariaReorder', { name: item.itemName })}
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+            <GripVertical className="h-4 w-4" />
+          </button>
         )}
       </TableCell>
     </TableRow>
@@ -437,7 +437,7 @@ export function InvoiceItemsTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-12"></TableHead>
                 <TableHead className="w-12 text-center">{t('columns.row')}</TableHead>
                 <TableHead className="min-w-[180px]">{t('columns.item')}</TableHead>
                 <TableHead className="w-32">{t('columns.qty')}</TableHead>
@@ -445,7 +445,7 @@ export function InvoiceItemsTable({
                 <TableHead className="w-20">{t('columns.discountPercent')}</TableHead>
                 <TableHead className="w-20">{t('columns.taxPercent')}</TableHead>
                 <TableHead className="w-32 text-right">{t('columns.total')}</TableHead>
-                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

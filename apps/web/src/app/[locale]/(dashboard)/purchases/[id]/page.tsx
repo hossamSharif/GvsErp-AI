@@ -66,7 +66,19 @@ import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog'
 import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
 import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
+import { ApiClientError } from '@/lib/api-client';
 import type { InvoiceStatus, InvoiceWithRelations } from '@erp/shared';
+
+/**
+ * Shape of the `meta` returned with an INVOICE_HAS_PAYMENTS error — the payments
+ * linked to the invoice, used to drive the cascade-delete confirmation.
+ */
+interface LinkedPaymentsMeta {
+  paymentCount: number;
+  totalPaid: number;
+  hasSharedPayments: boolean;
+  payments: { id: string; reference: string | null; amount: number; shared: boolean }[];
+}
 
 const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   draft: { icon: Clock, variant: 'secondary' },
@@ -102,6 +114,8 @@ export default function PurchaseDetailPage() {
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
+  // Second-step confirmation: linked payments to also delete (cascade).
+  const [paymentsPrompt, setPaymentsPrompt] = useState<LinkedPaymentsMeta | null>(null);
 
   // Post-finalize payment workflow (same as the invoice form): after finalizing
   // a draft from the detail page, offer to record a payment against it.
@@ -130,20 +144,50 @@ export default function PurchaseDetailPage() {
     }
   }, [invoiceId, finalizeInvoice, toast, t, tCommon]);
 
-  const handleDelete = useCallback(async () => {
+  // Handle delete. Pass `deletePayments` to also remove payments linked solely
+  // to this invoice (second-step confirmation).
+  const handleDelete = useCallback(async (deletePayments = false) => {
     try {
-      await deleteInvoice.mutateAsync(invoiceId);
+      await deleteInvoice.mutateAsync(
+        deletePayments ? { id: invoiceId, deletePayments: true } : invoiceId
+      );
       setShowDeleteDialog(false);
+      setPaymentsPrompt(null);
       toast({
         title: t('toasts.deleted'),
         description: t('toasts.deletedDescription'),
       });
       router.push(`/${locale}/purchases`);
     } catch (err) {
+      // Linked-payment block: offer a cascade delete unless a payment is shared
+      // across other invoices (which we won't auto-delete).
+      if (
+        err instanceof ApiClientError &&
+        err.code === 'INVOICE_HAS_PAYMENTS' &&
+        err.meta
+      ) {
+        const meta = err.meta as unknown as LinkedPaymentsMeta;
+        setShowDeleteDialog(false);
+        if (meta.hasSharedPayments) {
+          setPaymentsPrompt(null);
+          toast({
+            variant: 'destructive',
+            title: t('toasts.blockedBySharedPayment'),
+            description: err.message,
+          });
+          return;
+        }
+        setPaymentsPrompt(meta);
+        return;
+      }
+
       const message = err instanceof Error ? err.message : t('toasts.deleteFailed');
       const lower = message.toLowerCase();
+      const isShared =
+        err instanceof ApiClientError && err.code === 'INVOICE_HAS_SHARED_PAYMENTS';
       const title =
-        lower.includes('payment') ? t('toasts.blockedByPayments')
+        isShared ? t('toasts.blockedBySharedPayment')
+        : lower.includes('payment') ? t('toasts.blockedByPayments')
         : lower.includes('return') ? t('toasts.blockedByReturn')
         : t('toasts.deleteFailed');
       toast({
@@ -460,10 +504,58 @@ export default function PurchaseDetailPage() {
             </Button>
             <Button
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => handleDelete()}
               disabled={deleteInvoice.isPending}
             >
               {deleteInvoice.isPending ? t('deleteDialog.pending') : t('deleteDialog.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cascade-delete confirmation: also delete the linked payment(s) */}
+      <Dialog
+        open={paymentsPrompt !== null}
+        onOpenChange={(open) => !open && setPaymentsPrompt(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('paymentsDeleteDialog.title')}</DialogTitle>
+            <DialogDescription>
+              {t('paymentsDeleteDialog.body', {
+                count: paymentsPrompt?.paymentCount ?? 0,
+                total: (paymentsPrompt?.totalPaid ?? 0).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                }),
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          {paymentsPrompt && paymentsPrompt.payments.length > 0 && (
+            <ul className="text-sm space-y-1 max-h-40 overflow-y-auto">
+              {paymentsPrompt.payments.map((p) => (
+                <li key={p.id} className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">
+                    {p.reference ?? p.id.slice(0, 8)}
+                  </span>
+                  <span>
+                    {p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentsPrompt(null)}>
+              {t('paymentsDeleteDialog.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDelete(true)}
+              disabled={deleteInvoice.isPending}
+            >
+              {deleteInvoice.isPending
+                ? t('paymentsDeleteDialog.pending')
+                : t('paymentsDeleteDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
