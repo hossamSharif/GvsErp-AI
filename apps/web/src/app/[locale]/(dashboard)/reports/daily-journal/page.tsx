@@ -85,10 +85,10 @@ export default function DailyJournalPage() {
           </h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
-        <div className="flex items-end gap-2">
-          <div className="space-y-1">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="space-y-1 min-w-0">
             <Label htmlFor="dj-date">{t('date')}</Label>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               <Button
                 type="button"
                 variant="outline"
@@ -101,7 +101,7 @@ export default function DailyJournalPage() {
               <Input
                 id="dj-date"
                 type="date"
-                className="w-40"
+                className="w-36 sm:w-40"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
@@ -170,7 +170,7 @@ export default function DailyJournalPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <BalanceItem label={t('balances.cash')} value={nf.format(data.balances.cash)} />
                 <BalanceItem label={t('balances.bank')} value={nf.format(data.balances.bank)} />
                 <BalanceItem
@@ -273,10 +273,14 @@ function KpiCard({
   valueClassName?: string;
 }) {
   return (
-    <Card>
-      <CardContent className="pt-6">
+    <Card className="min-w-0">
+      <CardContent className="pt-6 min-w-0">
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className={`text-2xl font-bold font-mono ${valueClassName ?? ''}`}>{value}</p>
+        <p
+          className={`text-lg sm:text-xl md:text-2xl font-bold font-mono break-all ${valueClassName ?? ''}`}
+        >
+          {value}
+        </p>
       </CardContent>
     </Card>
   );
@@ -292,10 +296,14 @@ function BalanceItem({
   emphasize?: boolean;
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p
-        className={`font-mono ${emphasize ? 'text-xl font-bold' : 'text-lg font-semibold'}`}
+        className={`font-mono break-all ${
+          emphasize
+            ? 'text-lg sm:text-xl font-bold'
+            : 'text-base sm:text-lg font-semibold'
+        }`}
       >
         {value}
       </p>
