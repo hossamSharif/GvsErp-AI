@@ -443,6 +443,14 @@ export interface OpeningStockRow {
   currentQuantity: number;
   suggestedUnitCost: number;
   hasOpeningEntry: boolean;
+  /** Total opening quantity currently on record (Σ qty_in of opening layers). */
+  openingQuantity: number;
+  /** Unsold portion of the opening stock (Σ qty_remaining of opening layers). */
+  openingRemaining: number;
+  /** Opening units already consumed by finalized sales — the edit floor. */
+  openingSoldQuantity: number;
+  /** Weighted-average unit cost of the opening layers, for pre-fill. */
+  openingUnitCost: number;
 }
 
 export interface OpeningStockResult {

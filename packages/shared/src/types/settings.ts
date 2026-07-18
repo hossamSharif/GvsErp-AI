@@ -1,6 +1,8 @@
 // Settings and Currency Types for Modular ERP SaaS
 // Covers: Currency management, Exchange rates, Tenant settings
 
+import type { PaymentFlow } from './core';
+
 export type RateType = 'formal' | 'black_market';
 
 export interface Currency {
@@ -77,6 +79,8 @@ export interface UpdateTenantSettingsInput {
     decimal_separator: '.' | ',';
     thousands_separator: ',' | '.' | ' ';
   };
+  sales_payment_flow?: PaymentFlow;
+  purchase_payment_flow?: PaymentFlow;
 }
 
 // User is defined in core.ts — use that as the authoritative source

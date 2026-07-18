@@ -22,6 +22,7 @@ const validSettingKeys = new Set<string>([
   'tax_number', 'logo_url',
   'accounting_module_enabled', 'hr_module_enabled',
   'fiscal_year_start', 'time_zone', 'date_format', 'number_format',
+  'sales_payment_flow', 'purchase_payment_flow',
 ]);
 
 function isValidSettingKey(key: string): key is keyof TenantSettings {

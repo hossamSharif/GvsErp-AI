@@ -7,9 +7,10 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Save, Send, FileText, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Send, FileText, Check, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,14 +35,18 @@ import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
 import { PartySelect } from '@/components/forms/party-select';
 import { CurrencySelect } from '@/components/forms/currency-select';
 import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
-import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
+import { RecordPaymentDialog, SENTINEL_CASH } from '@/components/dialogs/record-payment-dialog';
+import { buildInvoicePaymentPayload } from '@/lib/build-invoice-payment';
 import {
   useCreateInvoice,
   useUpdateInvoice,
   useFinalizeInvoice,
   useStockAvailability,
 } from '@/hooks/use-invoices';
+import { useCreatePayment } from '@/hooks/use-payments';
+import { usePaymentFlow } from '@/hooks/use-payment-flow';
 import { useCurrencies } from '@/hooks/use-currencies';
+import { useBanks } from '@/hooks/use-banks';
 import type { DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
 
 // =============================================================================
@@ -72,6 +77,10 @@ interface InvoiceFormProps {
   onSaved?: (invoice: InvoiceWithRelations) => void;
   /** Read-only mode */
   readOnly?: boolean;
+  /** When set, the form renders its own title row (title + back + date) at the top. New pages only. */
+  headerTitle?: string;
+  /** Back link target for the in-form title row. */
+  headerBackHref?: string;
 }
 
 // =============================================================================
@@ -86,11 +95,19 @@ export function InvoiceForm({
   parties,
   onSaved,
   readOnly = false,
+  headerTitle,
+  headerBackHref,
 }: InvoiceFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const t = useTranslations('sales.form');
   const tCommon = useTranslations('common');
+  const tPay = useTranslations('payments.recordDialog');
+  const tPayForm = useTranslations('payments.form');
+
+  // Whether this is a brand-new invoice (vs. editing/viewing). Gates the
+  // payment-accelerator fields and the in-form title row.
+  const isNew = !existingInvoice && !readOnly;
 
   // Draft store
   const {
@@ -118,6 +135,13 @@ export function InvoiceForm({
   const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  // Payment accelerators (new invoices only): the user picks the payment way and
+  // reference up front so the post-finalize payment modal opens ready to save.
+  // First option (cash) is pre-selected, matching the pre-selected customer.
+  const [paymentBankAccountId, setPaymentBankAccountId] = useState(SENTINEL_CASH);
+  const [paymentReference, setPaymentReference] = useState('');
+  const { data: banks = [] } = useBanks();
+
   // Party/warehouse header card starts collapsed to keep the item-entry area
   // near the top; a chevron toggles it open when the user needs to change
   // the customer/supplier, warehouse, currency, or date.
@@ -143,6 +167,11 @@ export function InvoiceForm({
   const createInvoice = useCreateInvoice();
   const updateInvoiceMutation = useUpdateInvoice();
   const finalizeInvoice = useFinalizeInvoice();
+  const createPayment = useCreatePayment();
+
+  // Configured payment workflow for this invoice type (dialog | background |
+  // skip). Read from tenant settings, mirrored to localStorage for offline use.
+  const paymentFlow = usePaymentFlow(type);
 
   // Tenant default currency — pre-selected on new invoices to save data entry.
   // Same query params as CurrencySelect so the fetch is shared from cache.
@@ -535,14 +564,50 @@ export function InvoiceForm({
         description: t('toasts.finalizedDescription', { number: finalizeResult.data.invoiceNumber }),
       });
 
-      // Offer to record a payment against a party invoice. Walk-in invoices
-      // (no party) skip straight to the parent's redirect.
-      if (finalizeResult.data.partyId) {
-        setSavedInvoice(finalizeResult.data);
-        setShowPaymentModal(true);
-      } else {
-        onSaved?.(finalizeResult.data);
+      const finalized = finalizeResult.data;
+
+      // Walk-in invoices (no party) never record an immediate payment. The rest
+      // follow the tenant's configured workflow for this invoice type.
+      if (!finalized.partyId || paymentFlow === 'skip') {
+        onSaved?.(finalized);
+        return;
       }
+
+      if (paymentFlow === 'background') {
+        // Record the payment automatically (no dialog) using the invoice total
+        // and the top-card accelerators. Works offline via the outbox.
+        try {
+          await createPayment.mutateAsync(
+            buildInvoicePaymentPayload(finalized, {
+              bankAccountId: paymentBankAccountId,
+              reference: paymentReference,
+            })
+          );
+          toast({
+            title: tPay('toastSuccess'),
+            description: tPay('toastSuccessDesc', {
+              amount: finalized.total.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+              currency: finalized.currency,
+            }),
+          });
+          onSaved?.(finalized);
+        } catch (error) {
+          // The invoice is already finalized — fall back to the dialog so the
+          // user can retry/adjust the payment without losing anything.
+          toast({
+            variant: 'destructive',
+            title: tPay('toastError'),
+            description: error instanceof Error ? error.message : tPay('toastErrorDesc'),
+          });
+          setSavedInvoice(finalized);
+          setShowPaymentModal(true);
+        }
+        return;
+      }
+
+      // Default ('dialog'): offer to record the payment in the dialog.
+      setSavedInvoice(finalized);
+      setShowPaymentModal(true);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -550,7 +615,7 @@ export function InvoiceForm({
         description: error instanceof Error ? error.message : t('toasts.finalizeFailed'),
       });
     }
-  }, [draft, currentDraftId, createInvoice, finalizeInvoice, deleteDraft, toast, onSaved, t, tCommon]);
+  }, [draft, currentDraftId, createInvoice, finalizeInvoice, deleteDraft, toast, onSaved, t, tCommon, paymentFlow, createPayment, paymentBankAccountId, paymentReference, tPay]);
 
   // Calculate totals
   const subtotal = draft ? getDraftSubtotal(draft) : 0;
@@ -600,6 +665,10 @@ export function InvoiceForm({
           open={showPaymentModal}
           onOpenChange={setShowPaymentModal}
           invoice={savedInvoice}
+          defaultBankAccountId={
+            paymentBankAccountId === SENTINEL_CASH ? '' : paymentBankAccountId
+          }
+          defaultReference={paymentReference}
           onDone={() => {
             setShowPaymentModal(false);
             onSaved?.(savedInvoice);
@@ -620,6 +689,34 @@ export function InvoiceForm({
 
   return (
     <div className="space-y-6">
+      {/* In-form title row (new invoices): title + back on the start, date on
+          the end — moved here from the header card so the date sits with the
+          page title and the card row has room for the payment fields. */}
+      {headerTitle && (
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {headerBackHref && (
+              <Button variant="ghost" size="icon" asChild aria-label={tCommon('back')}>
+                <Link href={headerBackHref}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
+            )}
+            <h1 className="text-2xl font-bold">{headerTitle}</h1>
+          </div>
+          <div className="w-40">
+            <Input
+              type="date"
+              aria-label={t('date')}
+              value={draft?.invoiceDate || ''}
+              onChange={(e) => handleDateChange(e.target.value)}
+              disabled={readOnly}
+              className="h-10"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header toolbar — party · warehouse · currency · date. Collapsed by
           default (showing a compact summary) so the items area stays near the
           top of the page; the chevron toggles the full controls. */}
@@ -660,7 +757,9 @@ export function InvoiceForm({
 
         {headerOpen && (
           <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t">
-            <div className="min-w-[180px] flex-1">
+            {/* Party/warehouse narrowed (from flex-1) so the payment-accelerator
+                fields fit on the same row for new invoices. */}
+            <div className="w-48">
               <PartySelect
                 value={draft?.partyId || null}
                 onChange={handlePartyChange}
@@ -670,7 +769,7 @@ export function InvoiceForm({
                 disabled={readOnly}
               />
             </div>
-            <div className="min-w-[160px] flex-1">
+            <div className="w-40">
               <Select
                 value={draft?.warehouseId || ''}
                 onValueChange={handleWarehouseChange}
@@ -695,16 +794,60 @@ export function InvoiceForm({
                 disabled={readOnly}
               />
             </div>
-            <div className="w-40">
-              <Input
-                type="date"
-                aria-label={t('date')}
-                value={draft?.invoiceDate || ''}
-                onChange={(e) => handleDateChange(e.target.value)}
-                disabled={readOnly}
-                className="h-10"
-              />
-            </div>
+            {/* Payment accelerators (new invoices only) — prefill the post-finalize
+                payment modal so the user can just save it. */}
+            {isNew && (
+              <>
+                <div className="w-44">
+                  <Select
+                    value={paymentBankAccountId}
+                    onValueChange={setPaymentBankAccountId}
+                  >
+                    <SelectTrigger aria-label={tPay('paymentWay')}>
+                      <SelectValue placeholder={tPayForm('bankAccountPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={SENTINEL_CASH}>
+                        {tPayForm('bankAccountCash')}
+                      </SelectItem>
+                      {banks
+                        .filter((b) => b.is_active)
+                        .map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            <span className="font-mono text-xs me-2">
+                              {b.ledger?.code ?? ''}
+                            </span>
+                            {b.name}
+                            {b.bank_name ? ` · ${b.bank_name}` : ''}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-44">
+                  <Input
+                    aria-label={tPayForm('reference')}
+                    placeholder={tPayForm('referencePlaceholder')}
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    className="h-10"
+                  />
+                </div>
+              </>
+            )}
+            {/* Date only shown here when there is no in-form title row (edit/view). */}
+            {!headerTitle && (
+              <div className="w-40">
+                <Input
+                  type="date"
+                  aria-label={t('date')}
+                  value={draft?.invoiceDate || ''}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  disabled={readOnly}
+                  className="h-10"
+                />
+              </div>
+            )}
           </div>
         )}
       </Card>

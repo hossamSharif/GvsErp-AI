@@ -51,9 +51,13 @@ import { CurrencySelect } from '@/components/forms/currency-select';
 import { useToast } from '@/hooks/use-toast';
 import { useBanks } from '@/hooks/use-banks';
 import { useCreatePayment } from '@/hooks/use-payments';
-import type { CreatePaymentInput, InvoiceWithRelations } from '@erp/shared';
+import {
+  buildInvoicePaymentPayload,
+  SENTINEL_CASH,
+} from '@/lib/build-invoice-payment';
+import type { InvoiceWithRelations } from '@erp/shared';
 
-const SENTINEL_CASH = '__cash__';
+export { SENTINEL_CASH };
 
 const recordPaymentSchema = z.object({
   amount: z.coerce.number().positive('Amount must be greater than 0'),
@@ -74,6 +78,10 @@ interface RecordPaymentDialogProps {
   invoice: InvoiceWithRelations;
   /** Called after the payment is saved OR the user skips — parent then redirects. */
   onDone: () => void;
+  /** Pre-selected bank account id from the invoice's top-card accelerator ('' = cash). */
+  defaultBankAccountId?: string | null;
+  /** Pre-filled reference number from the invoice's top-card accelerator. */
+  defaultReference?: string;
 }
 
 export function RecordPaymentDialog({
@@ -81,6 +89,8 @@ export function RecordPaymentDialog({
   onOpenChange,
   invoice,
   onDone,
+  defaultBankAccountId = '',
+  defaultReference = '',
 }: RecordPaymentDialogProps) {
   const t = useTranslations('payments.recordDialog');
   const tForm = useTranslations('payments.form');
@@ -99,8 +109,8 @@ export function RecordPaymentDialog({
       currency: invoice.currency,
       exchangeRate: invoice.exchangeRate,
       paymentDate: invoice.invoiceDate,
-      bankAccountId: '',
-      reference: '',
+      bankAccountId: defaultBankAccountId ?? '',
+      reference: defaultReference ?? '',
       notes: '',
     },
   });
@@ -113,8 +123,8 @@ export function RecordPaymentDialog({
         currency: invoice.currency,
         exchangeRate: invoice.exchangeRate,
         paymentDate: invoice.invoiceDate,
-        bankAccountId: '',
-        reference: '',
+        bankAccountId: defaultBankAccountId ?? '',
+        reference: defaultReference ?? '',
         notes: '',
       });
     }
@@ -124,22 +134,15 @@ export function RecordPaymentDialog({
   const handleSubmit = async (data: RecordPaymentFormData) => {
     if (!invoice.partyId) return;
 
-    const payload: CreatePaymentInput = {
-      partyId: invoice.partyId,
-      type: isReceived ? 'received' : 'made',
+    const payload = buildInvoicePaymentPayload(invoice, {
       amount: data.amount,
       currency: data.currency,
       exchangeRate: data.exchangeRate,
-      bankAccountId:
-        data.bankAccountId && data.bankAccountId !== SENTINEL_CASH
-          ? data.bankAccountId
-          : null,
-      reference: data.reference || null,
-      notes: data.notes || null,
+      bankAccountId: data.bankAccountId,
+      reference: data.reference,
+      notes: data.notes,
       paymentDate: data.paymentDate,
-      // Auto-settle: allocate the whole payment to the invoice just saved.
-      allocations: [{ invoice_id: invoice.id, amount: data.amount }],
-    };
+    });
 
     try {
       await createPayment.mutateAsync(payload);

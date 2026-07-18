@@ -26,6 +26,7 @@ import {
   Trash2,
   User,
   X,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +63,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PaymentFlowSettingsDialog } from '@/components/dialogs/payment-flow-settings-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
 import { useUsers } from '@/hooks/use-users';
@@ -96,6 +98,10 @@ export default function PurchasesListPage() {
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('purchases.actions');
   const tDetail = useTranslations('purchases.detail');
+  const tFlow = useTranslations('paymentFlow');
+
+  // Payment-workflow settings dialog
+  const [flowSettingsOpen, setFlowSettingsOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
@@ -215,13 +221,29 @@ export default function PurchasesListPage() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
-        <Button asChild>
-          <Link href={`/${locale}/purchases/new`}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t('newPurchase')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setFlowSettingsOpen(true)}
+            title={tFlow('button')}
+          >
+            <Settings2 className="h-4 w-4 mr-2" />
+            {tFlow('button')}
+          </Button>
+          <Button asChild>
+            <Link href={`/${locale}/purchases/new`}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('newPurchase')}
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      <PaymentFlowSettingsDialog
+        open={flowSettingsOpen}
+        onOpenChange={setFlowSettingsOpen}
+        type="purchase"
+      />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>

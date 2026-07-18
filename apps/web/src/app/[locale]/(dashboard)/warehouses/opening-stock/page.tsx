@@ -57,7 +57,7 @@ import { ItemQuickModal } from '@/components/forms/item-quick-modal';
 
 import { useActiveWarehouses } from '@/hooks/use-warehouses';
 import { useOpeningStockRows, useSetOpeningStock, openingStockKeys } from '@/hooks/use-opening-stock';
-import type { ItemWithRelations, OpeningStockItemInput } from '@erp/shared';
+import type { ItemWithRelations, OpeningStockItemInput, OpeningStockRow } from '@erp/shared';
 
 export default function OpeningStockPage() {
   const t = useTranslations('openingStock');
@@ -128,26 +128,69 @@ export default function OpeningStockPage() {
     setIsDraftDirty(false);
   }, []);
 
-  // Pre-fill suggested unit costs once rows load, without clobbering any
-  // cost the user has already typed (or a restored draft). Runs in an effect
-  // — never during render — and only sets state when there is actually a
-  // suggested cost to apply, so it can't loop when every suggestion is 0.
+  // Pre-fill the qty + cost boxes when rows (re)load, without clobbering
+  // anything the user already typed (or a restored draft). For items that
+  // already have opening stock we seed the current opening quantity/cost so the
+  // boxes show the value to EDIT (set/replace semantics); otherwise we seed the
+  // suggested cost only.
+  //
+  // IMPORTANT: this effect depends ONLY on `rows`, and the "already set?" guard
+  // runs inside the functional updater so it always reads the CURRENT state.
+  // If it also depended on `quantities`/`costs`, then clearing local state after
+  // a save would re-run it against the still-stale `rows` (refetch is async),
+  // re-seed the OLD values, and then block the fresh values from ever applying.
   useEffect(() => {
     if (rows.length === 0) return;
-    const additions: Record<string, string> = {};
-    rows.forEach((row) => {
-      if (!costs[row.itemId] && row.suggestedUnitCost > 0) {
-        additions[row.itemId] = String(row.suggestedUnitCost);
-      }
+    setQuantities((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      rows.forEach((row) => {
+        if (next[row.itemId] === undefined && row.hasOpeningEntry && row.openingQuantity > 0) {
+          next[row.itemId] = String(row.openingQuantity);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
     });
-    if (Object.keys(additions).length === 0) return;
-    setCosts((prev) => ({ ...prev, ...additions }));
-  }, [rows, costs]);
+    setCosts((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      rows.forEach((row) => {
+        if (next[row.itemId] === undefined) {
+          const seedCost =
+            row.hasOpeningEntry && row.openingUnitCost > 0
+              ? row.openingUnitCost
+              : row.suggestedUnitCost;
+          if (seedCost > 0) {
+            next[row.itemId] = String(seedCost);
+            changed = true;
+          }
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [rows]);
 
-  // Persist quantities/costs to localStorage with 800ms debounce
+  // Persist quantities/costs to localStorage with 800ms debounce — but only
+  // when the entered values actually differ from the recorded opening stock.
+  // Pre-filled baselines (which equal the persisted values) must not look like
+  // unsaved edits.
   useEffect(() => {
     if (!draftKey) return;
-    if (Object.keys(quantities).length === 0 && Object.keys(costs).length === 0) return;
+    const hasChanges = rows.some((row) => {
+      const qtyStr = quantities[row.itemId];
+      if (qtyStr === undefined || qtyStr === '') return false;
+      const qty = parseFloat(qtyStr);
+      if (Number.isNaN(qty)) return false;
+      if (qty < row.openingSoldQuantity - 1e-6) return false;
+      const costStr = costs[row.itemId];
+      const cost = costStr === undefined || costStr === '' ? 0 : parseFloat(costStr);
+      return (
+        Math.abs(qty - row.openingQuantity) > 1e-6 ||
+        Math.abs(cost - row.openingUnitCost) > 1e-6
+      );
+    });
+    if (!hasChanges) return;
     const timer = setTimeout(() => {
       try {
         localStorage.setItem(draftKey, JSON.stringify({ quantities, costs, asOfDate }));
@@ -157,20 +200,43 @@ export default function OpeningStockPage() {
       }
     }, 800);
     return () => clearTimeout(timer);
-  }, [quantities, costs, asOfDate, draftKey]);
+  }, [quantities, costs, asOfDate, draftKey, rows]);
 
-  // buildItems always reads from the full rows list (not filteredRows) so that
-  // quantities entered before filtering are included in the save.
+  // Is the entered opening qty for this row below the already-sold floor?
+  const isBelowFloor = useCallback(
+    (row: OpeningStockRow): boolean => {
+      const raw = quantities[row.itemId];
+      if (raw === undefined || raw === '') return false;
+      const qty = parseFloat(raw);
+      if (Number.isNaN(qty)) return false;
+      return qty < row.openingSoldQuantity - 1e-6;
+    },
+    [quantities]
+  );
+
+  // buildItems reads the full rows list (not filteredRows). With set/replace
+  // semantics we submit only rows whose entered qty or cost DIFFERS from the
+  // current opening value, and never rows below the already-sold floor.
   const buildItems = useCallback((): OpeningStockItemInput[] => {
     return rows
-      .filter((row) => {
-        const qty = parseFloat(quantities[row.itemId] || '0');
-        return qty > 0;
+      .map((row) => {
+        const qtyStr = quantities[row.itemId];
+        const costStr = costs[row.itemId];
+        const qty = qtyStr === undefined || qtyStr === '' ? NaN : parseFloat(qtyStr);
+        const cost = costStr === undefined || costStr === '' ? 0 : parseFloat(costStr);
+        return { row, qty, cost };
       })
-      .map((row) => ({
+      .filter(({ row, qty, cost }) => {
+        if (Number.isNaN(qty)) return false; // blank = not set → skip
+        if (qty < row.openingSoldQuantity - 1e-6) return false; // below floor → skip
+        const qtyChanged = Math.abs(qty - row.openingQuantity) > 1e-6;
+        const costChanged = Math.abs(cost - row.openingUnitCost) > 1e-6;
+        return qtyChanged || costChanged;
+      })
+      .map(({ row, qty, cost }) => ({
         itemId: row.itemId,
-        quantity: parseFloat(quantities[row.itemId]),
-        unitCost: parseFloat(costs[row.itemId] || '0'),
+        quantity: qty,
+        unitCost: cost,
       }));
   }, [rows, quantities, costs]);
 
@@ -197,8 +263,22 @@ export default function OpeningStockPage() {
         {
           onSuccess: () => {
             toast({ title: t('saved') });
-            setQuantities({});
-            setCosts({});
+            // Clear only the submitted items' local overrides. The refetched
+            // rows (with updated opening values) trigger the pre-fill effect,
+            // which re-seeds exactly these cleared keys from the fresh data.
+            // Untouched rows keep their pre-filled values, so only the edited
+            // rows briefly refresh instead of the whole table blanking.
+            const submittedIds = new Set(items.map((i) => i.itemId));
+            setQuantities((prev) => {
+              const next = { ...prev };
+              submittedIds.forEach((id) => delete next[id]);
+              return next;
+            });
+            setCosts((prev) => {
+              const next = { ...prev };
+              submittedIds.forEach((id) => delete next[id]);
+              return next;
+            });
             if (draftKey) {
               try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
             }
@@ -237,6 +317,7 @@ export default function OpeningStockPage() {
 
   const warehouses = warehousesQuery.data?.data ?? [];
   const submittableItems = buildItems();
+  const hasFloorError = rows.some((row) => isBelowFloor(row));
 
   return (
     <div className="space-y-6 p-6">
@@ -409,7 +490,7 @@ export default function OpeningStockPage() {
                           <TableCell>
                             <Input
                               type="number"
-                              min="0"
+                              min={row.openingSoldQuantity || 0}
                               step="0.001"
                               placeholder="0"
                               value={quantities[row.itemId] ?? ''}
@@ -419,8 +500,17 @@ export default function OpeningStockPage() {
                                   [row.itemId]: e.target.value,
                                 }))
                               }
-                              className="h-8 text-sm"
+                              className={`h-8 text-sm ${isBelowFloor(row) ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                             />
+                            {isBelowFloor(row) ? (
+                              <p className="text-xs text-red-600 mt-1">
+                                {t('belowSoldError', { count: row.openingSoldQuantity })}
+                              </p>
+                            ) : row.openingSoldQuantity > 0 ? (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {t('soldFromOpening', { count: row.openingSoldQuantity })}
+                              </p>
+                            ) : null}
                           </TableCell>
                           <TableCell>
                             <Input
@@ -458,7 +548,7 @@ export default function OpeningStockPage() {
                   </span>
                   <Button
                     onClick={handleSave}
-                    disabled={submittableItems.length === 0 || mutation.isPending}
+                    disabled={submittableItems.length === 0 || hasFloorError || mutation.isPending}
                   >
                     {mutation.isPending ? (
                       <>

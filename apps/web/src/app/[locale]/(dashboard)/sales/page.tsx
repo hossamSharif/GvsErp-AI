@@ -26,6 +26,7 @@ import {
   Trash2,
   User,
   X,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +63,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PaymentFlowSettingsDialog } from '@/components/dialogs/payment-flow-settings-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
 import { useUsers } from '@/hooks/use-users';
@@ -104,6 +106,10 @@ export default function SalesListPage() {
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('sales.actions');
   const tDetail = useTranslations('sales.detail');
+  const tFlow = useTranslations('paymentFlow');
+
+  // Payment-workflow settings dialog
+  const [flowSettingsOpen, setFlowSettingsOpen] = useState(false);
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -232,13 +238,29 @@ export default function SalesListPage() {
             {t('description')}
           </p>
         </div>
-        <Button asChild>
-          <Link href={`/${locale}/sales/new`}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t('newSale')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setFlowSettingsOpen(true)}
+            title={tFlow('button')}
+          >
+            <Settings2 className="h-4 w-4 mr-2" />
+            {tFlow('button')}
+          </Button>
+          <Button asChild>
+            <Link href={`/${locale}/sales/new`}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('newSale')}
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      <PaymentFlowSettingsDialog
+        open={flowSettingsOpen}
+        onOpenChange={setFlowSettingsOpen}
+        type="sale"
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">

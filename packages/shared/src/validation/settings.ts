@@ -59,6 +59,8 @@ export const updateTenantSettingsSchema = z.object({
     decimal_separator: z.enum(['.', ',']),
     thousands_separator: z.enum([',', '.', ' ']),
   }).optional(),
+  sales_payment_flow: z.enum(['dialog', 'background', 'skip']).optional(),
+  purchase_payment_flow: z.enum(['dialog', 'background', 'skip']).optional(),
 });
 
 // User validation schemas

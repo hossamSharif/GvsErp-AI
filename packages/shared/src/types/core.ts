@@ -13,6 +13,14 @@ export type SubscriptionPlan = 'freemium' | 'premium';
 
 export type SubscriptionStatus = 'active' | 'trialing' | 'canceled' | 'past_due';
 
+/**
+ * Payment workflow mode for invoice finalization.
+ * - `dialog`: show the record-payment dialog to review/confirm (default).
+ * - `background`: create the payment automatically, no dialog.
+ * - `skip`: save the invoice only, never create a payment.
+ */
+export type PaymentFlow = 'dialog' | 'background' | 'skip';
+
 // ============================================
 // TENANT
 // ============================================
@@ -49,6 +57,9 @@ export interface TenantSettings {
     decimal_separator: '.' | ',';
     thousands_separator: ',' | '.' | ' ';
   };
+  // Invoice payment workflow (per type). Unset → 'dialog' (show payment dialog).
+  sales_payment_flow?: PaymentFlow;
+  purchase_payment_flow?: PaymentFlow;
 }
 
 export interface Tenant {

@@ -10,9 +10,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { InvoiceForm } from '@/components/forms/invoice-form';
 import { useParties } from '@/hooks/use-parties';
 import { useWarehouses } from '@/hooks/use-warehouses';
@@ -22,7 +20,6 @@ export default function NewSalePage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('sales.new');
-  const tActions = useTranslations('sales.actions');
 
   // Fetch real data from API
   const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
@@ -55,18 +52,6 @@ export default function NewSalePage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label={tActions('back')}>
-          <Link href={`/${locale}/sales`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-        </div>
-      </div>
-
       {/* Loading state */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -80,6 +65,8 @@ export default function NewSalePage() {
           parties={parties}
           defaultWarehouseId={warehouses[0]?.id}
           onSaved={handleSaved}
+          headerTitle={t('title')}
+          headerBackHref={`/${locale}/sales`}
         />
       )}
     </div>

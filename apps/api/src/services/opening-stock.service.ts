@@ -112,23 +112,44 @@ export class OpeningStockService {
         .map((r) => [r.item_id, Number(r.quantity)])
     );
 
-    // Fetch which items already have an opening-stock layer — same approach,
-    // no item_id IN clause; filter to active items in-memory.
+    // Fetch the opening-stock layers (source_invoice_id IS NULL) — same
+    // approach, no item_id IN clause; aggregate per item in-memory into the
+    // opening quantity, unsold remaining, already-sold floor and weighted cost.
     const { data: layerRows, error: layerErr } = await this.supabase
       .from('stock_valuation_layers' as any)
-      .select('item_id')
+      .select('item_id, qty_in, qty_remaining, unit_cost')
       .eq('tenant_id', this.tenantId)
       .eq('warehouse_id', warehouseId)
       .is('source_invoice_id', null);
     if (layerErr) throw layerErr;
 
-    const openingSet = new Set<string>(
-      ((layerRows ?? []) as unknown as { item_id: string }[]).map((r) => r.item_id)
-    );
+    interface OpeningAgg {
+      qtyIn: number;
+      qtyRemaining: number;
+      valueIn: number; // Σ qty_in * unit_cost
+    }
+    const openingMap = new Map<string, OpeningAgg>();
+    for (const raw of (layerRows ?? []) as unknown as {
+      item_id: string;
+      qty_in: number;
+      qty_remaining: number;
+      unit_cost: number;
+    }[]) {
+      const agg = openingMap.get(raw.item_id) ?? { qtyIn: 0, qtyRemaining: 0, valueIn: 0 };
+      agg.qtyIn += Number(raw.qty_in);
+      agg.qtyRemaining += Number(raw.qty_remaining);
+      agg.valueIn += Number(raw.qty_in) * Number(raw.unit_cost);
+      openingMap.set(raw.item_id, agg);
+    }
 
     return itemsResult.data.map((item) => {
       const costPrice =
         item.prices?.find((p) => p.priceTier === 'cost')?.price ?? 0;
+      const agg = openingMap.get(item.id);
+      const openingQuantity = agg ? agg.qtyIn : 0;
+      const openingRemaining = agg ? agg.qtyRemaining : 0;
+      const openingUnitCost =
+        agg && agg.qtyIn > 0 ? agg.valueIn / agg.qtyIn : 0;
       return {
         itemId: item.id,
         itemName: item.name,
@@ -137,7 +158,11 @@ export class OpeningStockService {
         unitOfMeasure: item.unitOfMeasure,
         currentQuantity: quantityMap.get(item.id) ?? 0,
         suggestedUnitCost: costPrice,
-        hasOpeningEntry: openingSet.has(item.id),
+        hasOpeningEntry: !!agg,
+        openingQuantity,
+        openingRemaining,
+        openingSoldQuantity: Math.max(0, openingQuantity - openingRemaining),
+        openingUnitCost,
       };
     });
   }
@@ -147,10 +172,18 @@ export class OpeningStockService {
   // ===========================================================================
 
   /**
-   * Set opening stock for a batch of items in a warehouse:
-   *   1. Additive quantity update on `inventory`
-   *   2. FIFO cost layer insert on `stock_valuation_layers` (source_invoice_id = NULL)
-   *   3. Optionally post JE if accounting is active
+   * Set opening stock for a batch of items in a warehouse (set/replace).
+   *
+   * Each submitted item's quantity/cost is treated as the value the opening
+   * stock should now BE — not an amount to add. Per item we:
+   *   1. Read the existing opening layers to derive the current opening qty,
+   *      unsold remaining and already-sold floor.
+   *   2. Reject any edit that drops below the already-sold quantity.
+   *   3. Apply only the delta to on-hand (`inventory.quantity`).
+   *   4. Consolidate the opening layers into a single canonical layer.
+   *   5. Accumulate the accounting value delta.
+   * A single adjusting JE for the net value delta is posted afterwards
+   * (Dr/Cr direction depends on the sign) when accounting is active.
    */
   async setOpeningStock(
     warehouseId: string,
@@ -163,69 +196,145 @@ export class OpeningStockService {
     }
 
     const { asOfDate, items } = input;
+    const EPS = 0.0001;
+    let valueDelta = 0; // net change in booked opening value, across all items
+    let updated = 0;
 
-    // Step 1 + 2: For each item — adjust inventory quantity and insert FIFO layer.
     for (const item of items) {
-      await this.inventoryRepo.adjustQuantity(
-        this.tenantId,
-        item.itemId,
-        warehouseId,
-        item.quantity, // additive
+      const newQty = Number(item.quantity);
+      const newCost = Number(item.unitCost);
+
+      // Step 1: read this item's existing opening layers.
+      const { data: layers, error: readErr } = await this.supabase
+        .from('stock_valuation_layers' as any)
+        .select('id, qty_in, qty_remaining, unit_cost')
+        .eq('tenant_id', this.tenantId)
+        .eq('item_id', item.itemId)
+        .eq('warehouse_id', warehouseId)
+        .is('source_invoice_id', null);
+      if (readErr) throw readErr;
+
+      const openingLayers = (layers ?? []) as unknown as {
+        id: string;
+        qty_in: number;
+        qty_remaining: number;
+        unit_cost: number;
+      }[];
+
+      const openingQty = openingLayers.reduce((s, l) => s + Number(l.qty_in), 0);
+      const openingRemaining = openingLayers.reduce(
+        (s, l) => s + Number(l.qty_remaining),
+        0
+      );
+      const soldFromOpening = Math.max(0, openingQty - openingRemaining);
+      const oldValue = openingLayers.reduce(
+        (s, l) => s + Number(l.qty_in) * Number(l.unit_cost),
         0
       );
 
-      const { error: layerErr } = await this.supabase
-        .from('stock_valuation_layers' as any)
-        .insert({
-          tenant_id: this.tenantId,
-          item_id: item.itemId,
-          warehouse_id: warehouseId,
-          qty_in: item.quantity,
-          qty_remaining: item.quantity,
-          unit_cost: item.unitCost,
-          layer_date: new Date(asOfDate).toISOString(),
-          source_invoice_id: null,
-          source_invoice_item_id: null,
-        });
-      if (layerErr) throw layerErr;
+      // Step 2: floor guard — can't set below what's already been sold.
+      if (newQty < soldFromOpening - EPS) {
+        throw new OpeningStockError(
+          `Cannot set opening stock below the ${soldFromOpening} unit(s) already sold for this item`,
+          'OPENING_BELOW_SOLD',
+          400
+        );
+      }
+
+      // Skip true no-ops (same qty and same cost).
+      const qtyUnchanged = Math.abs(newQty - openingQty) < EPS;
+      const costUnchanged = Math.abs(newCost - (openingQty > 0 ? oldValue / openingQty : newCost)) < EPS;
+      if (qtyUnchanged && costUnchanged) {
+        continue;
+      }
+
+      // Step 3: apply the on-hand delta (may be negative). The floor guarantees
+      // the resulting on-hand stays >= 0, but adjustQuantity backstops anyway.
+      const delta = newQty - openingQty;
+      if (Math.abs(delta) > EPS) {
+        await this.inventoryRepo.adjustQuantity(
+          this.tenantId,
+          item.itemId,
+          warehouseId,
+          delta,
+          0
+        );
+      }
+
+      // Step 4: consolidate — delete existing opening layers, then insert one
+      // canonical layer carrying the new qty/cost and the correct unsold
+      // remaining. Already-sold units keep their stamped COGS on invoice_items,
+      // so collapsing the layers is safe for future FIFO consumption.
+      if (openingLayers.length > 0) {
+        const { error: delErr } = await this.supabase
+          .from('stock_valuation_layers' as any)
+          .delete()
+          .in('id', openingLayers.map((l) => l.id));
+        if (delErr) throw delErr;
+      }
+
+      if (newQty > EPS) {
+        const { error: insErr } = await this.supabase
+          .from('stock_valuation_layers' as any)
+          .insert({
+            tenant_id: this.tenantId,
+            item_id: item.itemId,
+            warehouse_id: warehouseId,
+            qty_in: newQty,
+            qty_remaining: newQty - soldFromOpening,
+            unit_cost: newCost,
+            layer_date: new Date(asOfDate).toISOString(),
+            source_invoice_id: null,
+            source_invoice_item_id: null,
+          });
+        if (insErr) throw insErr;
+      }
+
+      // Step 5: accumulate the booked-value delta.
+      valueDelta += newQty * newCost - oldValue;
+      updated++;
     }
 
-    // Step 3: Journal entry (only when accounting is active and inventory_asset is mapped).
+    // Post a single adjusting JE for the net value change (when accounting on).
     let journalEntryId: string | null = null;
 
     const accountingEnabled = await this.accountingService.isEnabled(this.tenantId);
-    if (accountingEnabled) {
+    if (accountingEnabled && Math.abs(valueDelta) > EPS) {
       const defaults = await this.accountingService.getDefaultAccountIds(this.tenantId);
       const inventoryAccountId = defaults.inventory_asset;
 
       if (inventoryAccountId) {
-        const totalValue = items.reduce(
-          (sum, item) => sum + item.quantity * item.unitCost,
-          0
-        );
-
-        if (totalValue > 0) {
-          const equityAccountId =
-            await this.accountingService.getOrCreateOpeningBalanceEquityAccount(
-              this.tenantId
-            );
-
-          const je = await this.accountingService.createJournalEntry(
-            this.tenantId,
-            userId ?? 'system',
-            {
-              entry_date: asOfDate,
-              description: `Opening stock — ${warehouse.name} (${asOfDate})`,
-              lines: [
-                { account_id: inventoryAccountId, debit: totalValue, credit: 0 },
-                { account_id: equityAccountId, debit: 0, credit: totalValue },
-              ],
-            }
+        const equityAccountId =
+          await this.accountingService.getOrCreateOpeningBalanceEquityAccount(
+            this.tenantId
           );
 
-          await this.accountingService.postJournalEntry(this.tenantId, je.id);
-          journalEntryId = je.id;
-        }
+        const amount = Math.abs(valueDelta);
+        // valueDelta > 0: inventory increased  → Dr Inventory / Cr Opening Equity
+        // valueDelta < 0: inventory decreased  → Dr Opening Equity / Cr Inventory
+        const lines =
+          valueDelta > 0
+            ? [
+                { account_id: inventoryAccountId, debit: amount, credit: 0 },
+                { account_id: equityAccountId, debit: 0, credit: amount },
+              ]
+            : [
+                { account_id: equityAccountId, debit: amount, credit: 0 },
+                { account_id: inventoryAccountId, debit: 0, credit: amount },
+              ];
+
+        const je = await this.accountingService.createJournalEntry(
+          this.tenantId,
+          userId ?? 'system',
+          {
+            entry_date: asOfDate,
+            description: `Opening stock — ${warehouse.name} (${asOfDate})`,
+            lines,
+          }
+        );
+
+        await this.accountingService.postJournalEntry(this.tenantId, je.id);
+        journalEntryId = je.id;
       } else {
         console.warn(
           `[opening-stock] Accounting active but inventory_asset unmapped for tenant ${this.tenantId} — JE skipped`
@@ -233,6 +342,6 @@ export class OpeningStockService {
       }
     }
 
-    return { updated: items.length, journalEntryId };
+    return { updated, journalEntryId };
   }
 }

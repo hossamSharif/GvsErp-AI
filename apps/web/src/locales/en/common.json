@@ -45,9 +45,11 @@
     "quantity": "Quantity",
     "unitCost": "Unit Cost",
     "noItems": "No active items found.",
-    "alreadyEntered": "Opening entry exists",
-    "confirmTitle": "Confirm Overwrite",
-    "confirmDescription": "One or more items already have an opening-stock entry. Adding more will increase their quantity and post an additional journal entry. Continue?",
+    "alreadyEntered": "Editable",
+    "soldFromOpening": "{count} sold",
+    "belowSoldError": "Can't go below {count} already sold",
+    "confirmTitle": "Confirm Changes",
+    "confirmDescription": "One or more items already have opening stock. Saving will set their opening quantity to the value you entered, adjust on-hand by the difference, and post an adjusting journal entry. Continue?",
     "searchItems": "Search name, SKU, barcode...",
     "noResults": "No items match '{query}'",
     "noFilterResults": "No items match the active filters",
@@ -1922,6 +1924,43 @@
       "toastSuccessDesc": "Payment of {amount} {currency} has been recorded.",
       "toastError": "Error",
       "toastErrorDesc": "Failed to record payment"
+    }
+  },
+  "paymentFlow": {
+    "button": "Payment workflow",
+    "titleSale": "Sales payment workflow",
+    "titlePurchase": "Purchase payment workflow",
+    "subtitle": "Choose what happens with the payment when you finalize an invoice.",
+    "offlineNotice": "You're offline. This setting can only be changed while online — your current choice still applies to new invoices.",
+    "currentBadge": "Current",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "toastSaved": "Workflow updated",
+    "toastSavedDesc": "Your invoice payment workflow has been saved.",
+    "toastError": "Error",
+    "toastErrorDesc": "Failed to save the setting",
+    "nodes": {
+      "invoice": "Invoice",
+      "paymentDialog": "Payment dialog",
+      "autoPaid": "Auto payment",
+      "noPayment": "No payment",
+      "done": "Done",
+      "saved": "Saved"
+    },
+    "options": {
+      "dialog": {
+        "title": "Show payment dialog",
+        "description": "After finalizing, a dialog opens so you can review, edit and confirm the payment."
+      },
+      "background": {
+        "title": "Automatic payment",
+        "description": "Record the payment automatically using the invoice total — no dialog, straight to done."
+      },
+      "skip": {
+        "title": "Skip payment",
+        "description": "Just save the invoice. No payment is recorded; you can add it later."
+      }
     }
   },
   "auditTrail": {

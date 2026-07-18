@@ -252,8 +252,10 @@ export type LowStockAlertQueryParams = z.infer<typeof lowStockAlertQuerySchema>;
 
 export const openingStockItemSchema = z.object({
   itemId: z.string().uuid('Invalid item ID'),
+  // Set/replace semantics: 0 is allowed (clears opening stock when nothing has
+  // been sold from it). The service enforces the "not below already-sold" floor.
   quantity: z.coerce.number()
-    .positive('Quantity must be greater than 0')
+    .min(0, 'Quantity cannot be negative')
     .multipleOf(0.001, 'Quantity can have at most 3 decimal places'),
   unitCost: z.coerce.number()
     .min(0, 'Unit cost cannot be negative')
