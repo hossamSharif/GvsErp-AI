@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ERP</title>
+    <script>
+      /*
+       * PWA boot shell.
+       *
+       * The installed app launches here (manifest start_url) instead of "/",
+       * because "/" is a next-intl server redirect that can't run offline. This
+       * static document is precached, so it always loads. Its only job: pick the
+       * user's locale and hand off to the real app at /{locale} (the dashboard).
+       * That route is runtime-cached by the service worker after an online visit,
+       * so the handoff works offline; if it isn't cached, the SW serves the
+       * /offline.html "reconnect" fallback (see sw.ts) — no boot loop.
+       */
+      (function () {
+        function pickLocale() {
+          try {
+            var m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=(en|ar)/);
+            if (m) return m[1];
+          } catch (e) {}
+          try {
+            var s = localStorage.getItem('NEXT_LOCALE');
+            if (s === 'en' || s === 'ar') return s;
+          } catch (e) {}
+          return 'en';
+        }
+        var locale = pickLocale();
+        document.documentElement.lang = locale;
+        if (locale === 'ar') document.documentElement.dir = 'rtl';
+        // Replace (not push) so the shell never sits in history.
+        window.location.replace('/' + locale);
+      })();
+    </script>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: #0f172a; color: #e2e8f0; text-align: center; padding: 24px;
+      }
+      .spinner {
+        width: 34px; height: 34px; margin: 0 auto 14px;
+        border: 3px solid rgba(148, 163, 184, 0.3); border-top-color: #38bdf8;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      p { margin: 4px 0; color: #94a3b8; font-size: 0.95rem; }
+      a { color: #38bdf8; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="spinner"></div>
+      <p>Loading ERP…</p>
+      <noscript>
+        <p>JavaScript is required. <a href="/en">Open the app</a>.</p>
+      </noscript>
+    </div>
+  </body>
+</html>

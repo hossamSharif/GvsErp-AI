@@ -10,8 +10,12 @@ const withSerwist = withSerwistInit({
   // components/pwa/service-worker-registrar.tsx) so a brand-new user is never
   // trapped in an empty offline shell before any data has synced.
   register: false,
-  // Precache the offline fallback document used for failed navigations.
-  additionalPrecacheEntries: [{ url: '/offline.html', revision: 'offline-v1' }],
+  // Precache the boot shell (PWA start_url) + the offline fallback document.
+  // Both are static files in public/ that the build wouldn't otherwise precache.
+  additionalPrecacheEntries: [
+    { url: '/app-shell.html', revision: 'app-shell-v1' },
+    { url: '/offline.html', revision: 'offline-v1' },
+  ],
   // Avoid SW churn during local development.
   disable: process.env.NODE_ENV === 'development',
 });

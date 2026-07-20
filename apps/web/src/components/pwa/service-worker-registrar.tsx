@@ -22,12 +22,44 @@ export function ServiceWorkerRegistrar() {
     if (!('serviceWorker' in navigator)) return;
     // SW is disabled in development (see next.config.mjs) — nothing to register.
     if (process.env.NODE_ENV === 'development') return;
-    // Only after the user has authenticated online at least once.
+    // Only after the user has authenticated online at least once, so a brand-new
+    // user is never trapped in an empty offline shell before any data has synced.
     if (!session || !online) return;
 
-    navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
-      .catch((err) => console.warn('[pwa] service worker registration failed', err));
+    let cancelled = false;
+
+    // Register after the page has loaded so precaching doesn't compete with
+    // first paint/hydration, and confirm the worker actually activates — the SW
+    // must be in control before the user installs, or a cold offline launch has
+    // no controller and dies to ERR_FAILED.
+    const register = () => {
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .then(() => navigator.serviceWorker.ready)
+        .then(() => {
+          if (!cancelled) console.info('[pwa] service worker active — offline launch ready');
+        })
+        .catch((err) => console.warn('[pwa] service worker registration failed', err));
+    };
+
+    // Ask the browser to keep our caches + IndexedDB from being evicted under
+    // storage pressure — important for the 30-day offline window (the cached app
+    // shell/pages must survive weeks without a visit). Best-effort; ignored if
+    // unsupported or denied.
+    void navigator.storage?.persist?.().then((granted) => {
+      if (!cancelled) console.info(`[pwa] persistent storage ${granted ? 'granted' : 'not granted'}`);
+    }).catch(() => {});
+
+    if (document.readyState === 'complete') {
+      register();
+    } else {
+      window.addEventListener('load', register, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('load', register);
+    };
   }, [session, online]);
 
   return null;

@@ -3,7 +3,7 @@
   "short_name": "ERP",
   "description": "Modular ERP Platform — works offline",
   "id": "/",
-  "start_url": "/",
+  "start_url": "/app-shell.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
