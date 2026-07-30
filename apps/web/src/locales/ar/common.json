@@ -229,11 +229,11 @@
       "filters": {
         "expiringWithin": "تنتهي صلاحيته خلال",
         "expiringOptions": {
-          "expired": "منتهية الصلاحية بالفعل",
           "7": "خلال 7 أيام",
           "30": "خلال 30 يومًا",
           "60": "خلال 60 يومًا",
-          "90": "خلال 90 يومًا"
+          "90": "خلال 90 يومًا",
+          "expired": "منتهية الصلاحية بالفعل"
         }
       },
       "columns": {
@@ -248,7 +248,8 @@
       },
       "actions": {
         "viewDetails": "عرض التفاصيل",
-        "delete": "حذف"
+        "delete": "حذف",
+        "viewMovement": "تقرير الحركة"
       },
       "deleteDialog": {
         "title": "حذف الصنف",
@@ -316,7 +317,8 @@
         "updated": "تم تحديث الصنف",
         "updatedDescription": "تم تحديث {name} بنجاح.",
         "updateFailed": "فشل تحديث الصنف"
-      }
+      },
+      "viewMovement": "عرض الحركة"
     },
     "form": {
       "tabs": {
@@ -2638,6 +2640,89 @@
         "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
         "currentIncorrect": "كلمة المرور الحالية غير صحيحة"
       }
+    }
+  },
+  "itemMovement": {
+    "description": "حركة المخزون والأسعار والربحية لهذا الصنف",
+    "backAriaLabel": "العودة إلى الأصناف",
+    "backToItems": "العودة إلى الأصناف",
+    "loadFailed": "تعذر تحميل تقرير الحركة",
+    "editItem": "تعديل الصنف",
+    "print": "طباعة",
+    "warehouse": "المستودع",
+    "allWarehouses": "كل المستودعات",
+    "dateFrom": "من",
+    "dateTo": "إلى",
+    "presets": {
+      "thisMonth": "هذا الشهر",
+      "last30": "آخر 30 يوم",
+      "thisYear": "هذه السنة"
+    },
+    "kpis": {
+      "openingQty": "الكمية الافتتاحية",
+      "asOf": "كما في {date}",
+      "purchasedQty": "الكمية المشتراة",
+      "soldQty": "الكمية المباعة",
+      "returnedSuffix": "مرتجع {qty}",
+      "onHand": "الرصيد الحالي",
+      "stockValue": "القيمة {value}",
+      "revenue": "الإيرادات",
+      "fromInvoices": "من {count} فاتورة",
+      "cogs": "تكلفة البضاعة المباعة",
+      "estimated": "تقديري",
+      "estimatedHint": "بناءً على متوسط تكلفة الشراء المرجح",
+      "grossProfit": "إجمالي الربح",
+      "margin": "الهامش {percent}%",
+      "priceSpread": "متوسط البيع / متوسط التكلفة",
+      "priceSpreadHint": "سعر البيع مقابل تكلفة الشراء"
+    },
+    "recon": {
+      "opening": "افتتاحي",
+      "in": "وارد",
+      "out": "صادر",
+      "closing": "ختامي",
+      "matches": "مطابق للرصيد الفعلي",
+      "mismatch": "غير مطابق للرصيد الفعلي ({onHand})"
+    },
+    "insights": {
+      "purchaseSpend": "إجمالي المشتريات",
+      "invoices": "الفواتير (مبيعات / مشتريات)",
+      "parties": "العملاء / الموردون",
+      "priceRange": "نطاق سعر البيع",
+      "lastSold": "آخر بيع",
+      "lastPurchased": "آخر شراء",
+      "daysOfStock": "أيام تغطية المخزون",
+      "turnover": "معدل دوران المخزون"
+    },
+    "filters": {
+      "all": "الكل",
+      "sales": "المبيعات",
+      "purchases": "المشتريات"
+    },
+    "types": {
+      "opening": "افتتاحي",
+      "purchase": "شراء",
+      "purchase_return": "مرتجع شراء",
+      "sale": "بيع",
+      "sale_return": "مرتجع بيع",
+      "transfer_in": "تحويل وارد",
+      "transfer_out": "تحويل صادر"
+    },
+    "table": {
+      "date": "التاريخ",
+      "type": "النوع",
+      "reference": "المرجع",
+      "party": "الطرف",
+      "warehouse": "المستودع",
+      "in": "وارد",
+      "out": "صادر",
+      "unitPrice": "سعر الوحدة",
+      "discount": "خصم",
+      "net": "الصافي",
+      "balance": "الرصيد",
+      "openingBalance": "الرصيد الافتتاحي كما في {date}",
+      "totals": "الإجماليات",
+      "empty": "لا توجد حركة في هذه الفترة"
     }
   }
 }

@@ -354,6 +354,171 @@ export interface ItemReportParams {
 }
 
 // =============================================================================
+// ITEM MOVEMENT REPORT TYPES
+// =============================================================================
+
+/**
+ * Kind of movement affecting an item's stock.
+ *
+ * Returns are separate invoice rows sharing the parent's `type` and linked via
+ * `returned_from_id`, so direction is decided by the pair (type, isReturn) —
+ * a returned sale puts stock BACK IN.
+ */
+export type ItemMovementType =
+  | 'opening'
+  | 'purchase'
+  | 'purchase_return'
+  | 'sale'
+  | 'sale_return'
+  | 'transfer_in'
+  | 'transfer_out';
+
+/**
+ * A single row in the item movement ledger.
+ *
+ * `invoiceId` is null for opening-stock and transfer rows — those have no
+ * invoice to navigate to, so the UI renders them as non-clickable.
+ */
+export interface ItemMovementRow {
+  /** Stable key for React — invoice_items.id, transfer_items.id or layer id */
+  id: string;
+  movementType: ItemMovementType;
+  /** Business date (invoices.invoice_date / transfers.completed_at / layer_date) */
+  date: string;
+  /** Set for invoice-backed rows only; drives row click-through */
+  invoiceId: string | null;
+  /** 'sale' | 'purchase' — which route to open. Null for non-invoice rows. */
+  invoiceType: 'sale' | 'purchase' | null;
+  invoiceNumber: string | null;
+  partyId: string | null;
+  partyName: string | null;
+  warehouseId: string | null;
+  warehouseName: string | null;
+  /** Quantity added to stock (0 for outgoing rows) */
+  quantityIn: number;
+  /** Quantity removed from stock (0 for incoming rows) */
+  quantityOut: number;
+  /** Running on-hand balance after this row is applied */
+  runningBalance: number;
+  /** Null for transfers (no price) and for opening rows without a cost */
+  unitPrice: number | null;
+  discountPercent: number | null;
+  /** Line value net of discount, excluding tax. Null when not priced. */
+  lineNet: number | null;
+  currency: string | null;
+  notes: string | null;
+}
+
+/**
+ * Headline metrics for the item movement report.
+ */
+export interface ItemMovementKpis {
+  // --- Stock ---
+  /** Gross purchased quantity, before purchase returns */
+  purchasedQty: number;
+  purchaseReturnedQty: number;
+  /** Gross sold quantity, before sales returns */
+  soldQty: number;
+  salesReturnedQty: number;
+  /** Sum of all incoming quantity in the period (incl. opening entries, transfers in) */
+  totalIn: number;
+  /** Sum of all outgoing quantity in the period */
+  totalOut: number;
+
+  // --- Money ---
+  /** Sales value net of line discount, excluding tax, minus sales returns */
+  revenue: number;
+  /** Purchase spend net of line discount, excluding tax, minus purchase returns */
+  purchaseCost: number;
+  /** Exact FIFO COGS when available, otherwise estimated — see cogsIsEstimated */
+  cogs: number;
+  /**
+   * True when COGS was derived from the weighted-average purchase cost rather
+   * than `invoice_items.cogs_amount` (tenant has cogs_enabled off, or the rows
+   * predate COGS tracking). The UI badges the profit KPIs accordingly.
+   */
+  cogsIsEstimated: boolean;
+  grossProfit: number;
+  /** Gross profit as a percentage of revenue; null when revenue is 0 */
+  marginPercent: number | null;
+
+  // --- Prices ---
+  /** Quantity-weighted average selling price; null when nothing was sold */
+  avgSellPrice: number | null;
+  /** Quantity-weighted average purchase cost; null when nothing was bought */
+  avgPurchaseCost: number | null;
+  minSellPrice: number | null;
+  maxSellPrice: number | null;
+
+  // --- Activity ---
+  salesInvoiceCount: number;
+  purchaseInvoiceCount: number;
+  distinctCustomers: number;
+  distinctSuppliers: number;
+  lastSoldAt: string | null;
+  lastPurchasedAt: string | null;
+
+  // --- Derived insight ---
+  /** Current qty ÷ average daily sold qty; null when nothing sold */
+  daysOfStock: number | null;
+  /** Qty sold ÷ average stock over the period; null when average stock is 0 */
+  turnover: number | null;
+}
+
+/**
+ * Full item movement report payload.
+ */
+export interface ItemMovementReport {
+  item: {
+    id: string;
+    name: string;
+    sku: string | null;
+    barcode: string | null;
+    brand: string | null;
+    categoryName: string | null;
+    unitOfMeasure: string;
+    isActive: boolean;
+  };
+  /** Null when the report covers all warehouses */
+  warehouseId: string | null;
+  warehouseName: string | null;
+  dateFrom: string;
+  dateTo: string;
+  opening: {
+    /**
+     * On-hand quantity at the start of the period, derived backwards as
+     * `onHand − totalIn + totalOut` so the ledger always reconciles.
+     */
+    quantity: number;
+  };
+  closing: {
+    /** Opening + totalIn − totalOut, i.e. what the ledger says */
+    quantity: number;
+    /** What `inventory.quantity` actually says right now */
+    onHandQuantity: number;
+    /** False when the two disagree, signalling data drift */
+    reconciles: boolean;
+    /** Current stock value from remaining FIFO layers */
+    stockValue: number;
+  };
+  movements: ItemMovementRow[];
+  kpis: ItemMovementKpis;
+  generatedAt: string;
+}
+
+/**
+ * Query parameters for the item movement report.
+ */
+export interface ItemMovementParams {
+  /** Inclusive start date (YYYY-MM-DD) */
+  dateFrom: string;
+  /** Inclusive end date (YYYY-MM-DD) */
+  dateTo: string;
+  /** Scope to one warehouse; transfers only appear when this is set */
+  warehouseId?: string;
+}
+
+// =============================================================================
 // EXPIRY TYPES
 // =============================================================================
 

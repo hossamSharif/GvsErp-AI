@@ -60,6 +60,7 @@ import {
   DollarSign,
   FolderTree,
   CalendarClock,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 export default function ItemsPage() {
@@ -150,6 +151,13 @@ export default function ItemsPage() {
   const handleViewItem = useCallback(
     (item: ItemWithCategory) => {
       router.push(`/${locale}/items/${item.id}`);
+    },
+    [router, locale]
+  );
+
+  const handleViewMovement = useCallback(
+    (item: ItemWithCategory) => {
+      router.push(`/${locale}/items/${item.id}/movement`);
     },
     [router, locale]
   );
@@ -261,6 +269,10 @@ export default function ItemsPage() {
                 <Eye className="mr-2 h-4 w-4" />
                 {t('actions.viewDetails')}
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleViewMovement(row.original)}>
+                <ArrowRightLeft className="mr-2 h-4 w-4" />
+                {t('actions.viewMovement')}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => handleDeleteItem(row.original)}
@@ -277,7 +289,7 @@ export default function ItemsPage() {
         enableHiding: false,
       },
     ],
-    [handleViewItem, handleDeleteItem, t, tCommon, tStatus]
+    [handleViewItem, handleViewMovement, handleDeleteItem, t, tCommon, tStatus]
   );
 
   // Error state

@@ -29,6 +29,8 @@ import type {
   UpdateItemPackagingInput,
   ItemReportEntry,
   ItemReportParams,
+  ItemMovementParams,
+  ItemMovementReport,
 } from '@erp/shared';
 
 // =============================================================================
@@ -70,6 +72,8 @@ export const itemKeys = {
   prices: (id: string) => [...itemKeys.detail(id), 'prices'] as const,
   packagings: (id: string) => [...itemKeys.detail(id), 'packagings'] as const,
   report: (params: ItemReportParams) => [...itemKeys.all, 'report', params] as const,
+  movement: (id: string, params: ItemMovementParams) =>
+    [...itemKeys.detail(id), 'movement', params] as const,
   bySku: (sku: string) => [...itemKeys.all, 'by-sku', sku] as const,
   byBarcode: (barcode: string) => [...itemKeys.all, 'by-barcode', barcode] as const,
 };
@@ -207,6 +211,37 @@ export function useItemsReport(
       const response = await api.get<ApiResponse<ItemReportEntry[]>>('/items/report', params);
       return response;
     },
+    ...options,
+  });
+}
+
+/**
+ * Fetch the movement ledger + KPIs for a single item.
+ *
+ * Online-only by design — the report is derived/aggregated server-side and
+ * would go stale against the offline outbox, so the page wraps this in
+ * OnlineOnlyGuard and the endpoint is deliberately absent from
+ * lib/offline/routes.ts.
+ */
+export function useItemMovement(
+  id: string,
+  params: ItemMovementParams,
+  options?: Omit<UseQueryOptions<ApiResponse<ItemMovementReport>>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: itemKeys.movement(id, params),
+    queryFn: async () => {
+      const response = await api.get<ApiResponse<ItemMovementReport>>(
+        `/items/${id}/movement`,
+        {
+          dateFrom: params.dateFrom,
+          dateTo: params.dateTo,
+          warehouseId: params.warehouseId,
+        }
+      );
+      return response;
+    },
+    enabled: !!id && !!params.dateFrom && !!params.dateTo,
     ...options,
   });
 }

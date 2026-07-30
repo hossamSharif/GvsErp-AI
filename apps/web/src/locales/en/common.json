@@ -229,11 +229,11 @@
       "filters": {
         "expiringWithin": "Expiring Within",
         "expiringOptions": {
-          "expired": "Already expired",
           "7": "Next 7 days",
           "30": "Next 30 days",
           "60": "Next 60 days",
-          "90": "Next 90 days"
+          "90": "Next 90 days",
+          "expired": "Already expired"
         }
       },
       "columns": {
@@ -248,7 +248,8 @@
       },
       "actions": {
         "viewDetails": "View Details",
-        "delete": "Delete"
+        "delete": "Delete",
+        "viewMovement": "Movement Report"
       },
       "deleteDialog": {
         "title": "Delete Item",
@@ -316,7 +317,8 @@
         "updated": "Item updated",
         "updatedDescription": "{name} has been updated successfully.",
         "updateFailed": "Failed to update item"
-      }
+      },
+      "viewMovement": "View Movement"
     },
     "form": {
       "tabs": {
@@ -2638,6 +2640,89 @@
         "updateFailed": "Failed to update currency",
         "deleteFailed": "Failed to delete currency"
       }
+    }
+  },
+  "itemMovement": {
+    "description": "Stock movement, prices and profitability for this item",
+    "backAriaLabel": "Back to items",
+    "backToItems": "Back to Items",
+    "loadFailed": "Failed to load the movement report",
+    "editItem": "Edit Item",
+    "print": "Print",
+    "warehouse": "Warehouse",
+    "allWarehouses": "All warehouses",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "presets": {
+      "thisMonth": "This Month",
+      "last30": "Last 30 Days",
+      "thisYear": "This Year"
+    },
+    "kpis": {
+      "openingQty": "Opening Qty",
+      "asOf": "as of {date}",
+      "purchasedQty": "Purchased Qty",
+      "soldQty": "Sold Qty",
+      "returnedSuffix": "{qty} returned",
+      "onHand": "On Hand",
+      "stockValue": "Value {value}",
+      "revenue": "Revenue",
+      "fromInvoices": "from {count} invoices",
+      "cogs": "Cost of Goods Sold",
+      "estimated": "estimated",
+      "estimatedHint": "Based on weighted-average purchase cost",
+      "grossProfit": "Gross Profit",
+      "margin": "Margin {percent}%",
+      "priceSpread": "Avg Sell / Avg Cost",
+      "priceSpreadHint": "Selling price against purchase cost"
+    },
+    "recon": {
+      "opening": "Opening",
+      "in": "In",
+      "out": "Out",
+      "closing": "Closing",
+      "matches": "matches stock on hand",
+      "mismatch": "does not match stock on hand ({onHand})"
+    },
+    "insights": {
+      "purchaseSpend": "Purchase Spend",
+      "invoices": "Invoices (sales / purchases)",
+      "parties": "Customers / Suppliers",
+      "priceRange": "Sale Price Range",
+      "lastSold": "Last Sold",
+      "lastPurchased": "Last Purchased",
+      "daysOfStock": "Days of Stock Left",
+      "turnover": "Stock Turnover"
+    },
+    "filters": {
+      "all": "All",
+      "sales": "Sales",
+      "purchases": "Purchases"
+    },
+    "types": {
+      "opening": "Opening",
+      "purchase": "Purchase",
+      "purchase_return": "Purchase Return",
+      "sale": "Sale",
+      "sale_return": "Sale Return",
+      "transfer_in": "Transfer In",
+      "transfer_out": "Transfer Out"
+    },
+    "table": {
+      "date": "Date",
+      "type": "Type",
+      "reference": "Reference",
+      "party": "Party",
+      "warehouse": "Warehouse",
+      "in": "In",
+      "out": "Out",
+      "unitPrice": "Unit Price",
+      "discount": "Disc.",
+      "net": "Net",
+      "balance": "Balance",
+      "openingBalance": "Opening balance as of {date}",
+      "totals": "Totals",
+      "empty": "No movement in this period"
     }
   }
 }

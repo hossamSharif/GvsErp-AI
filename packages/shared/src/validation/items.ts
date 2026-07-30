@@ -379,4 +379,16 @@ export const itemReportParamsSchema = z.object({
   currency: currencySchema,
 });
 
+/**
+ * Schema for the item movement report query parameters
+ */
+export const itemMovementParamsSchema = z.object({
+  dateFrom: z.string().date('Invalid date format'),
+  dateTo: z.string().date('Invalid date format'),
+  warehouseId: z.string().uuid('Invalid warehouse ID').optional(),
+}).refine(
+  (data) => new Date(data.dateFrom) <= new Date(data.dateTo),
+  { message: 'Start date must be before or equal to end date', path: ['dateTo'] }
+);
+
 // Type aliases removed — authoritative types live in types/items.ts

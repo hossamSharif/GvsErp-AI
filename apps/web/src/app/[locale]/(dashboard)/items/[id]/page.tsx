@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/lib/api-client';
 import type { Category, UpdateItemInput } from '@erp/shared';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRightLeft } from 'lucide-react';
 
 interface CategoriesResponse {
   success: boolean;
@@ -142,12 +142,20 @@ export default function EditItemPage() {
           aria-label={t('backAriaLabel')}
           onClick={() => router.push(`/${locale}/items`)}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
         </Button>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
+        <Button
+          variant="outline"
+          className="gap-2 shrink-0"
+          onClick={() => router.push(`/${locale}/items/${itemId}/movement`)}
+        >
+          <ArrowRightLeft className="h-4 w-4" />
+          {t('viewMovement')}
+        </Button>
       </div>
 
       {/* Item Form */}

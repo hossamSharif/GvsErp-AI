@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { ItemService } from '../services/item.service';
 import { ExpiryAlertsService } from '../services/expiry-alerts.service';
+import { ItemMovementService } from '../services/item-movement.service';
 import {
   createItemSchema,
   updateItemSchema,
@@ -17,9 +18,10 @@ import {
   createItemPackagingSchema,
   updateItemPackagingSchema,
   itemReportParamsSchema,
+  itemMovementParamsSchema,
   expiryQuerySchema,
 } from '@erp/shared';
-import type { ItemQueryParams } from '@erp/shared';
+import type { ItemQueryParams, ItemMovementParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -182,6 +184,36 @@ router.get(
       meta: {
         total: data.length,
         generatedAt: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+// =============================================================================
+// MOVEMENT REPORT
+// =============================================================================
+
+/**
+ * GET /items/:id/movement
+ * Per-item stock ledger: opening quantity, in/out movements, closing quantity
+ * and profitability KPIs for a date range.
+ */
+router.get(
+  '/:id/movement',
+  validateRequest({ query: itemMovementParamsSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { supabase, tenantId } = getTenantContext(req);
+    const service = new ItemMovementService(supabase, tenantId);
+    const params = req.query as unknown as ItemMovementParams;
+
+    const report = await service.getItemMovement(req.params.id, params);
+
+    res.json({
+      success: true,
+      data: report,
+      meta: {
+        total: report.movements.length,
+        generatedAt: report.generatedAt,
       },
     });
   })
