@@ -288,7 +288,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
   async getBalanceSummary(tenantId: string, type?: PartyType): Promise<PartyBalanceSummary[]> {
     let query = this.supabase
       .from('parties')
-      .select('id, name, type, balance')
+      .select('id, name, type, balance, opening_balance')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .neq('balance', 0)
@@ -304,10 +304,20 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
       throw error;
     }
 
+    // opening_balance arrives via migration 035, which the generated types do
+    // not know about yet — same workaround as ledger_account_id in mapParty.
+    const rows = ((data as unknown) as {
+      id: string;
+      name: string;
+      type: string;
+      balance: number;
+      opening_balance: number | null;
+    }[]) ?? [];
+
     // Get totals from invoices and payments for each party
     const summaries: PartyBalanceSummary[] = [];
 
-    for (const party of data || []) {
+    for (const party of rows) {
       // Get invoice totals
       const { data: invoices } = await this.supabase
         .from('invoices')
@@ -337,6 +347,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
         partyId: party.id,
         partyName: party.name,
         partyType: party.type as PartyType,
+        openingBalance: Number(party.opening_balance || 0),
         totalInvoiced,
         totalPaid,
         currentBalance: Number(party.balance),
@@ -391,6 +402,11 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
     // generated types may not list it yet.
     const ledgerId = (row as unknown as { ledger_account_id?: string | null })
       .ledger_account_id ?? null;
+    // Likewise for the opening balance columns added by migration 035.
+    const openingRow = row as unknown as {
+      opening_balance?: number | null;
+      opening_balance_date?: string | null;
+    };
     return {
       id: row.id,
       tenantId: row.tenant_id,
@@ -401,6 +417,8 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
       address: row.address,
       taxNumber: row.tax_number,
       balance: Number(row.balance),
+      openingBalance: Number(openingRow.opening_balance || 0),
+      openingBalanceDate: openingRow.opening_balance_date ?? null,
       isActive: row.is_active,
       notes: row.notes,
       ledgerAccountId: ledgerId,

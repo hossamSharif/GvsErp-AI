@@ -89,6 +89,9 @@ export default function EditSupplierPage() {
         partyType="supplier"
         mode="edit"
         party={partyResponse.data}
+        hasTransactions={
+          (partyResponse.data.invoiceCount ?? 0) + (partyResponse.data.paymentCount ?? 0) > 0
+        }
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={updateMutation.isPending}

@@ -1202,7 +1202,21 @@
       "updateCustomer": "تحديث العميل",
       "updateSupplier": "تحديث المورد",
       "creating": "جارٍ الإنشاء...",
-      "updating": "جارٍ التحديث..."
+      "updating": "جارٍ التحديث...",
+      "openingBalanceSection": "الرصيد الافتتاحي",
+      "openingBalanceDesc": "الرصيد المرحّل من قبل بدء استخدام النظام",
+      "openingBalanceAmountLabel": "المبلغ",
+      "openingBalanceDirectionLabel": "الاتجاه",
+      "openingBalanceDebit": "مدين",
+      "openingBalanceCredit": "دائن",
+      "openingBalanceDebitDescCustomer": "العميل مدين لنا",
+      "openingBalanceCreditDescCustomer": "نحن مدينون للعميل (دفعة مقدمة)",
+      "openingBalanceDebitDescSupplier": "دفعة مقدمة للمورد",
+      "openingBalanceCreditDescSupplier": "نحن مدينون للمورد",
+      "openingBalanceDateLabel": "اعتباراً من تاريخ",
+      "openingBalanceDateDesc": "التاريخ الذي كان فيه هذا الرصيد قائماً",
+      "openingBalanceDateRequired": "تاريخ الرصيد مطلوب عند إدخال رصيد افتتاحي",
+      "openingBalanceTxnWarning": "يوجد لهذا الطرف فواتير أو مدفوعات بالفعل. تغيير الرصيد الافتتاحي سيعدّل الرصيد الحالي ويُنشئ قيد يومية تسوية."
     },
     "new": {
       "customerTitle": "عميل جديد",
@@ -1228,6 +1242,7 @@
       "overpaid": "دفع زائد",
       "weOwe": "مستحق علينا",
       "settled": "مسوى",
+      "openingBalanceLine": "يشمل رصيداً افتتاحياً قدره {amount} بتاريخ {date}",
       "recalculateBalance": "إعادة حساب الرصيد",
       "summary": "الملخص",
       "transactionTotals": "إجمالي المعاملات",
@@ -1259,7 +1274,9 @@
     },
     "txnTypes": {
       "invoice": "فاتورة",
-      "payment": "دفعة"
+      "payment": "دفعة",
+      "return": "مرتجع",
+      "opening": "رصيد افتتاحي"
     },
     "report": {
       "customerTitle": "تقرير أرصدة العملاء",

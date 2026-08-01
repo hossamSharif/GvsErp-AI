@@ -77,6 +77,81 @@ export const phoneSchema = z.string()
   .nullable()
   .optional();
 
+// =============================================================================
+// OPENING BALANCE
+// =============================================================================
+
+/**
+ * Opening balance amount — always a positive magnitude. The Debit/Credit
+ * direction carries the sign, because which side is "positive" flips between
+ * customers and suppliers. The API converts the pair into a signed value via
+ * `toSignedOpeningBalance`.
+ */
+export const openingBalanceAmountSchema = z.coerce.number()
+  .min(0, 'Opening balance cannot be negative')
+  .max(999999999999.99, 'Opening balance is too large')
+  .multipleOf(0.01, 'Opening balance can have at most 2 decimal places')
+  .nullable()
+  .optional();
+
+export const openingBalanceDirectionSchema = z.enum(['debit', 'credit']).optional();
+
+export const openingBalanceDateSchema = z.string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Opening balance date must be in YYYY-MM-DD format')
+  .nullable()
+  .optional();
+
+const openingBalanceFields = {
+  openingBalance: openingBalanceAmountSchema,
+  openingBalanceDirection: openingBalanceDirectionSchema,
+  openingBalanceDate: openingBalanceDateSchema,
+};
+
+/**
+ * A non-zero opening balance needs both a direction and an as-of date, and the
+ * date cannot be in the future (a future-dated opening balance would show in the
+ * running balance but be invisible to aging and to statements ending earlier).
+ */
+function refineOpeningBalance(
+  value: {
+    openingBalance?: number | null;
+    openingBalanceDirection?: 'debit' | 'credit';
+    openingBalanceDate?: string | null;
+  },
+  ctx: z.RefinementCtx
+): void {
+  const amount = value.openingBalance;
+  if (amount === undefined || amount === null || amount === 0) return;
+
+  if (!value.openingBalanceDirection) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['openingBalanceDirection'],
+      message: 'Direction is required when an opening balance is entered',
+    });
+  }
+
+  if (!value.openingBalanceDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['openingBalanceDate'],
+      message: 'As-of date is required when an opening balance is entered',
+    });
+    return;
+  }
+
+  // Compare as plain YYYY-MM-DD strings; both sides are calendar dates, so this
+  // avoids dragging timezones into the comparison.
+  const today = new Date().toISOString().slice(0, 10);
+  if (value.openingBalanceDate > today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['openingBalanceDate'],
+      message: 'Opening balance date cannot be in the future',
+    });
+  }
+}
+
 /**
  * Schema for creating a new party
  */
@@ -100,7 +175,8 @@ export const createPartySchema = z.object({
     .max(2000, 'Notes must be 2000 characters or less')
     .nullable()
     .optional(),
-});
+  ...openingBalanceFields,
+}).superRefine(refineOpeningBalance);
 
 /**
  * Schema for updating a party
@@ -126,7 +202,8 @@ export const updatePartySchema = z.object({
     .max(2000, 'Notes must be 2000 characters or less')
     .nullable()
     .optional(),
-});
+  ...openingBalanceFields,
+}).superRefine(refineOpeningBalance);
 
 // =============================================================================
 // PAYMENT SCHEMAS

@@ -257,6 +257,10 @@ export function useUpdateParty(
 
       // Invalidate balance summary
       queryClient.invalidateQueries({ queryKey: partyKeys.balanceSummary() });
+
+      // Statements are keyed by their full params object, so invalidate the
+      // whole branch — an opening balance edit changes the statement too.
+      queryClient.invalidateQueries({ queryKey: [...partyKeys.all, 'statement'] });
     },
     ...options,
   });

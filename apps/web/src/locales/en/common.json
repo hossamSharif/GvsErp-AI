@@ -1202,7 +1202,21 @@
       "updateCustomer": "Update Customer",
       "updateSupplier": "Update Supplier",
       "creating": "Creating...",
-      "updating": "Updating..."
+      "updating": "Updating...",
+      "openingBalanceSection": "Opening Balance",
+      "openingBalanceDesc": "Balance carried in from before you started using the system",
+      "openingBalanceAmountLabel": "Amount",
+      "openingBalanceDirectionLabel": "Direction",
+      "openingBalanceDebit": "Debit",
+      "openingBalanceCredit": "Credit",
+      "openingBalanceDebitDescCustomer": "Customer owes us",
+      "openingBalanceCreditDescCustomer": "We owe the customer (advance)",
+      "openingBalanceDebitDescSupplier": "Advance paid to supplier",
+      "openingBalanceCreditDescSupplier": "We owe the supplier",
+      "openingBalanceDateLabel": "As of date",
+      "openingBalanceDateDesc": "The date this balance was outstanding",
+      "openingBalanceDateRequired": "As-of date is required when an opening balance is entered",
+      "openingBalanceTxnWarning": "This party already has invoices or payments. Changing the opening balance will adjust the current balance and post an adjusting journal entry."
     },
     "new": {
       "customerTitle": "New Customer",
@@ -1228,6 +1242,7 @@
       "overpaid": "Overpaid",
       "weOwe": "We Owe",
       "settled": "Settled",
+      "openingBalanceLine": "Includes opening balance of {amount} as of {date}",
       "recalculateBalance": "Recalculate Balance",
       "summary": "Summary",
       "transactionTotals": "Transaction totals",
@@ -1259,7 +1274,9 @@
     },
     "txnTypes": {
       "invoice": "Invoice",
-      "payment": "Payment"
+      "payment": "Payment",
+      "return": "Return",
+      "opening": "Opening Balance"
     },
     "report": {
       "customerTitle": "Customer Balances Report",

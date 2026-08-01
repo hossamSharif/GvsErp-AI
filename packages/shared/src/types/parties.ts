@@ -24,6 +24,59 @@ export type PaymentType = 'received' | 'made';
  */
 export type PaymentMethod = 'cash' | 'bank_transfer' | 'check' | 'credit_card' | 'other';
 
+/**
+ * Side of the ledger an opening balance sits on, as entered by the user.
+ */
+export type OpeningBalanceDirection = 'debit' | 'credit';
+
+// =============================================================================
+// OPENING BALANCE SIGN CONVENTION
+// =============================================================================
+// `Party.balance` (and `Party.openingBalance`) are signed in the party's
+// *natural* direction: a customer with a positive balance owes us, a supplier
+// with a positive balance is owed by us. Users, however, think in Debit/Credit,
+// and which of those is "positive" flips between the two party types. These
+// helpers are the single source of truth for that mapping and are shared by the
+// API and the web form so the two can never disagree.
+
+/**
+ * The ledger side on which a positive balance sits for the given party type.
+ * Customers are receivables (debit), suppliers are payables (credit).
+ */
+export function naturalDirection(type: PartyType): OpeningBalanceDirection {
+  return type === 'customer' ? 'debit' : 'credit';
+}
+
+/**
+ * Convert a user-entered positive amount plus a direction into the signed value
+ * stored in `parties.opening_balance`.
+ */
+export function toSignedOpeningBalance(
+  type: PartyType,
+  amount: number,
+  direction: OpeningBalanceDirection
+): number {
+  const magnitude = Math.abs(amount || 0);
+  return direction === naturalDirection(type) ? magnitude : -magnitude;
+}
+
+/**
+ * Inverse of {@link toSignedOpeningBalance} — split a stored signed value back
+ * into the positive amount and direction shown in the form.
+ */
+export function fromSignedOpeningBalance(
+  type: PartyType,
+  signed: number
+): { amount: number; direction: OpeningBalanceDirection } {
+  const value = signed || 0;
+  const natural = naturalDirection(type);
+  const opposite: OpeningBalanceDirection = natural === 'debit' ? 'credit' : 'debit';
+  return {
+    amount: Math.abs(value),
+    direction: value < 0 ? opposite : natural,
+  };
+}
+
 // =============================================================================
 // PARTY ENTITY
 // =============================================================================
@@ -41,6 +94,14 @@ export interface Party {
   address: string | null;
   taxNumber: string | null;
   balance: number;
+  /**
+   * Balance carried in from before the system was adopted, signed in the
+   * party's natural direction (see {@link toSignedOpeningBalance}). Included in
+   * `balance`, so the two must never be added together.
+   */
+  openingBalance: number;
+  /** Date the opening balance was outstanding as of; null when it is zero. */
+  openingBalanceDate: string | null;
   isActive: boolean;
   notes: string | null;
   /**
@@ -82,6 +143,7 @@ export interface PartyBalanceSummary {
   partyId: string;
   partyName: string;
   partyType: PartyType;
+  openingBalance: number;
   totalInvoiced: number;
   totalPaid: number;
   currentBalance: number;
@@ -174,6 +236,11 @@ export interface CreatePartyInput {
   address?: string | null;
   taxNumber?: string | null;
   notes?: string | null;
+  /** Positive magnitude as entered by the user; pair with `openingBalanceDirection`. */
+  openingBalance?: number | null;
+  openingBalanceDirection?: OpeningBalanceDirection;
+  /** ISO date (YYYY-MM-DD); required when `openingBalance` is non-zero. */
+  openingBalanceDate?: string | null;
 }
 
 /**
@@ -187,6 +254,11 @@ export interface UpdatePartyInput {
   taxNumber?: string | null;
   isActive?: boolean;
   notes?: string | null;
+  /** Positive magnitude as entered by the user; pair with `openingBalanceDirection`. */
+  openingBalance?: number | null;
+  openingBalanceDirection?: OpeningBalanceDirection;
+  /** ISO date (YYYY-MM-DD); required when `openingBalance` is non-zero. */
+  openingBalanceDate?: string | null;
 }
 
 /**
@@ -401,7 +473,7 @@ export interface PaymentReportResponse {
 /**
  * Transaction type for party statement
  */
-export type TransactionType = 'invoice' | 'payment' | 'return';
+export type TransactionType = 'invoice' | 'payment' | 'return' | 'opening';
 
 /**
  * Party transaction entry (for statement)

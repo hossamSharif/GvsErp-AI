@@ -2372,7 +2372,29 @@ export class AccountingService {
     );
 
     const invoiceIds = eligibleInvoices.map((i) => i.id);
-    if (invoiceIds.length === 0) {
+
+    // Opening balances are not invoices, so they have to be pulled separately —
+    // otherwise a tenant that migrated in balances but has not yet raised an
+    // invoice would see an empty aging report.
+    const { data: openingRows, error: obErr } = await this.supabase
+      .from('parties')
+      .select('id, name, type, opening_balance, opening_balance_date')
+      .eq('tenant_id', tenantId)
+      .eq('type', partyType)
+      .neq('opening_balance', 0)
+      .lte('opening_balance_date', asOfDate);
+    if (obErr) throw obErr;
+
+    const openingParties =
+      ((openingRows as unknown) as {
+        id: string;
+        name: string;
+        type: string;
+        opening_balance: number;
+        opening_balance_date: string;
+      }[]) ?? [];
+
+    if (invoiceIds.length === 0 && openingParties.length === 0) {
       return {
         as_of_date: asOfDate,
         bucket_definitions: bucketDefs.map((d) => ({ label: d.label, from: d.from, to: d.to })),
@@ -2383,24 +2405,33 @@ export class AccountingService {
 
     // Pull all matching parties so we can attach names/types
     const partyIds = Array.from(new Set(eligibleInvoices.map((i) => i.party_id).filter((x): x is string => !!x)));
-    const { data: parties, error: pErr } = await this.supabase
-      .from('parties')
-      .select('id, name, type')
-      .in('id', partyIds);
-    if (pErr) throw pErr;
-    const partyMap = new Map((parties ?? []).map((p) => [p.id, p]));
+    const partyMap = new Map<string, { id: string; name: string; type: string }>();
+    if (partyIds.length > 0) {
+      const { data: parties, error: pErr } = await this.supabase
+        .from('parties')
+        .select('id, name, type')
+        .in('id', partyIds);
+      if (pErr) throw pErr;
+      for (const p of parties ?? []) partyMap.set(p.id, p);
+    }
+    // Opening-balance parties may have no invoices at all, so seed them too.
+    for (const p of openingParties) {
+      if (!partyMap.has(p.id)) partyMap.set(p.id, { id: p.id, name: p.name, type: p.type });
+    }
 
     // Sum allocations up to asOfDate per invoice
-    const { data: allocations, error: aErr } = await this.supabase
-      .from('payment_allocations' as any)
-      .select('invoice_id, amount, allocated_at')
-      .in('invoice_id', invoiceIds)
-      .lte('allocated_at', asOfDate + 'T23:59:59');
-    if (aErr) throw aErr;
-
     const allocMap = new Map<string, number>();
-    for (const row of ((allocations as unknown) as { invoice_id: string; amount: number }[]) ?? []) {
-      allocMap.set(row.invoice_id, (allocMap.get(row.invoice_id) ?? 0) + Number(row.amount));
+    if (invoiceIds.length > 0) {
+      const { data: allocations, error: aErr } = await this.supabase
+        .from('payment_allocations' as any)
+        .select('invoice_id, amount, allocated_at')
+        .in('invoice_id', invoiceIds)
+        .lte('allocated_at', asOfDate + 'T23:59:59');
+      if (aErr) throw aErr;
+
+      for (const row of ((allocations as unknown) as { invoice_id: string; amount: number }[]) ?? []) {
+        allocMap.set(row.invoice_id, (allocMap.get(row.invoice_id) ?? 0) + Number(row.amount));
+      }
     }
 
     // Aggregate per party
@@ -2431,6 +2462,36 @@ export class AccountingService {
           buckets: emptyBuckets(bucketDefs),
         };
         partyRows.set(inv.party_id, row);
+      }
+      row.buckets[bucketIdx].amount += outstanding;
+      row.total_outstanding += outstanding;
+      totals[bucketIdx].amount += outstanding;
+      grandTotal += outstanding;
+    }
+
+    // Fold opening balances into the same party rows, aged from their as-of
+    // date. `opening_balance` is already signed in the natural direction for
+    // this party type (the query filters on it), so no sign flip is needed.
+    // Credit balances are skipped for the same reason over-allocated invoices
+    // are: aging reports what is owed, not what is held.
+    for (const p of openingParties) {
+      const outstanding = Number(p.opening_balance ?? 0);
+      if (outstanding <= 0.01) continue;
+
+      const obDate = p.opening_balance_date ? new Date(p.opening_balance_date) : asOf;
+      const daysOld = Math.max(0, Math.floor((asOf.getTime() - obDate.getTime()) / 86_400_000));
+      const bucketIdx = bucketIndexFor(daysOld, bucketDefs);
+
+      let row = partyRows.get(p.id);
+      if (!row) {
+        row = {
+          party_id: p.id,
+          party_name: p.name ?? 'Unknown',
+          party_type: (p.type as 'customer' | 'supplier') ?? partyType,
+          total_outstanding: 0,
+          buckets: emptyBuckets(bucketDefs),
+        };
+        partyRows.set(p.id, row);
       }
       row.buckets[bucketIdx].amount += outstanding;
       row.total_outstanding += outstanding;

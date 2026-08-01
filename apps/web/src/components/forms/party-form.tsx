@@ -27,6 +27,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Card,
   CardContent,
@@ -40,7 +42,8 @@ import type {
   CreatePartyInput,
   UpdatePartyInput,
 } from '@erp/shared';
-import { Save, Loader2 } from 'lucide-react';
+import { naturalDirection, fromSignedOpeningBalance } from '@erp/shared';
+import { Save, Loader2, AlertTriangle } from 'lucide-react';
 
 // =============================================================================
 // FORM SCHEMA
@@ -54,9 +57,38 @@ const partyFormSchema = z.object({
   taxNumber: z.string().max(50).nullable().optional().or(z.literal('')),
   notes: z.string().max(2000).nullable().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
+  // Opening balance is captured as a positive magnitude plus a side, because
+  // which side counts as "positive" flips between customers and suppliers.
+  // The sign is applied server-side via toSignedOpeningBalance.
+  openingBalanceAmount: z.coerce
+    .number({ invalid_type_error: 'Opening balance must be a number' })
+    .min(0, 'Opening balance cannot be negative')
+    .optional(),
+  openingBalanceDirection: z.enum(['debit', 'credit']),
+  openingBalanceDate: z.string().optional().or(z.literal('')),
+}).superRefine((data, ctx) => {
+  if (!data.openingBalanceAmount) return;
+  if (!data.openingBalanceDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['openingBalanceDate'],
+      message: 'As-of date is required when an opening balance is entered',
+    });
+  } else if (data.openingBalanceDate > new Date().toISOString().slice(0, 10)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['openingBalanceDate'],
+      message: 'Opening balance date cannot be in the future',
+    });
+  }
 });
 
 type PartyFormData = z.infer<typeof partyFormSchema>;
+
+/** Today as YYYY-MM-DD, for the date input's default and max */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 // =============================================================================
 // PROPS
@@ -75,6 +107,11 @@ interface PartyFormProps {
   isLoading?: boolean;
   /** Mode: create or edit */
   mode?: 'create' | 'edit';
+  /**
+   * Whether the party already has invoices or payments. Only used to warn that
+   * changing the opening balance restates the books — it never blocks editing.
+   */
+  hasTransactions?: boolean;
 }
 
 // =============================================================================
@@ -88,6 +125,7 @@ export function PartyForm({
   onCancel,
   isLoading = false,
   mode = 'create',
+  hasTransactions = false,
 }: PartyFormProps) {
   const t = useTranslations('parties.form');
 
@@ -102,12 +140,17 @@ export function PartyForm({
       taxNumber: '',
       notes: '',
       isActive: true,
+      openingBalanceAmount: undefined,
+      openingBalanceDirection: naturalDirection(partyType),
+      openingBalanceDate: todayIso(),
     },
   });
 
   // Populate form with existing data
   useEffect(() => {
     if (party && mode === 'edit') {
+      // The stored value is signed; split it back into amount + side.
+      const opening = fromSignedOpeningBalance(partyType, party.openingBalance ?? 0);
       form.reset({
         name: party.name,
         email: party.email || '',
@@ -116,9 +159,12 @@ export function PartyForm({
         taxNumber: party.taxNumber || '',
         notes: party.notes || '',
         isActive: party.isActive,
+        openingBalanceAmount: opening.amount || undefined,
+        openingBalanceDirection: opening.direction,
+        openingBalanceDate: party.openingBalanceDate || todayIso(),
       });
     }
-  }, [party, mode, form]);
+  }, [party, mode, partyType, form]);
 
   // Handle form submission
   const handleSubmit = async (data: PartyFormData) => {
@@ -132,6 +178,9 @@ export function PartyForm({
       taxNumber: data.taxNumber || null,
       notes: data.notes || null,
       ...(mode === 'edit' && { isActive: data.isActive }),
+      openingBalance: data.openingBalanceAmount || 0,
+      openingBalanceDirection: data.openingBalanceDirection,
+      openingBalanceDate: data.openingBalanceDate || null,
     };
 
     await onSubmit(submitData as CreatePartyInput | UpdatePartyInput);
@@ -159,6 +208,15 @@ export function PartyForm({
         ? t('updateCustomer')
         : t('updateSupplier');
   const submittingLabel = mode === 'create' ? t('creating') : t('updating');
+
+  // Which side of the ledger means what depends on the party type: a customer
+  // is a receivable (debit-natured), a supplier a payable (credit-natured).
+  const debitDesc = isCustomer
+    ? t('openingBalanceDebitDescCustomer')
+    : t('openingBalanceDebitDescSupplier');
+  const creditDesc = isCustomer
+    ? t('openingBalanceCreditDescCustomer')
+    : t('openingBalanceCreditDescSupplier');
 
   return (
     <Form {...form}>
@@ -307,6 +365,102 @@ export function PartyForm({
                     />
                   </FormControl>
                   <FormDescription>{notesDesc}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Opening Balance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('openingBalanceSection')}</CardTitle>
+            <CardDescription>{t('openingBalanceDesc')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {mode === 'edit' && hasTransactions && (
+              <Alert variant="default" className="border-amber-500/50 text-amber-900 dark:text-amber-200">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{t('openingBalanceTxnWarning')}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Amount */}
+            <FormField
+              control={form.control}
+              name="openingBalanceAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t('openingBalanceAmountLabel')}{' '}
+                    <span className="text-muted-foreground font-normal">{t('optionalLabel')}</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Direction */}
+            <FormField
+              control={form.control}
+              name="openingBalanceDirection"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('openingBalanceDirectionLabel')}</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col gap-3 sm:flex-row sm:gap-6"
+                    >
+                      <FormItem className="flex items-center gap-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="debit" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {t('openingBalanceDebit')}
+                          <span className="text-muted-foreground block text-xs">{debitDesc}</span>
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center gap-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="credit" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {t('openingBalanceCredit')}
+                          <span className="text-muted-foreground block text-xs">{creditDesc}</span>
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* As-of date */}
+            <FormField
+              control={form.control}
+              name="openingBalanceDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('openingBalanceDateLabel')}</FormLabel>
+                  <FormControl>
+                    <Input type="date" max={todayIso()} {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormDescription>{t('openingBalanceDateDesc')}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

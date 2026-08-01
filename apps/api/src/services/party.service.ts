@@ -10,6 +10,10 @@ import type { Database } from '@erp/database';
 import { PartyRepository } from '../repositories/party.repository';
 import { BaseRepository } from '../repositories/base.repository';
 import { AccountingService } from './accounting.service';
+import {
+  naturalDirection,
+  toSignedOpeningBalance,
+} from '@erp/shared';
 import type {
   Party,
   PartyWithSummary,
@@ -56,18 +60,67 @@ interface PartyRow {
   notes: string | null;
   /** Optional until DB types are regenerated after migration 023 */
   ledger_account_id?: string | null;
+  /** Optional until DB types are regenerated after migration 035 */
+  opening_balance?: number | null;
+  opening_balance_date?: string | null;
   created_at: string;
   updated_at: string;
 }
 
-/** RPC result from get_balance_summary */
+/** RPC result from get_party_balance_summary */
 interface BalanceSummaryRow {
   party_id: string;
   party_name: string;
   party_type: string;
-  balance: number;
+  opening_balance: number;
   total_invoiced: number;
   total_paid: number;
+  current_balance: number;
+}
+
+/** A single debit/credit line of a journal entry */
+interface JournalLineInput {
+  account_id: string;
+  debit: number;
+  credit: number;
+}
+
+/** Amounts below this are treated as zero (DECIMAL(15,2) rounding noise) */
+const OPENING_BALANCE_EPSILON = 0.005;
+
+/** Today as a plain calendar date (YYYY-MM-DD) */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Build the two journal lines for an opening balance adjustment.
+ *
+ * `delta` is signed in the party's natural direction, so it has to be flipped
+ * for suppliers to work out which side of the ledger moves:
+ *   customer, delta > 0 -> the party owes us more   -> debit the party ledger
+ *   supplier, delta > 0 -> we owe the party more    -> credit the party ledger
+ *
+ * Exported for unit testing — it is pure and covers all four sign/type cases.
+ */
+export function buildOpeningBalanceLines(
+  type: PartyType,
+  delta: number,
+  partyLedgerAccountId: string,
+  equityAccountId: string
+): JournalLineInput[] {
+  const amount = Math.round(Math.abs(delta) * 100) / 100;
+  const debitsPartyLedger = (type === 'customer' ? delta : -delta) > 0;
+
+  return debitsPartyLedger
+    ? [
+        { account_id: partyLedgerAccountId, debit: amount, credit: 0 },
+        { account_id: equityAccountId, debit: 0, credit: amount },
+      ]
+    : [
+        { account_id: equityAccountId, debit: amount, credit: 0 },
+        { account_id: partyLedgerAccountId, debit: 0, credit: amount },
+      ];
 }
 
 /**
@@ -78,15 +131,19 @@ export class PartyService {
   private readonly accountingService: AccountingService;
   private readonly tenantId: string;
   private readonly supabase: SupabaseClient<Database>;
+  /** Attributed as the author of any journal entry this service posts */
+  private readonly userId: string | null;
 
   constructor(
     supabase: SupabaseClient<Database>,
-    tenantId: string
+    tenantId: string,
+    userId: string | null = null
   ) {
     this.supabase = supabase;
     this.partyRepository = new PartyRepository(supabase);
     this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
+    this.userId = userId;
   }
 
   // ==========================================================================
@@ -162,6 +219,27 @@ export class PartyService {
       );
     }
 
+    // Opening balance is applied after the ledger exists, so the journal entry
+    // has somewhere to post to. The row is inserted with balance 0 and the RPC
+    // moves it, keeping create and edit on one code path.
+    if (input.openingBalance) {
+      const signed = toSignedOpeningBalance(
+        input.type,
+        input.openingBalance,
+        input.openingBalanceDirection ?? naturalDirection(input.type)
+      );
+      const asOfDate = input.openingBalanceDate ?? todayIso();
+      const delta = await this.applyOpeningBalance(row.id, signed, asOfDate);
+      await this.postOpeningBalanceJournalEntry(row.id, input.name.trim(), input.type, delta, asOfDate);
+
+      // Reflect what the RPC just wrote, rather than re-reading the row.
+      // (These columns are absent from the pre-035 generated types.)
+      const openingRow = row as unknown as PartyRow;
+      openingRow.opening_balance = signed;
+      openingRow.opening_balance_date = signed === 0 ? null : asOfDate;
+      openingRow.balance = Number(row.balance ?? 0) + delta;
+    }
+
     return this.mapRow(row);
   }
 
@@ -225,7 +303,144 @@ export class PartyService {
       );
     }
 
+    // Opening balance never goes through `updates` — the RPC owns those columns
+    // so it can adjust the running balance by the delta atomically.
+    const wantsOpeningBalanceChange =
+      input.openingBalance !== undefined ||
+      input.openingBalanceDirection !== undefined ||
+      input.openingBalanceDate !== undefined;
+
+    if (wantsOpeningBalanceChange) {
+      const partyType = existing.type as PartyType;
+      const signed = toSignedOpeningBalance(
+        partyType,
+        input.openingBalance ?? 0,
+        input.openingBalanceDirection ?? naturalDirection(partyType)
+      );
+      const asOfDate = input.openingBalanceDate ?? todayIso();
+      const delta = await this.applyOpeningBalance(id, signed, asOfDate);
+
+      // A date-only edit yields a zero delta: the reporting position of the
+      // opening balance moves, but its value — and therefore the GL — does not.
+      if (Math.abs(delta) > OPENING_BALANCE_EPSILON) {
+        await this.postOpeningBalanceJournalEntry(
+          id,
+          row.name,
+          partyType,
+          delta,
+          asOfDate
+        );
+      }
+
+      // The row returned by the update above predates the RPC, so re-read it.
+      const refreshed = await this.partyRepository.findById(this.tenantId, id);
+      if (refreshed) {
+        return this.mapRow(refreshed as unknown as PartyRow);
+      }
+    }
+
     return this.mapRow(row);
+  }
+
+  // ==========================================================================
+  // OPENING BALANCE
+  // ==========================================================================
+
+  /**
+   * Persist a new opening balance and fold the difference into the running
+   * balance. Returns the delta applied, which drives the adjusting journal
+   * entry. Failures propagate — an unrecorded balance change is not something
+   * to swallow.
+   */
+  private async applyOpeningBalance(
+    partyId: string,
+    signedAmount: number,
+    asOfDate: string
+  ): Promise<number> {
+    const { data, error } = await this.supabase.rpc(
+      'set_party_opening_balance' as never,
+      {
+        p_tenant_id: this.tenantId,
+        p_party_id: partyId,
+        p_amount: signedAmount,
+        p_date: signedAmount === 0 ? null : asOfDate,
+      } as never
+    );
+
+    if (error) {
+      throw new PartyError(
+        `Failed to set opening balance: ${error.message}`,
+        'OPENING_BALANCE_FAILED',
+        500
+      );
+    }
+
+    return Number(data ?? 0);
+  }
+
+  /**
+   * Post an adjusting journal entry for an opening balance change, against the
+   * party's own ledger and Opening Balance Equity (3200).
+   *
+   * Edits post the *delta* rather than reversing and re-posting, mirroring
+   * `OpeningStockService.setOpeningStock`. That also sidesteps
+   * `uq_journal_entries_source_posted`: a fixed source_type/source_id pair would
+   * let the first edit post and then collide on every subsequent one, so these
+   * entries go in as plain manual vouchers and are traced via the per-party
+   * ledger account plus the description.
+   *
+   * Never throws — a misconfigured chart of accounts must not block saving a
+   * party, which is how every other accounting hook in this codebase behaves.
+   */
+  private async postOpeningBalanceJournalEntry(
+    partyId: string,
+    partyName: string,
+    type: PartyType,
+    delta: number,
+    asOfDate: string
+  ): Promise<string | null> {
+    if (Math.abs(delta) <= OPENING_BALANCE_EPSILON) return null;
+
+    try {
+      if (!(await this.accountingService.isEnabled(this.tenantId))) return null;
+
+      const ledgerAccountId = await this.accountingService.ensurePartyLedger(
+        this.tenantId,
+        partyId,
+        type
+      );
+      if (!ledgerAccountId) {
+        console.warn(
+          `[party] Opening balance JE skipped for ${partyId}: no ledger account ` +
+            `(is accounts_${type === 'customer' ? 'receivable' : 'payable'} mapped?)`
+        );
+        return null;
+      }
+
+      const equityAccountId =
+        await this.accountingService.getOrCreateOpeningBalanceEquityAccount(
+          this.tenantId
+        );
+
+      const entry = await this.accountingService.createJournalEntry(
+        this.tenantId,
+        this.userId ?? 'system',
+        {
+          entry_date: asOfDate,
+          description: `Opening balance — ${partyName} (${asOfDate})`,
+          lines: buildOpeningBalanceLines(type, delta, ledgerAccountId, equityAccountId),
+        }
+      );
+
+      await this.accountingService.postJournalEntry(this.tenantId, entry.id);
+      return entry.id;
+    } catch (error) {
+      console.error(
+        `[party] Failed to post opening balance JE for party ${partyId}:`,
+        error
+      );
+      return null;
+    }
   }
 
   /**
@@ -305,9 +520,12 @@ export class PartyService {
       partyId: row.party_id,
       partyName: row.party_name,
       partyType: row.party_type as PartyType,
+      openingBalance: Number(row.opening_balance || 0),
       totalInvoiced: Number(row.total_invoiced || 0),
       totalPaid: Number(row.total_paid || 0),
-      currentBalance: Number(row.balance || 0),
+      // The RPC column is current_balance; reading row.balance here previously
+      // yielded undefined, so every summary reported a zero balance.
+      currentBalance: Number(row.current_balance || 0),
     }));
   }
 
@@ -327,11 +545,15 @@ export class PartyService {
     const dateFrom = params.dateFrom || '1900-01-01';
     const dateTo = params.dateTo || '2099-12-31';
 
+    // The party carries its own opening balance, so pass the row we already
+    // loaded down rather than re-querying it twice below.
+    const partyRow = party as unknown as PartyRow;
+
     // Get opening balance (balance at dateFrom)
-    const openingBalance = await this.getBalanceAtDate(params.partyId, dateFrom);
+    const openingBalance = await this.getBalanceAtDate(params.partyId, dateFrom, partyRow);
 
     // Get transactions (invoices and payments)
-    const transactions = await this.getTransactions(params.partyId, dateFrom, dateTo);
+    const transactions = await this.getTransactions(params.partyId, dateFrom, dateTo, partyRow);
 
     // Calculate running balance
     let runningBalance = openingBalance;
@@ -362,7 +584,20 @@ export class PartyService {
   /**
    * Get balance at a specific date
    */
-  private async getBalanceAtDate(partyId: string, date: string): Promise<number> {
+  private async getBalanceAtDate(
+    partyId: string,
+    date: string,
+    party: PartyRow
+  ): Promise<number> {
+    // Opening balance counts toward the brought-forward figure only when it
+    // predates the window. Strict `<` matches the .lt() used for invoices and
+    // payments below, so a balance dated exactly on `date` shows up as a
+    // transaction row instead — counted once either way, never twice.
+    const openingBalance = Number(party.opening_balance || 0);
+    const openingBalanceDate = party.opening_balance_date ?? null;
+    const openingApplies =
+      openingBalance !== 0 && openingBalanceDate !== null && openingBalanceDate < date;
+
     // Get all invoices finalized before date
     const { data: invoices } = await this.supabase
       .from('invoices')
@@ -390,7 +625,7 @@ export class PartyService {
       0
     );
 
-    return invoiceTotal - paymentTotal;
+    return (openingApplies ? openingBalance : 0) + invoiceTotal - paymentTotal;
   }
 
   /**
@@ -399,9 +634,32 @@ export class PartyService {
   private async getTransactions(
     partyId: string,
     dateFrom: string,
-    dateTo: string
+    dateTo: string,
+    party: PartyRow
   ): Promise<Omit<PartyTransaction, 'balance'>[]> {
     const transactions: Omit<PartyTransaction, 'balance'>[] = [];
+
+    // Opening balance, when it falls inside the window. debit/credit follow the
+    // statement's own natural-direction convention (running balance is
+    // debit - credit), so this needs no per-party-type branch.
+    const openingBalance = Number(party.opening_balance || 0);
+    const openingBalanceDate = party.opening_balance_date ?? null;
+    if (
+      openingBalance !== 0 &&
+      openingBalanceDate !== null &&
+      openingBalanceDate >= dateFrom &&
+      openingBalanceDate <= dateTo
+    ) {
+      transactions.push({
+        id: `opening-${partyId}`,
+        type: 'opening',
+        date: openingBalanceDate,
+        reference: 'OB',
+        description: 'Opening balance',
+        debit: openingBalance > 0 ? openingBalance : 0,
+        credit: openingBalance < 0 ? -openingBalance : 0,
+      });
+    }
 
     // Get invoices
     const { data: invoices } = await this.supabase
@@ -450,8 +708,14 @@ export class PartyService {
       });
     }
 
-    // Sort by date
-    return transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Sort by date, with the opening balance pinned ahead of same-day activity.
+    // The tiebreaker matters because the opening date is a bare YYYY-MM-DD
+    // (parsed as UTC midnight) while invoices carry a full timestamp.
+    return transactions.sort((a, b) => {
+      const byDate = new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (byDate !== 0) return byDate;
+      return (a.type === 'opening' ? 0 : 1) - (b.type === 'opening' ? 0 : 1);
+    });
   }
 
   // ==========================================================================
@@ -633,6 +897,9 @@ export class PartyService {
       address: row.address,
       taxNumber: row.tax_number,
       balance: Number(row.balance || 0),
+      openingBalance: Number(row.opening_balance || 0),
+      openingBalanceDate: row.opening_balance_date ?? null,
+      // ^ falls back to zero/null on rows from a pre-migration-035 DB.
       isActive: row.is_active,
       notes: row.notes,
       ledgerAccountId: row.ledger_account_id ?? null,

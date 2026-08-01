@@ -150,8 +150,22 @@ export default function SupplierDetailPage() {
         accessorKey: 'type',
         header: t('txnColumns.type'),
         cell: ({ row }) => (
-          <Badge variant={row.original.type === 'invoice' ? 'default' : 'secondary'}>
-            {t(`txnTypes.${row.original.type}` as 'txnTypes.invoice' | 'txnTypes.payment')}
+          <Badge
+            variant={
+              row.original.type === 'invoice'
+                ? 'default'
+                : row.original.type === 'opening'
+                  ? 'outline'
+                  : 'secondary'
+            }
+          >
+            {t(
+              `txnTypes.${row.original.type}` as
+                | 'txnTypes.invoice'
+                | 'txnTypes.payment'
+                | 'txnTypes.return'
+                | 'txnTypes.opening'
+            )}
           </Badge>
         ),
       },
@@ -352,6 +366,14 @@ export default function SupplierDetailPage() {
                 </p>
               </div>
             </div>
+            {supplier.openingBalance !== 0 && supplier.openingBalanceDate && (
+              <p className="text-xs text-muted-foreground">
+                {t('detail.openingBalanceLine', {
+                  amount: formatCurrency(Math.abs(supplier.openingBalance)),
+                  date: formatDate(supplier.openingBalanceDate),
+                })}
+              </p>
+            )}
             <Button
               variant="outline"
               size="sm"

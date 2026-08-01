@@ -28,8 +28,8 @@ router.use(requireAuth);
  * Helper to create PartyService with tenant context
  */
 function getPartyService(req: Request): PartyService {
-  const { supabase, tenantId } = getTenantContext(req);
-  return new PartyService(supabase, tenantId);
+  const { supabase, tenantId, userId } = getTenantContext(req);
+  return new PartyService(supabase, tenantId, userId);
 }
 
 // =============================================================================

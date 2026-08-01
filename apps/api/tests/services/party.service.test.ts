@@ -1,9 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { PartyService, PartyError } from '../../src/services/party.service';
+import {
+  PartyService,
+  PartyError,
+  buildOpeningBalanceLines,
+} from '../../src/services/party.service';
+import {
+  naturalDirection,
+  toSignedOpeningBalance,
+  fromSignedOpeningBalance,
+} from '@erp/shared';
 
 /**
  * Unit tests for PartyService pure business logic.
- * Tests error class, mapRow, mapSortField — no DB mocks needed.
+ * Tests error class, mapRow, mapSortField, opening balance sign conversion and
+ * journal line construction — no DB mocks needed.
  */
 
 const partyService = new (PartyService as any)(null, 'test-tenant');
@@ -133,6 +143,10 @@ describe('PartyService.mapRow', () => {
       address: '123 Main St',
       taxNumber: 'TAX-001',
       balance: 1500.5,
+      // Defaulted for rows predating migrations 023 and 035 respectively.
+      ledgerAccountId: null,
+      openingBalance: 0,
+      openingBalanceDate: null,
       isActive: true,
       notes: 'VIP customer',
       createdAt: '2025-01-01T00:00:00Z',
@@ -251,5 +265,123 @@ describe('PartyService constructor', () => {
 
   it('initializes partyRepository', () => {
     expect(partyService.partyRepository).toBeDefined();
+  });
+});
+
+// ==========================================================================
+// Opening balance sign convention
+// ==========================================================================
+
+describe('opening balance sign helpers', () => {
+  it('treats debit as the natural direction for customers', () => {
+    expect(naturalDirection('customer')).toBe('debit');
+  });
+
+  it('treats credit as the natural direction for suppliers', () => {
+    expect(naturalDirection('supplier')).toBe('credit');
+  });
+
+  it('signs a customer debit balance positive (they owe us)', () => {
+    expect(toSignedOpeningBalance('customer', 1000, 'debit')).toBe(1000);
+  });
+
+  it('signs a customer credit balance negative (advance held)', () => {
+    expect(toSignedOpeningBalance('customer', 1000, 'credit')).toBe(-1000);
+  });
+
+  it('signs a supplier credit balance positive (we owe them)', () => {
+    expect(toSignedOpeningBalance('supplier', 500, 'credit')).toBe(500);
+  });
+
+  it('signs a supplier debit balance negative (advance paid)', () => {
+    expect(toSignedOpeningBalance('supplier', 500, 'debit')).toBe(-500);
+  });
+
+  it('ignores a negative magnitude, letting the direction carry the sign', () => {
+    expect(toSignedOpeningBalance('customer', -1000, 'debit')).toBe(1000);
+  });
+
+  it('round-trips every party type and direction combination', () => {
+    const types = ['customer', 'supplier'] as const;
+    const directions = ['debit', 'credit'] as const;
+
+    for (const type of types) {
+      for (const direction of directions) {
+        const signed = toSignedOpeningBalance(type, 250.75, direction);
+        expect(fromSignedOpeningBalance(type, signed)).toEqual({
+          amount: 250.75,
+          direction,
+        });
+      }
+    }
+  });
+
+  it('reports zero as the natural direction', () => {
+    expect(fromSignedOpeningBalance('customer', 0)).toEqual({ amount: 0, direction: 'debit' });
+    expect(fromSignedOpeningBalance('supplier', 0)).toEqual({ amount: 0, direction: 'credit' });
+  });
+});
+
+// ==========================================================================
+// Opening balance journal lines
+// ==========================================================================
+
+describe('buildOpeningBalanceLines', () => {
+  const LEDGER = 'party-ledger-id';
+  const EQUITY = 'opening-balance-equity-id';
+
+  it('debits the party ledger when a customer owes more', () => {
+    expect(buildOpeningBalanceLines('customer', 100, LEDGER, EQUITY)).toEqual([
+      { account_id: LEDGER, debit: 100, credit: 0 },
+      { account_id: EQUITY, debit: 0, credit: 100 },
+    ]);
+  });
+
+  it('credits the party ledger when a customer owes less', () => {
+    expect(buildOpeningBalanceLines('customer', -100, LEDGER, EQUITY)).toEqual([
+      { account_id: EQUITY, debit: 100, credit: 0 },
+      { account_id: LEDGER, debit: 0, credit: 100 },
+    ]);
+  });
+
+  it('credits the party ledger when we owe a supplier more', () => {
+    expect(buildOpeningBalanceLines('supplier', 100, LEDGER, EQUITY)).toEqual([
+      { account_id: EQUITY, debit: 100, credit: 0 },
+      { account_id: LEDGER, debit: 0, credit: 100 },
+    ]);
+  });
+
+  it('debits the party ledger when we owe a supplier less', () => {
+    expect(buildOpeningBalanceLines('supplier', -100, LEDGER, EQUITY)).toEqual([
+      { account_id: LEDGER, debit: 100, credit: 0 },
+      { account_id: EQUITY, debit: 0, credit: 100 },
+    ]);
+  });
+
+  it('always balances, and never emits a zero/zero line (journal_lines CHECK)', () => {
+    const cases: ['customer' | 'supplier', number][] = [
+      ['customer', 100],
+      ['customer', -100],
+      ['supplier', 100],
+      ['supplier', -100],
+      ['customer', 0.014],
+    ];
+
+    for (const [type, delta] of cases) {
+      const lines = buildOpeningBalanceLines(type, delta, LEDGER, EQUITY);
+      const debits = lines.reduce((sum, l) => sum + l.debit, 0);
+      const credits = lines.reduce((sum, l) => sum + l.credit, 0);
+
+      expect(debits).toBeCloseTo(credits, 10);
+      for (const line of lines) {
+        expect(line.debit === 0 && line.credit === 0).toBe(false);
+      }
+    }
+  });
+
+  it('rounds the amount to two decimal places', () => {
+    const lines = buildOpeningBalanceLines('customer', 33.333, LEDGER, EQUITY);
+    expect(lines[0].debit).toBe(33.33);
+    expect(lines[1].credit).toBe(33.33);
   });
 });
