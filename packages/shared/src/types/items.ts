@@ -519,6 +519,133 @@ export interface ItemMovementParams {
 }
 
 // =============================================================================
+// ITEM GRID (BULK-EDIT) TYPES
+// =============================================================================
+
+/**
+ * One row of the items bulk-edit grid: item main info + the effective retail and
+ * cost prices + the opening-stock position in the selected warehouse, merged by
+ * the `get_item_grid` RPC so the page needs a single round-trip per page.
+ *
+ * Price ids are null when the item has no price row of that tier yet — the save
+ * endpoint uses that to decide between INSERT and UPDATE.
+ */
+export interface ItemGridRow {
+  itemId: string;
+  name: string;
+  nameAlias: string | null;
+  sku: string | null;
+  barcode: string | null;
+  brand: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  unitOfMeasure: string;
+  tracksExpiry: boolean;
+  expiryDate: string | null;
+  isActive: boolean;
+
+  retailPriceId: string | null;
+  retailPrice: number | null;
+  retailCurrency: string | null;
+  costPriceId: string | null;
+  costPrice: number | null;
+  costCurrency: string | null;
+
+  /** On-hand quantity in the selected warehouse (0 when no warehouse selected) */
+  currentQuantity: number;
+  hasOpeningEntry: boolean;
+  openingQuantity: number;
+  openingRemaining: number;
+  /** Units of the opening layer already consumed — the floor for any qty edit */
+  openingSoldQuantity: number;
+  openingUnitCost: number;
+}
+
+/**
+ * Query parameters for GET /items/grid.
+ *
+ * The `missing*` flags are the "advanced filters": they surface catalogue gaps
+ * (no barcode, no or zero price, no opening quantity/cost) and are ANDed.
+ */
+export interface ItemGridQueryParams {
+  /** Scopes the opening-stock columns; required for the opening-* filters */
+  warehouseId?: string;
+  search?: string;
+  categoryId?: string;
+  /** Barcode is null or blank */
+  missingBarcode?: boolean;
+  /** No retail price row, or the price is 0 */
+  missingRetail?: boolean;
+  /** No cost price row, or the price is 0 */
+  missingCost?: boolean;
+  /** Opening quantity is 0 in this warehouse */
+  zeroOpeningQty?: boolean;
+  /** No opening layer, or its unit cost is 0 */
+  missingOpeningCost?: boolean;
+  includeInactive?: boolean;
+  page?: number;
+  limit?: number;
+  sortBy?: 'name' | 'sku' | 'barcode';
+  sortDir?: SortDirection;
+}
+
+/**
+ * Which part of a grid row a result refers to. One row save touches up to four
+ * independent subsystems, and the UI reports each one separately.
+ */
+export type ItemGridSection = 'item' | 'retailPrice' | 'costPrice' | 'opening';
+
+/**
+ * Outcome of one section of a row save.
+ *
+ * `skipped` means the section had nothing to write (the caller did not send it).
+ * A `failed` section never prevents the others from being attempted.
+ */
+export interface ItemGridSectionResult {
+  section: ItemGridSection;
+  status: 'ok' | 'skipped' | 'failed';
+  /** Machine-readable reason on failure, e.g. DUPLICATE_BARCODE, OPENING_BELOW_SOLD */
+  code?: string;
+  /** Human-readable detail for both success ("created in SDG") and failure */
+  message?: string;
+}
+
+/**
+ * Body of POST /items/:id/grid-row — only the sections the user actually changed.
+ */
+export interface SaveItemGridRowInput {
+  item?: {
+    name?: string;
+    nameAlias?: string | null;
+    barcode?: string | null;
+    /** Setting a date turns tracks_expiry on; null turns it off */
+    expiryDate?: string | null;
+  };
+  /** Creates the 'retail' price row in the tenant default currency when absent */
+  retailPrice?: number;
+  /** Creates the 'cost' price row in the tenant default currency when absent */
+  costPrice?: number;
+  opening?: {
+    warehouseId: string;
+    quantity: number;
+    unitCost: number;
+    asOfDate: string;
+  };
+}
+
+/**
+ * Response of POST /items/:id/grid-row.
+ *
+ * Always HTTP 200 — partial success is normal here, so the per-section results
+ * carry the outcome and `row` carries the refreshed values for cache patching.
+ */
+export interface SaveItemGridRowResult {
+  ok: boolean;
+  sections: ItemGridSectionResult[];
+  row: ItemGridRow | null;
+}
+
+// =============================================================================
 // EXPIRY TYPES
 // =============================================================================
 

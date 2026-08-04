@@ -61,6 +61,7 @@ import {
   FolderTree,
   CalendarClock,
   ArrowRightLeft,
+  Table2,
 } from 'lucide-react';
 
 export default function ItemsPage() {
@@ -334,6 +335,13 @@ export default function ItemsPage() {
           >
             <FolderTree className="mr-2 h-4 w-4" />
             {t('manageCategoriesButton')}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/${locale}/items/bulk-edit`)}
+          >
+            <Table2 className="mr-2 h-4 w-4" />
+            {t('bulkEditButton')}
           </Button>
           <Button variant="outline" onClick={handleQuickAdd}>
             <Plus className="mr-2 h-4 w-4" />

@@ -25,6 +25,7 @@ import {
   Globe,
   Palette,
   UserCircle,
+  Table2,
 } from 'lucide-react';
 
 interface SettingsSection {
@@ -77,6 +78,12 @@ export default function SettingsPage() {
       description: t('cards.exchangeRatesDesc'),
       icon: <TrendingUp className="h-6 w-6" />,
       href: `/${locale}/settings/exchange-rates`,
+    },
+    {
+      title: t('cards.itemsGrid'),
+      description: t('cards.itemsGridDesc'),
+      icon: <Table2 className="h-6 w-6" />,
+      href: `/${locale}/items/bulk-edit`,
     },
     {
       title: t('cards.subscription'),

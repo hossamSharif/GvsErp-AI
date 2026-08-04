@@ -1,0 +1,1506 @@
+{
+  "1": {
+    "itemId": "326ceea9-c865-420f-9f33-a64788757388",
+    "name": "Nylon Monofilament USP 1"
+  },
+  "2": {
+    "itemId": "0e875a7e-ee81-4dba-967a-baae208e1988",
+    "name": "Chromic Catgut USP 1"
+  },
+  "3": {
+    "itemId": "c472a073-e8ae-4321-bfdf-b123e77b0f03",
+    "name": "Chromic Catgut USP 0"
+  },
+  "4": {
+    "itemId": "569c93b5-8f08-4842-bfa8-633c0d78f6b6",
+    "name": "Chromic Catgut USP 2"
+  },
+  "5": {
+    "itemId": "345b36da-a94a-4bb2-822e-bc7b43c1ad88",
+    "name": "Vicryl 2/0"
+  },
+  "6": {
+    "itemId": "cd916bb0-8ac3-4383-864d-9a8142159ebd",
+    "name": "Vicryl 2"
+  },
+  "7": {
+    "itemId": "e90637b3-401c-496d-a256-4dfab93e28dd",
+    "name": "Benzact Lotion"
+  },
+  "8": {
+    "itemId": "343f8670-0472-47b0-a2ef-e7bdb07d6e0d",
+    "name": "Potassium Permanganate Solution"
+  },
+  "9": {
+    "itemId": "06668b27-6de9-493e-b68a-3bf211b16dbe",
+    "name": "Hydrogen Peroxide Solution"
+  },
+  "10": {
+    "itemId": "03586f40-749a-45e6-9048-518e52cf04a4",
+    "name": "Calamine Lotion"
+  },
+  "11": {
+    "itemId": "7b20df17-66c3-4b54-8e83-03812818eac9",
+    "name": "Axcel Lignocaine 2% Gel"
+  },
+  "12": {
+    "itemId": "bc395815-5f30-4740-95ee-bd5b34604dc1",
+    "name": "Deriva Gel"
+  },
+  "13": {
+    "itemId": "608c2384-7c4d-4973-8173-5952c0639188",
+    "name": "Cd Acne Stop 0.1% Gel"
+  },
+  "14": {
+    "itemId": "ce9598e5-af48-4a38-937a-798fd2549c65",
+    "name": "Mebo Ointment"
+  },
+  "15": {
+    "itemId": "f4e2db0a-4090-46f5-8189-ea906a4f92f9",
+    "name": "Magic Cream"
+  },
+  "16": {
+    "itemId": "e6da8f6d-1477-4130-a0de-8bf49e2eda42",
+    "name": "Cornex Gel"
+  },
+  "17": {
+    "itemId": "c4d5965f-6d02-4a7d-9291-28efffcf816c",
+    "name": "Fusi Ointment"
+  },
+  "18": {
+    "itemId": "244c0749-e142-4f8d-8d32-f49588b5a2e1",
+    "name": "Fusiderm Ointment"
+  },
+  "19": {
+    "itemId": "238c3816-59da-4a6e-849b-614dbf4076db",
+    "name": "Fusiderm Cream"
+  },
+  "20": {
+    "itemId": "76b4e522-f725-4591-831a-cfec686305f5",
+    "name": "Tetracycline Ointment"
+  },
+  "21": {
+    "itemId": "75cb06be-ffba-423c-a0da-1fbeca392e5e",
+    "name": "Beta N Ointment"
+  },
+  "22": {
+    "itemId": "5866a8fd-46b4-456c-90e6-6b14ee6343a3",
+    "name": "Cortiderm 1% Cream"
+  },
+  "23": {
+    "itemId": "2e724216-f7d4-426d-9a44-667b88cecb5b",
+    "name": "Curanus Ointment"
+  },
+  "24": {
+    "itemId": "4c2150dd-6fc2-45ca-bac3-714ccd02c7bf",
+    "name": "Betaderm Ointment"
+  },
+  "25": {
+    "itemId": "8b853e0f-3fa9-402c-a04b-c25f79fac868",
+    "name": "Curazole Cream"
+  },
+  "26": {
+    "itemId": "f6bb03f7-4950-432a-8a60-ae0c3cc71346",
+    "name": "Monicure Cream"
+  },
+  "27": {
+    "itemId": "ee308b45-e62c-4d7d-9862-94b71ac4e84b",
+    "name": "Virustat Cream"
+  },
+  "28": {
+    "itemId": "f5aced0d-e432-453d-9132-484135005cb2",
+    "name": "Ichthanova Ointment"
+  },
+  "29": {
+    "itemId": "da95c211-f4b4-478c-b7dd-e39091b44145",
+    "name": "Cd Sitaburn Ointment"
+  },
+  "30": {
+    "itemId": "4a25a871-9c0a-46df-b1ce-b976fbe1e3c3",
+    "name": "Cronomesone Ointment"
+  },
+  "31": {
+    "itemId": "57bb9866-e999-42fb-93b1-176a389cc2ad",
+    "name": "Myclobate Cream"
+  },
+  "32": {
+    "itemId": "d0cdce7f-0424-4581-b110-8c30759702fa",
+    "name": "Micazole Gel"
+  },
+  "33": {
+    "itemId": "90fde827-5e39-4e9e-a771-463d6aa3af66",
+    "name": "Vliss Gel Wash"
+  },
+  "34": {
+    "itemId": "8e651e85-353f-4eed-96cd-defdc10f1063",
+    "name": "Herbo Heel Ointment"
+  },
+  "35": {
+    "itemId": "2df52f0b-4f2c-4fe8-9b26-eacd2cda472f",
+    "name": "Cd Metazone Ointment"
+  },
+  "36": {
+    "itemId": "fe51aff1-7d71-484e-87bd-f811069898ee",
+    "name": "Cd Metazone Cream"
+  },
+  "37": {
+    "itemId": "1cc12d7e-2387-49e3-94a0-4b3031e4a720",
+    "name": "Supirocin Ointment"
+  },
+  "38": {
+    "itemId": "2cdedb24-94ed-4693-92d5-0c7a8855a304",
+    "name": "Cd Murocin Ointment"
+  },
+  "39": {
+    "itemId": "000ea5c9-f34e-4093-a943-b6f28ea9a593",
+    "name": "Melanthenol Cream"
+  },
+  "40": {
+    "itemId": "3aa540d5-f425-40c6-a94e-24d68d68f664",
+    "name": "Joy Dine Solution"
+  },
+  "41": {
+    "itemId": "c40c83a7-7e54-42bc-80d3-edbfbb4cbd50",
+    "name": "Moover Gel"
+  },
+  "42": {
+    "itemId": "859b1e09-f1dc-4b1c-8576-167cc68843df",
+    "name": "Tabiflex Cool Gel"
+  },
+  "43": {
+    "itemId": "350cca69-6e5e-4a96-9dbb-655d521d51a8",
+    "name": "Voligesic Gel"
+  },
+  "44": {
+    "itemId": "b26b20fd-b3ff-4b60-97c7-f6c85ed76ca3",
+    "name": "Barrad Cream"
+  },
+  "45": {
+    "itemId": "aea0a515-832c-4c75-ba7e-027cbd5a9eb6",
+    "name": "Harrar Cream"
+  },
+  "46": {
+    "itemId": "410a511e-1f25-40d1-a1b3-3b49c63da887",
+    "name": "Vicryl Surgical USP 3/0"
+  },
+  "47": {
+    "itemId": "e556d438-1c7b-4b8b-8616-84cafad78743",
+    "name": "PTC Cod Liver Oil Cap"
+  },
+  "48": {
+    "itemId": "d6fc7265-d694-4cc7-b78d-2c7b74c1f557",
+    "name": "Haemovox Tab"
+  },
+  "49": {
+    "itemId": "5355eb78-868b-4f69-bb59-2aec777fd004",
+    "name": "Fe-Full"
+  },
+  "50": {
+    "itemId": "2ea67cdb-58cf-48c3-b020-710333649505",
+    "name": "Vitafull Cap"
+  },
+  "51": {
+    "itemId": "3a73c339-8a13-4533-a992-e8ffc93b7bd3",
+    "name": "Ferron Forte Cap"
+  },
+  "52": {
+    "itemId": "a0ea47ab-8809-4d34-b64d-c34c609ecea5",
+    "name": "Fe-Ferrol Cap"
+  },
+  "53": {
+    "itemId": "6db0b0a9-1fba-4b82-a41b-47abf3b05ab3",
+    "name": "Pre Well Tab"
+  },
+  "54": {
+    "itemId": "e18cd9b9-9931-4dbc-9700-3546a5335166",
+    "name": "Calci-Pure Tab"
+  },
+  "55": {
+    "itemId": "0e3df5ae-0335-41ed-ae4b-05edade796c3",
+    "name": "Azoflox 400mg Tab"
+  },
+  "56": {
+    "itemId": "a0d17b56-d04a-4ce0-9aef-0513cfd6ca95",
+    "name": "Proditil 200mg Tab"
+  },
+  "57": {
+    "itemId": "8bab2114-f188-4de6-95e7-99673ee5cc5c",
+    "name": "Doxim 200mg Tab"
+  },
+  "58": {
+    "itemId": "450106f0-7746-47b3-8499-eca7e72a6d19",
+    "name": "Ferpod 100mg Tab"
+  },
+  "59": {
+    "itemId": "105c39f3-81ae-4927-a4c6-f06ba5ecd1b3",
+    "name": "Amixim 200mg Tab"
+  },
+  "60": {
+    "itemId": "09b491ac-4676-4787-b74e-792fc0f9ab8d",
+    "name": "Trinitab 500mg Tab"
+  },
+  "61": {
+    "itemId": "3b01a972-6abc-45c3-9d6f-c072545c9da3",
+    "name": "Bactofix 400mg Caps"
+  },
+  "62": {
+    "itemId": "7fc2b5c8-3e56-470a-985a-f3f2a3d7b15f",
+    "name": "Levoscot 500mg Tab"
+  },
+  "63": {
+    "itemId": "3da1d302-fe12-432d-9b71-3727649c2618",
+    "name": "Levobest 500mg Tab"
+  },
+  "64": {
+    "itemId": "4a25af30-3afb-4161-980b-03adfe3e3db8",
+    "name": "Bralix 5mg/2.5mg Tab"
+  },
+  "65": {
+    "itemId": "c68012a4-4d0d-483a-a900-ab4cf08bf183",
+    "name": "Foli Care Tab"
+  },
+  "66": {
+    "itemId": "303e48e2-5691-44ca-9c41-116a45499ac9",
+    "name": "Joemega 1000mg Cap"
+  },
+  "67": {
+    "itemId": "e7409f31-02d1-4cfa-97c9-b574114b32d9",
+    "name": "GTN Cream"
+  },
+  "68": {
+    "itemId": "e5b8e057-1568-45d9-8674-8608edc3c2bf",
+    "name": "Uripan 5mg Tab"
+  },
+  "69": {
+    "itemId": "10395e73-2870-4ea9-b8e7-bae8123b0d96",
+    "name": "Varoxa Tab"
+  },
+  "70": {
+    "itemId": "11211c68-1d24-466b-a6cb-fa66cd3ff01e",
+    "name": "Kosimet 500/50 Tab"
+  },
+  "71": {
+    "itemId": "d8c767fe-a52c-4858-adc0-0c8ecfed1ec0",
+    "name": "Cd Vilda 50mg Tab"
+  },
+  "72": {
+    "itemId": "64efa527-5e59-4367-9346-3b4765e566f2",
+    "name": "Mecoba 500mg Tab"
+  },
+  "73": {
+    "itemId": "c2cbbcae-ece0-494c-9264-a02575366f7f",
+    "name": "Diabenone Tab"
+  },
+  "74": {
+    "itemId": "40f078dc-bbe7-42ac-acab-024e3d0e5d14",
+    "name": "Cd Vildamet 850/50 Tab"
+  },
+  "75": {
+    "itemId": "6e1c88ef-1838-477f-a4ab-49d32c3aad49",
+    "name": "Vitan Cap"
+  },
+  "76": {
+    "itemId": "96d911da-eb05-4136-a11b-d0ed38deb616",
+    "name": "HG-9 Sachet"
+  },
+  "77": {
+    "itemId": "2378b3fd-8897-4004-92d9-cd11d7121634",
+    "name": "Vilget-M Tab"
+  },
+  "78": {
+    "itemId": "d782e25a-74a3-49c7-ad0d-1703f985508b",
+    "name": "Acuteck Pro"
+  },
+  "79": {
+    "itemId": "15218582-40ec-4ab5-aec1-517fe5ac2380",
+    "name": "1 MMU Tab"
+  },
+  "80": {
+    "itemId": "ee2d22fc-bb7f-4128-a1e8-238d4afd9973",
+    "name": "Fertilex Forte Women Tab"
+  },
+  "81": {
+    "itemId": "aa3114d2-c29c-435e-ac5c-1fce4d170e34",
+    "name": "Fertilex Forte Men Tab"
+  },
+  "82": {
+    "itemId": "69ae76e9-6ebb-4287-b3c2-be5f0a45d05a",
+    "name": "Neurovox Tab"
+  },
+  "83": {
+    "itemId": "53a5bf6b-05d3-4953-9cec-3b6bec059f92",
+    "name": "HSN Tab"
+  },
+  "84": {
+    "itemId": "91a99046-2eec-45bd-93c4-8ce514ee11b3",
+    "name": "Vision-Aid Cap"
+  },
+  "85": {
+    "itemId": "1073e01e-c5e4-4799-a2a0-147d817c84cb",
+    "name": "Calim Tab"
+  },
+  "86": {
+    "itemId": "4fd7d5db-38c8-48be-97bf-73e509567b3a",
+    "name": "Carbimazole 5mg Tab"
+  },
+  "87": {
+    "itemId": "65bccc55-9a9c-4d93-aa05-efc287d6aecd",
+    "name": "T4 Thyro Tab"
+  },
+  "88": {
+    "itemId": "fb082613-e977-48d3-aa11-50155d34ea1b",
+    "name": "Prolol 10mg Tab"
+  },
+  "89": {
+    "itemId": "33fcd5eb-3fd1-4943-a8e9-d99c17b07de5",
+    "name": "Cd Atorvast 20mg Tab"
+  },
+  "90": {
+    "itemId": "0652dcf6-1343-4ead-b5e3-cc0948a97756",
+    "name": "Atornova 40mg Tab"
+  },
+  "91": {
+    "itemId": "b66fc58b-8be0-49ef-9b7b-78b3aa3f5c76",
+    "name": "Cd Rosova 10mg Tab"
+  },
+  "92": {
+    "itemId": "4149a045-3ac0-44da-aef9-63d0526b49d3",
+    "name": "Zylonil 300mg Tab"
+  },
+  "93": {
+    "itemId": "1cfa63fb-8833-46cf-8b6b-ffbaaf488b47",
+    "name": "No-Uric 100mg Tab"
+  },
+  "94": {
+    "itemId": "bca6261a-c797-4e28-9226-07ed2d39e312",
+    "name": "Mobizal 15mg Tab"
+  },
+  "95": {
+    "itemId": "a0ecf0d5-d0da-4c24-bdac-c6b07c394f75",
+    "name": "Mobizal 7.5mg Tab"
+  },
+  "96": {
+    "itemId": "fb991200-63c7-4d95-ae6c-9e4d89f2bcf2",
+    "name": "Anticox II 7.5mg Cap"
+  },
+  "97": {
+    "itemId": "e9eba0bb-b763-48a1-a7b3-58498ba36d97",
+    "name": "Cd Claricin 500mg Tab"
+  },
+  "98": {
+    "itemId": "fef4f07e-4377-4939-9c5b-81edb1862808",
+    "name": "Megamox 1g Tab"
+  },
+  "99": {
+    "itemId": "7da64dac-d87b-43a4-8782-d9a151eeb3a6",
+    "name": "Augram 1g Tab"
+  },
+  "100": {
+    "itemId": "8e0462bb-b4c2-4939-a42d-8a5265a08ad0",
+    "name": "Xiclav 1g Tab"
+  },
+  "101": {
+    "itemId": "def47121-4ebb-4834-933c-095138931b41",
+    "name": "Amoclan 375mg Tab"
+  },
+  "102": {
+    "itemId": "87a81545-178e-4a97-a997-39bd73dd4835",
+    "name": "Novamehtin 625mg Tab"
+  },
+  "103": {
+    "itemId": "496d9206-3c03-407e-bf25-b0d03d22a018",
+    "name": "Amoclan Forte 625mg Tab"
+  },
+  "104": {
+    "itemId": "1dad8c21-2745-4426-8831-d98fcd88d693",
+    "name": "Clavimox 625mg Tab"
+  },
+  "105": {
+    "itemId": "3ff6b376-1806-4981-89b4-4f51595f7e3e",
+    "name": "Incite 50mg Tab"
+  },
+  "106": {
+    "itemId": "855d6d60-1ce1-4367-8459-c2f3238d6689",
+    "name": "Palodal 2.5mg Tab"
+  },
+  "107": {
+    "itemId": "a8c47b57-1c2b-4e36-b2aa-5a6e867f4190",
+    "name": "Monkast 10mg Tab"
+  },
+  "108": {
+    "itemId": "441c4517-d65f-4e69-b019-e967c27bc4e1",
+    "name": "Monkast 4mg Tab"
+  },
+  "109": {
+    "itemId": "cac13ba6-2a18-44d4-9ccf-2731623c895e",
+    "name": "Montair 5mg Tab"
+  },
+  "110": {
+    "itemId": "8a1ebf16-501a-408e-8caa-18ab816086e2",
+    "name": "Flugal 150mg Cap"
+  },
+  "111": {
+    "itemId": "f6386ceb-8bc0-4f24-975d-cf0ca7714c60",
+    "name": "Cd Itrazol 100mg Cap"
+  },
+  "112": {
+    "itemId": "8da7dbea-21f1-4c7d-9c49-fc96c02618ec",
+    "name": "Cd Duspine 200mg Tab"
+  },
+  "113": {
+    "itemId": "82d714cb-bbb2-48e9-a5df-1f55d8a58a41",
+    "name": "Colospasmin Forte Tab"
+  },
+  "114": {
+    "itemId": "140c554b-fc3f-48a6-b577-56d7d633b727",
+    "name": "Tenaxit Tab"
+  },
+  "115": {
+    "itemId": "80dc2edd-222c-4edf-8d9a-0001b101468a",
+    "name": "Bisadyl Tab"
+  },
+  "116": {
+    "itemId": "0cf2eb76-7546-41ea-8c19-0e47f1ad7697",
+    "name": "Spasmonore 10mg Tab"
+  },
+  "117": {
+    "itemId": "191f87bc-0aa1-4c03-b725-5db0294febf3",
+    "name": "Vominore Tab"
+  },
+  "118": {
+    "itemId": "3fbfe419-90a7-4ea8-9c87-2945c331b5e5",
+    "name": "Cd Vomilex 10mg Tab"
+  },
+  "119": {
+    "itemId": "3f0feb57-d528-4b72-b926-d938fd2be35f",
+    "name": "Cd Betavert 8mg Tab"
+  },
+  "120": {
+    "itemId": "3f5dbc3c-8e38-4878-8f00-73e177d57441",
+    "name": "Betastin 16mg Tab"
+  },
+  "121": {
+    "itemId": "e22c84a3-74cc-4d7f-a471-60dcc95c2348",
+    "name": "Cinnarizine 75mg Cap"
+  },
+  "122": {
+    "itemId": "27615362-e986-43b1-bb67-7b6f4ff20841",
+    "name": "Diurex 25mg Tab"
+  },
+  "123": {
+    "itemId": "ceee2e7a-382d-4535-bfff-20ac358007ae",
+    "name": "Noractone 25mg Tab"
+  },
+  "124": {
+    "itemId": "49bb7ed7-4bb1-4e21-b5ed-8b7648300a09",
+    "name": "Amlovent 5mg Tab"
+  },
+  "125": {
+    "itemId": "1cd5ec7d-8d1c-43f9-a77e-c3d758cff67a",
+    "name": "Amlovent 10mg Tab"
+  },
+  "126": {
+    "itemId": "aa76cbe1-fb21-4ffd-a9ed-8545aae923bb",
+    "name": "Losascot-H Tab"
+  },
+  "127": {
+    "itemId": "366c7440-0cc5-458e-b570-ace8493de477",
+    "name": "Unitan 50mg Tab"
+  },
+  "128": {
+    "itemId": "25a881fd-577b-456f-b077-d6548d44a493",
+    "name": "Candatkan Plus 16/12.5mg Tab"
+  },
+  "129": {
+    "itemId": "276e6770-44c4-4a0c-a0cf-f97a264374af",
+    "name": "Candatkan 8mg Tab"
+  },
+  "130": {
+    "itemId": "9a933adc-c876-40d5-a7d4-b2deebe2eb16",
+    "name": "Azapril 2.5mg Tab"
+  },
+  "131": {
+    "itemId": "c1fab069-8282-42b9-ab83-b05eae94da21",
+    "name": "Azapril 5mg Tab"
+  },
+  "132": {
+    "itemId": "335a4edc-1cac-4dd5-9225-de75008679a1",
+    "name": "Linopril 5mg Tab"
+  },
+  "133": {
+    "itemId": "a8a25611-b4dd-4ab7-b311-99ae57bce463",
+    "name": "Linopril 10mg Tab"
+  },
+  "134": {
+    "itemId": "cdb0fbf8-e02d-4f58-ab85-0662379eb320",
+    "name": "Cd Pril 10mg Tab"
+  },
+  "135": {
+    "itemId": "2e5ade77-6a00-463c-a55d-3488311b7a28",
+    "name": "Tri-Pland 5/160/12.5mg Tab"
+  },
+  "136": {
+    "itemId": "b18ba74e-f231-4ff8-aa38-2e8aac86b496",
+    "name": "Lotevan 5/160mg Tab"
+  },
+  "137": {
+    "itemId": "1b07f557-c8fa-42d2-8201-014698b77bf5",
+    "name": "Lotevan 10/160mg Tab"
+  },
+  "138": {
+    "itemId": "ad1720df-1842-4ad7-b5e9-3142dcead126",
+    "name": "Candescot 16mg Tab"
+  },
+  "139": {
+    "itemId": "f2120655-6163-4b01-935c-fe71bf476ff1",
+    "name": "Candiscot 8mg Tab"
+  },
+  "140": {
+    "itemId": "200435df-9d5d-4123-81e5-6549dc71c44d",
+    "name": "Cardosyr 2mg Tab"
+  },
+  "141": {
+    "itemId": "a7b0a14a-4168-427f-9987-527fc73e4a8e",
+    "name": "Dosin 4mg Tab"
+  },
+  "142": {
+    "itemId": "2cf52a46-cb55-4454-b5da-8971f8c8e5df",
+    "name": "Cd Fistride 5mg Tab"
+  },
+  "143": {
+    "itemId": "9401deba-be00-4037-afb0-b1083c71cf44",
+    "name": "Urilax 5mg Tab"
+  },
+  "144": {
+    "itemId": "f6c053b0-14f5-488b-86e5-cab916bfa320",
+    "name": "Xalgetz 0.4mg Cap"
+  },
+  "145": {
+    "itemId": "fcc82764-3407-4b2a-aa22-c19aecda77ae",
+    "name": "Cd QTpine 200mg Tab"
+  },
+  "146": {
+    "itemId": "afb2a930-15ea-49fc-87dc-c15077a5c410",
+    "name": "Cd QTpine 100mg Tab"
+  },
+  "147": {
+    "itemId": "e439bcf2-17fa-4d49-a247-530aa52edd80",
+    "name": "Controlepsy 100mg Tab"
+  },
+  "148": {
+    "itemId": "56bdeeb0-eade-4e3a-90c2-60a683e58a43",
+    "name": "Colubrinal Effervescent Granules"
+  },
+  "149": {
+    "itemId": "ac09e464-c63a-4e0a-9f91-1616467a5543",
+    "name": "Renal-S-N Effervescent Granules"
+  },
+  "150": {
+    "itemId": "478ac09e-4bb3-4916-93c9-31b127e1b707",
+    "name": "Jed Corene Effervescent Granules"
+  },
+  "151": {
+    "itemId": "2a51247c-9b7b-44bf-a2f6-5eca9e9e0526",
+    "name": "Potamax Effervescent Granules"
+  },
+  "152": {
+    "itemId": "5f73daa7-acae-4171-87a2-dfbd9c054df2",
+    "name": "Proximol Effervescent Granules"
+  },
+  "153": {
+    "itemId": "3a135146-5963-4685-95b4-fd73823fa57f",
+    "name": "Kellagon Effervescent"
+  },
+  "154": {
+    "itemId": "b19ef25c-8deb-4069-b82f-4012e5bd5168",
+    "name": "Rowachol Cap"
+  },
+  "155": {
+    "itemId": "44a6fdad-41c9-4bd5-874b-20de0057cba5",
+    "name": "Flatidyl Tab"
+  },
+  "156": {
+    "itemId": "75b2394b-39a4-49f0-854a-519e8b578d93",
+    "name": "Aspirem 75mg"
+  },
+  "157": {
+    "itemId": "795368b5-cecd-470b-b624-f78bdfad2835",
+    "name": "Alexoprime 75mg Tab"
+  },
+  "158": {
+    "itemId": "96100561-d128-4ebb-ba4a-27b8e0ada0f1",
+    "name": "Anticlot 75mg Tab"
+  },
+  "159": {
+    "itemId": "1ace84cd-f8bf-4985-ac1e-94385a5f4c6d",
+    "name": "Cd Levotrizin 5mg Tab"
+  },
+  "160": {
+    "itemId": "b5998817-7dfe-4dfb-befe-54029d83806a",
+    "name": "Artiz 10mg Tab"
+  },
+  "161": {
+    "itemId": "44d54053-1915-4f9c-82a0-dcb43f9d81fd",
+    "name": "Alatrol 10mg Tab"
+  },
+  "162": {
+    "itemId": "d2037282-bcdb-4d70-ac75-e5de8cef1353",
+    "name": "Prednil 5mg Tab"
+  },
+  "163": {
+    "itemId": "64437a93-43ee-41fd-bb4a-fb4ce6c92098",
+    "name": "Prednisolone 5mg Tab"
+  },
+  "164": {
+    "itemId": "39dc5126-48d3-4b27-ab4d-fa85393933fb",
+    "name": "Artem Care 20/120 Tab"
+  },
+  "165": {
+    "itemId": "e54d9e2a-db13-4378-b686-4e47a818b3ea",
+    "name": "Duo-Cotecxin 40/320 Tab"
+  },
+  "166": {
+    "itemId": "2220523e-c521-4f22-b912-7603dc9dfd97",
+    "name": "P-Alaxin Tab"
+  },
+  "167": {
+    "itemId": "903f8024-3c92-41be-8c58-1629eb04a767",
+    "name": "Fanart Plus 80/480mg Tab"
+  },
+  "168": {
+    "itemId": "bf1634cc-1fea-4d8d-8877-d9be34de9a8c",
+    "name": "Amither IDS 80+480 Tab"
+  },
+  "169": {
+    "itemId": "118ae729-e67f-4c4b-bf99-a0bd79c724f4",
+    "name": "Cd Bisopro 5mg Tab"
+  },
+  "170": {
+    "itemId": "f8a70a29-3c61-4f14-9411-a6eacdeef847",
+    "name": "Orinase 1mg Tab"
+  },
+  "171": {
+    "itemId": "dfc40183-fd9c-4978-a64a-10493b54cb2c",
+    "name": "Piramyl 3mg Tab"
+  },
+  "172": {
+    "itemId": "656ff864-c213-4436-b9a8-e5d5a295258d",
+    "name": "Getryl 3mg Tab"
+  },
+  "173": {
+    "itemId": "462ad9e7-9bf2-43c6-87d5-adf709259689",
+    "name": "Cd Maryl 4mg Tab"
+  },
+  "174": {
+    "itemId": "5d8ce216-94f3-4284-8d6d-472659982b8a",
+    "name": "Amiformin 500mg Tab"
+  },
+  "175": {
+    "itemId": "4d29e247-84ae-46df-956b-506a5de569af",
+    "name": "Uniphage 850mg Tab"
+  },
+  "176": {
+    "itemId": "3e67b3c1-a2ef-446f-a5f5-7b006f27c23c",
+    "name": "Virustat 200mg Tab"
+  },
+  "177": {
+    "itemId": "61d121d1-5120-4b11-9c5e-501ce84188fa",
+    "name": "Virustat 400mg Tab"
+  },
+  "178": {
+    "itemId": "2f2dc434-49f5-4036-b37c-8789b7209259",
+    "name": "Levetiracetam 500mg Tab"
+  },
+  "179": {
+    "itemId": "6de85f27-717b-4ff1-9c20-05f1d34416a5",
+    "name": "Sodium Valproate 200mg Tab"
+  },
+  "180": {
+    "itemId": "0b0182ca-ba22-4ef2-a5e8-1f8e0676897c",
+    "name": "Haloxen 5mg Tab"
+  },
+  "181": {
+    "itemId": "7c9310ba-d2c3-42a6-99ac-981e80465a02",
+    "name": "Tegritone 200mg Tab"
+  },
+  "182": {
+    "itemId": "64644d52-d37e-4931-8ea5-4eda8006bc52",
+    "name": "Storilat 200mg Tab"
+  },
+  "183": {
+    "itemId": "2e6584a3-e150-4c55-b517-1dda2c65abd5",
+    "name": "Carbatec 400mg CR"
+  },
+  "184": {
+    "itemId": "4f8d15f3-ae43-478b-8aa4-564cf35ae1d0",
+    "name": "Cd Cetam 750mg"
+  },
+  "185": {
+    "itemId": "4ca9c35d-a7bd-4ebf-9811-a56fbe05e0e7",
+    "name": "Olanzapine 10mg Tab"
+  },
+  "186": {
+    "itemId": "edf6c273-c79e-443f-8521-07385132497d",
+    "name": "Olanzapine 5mg Tab"
+  },
+  "187": {
+    "itemId": "d7b98738-3d65-407e-a44b-aab92a04cf81",
+    "name": "Imodal 2mg Cap"
+  },
+  "188": {
+    "itemId": "2f81b25f-2eea-458f-847d-8fed5afe001b",
+    "name": "Imotil 2mg Cap"
+  },
+  "189": {
+    "itemId": "75dd7d44-c524-4fe3-b07d-bc0daab14781",
+    "name": "Visco Tab"
+  },
+  "190": {
+    "itemId": "ca586344-06cd-4a25-b956-82ba18170d43",
+    "name": "Acicone-S Tab"
+  },
+  "191": {
+    "itemId": "a728973a-ec4c-4102-9d0c-93446c57a7ae",
+    "name": "Boswellia 250mg Cap"
+  },
+  "192": {
+    "itemId": "b2847ae8-727a-43c2-b07e-e268a73b6a01",
+    "name": "Pantovent 40mg Tab"
+  },
+  "193": {
+    "itemId": "62124230-2d37-4e5c-b346-a646016fcbdd",
+    "name": "Amiprazole 20mg Cap"
+  },
+  "194": {
+    "itemId": "95b0099e-f4f3-4084-9472-a23ac99e4e2c",
+    "name": "Cd Lansol 30mg Cap"
+  },
+  "195": {
+    "itemId": "3fe7af68-2337-4020-b0c7-8419e085b8df",
+    "name": "Cd Omid Plus 40/1100 Cap"
+  },
+  "196": {
+    "itemId": "da2c250d-f491-4035-a396-e109625e1c56",
+    "name": "Cd Omid Plus 40/1680 Powder"
+  },
+  "197": {
+    "itemId": "160661be-d8be-4045-86f7-4be031ded394",
+    "name": "Famila 28 Tab"
+  },
+  "198": {
+    "itemId": "aa9c2ed0-f4dd-4997-b314-93a7e37985a9",
+    "name": "Sogestedin 0.075mg Tab"
+  },
+  "199": {
+    "itemId": "eb2f7594-5271-4868-a9a7-54de0d27d13c",
+    "name": "Cdafil 20mg Tab"
+  },
+  "200": {
+    "itemId": "82264333-d645-4b43-a5dd-373bd06dffb8",
+    "name": "Sildava 100mg Tab"
+  },
+  "201": {
+    "itemId": "02e9a43c-3001-474b-b4bf-40fe9977ca61",
+    "name": "Azafil 100mg Tab"
+  },
+  "202": {
+    "itemId": "a7e56db6-8964-4db4-8c63-859d8aa539f3",
+    "name": "Deprastin 20mg Cap"
+  },
+  "203": {
+    "itemId": "b718ae36-09c9-44be-be3d-bef3605aa08b",
+    "name": "Tryptin 25mg Tab"
+  },
+  "204": {
+    "itemId": "83a0038b-17b4-481d-aa2d-5df4b960b365",
+    "name": "Adwiprazole 10mg Tab"
+  },
+  "205": {
+    "itemId": "e46d2379-1e32-4015-bdf0-af51432bbadf",
+    "name": "Talopram 40mg Tab"
+  },
+  "206": {
+    "itemId": "a78485fd-d012-4af5-b77c-e17aed73e1f9",
+    "name": "Remethan 100mg"
+  },
+  "207": {
+    "itemId": "79d5d7d4-8a65-4eea-9207-b02e279e69cd",
+    "name": "Hayalepsin 200mg Tab"
+  },
+  "208": {
+    "itemId": "c4ac188d-fb96-41fa-8825-4f4b542626c8",
+    "name": "Cd Diclofast 75 Caps"
+  },
+  "209": {
+    "itemId": "dcce0c20-76b0-4a55-bbfb-d6dd4e053755",
+    "name": "Cd Broten 600mg Tab"
+  },
+  "210": {
+    "itemId": "0bee1315-b705-46c9-9f51-267f50287aef",
+    "name": "Monstan Tab Forte"
+  },
+  "211": {
+    "itemId": "65d83ab1-f493-4e89-b1d0-bf5214878f2a",
+    "name": "Saprofen 400mg Tab"
+  },
+  "212": {
+    "itemId": "4b08ed60-f014-4d76-bfdd-92e1fffd8c03",
+    "name": "Amixillin 500mg Forte"
+  },
+  "213": {
+    "itemId": "649e3bd4-a8d3-4cc8-851b-595754c88dac",
+    "name": "CD Cloxacil 500 Caps"
+  },
+  "214": {
+    "itemId": "5f81b32f-8c4f-4d94-ad83-6dcf32b382b6",
+    "name": "Remox 500 Caps"
+  },
+  "215": {
+    "itemId": "fd26ece4-26b8-4e8c-a766-986097c371b6",
+    "name": "Azimax 250 Caps"
+  },
+  "216": {
+    "itemId": "f86b1d3c-1f1a-4e9f-9ee0-a1995893d232",
+    "name": "Scolexin 500 Caps"
+  },
+  "217": {
+    "itemId": "b0c61261-0cc4-4a0d-b838-6b387e47a531",
+    "name": "Zithropro 500mg"
+  },
+  "218": {
+    "itemId": "de19e9ff-04ae-49d9-b412-220f36d8f1c7",
+    "name": "Cobolmin 500mg Injection"
+  },
+  "219": {
+    "itemId": "cc2271e4-abaa-41a8-95ff-92fb7cb993a4",
+    "name": "Norcil"
+  },
+  "220": {
+    "itemId": "dedc1dda-48f0-4367-abb1-4aaee219f7d0",
+    "name": "Adever Inj Adrenaline 1mg/ml"
+  },
+  "221": {
+    "itemId": "bff7a047-8f54-494c-93fa-8b307f31c3a0",
+    "name": "Diclofenac Sodium Inj 75mg"
+  },
+  "222": {
+    "itemId": "b963540a-054f-448b-a0f4-968a36260e85",
+    "name": "Gentasarn Inj 40"
+  },
+  "223": {
+    "itemId": "4eb367c2-3f35-418c-b385-12a3fc182e74",
+    "name": "Meropenem Inj 500"
+  },
+  "224": {
+    "itemId": "1c341172-e889-4abb-820d-60a49934e030",
+    "name": "Ondasetron Inj 8mg"
+  },
+  "225": {
+    "itemId": "7c06580f-d718-406e-920a-74605a340fb4",
+    "name": "Nopain Inj 20mg"
+  },
+  "226": {
+    "itemId": "e0132078-a4d0-42cb-8b81-b832dfe2060a",
+    "name": "Vir 250"
+  },
+  "227": {
+    "itemId": "a00ae0a8-f7e6-471a-a37a-55f356777655",
+    "name": "Mouse Snare"
+  },
+  "228": {
+    "itemId": "6d2edfd9-4e3b-4e04-a9d7-47f6325ce9b3",
+    "name": "Meroscot Inj 1g"
+  },
+  "229": {
+    "itemId": "7c2c7deb-186e-4793-a76a-86dada3b7e97",
+    "name": "Zinax 0.75g Inj"
+  },
+  "230": {
+    "itemId": "1eae4d9b-96e8-41be-8d81-c2f4986061b2",
+    "name": "Pankam 40mg Inj"
+  },
+  "231": {
+    "itemId": "4bf0c0a4-7d79-49da-baaa-935a1d5f2c8e",
+    "name": "Isomar Spray"
+  },
+  "232": {
+    "itemId": "34743a5f-46ee-4cf7-883a-700c17de21e6",
+    "name": "Travast Plus Drop"
+  },
+  "233": {
+    "itemId": "45daa9e7-2f72-416e-9898-88bb24f8cbba",
+    "name": "Toda Oil"
+  },
+  "234": {
+    "itemId": "fe80b04d-6c85-4628-a9d3-3a4dea30ab7e",
+    "name": "Dextrobac Drop"
+  },
+  "235": {
+    "itemId": "9458d22b-1640-4750-b2f6-9a9865babb06",
+    "name": "Medidex Drop"
+  },
+  "236": {
+    "itemId": "a731669e-47a0-40d8-b5f2-550a5f71bab9",
+    "name": "Meditrol Drop"
+  },
+  "237": {
+    "itemId": "befd424a-2b30-452d-b5aa-6d9bf8db1c8f",
+    "name": "Nispore Drop"
+  },
+  "238": {
+    "itemId": "9e22ffe8-40f6-40c3-9186-cc3280e9be80",
+    "name": "NaHCO3 Drop"
+  },
+  "239": {
+    "itemId": "37c7c0a7-b5fb-40df-84d2-f3523de99082",
+    "name": "Sodium Chloride"
+  },
+  "240": {
+    "itemId": "6806e21b-5dba-43d1-bbab-60f557d89f5b",
+    "name": "Nelke"
+  },
+  "241": {
+    "itemId": "dbb41cf2-6654-4d37-965b-525989bc90b7",
+    "name": "Candid Ear Drop"
+  },
+  "242": {
+    "itemId": "56644776-a727-4fa1-a466-6c13337ae233",
+    "name": "Nasosal Nasal Spray"
+  },
+  "243": {
+    "itemId": "1e5cfedf-91c1-4292-b18d-19e7601f9c25",
+    "name": "Ticanase Nasal Spray"
+  },
+  "244": {
+    "itemId": "a7a6ecfc-8a06-4b1e-98d0-3fd17afbd96b",
+    "name": "Oflomax Drop"
+  },
+  "245": {
+    "itemId": "62f827fd-732b-4b2a-88e7-b51dfcdb6fbd",
+    "name": "Genta Drop"
+  },
+  "246": {
+    "itemId": "b63eea9d-54ba-4d01-ac50-81ce9b8dfbb3",
+    "name": "Xcipro Drop"
+  },
+  "247": {
+    "itemId": "b5f8f94f-070c-48d8-9234-c25a4cd68ead",
+    "name": "Trix Drop"
+  },
+  "248": {
+    "itemId": "a4c7db0f-c015-4f19-8356-57e46b6416ad",
+    "name": "Oxymet Drop for Adults"
+  },
+  "249": {
+    "itemId": "3ccfb2d2-1d10-4a7c-93d5-3523a75ffd98",
+    "name": "Oxymet Drop for Pediatrics"
+  },
+  "250": {
+    "itemId": "ebdb7dfe-e04c-48a2-bd4b-dd989eecac45",
+    "name": "Xynosine Nasal Spray"
+  },
+  "251": {
+    "itemId": "04aafbb4-1dea-4835-810a-eacb73622519",
+    "name": "Chloramphenicol Eye Ointment"
+  },
+  "252": {
+    "itemId": "c5ffc5c7-dfdc-4047-a776-185fa88626e4",
+    "name": "Vitasunate 60mg Inj"
+  },
+  "253": {
+    "itemId": "6302bc68-7608-4b93-ad6d-ea3c78ea38a7",
+    "name": "Falcinova 120mg Inj"
+  },
+  "254": {
+    "itemId": "47703dc3-7c67-4b0e-b5b6-05a58d08833a",
+    "name": "Allermine Inj"
+  },
+  "255": {
+    "itemId": "48ff3a06-aee4-45b5-9fee-77af740f72ed",
+    "name": "Clopra Inj"
+  },
+  "256": {
+    "itemId": "a0e41a8a-3560-4c95-b92c-06be96ad2fab",
+    "name": "Cobolmin Inj"
+  },
+  "257": {
+    "itemId": "a95a0755-2b02-4bdb-9e36-337971178f74",
+    "name": "Metronidazole Perfusion / Drip"
+  },
+  "258": {
+    "itemId": "417fe792-106b-43c2-9c76-a329e67cedbe",
+    "name": "Amitrim Pediatric Syrup 240mg"
+  },
+  "259": {
+    "itemId": "257a4ca2-4d13-4e79-9444-a274cd5c97b3",
+    "name": "Salbutamol Inhaler 100mcg/dose"
+  },
+  "260": {
+    "itemId": "ec77ff63-4f49-4cc7-ae24-550cf666b5de",
+    "name": "Amibutamol Syrup"
+  },
+  "261": {
+    "itemId": "1c94090e-ad09-4b9b-9a14-6debeac3d533",
+    "name": "Amilyn-EX Syrup"
+  },
+  "262": {
+    "itemId": "8d639c72-7c95-458f-8783-caf36929d7dd",
+    "name": "Teeline Syrup 100ml"
+  },
+  "263": {
+    "itemId": "7d10037a-cb5c-4310-9d42-a5df9bca7773",
+    "name": "Amilyn Amipharma Syrup 15ml"
+  },
+  "264": {
+    "itemId": "ea96adde-cecc-4b29-8c41-af33ec2f5937",
+    "name": "Scottus Syrup"
+  },
+  "265": {
+    "itemId": "fbf0da90-e968-4138-b2b7-e5617f5b6f13",
+    "name": "CD Levotrizin Syrup 120ml"
+  },
+  "266": {
+    "itemId": "3a080bbe-76c4-4109-8adb-5de8561686d4",
+    "name": "Allergyl Syrup"
+  },
+  "267": {
+    "itemId": "b49f50f4-8deb-4a51-b94e-e46247ea4e02",
+    "name": "Histop Syrup 100ml"
+  },
+  "268": {
+    "itemId": "9dfcf667-bfb0-4dc1-94f3-5852b044f0ca",
+    "name": "Canpestan 16mg"
+  },
+  "269": {
+    "itemId": "9658e1f2-8570-43e1-a520-950adcffe095",
+    "name": "Osbs Drip"
+  },
+  "270": {
+    "itemId": "7a1fad5a-ebca-49ee-af7e-1fc43ccdcfb4",
+    "name": "Glucose Drip"
+  },
+  "271": {
+    "itemId": "3897b8ee-59c9-4b0b-afa7-464e9f4785cf",
+    "name": "Pantene Shampoo"
+  },
+  "272": {
+    "itemId": "1c624ba2-7989-4206-8d7f-f7ff0e9d8e99",
+    "name": "Head & Shoulders Shampoo"
+  },
+  "273": {
+    "itemId": "35a28830-c475-459d-912f-055b76e9cef3",
+    "name": "Apple"
+  },
+  "274": {
+    "itemId": "4c681be1-a66b-4e09-b9f8-c8c53dd301d1",
+    "name": "Fresh"
+  },
+  "275": {
+    "itemId": "4a9dc945-b1bf-42a1-89c7-fbfcefc84660",
+    "name": "White Doctor"
+  },
+  "276": {
+    "itemId": "ee6d9ba4-8119-43a9-b852-5df641f04b5a",
+    "name": "Kodomo"
+  },
+  "277": {
+    "itemId": "45721b97-88ab-4b30-a4e8-6014bd601a0e",
+    "name": "Vatika"
+  },
+  "278": {
+    "itemId": "3eab29eb-22c7-4f39-80cb-ab15ef51a82d",
+    "name": "Toothpick"
+  },
+  "279": {
+    "itemId": "19e0aaa2-223d-4344-a315-e5ab85b8a2e8",
+    "name": "نقط مطهر"
+  },
+  "280": {
+    "itemId": "c7409c83-6165-4b2d-87dc-ced0e6599a6c",
+    "name": "Flash"
+  },
+  "281": {
+    "itemId": "11658acd-a9f1-4f0c-ae65-c4dce71dd50e",
+    "name": "Clorox"
+  },
+  "282": {
+    "itemId": "3dd528a1-5178-4082-b422-22503cdede39",
+    "name": "عطر فاخرة"
+  },
+  "283": {
+    "itemId": "185796df-8f2d-44b2-8e1a-0b6c4097a528",
+    "name": "Ear Ring"
+  },
+  "284": {
+    "itemId": "935476d6-1591-477d-874d-132979163c7a",
+    "name": "Johnson Baby Shampoo 300ml"
+  },
+  "285": {
+    "itemId": "df679c29-636b-4938-a707-c5e569e3dce2",
+    "name": "Johnson Baby Shampoo 200ml"
+  },
+  "286": {
+    "itemId": "11b3cea7-62a3-44a7-925a-40c6b9b9682a",
+    "name": "Acne Remove"
+  },
+  "287": {
+    "itemId": "2318251f-90d1-43f8-b8f1-ad8b0c49ab97",
+    "name": "Glycerin Soap"
+  },
+  "288": {
+    "itemId": "6523232f-98c7-4e51-b0b9-1b939cd3865e",
+    "name": "صابون الدكتورة"
+  },
+  "289": {
+    "itemId": "a483884d-ea3a-48aa-8ea9-b65741b17724",
+    "name": "شفاره كبير"
+  },
+  "290": {
+    "itemId": "16ab9b5d-9344-4013-8248-91b191c55e06",
+    "name": "شفاره صغير"
+  },
+  "291": {
+    "itemId": "3bdd9efd-cfd8-481f-9d79-d5d5f70c5904",
+    "name": "مرطب شفايف"
+  },
+  "292": {
+    "itemId": "dc3e0bdc-62f5-4086-a594-e3ae319623c7",
+    "name": "زمام"
+  },
+  "293": {
+    "itemId": "39e697a7-f3d8-4cc8-bd79-6b5167a8230b",
+    "name": "بونتو"
+  },
+  "294": {
+    "itemId": "b8fee8c8-58d3-4a23-bca7-7dd1e1d205ab",
+    "name": "Carrot Oil"
+  },
+  "295": {
+    "itemId": "dfd75ade-b643-42a2-8961-ba0c54110e8d",
+    "name": "Photoblock"
+  },
+  "296": {
+    "itemId": "e576543e-b28b-4d0b-8d23-1526fbf9e155",
+    "name": "Vitamin C"
+  },
+  "297": {
+    "itemId": "ebd67692-8022-4916-89fc-47e5cffda0f2",
+    "name": "Glycerine Pure"
+  },
+  "298": {
+    "itemId": "9b9cdff2-536c-4d20-85a8-55ed0470efdf",
+    "name": "Kenazol"
+  },
+  "299": {
+    "itemId": "34e295a9-c4f6-4147-adff-ccb3e7603926",
+    "name": "Par Par"
+  },
+  "300": {
+    "itemId": "ec978481-9cb7-439c-af16-d92b7231d0f6",
+    "name": "Pit Paf"
+  },
+  "301": {
+    "itemId": "037a9beb-dddf-4474-ab50-e3ddfe215905",
+    "name": "رين"
+  },
+  "302": {
+    "itemId": "c60c5b26-9b6f-452d-83c4-3b21b8a62494",
+    "name": "قفة حبايبنا"
+  },
+  "303": {
+    "itemId": "3738a56d-9a32-4e94-bde2-bf1be48bdd3c",
+    "name": "Blue for Men"
+  },
+  "304": {
+    "itemId": "5d5ad8f2-68d1-4d55-9064-e7970f2d9374",
+    "name": "Kasir"
+  },
+  "305": {
+    "itemId": "b810f1f9-dfea-4e29-a7ef-f1816bf91aec",
+    "name": "Yara"
+  },
+  "306": {
+    "itemId": "c103f6f7-cf25-448e-af57-d04ed24f9a91",
+    "name": "SANAD"
+  },
+  "307": {
+    "itemId": "5856b111-0ced-4d5e-b6d6-ba16a79ce763",
+    "name": "حياتي"
+  },
+  "308": {
+    "itemId": "1328df3f-dedc-4ef4-b1f3-00a05e54d1f3",
+    "name": "La Logond"
+  },
+  "309": {
+    "itemId": "fcaab7ce-0728-42de-843f-505fb4cbc686",
+    "name": "عبير العتوة"
+  },
+  "310": {
+    "itemId": "353c2bc0-a2cc-4ff5-884f-309b2eb88313",
+    "name": "رقة العود"
+  },
+  "311": {
+    "itemId": "19ba0c11-86b8-4b6f-9daf-ff1e911dd701",
+    "name": "Pure Glycerin Oil"
+  },
+  "312": {
+    "itemId": "321b6e5f-41a1-4619-b68f-ffa22943f0ce",
+    "name": "Dove Cream"
+  },
+  "313": {
+    "itemId": "8ec837c3-27a3-4938-b9b7-d14e0f5ccb34",
+    "name": "جلسرين لبن غزال"
+  },
+  "314": {
+    "itemId": "5576b6bc-9166-44d3-bc07-94022b719507",
+    "name": "Dove Shampoo"
+  },
+  "315": {
+    "itemId": "3e684c37-e742-473e-9847-0283914ef8ae",
+    "name": "Vit CEE Syrup"
+  },
+  "316": {
+    "itemId": "8384a194-67fb-4988-993b-82136e82ad9e",
+    "name": "Haematin Syrup"
+  },
+  "317": {
+    "itemId": "de376eea-d94f-4ea4-b62e-4efb2563fb33",
+    "name": "Polyvit Syrup"
+  },
+  "318": {
+    "itemId": "ac731221-f0e3-47c4-9bf9-796ab6e8a34f",
+    "name": "Foliclap Drops"
+  },
+  "319": {
+    "itemId": "0bd228e2-d8e4-4ec8-b4c9-67a49a02e0a2",
+    "name": "Voxfer-L Drops 60ml"
+  },
+  "320": {
+    "itemId": "9fe0b387-b6d4-4dfd-80f9-31bc213002b3",
+    "name": "Colic Drops 20ml"
+  },
+  "321": {
+    "itemId": "06a6cadb-ee4d-44b8-ad31-03cb30c9c228",
+    "name": "Kiddy Vox Syrup"
+  },
+  "322": {
+    "itemId": "92717193-beab-4a3c-920b-b2a2a388f9a6",
+    "name": "Proximol"
+  },
+  "323": {
+    "itemId": "38c31733-2c03-4cfd-8049-d38e33a350e6",
+    "name": "Trix Drops"
+  },
+  "324": {
+    "itemId": "e64f582a-874d-49f6-aea1-c394a7d1f6f4",
+    "name": "B-Lact Syrup"
+  },
+  "325": {
+    "itemId": "d73e3403-23bc-42d5-8f58-4ce54cf7cb23",
+    "name": "Antivem Syrup 30ml"
+  },
+  "326": {
+    "itemId": "f69295e9-7bb0-4fbf-be22-7c523067e667",
+    "name": "Mebendazole Suspension Syrup 30ml"
+  },
+  "327": {
+    "itemId": "c277a845-8f1f-4358-b67b-ed550b41c0a3",
+    "name": "Vermorex Tablets 100mg"
+  },
+  "328": {
+    "itemId": "b22aa710-62be-4057-8b1b-cd6785b3cd45",
+    "name": "CD Ceram 100mg"
+  },
+  "329": {
+    "itemId": "4fc0dac0-cb76-438a-bd21-c8329df1ab47",
+    "name": "Amoclan Bid Syrup 200ml"
+  },
+  "330": {
+    "itemId": "3009e78f-524f-4ada-bf1f-ec307d312a9e",
+    "name": "Amiclav 228.5mg"
+  },
+  "331": {
+    "itemId": "8e03a8f5-ac0f-4a5f-babc-d01ed7efc7d7",
+    "name": "E.Moxclav 228ml"
+  },
+  "332": {
+    "itemId": "931e9b1c-75d7-4c90-a1b9-71d20086b0d2",
+    "name": "Sine-Up Syrup"
+  },
+  "333": {
+    "itemId": "0b4cbcc4-bfd4-46f1-be56-8ca1512e2510",
+    "name": "Xelon Syrup"
+  },
+  "334": {
+    "itemId": "b318273f-1fc8-48f3-bc5b-23621ca88a8d",
+    "name": "Codaphen-M"
+  },
+  "335": {
+    "itemId": "21ba5382-b680-4661-8a32-3abc39cea2a4",
+    "name": "Orazone Syrup"
+  },
+  "336": {
+    "itemId": "5900e078-71df-4d9c-aad2-97ef9a72c2a9",
+    "name": "1xiR Syrup Drop"
+  },
+  "337": {
+    "itemId": "898c03ae-63cd-423d-984c-b3b0e7e2d87e",
+    "name": "CD-Levotrizin Drop 20ml"
+  },
+  "338": {
+    "itemId": "f78155ac-7dbc-4e9b-9124-02c40ff1c323",
+    "name": "Reset Drop 50ml"
+  },
+  "339": {
+    "itemId": "1f365a9f-d5ce-4bc9-838a-5bbf82228078",
+    "name": "Ibuscot Oral Suspension BP 100ml"
+  },
+  "340": {
+    "itemId": "95853c3d-e548-4147-a84b-2c2da202de61",
+    "name": "Rumafen Syrup 100mg"
+  },
+  "341": {
+    "itemId": "7a1b7c4e-9e19-49eb-8b10-fe8a83a469ed",
+    "name": "Pyrodol Syrup"
+  },
+  "342": {
+    "itemId": "5cbfb16a-c664-420e-971e-14ccadd93906",
+    "name": "Flajeen Syrup 100ml"
+  },
+  "343": {
+    "itemId": "0fa54137-dbdd-4e34-9cdb-eb3bd95ca3e8",
+    "name": "Metromab"
+  },
+  "344": {
+    "itemId": "ef46544a-b44e-43a6-9553-7e05744aaddc",
+    "name": "Peridone 100ml"
+  },
+  "345": {
+    "itemId": "0e8990e0-639d-40f6-9a86-5bf0c104fa6f",
+    "name": "Vomilax Syrup 5ml"
+  },
+  "346": {
+    "itemId": "a8f8f9c0-5714-4046-bebe-f89234d7734c",
+    "name": "CD Herpofast"
+  },
+  "347": {
+    "itemId": "3ab3af1c-ad59-4a9d-9435-42bcd448d2f4",
+    "name": "Codaphen-M"
+  },
+  "348": {
+    "itemId": "8f67ee54-564f-42eb-870d-3adef42151f4",
+    "name": "CD-Herbofast"
+  },
+  "349": {
+    "itemId": "a2e2fad0-468c-49aa-a10c-9f25df962947",
+    "name": "Combinol-H Syrup"
+  },
+  "350": {
+    "itemId": "a6a0862b-45f0-4bba-a3d9-6031e7383b07",
+    "name": "Ketofen Syrup"
+  },
+  "351": {
+    "itemId": "85f797f1-430f-4ae9-8843-1677485a1a17",
+    "name": "CD Guavaleaf"
+  },
+  "352": {
+    "itemId": "08665d8c-71d8-4b70-bf78-75b4d3bacaf2",
+    "name": "Amiclav Syrup 457mg"
+  },
+  "353": {
+    "itemId": "cbd6c351-e31a-40eb-842d-9fb281e4a2d7",
+    "name": "Amoclan Bid 400mg 70ml"
+  },
+  "354": {
+    "itemId": "d2c461a3-8da6-4d3c-a976-45caff391819",
+    "name": "Cefodox 100mg/5ml"
+  },
+  "355": {
+    "itemId": "7d18fc1f-587b-4547-b282-b6a31052740a",
+    "name": "Cefodox 50mg/5ml"
+  },
+  "356": {
+    "itemId": "4b090bbb-79e0-4bee-a918-57b69529177f",
+    "name": "Palmocare Syrup 125ml"
+  },
+  "357": {
+    "itemId": "738a19ac-1883-4073-8394-b512724a4df9",
+    "name": "Amilyn Syrup"
+  },
+  "358": {
+    "itemId": "21ff285d-1ec4-4358-a550-5167864f981d",
+    "name": "Zincotate"
+  },
+  "359": {
+    "itemId": "20eea2ec-807d-4460-8bf2-8e035558a471",
+    "name": "Bronchophane"
+  },
+  "360": {
+    "itemId": "dc35c388-8620-4d36-b2a6-09eed3826dcc",
+    "name": "Metronidazole Infusion"
+  },
+  "361": {
+    "itemId": "34ecf0ba-75d6-4d9e-9a51-d3a41d9a05b5",
+    "name": "Normal Saline Drip"
+  },
+  "362": {
+    "itemId": "be2544e0-4e54-4401-95bb-5346e5f8843a",
+    "name": "Ciprofloxacin Lactate Infusion Drip IV 100ml"
+  },
+  "363": {
+    "itemId": "e170ba11-7c56-433b-83db-b79d9c21b264",
+    "name": "Febramol Drip"
+  },
+  "364": {
+    "itemId": "069b3d00-5269-4db4-8b04-3779f642b06d",
+    "name": "D.5 Amanta Drip"
+  },
+  "365": {
+    "itemId": "0be62f75-27fe-4ab5-a877-22c9d0f950b8",
+    "name": "D.5 Otsuka"
+  },
+  "366": {
+    "itemId": "ccb15be0-7c06-4d21-9078-b683810ab900",
+    "name": "5%"
+  },
+  "367": {
+    "itemId": "479ec3ac-36d5-439d-8084-4a0b33a15603",
+    "name": "Metrobac 500ml"
+  },
+  "368": {
+    "itemId": "219c6d7e-5c46-4040-84d0-910dae2b5607",
+    "name": "N/S Amanta Drip"
+  },
+  "369": {
+    "itemId": "a16ce9a8-af89-464b-9594-d75fc560c155",
+    "name": "Aerol Inhaler 100mic"
+  },
+  "370": {
+    "itemId": "f6f22451-2f4a-44a5-a468-baf457616b19",
+    "name": "Vental Inhaler 200mcg"
+  },
+  "371": {
+    "itemId": "91463b0a-1c6d-49be-801d-756f3c807eff",
+    "name": "Cortis"
+  },
+  "372": {
+    "itemId": "440f9ad9-af60-45cb-a34d-a7611941f7ba",
+    "name": "Fordesol 200 Inhaler"
+  },
+  "373": {
+    "itemId": "da17dcfa-a88a-4772-bf9b-180db0bf33f1",
+    "name": "Muconab Syrup"
+  },
+  "374": {
+    "itemId": "0a97b602-eb6a-4bdd-a31b-fa18c9486cac",
+    "name": "Amilyn 100ml"
+  },
+  "375": {
+    "itemId": "8b78e690-e6c0-41c2-9941-fcbe24581940",
+    "name": "Scottus Syrup"
+  },
+  "376": {
+    "itemId": "25393546-49f2-49d3-816b-dd749968961a",
+    "name": "CD Levotrizin 120ml"
+  }
+}

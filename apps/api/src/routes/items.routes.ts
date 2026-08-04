@@ -6,12 +6,15 @@
 
 import { Router, Request, Response } from 'express';
 import { ItemService } from '../services/item.service';
+import { ItemGridService } from '../services/item-grid.service';
 import { ExpiryAlertsService } from '../services/expiry-alerts.service';
 import { ItemMovementService } from '../services/item-movement.service';
 import {
   createItemSchema,
   updateItemSchema,
   itemQuerySchema,
+  itemGridQuerySchema,
+  saveItemGridRowSchema,
   bulkPriceUpdateSchema,
   createItemPriceSchema,
   updateItemPriceSchema,
@@ -21,7 +24,7 @@ import {
   itemMovementParamsSchema,
   expiryQuerySchema,
 } from '@erp/shared';
-import type { ItemQueryParams, ItemMovementParams } from '@erp/shared';
+import type { ItemQueryParams, ItemMovementParams, ItemGridQueryParams } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
@@ -38,6 +41,14 @@ router.use(requireAuth);
 function getItemService(req: Request): ItemService {
   const { supabase, tenantId } = getTenantContext(req);
   return new ItemService(supabase, tenantId);
+}
+
+/**
+ * Helper to create ItemGridService with tenant context
+ */
+function getItemGridService(req: Request): ItemGridService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new ItemGridService(supabase, tenantId);
 }
 
 /**
@@ -119,6 +130,69 @@ router.get(
         total: data.length,
         generatedAt: new Date().toISOString(),
       },
+    });
+  })
+);
+
+// =============================================================================
+// ITEM GRID (BULK EDIT) ENDPOINTS
+// Registered BEFORE /:id so the literal path is not captured by the param route.
+// =============================================================================
+
+/**
+ * GET /items/grid
+ * Merged item + retail/cost price + warehouse opening-stock rows for the
+ * bulk-edit grid, with search, advanced "missing data" filters and pagination.
+ */
+router.get(
+  '/grid',
+  validateRequest({ query: itemGridQuerySchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemGridService(req);
+    const params = req.query as unknown as ItemGridQueryParams;
+
+    const result = await service.getGridRows(params);
+
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  })
+);
+
+/**
+ * POST /items/:id/grid-row
+ * Save one grid row: item main info, retail price, cost price and opening stock
+ * in a single call.
+ *
+ * Always responds 200 — each section reports its own outcome, so a rejected
+ * barcode does not hide a successful price write.
+ */
+router.post(
+  '/:id/grid-row',
+  requirePermission('items:write'),
+  validateRequest({ body: saveItemGridRowSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = getTenantContext(req);
+    const service = getItemGridService(req);
+
+    // Opening stock is a warehouse write. Rather than 403 the whole row, let the
+    // item/price sections through and fail just that section.
+    const permissions = req.user?.permissions ?? [];
+    const canWriteOpening =
+      permissions.includes('*' as never) || permissions.includes('warehouses:write' as never);
+
+    const result = await service.saveRow(
+      req.params.id,
+      req.body,
+      userId,
+      { canWriteOpening }
+    );
+
+    res.json({
+      success: true,
+      data: result,
     });
   })
 );

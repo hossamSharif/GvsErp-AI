@@ -24,7 +24,10 @@ export interface OfflineRoute {
  */
 const ROUTES: OfflineRoute[] = [
   // Items
-  { table: 'items', kind: 'detail', pattern: /^\/items\/([^/]+)$/ },
+  // `grid` and `report` are literal sub-paths, not item ids — they must not be
+  // served from the items store. /items/grid in particular returns merged
+  // item + price + opening-stock rows that the Dexie mirror does not hold.
+  { table: 'items', kind: 'detail', pattern: /^\/items\/(?!grid$|report$)([^/]+)$/ },
   { table: 'items', kind: 'list', pattern: /^\/items$/ },
   // Parties (customers/suppliers)
   { table: 'parties', kind: 'detail', pattern: /^\/parties\/([^/]+)$/ },

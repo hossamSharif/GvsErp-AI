@@ -216,6 +216,7 @@
       "description": "Manage your inventory items, categories, and pricing.",
       "addButton": "Add Item",
       "quickAddButton": "Quick Add",
+      "bulkEditButton": "Bulk Edit",
       "exportButton": "Export",
       "expiryReportButton": "Expiry Report",
       "manageCategoriesButton": "Manage Categories",
@@ -594,6 +595,74 @@
     "status": {
       "active": "Active",
       "inactive": "Inactive"
+    }
+  },
+  "itemsGrid": {
+    "title": "Bulk Edit Items",
+    "description": "Correct item info, prices and opening stock inline — Tab across cells, Enter to save the row.",
+    "backToItems": "Back to items",
+    "warehouse": "Warehouse",
+    "asOfDate": "As of date",
+    "search": "Search",
+    "searchPlaceholder": "Name, alternative name, SKU, barcode or brand",
+    "clearSearch": "Clear search",
+    "empty": "No items match the current filters",
+    "errorLoading": "Failed to load items",
+    "saveRow": "Save this row",
+    "retryFailed": "Retry failed rows",
+    "rowCount": "{count} items",
+    "pageOf": "Page {page} of {total}",
+    "selectWarehouseFirst": "Select a warehouse to edit opening stock",
+    "soldFloorHint": "{qty} unit(s) of the opening stock have already been sold — the quantity cannot go below that.",
+    "keyboardHint": "Tab moves between cells · ↑ ↓ move between rows · Enter saves the row and moves down · Esc discards the row's changes",
+    "offlineNotice": "You are offline. This screen needs a live connection — changes cannot be saved until you reconnect.",
+    "columns": {
+      "name": "Name",
+      "nameAlias": "Alternative name",
+      "barcode": "Barcode",
+      "expiryDate": "Expiry date",
+      "retailPrice": "Retail price",
+      "costPrice": "Cost price",
+      "openingQuantity": "Opening qty",
+      "openingUnitCost": "Opening cost",
+      "actions": "Status"
+    },
+    "sections": {
+      "item": "Item info",
+      "retailPrice": "Retail price",
+      "costPrice": "Cost price",
+      "opening": "Opening stock"
+    },
+    "status": {
+      "saved": "Row saved",
+      "failed": "Row not fully saved"
+    },
+    "counts": {
+      "dirty": "{count} unsaved",
+      "saving": "{count} saving",
+      "saved": "{count} saved",
+      "failed": "{count} failed"
+    },
+    "filters": {
+      "button": "Filters",
+      "title": "Show only items that are missing",
+      "missingBarcode": "No barcode",
+      "missingRetail": "No retail price (or zero)",
+      "missingCost": "No cost price (or zero)",
+      "zeroOpeningQty": "Opening quantity is zero",
+      "missingOpeningCost": "No opening stock cost",
+      "category": "Category",
+      "allCategories": "All categories",
+      "clearAll": "Clear all filters",
+      "remove": "Remove filter"
+    },
+    "errors": {
+      "belowSold": "{qty} unit(s) have already been sold from the opening stock — the quantity cannot go below that.",
+      "noWarehouse": "Select a warehouse before editing opening stock.",
+      "emptyName": "Item name cannot be empty."
+    },
+    "toasts": {
+      "rowFailed": "Some rows could not be saved — check the highlighted rows."
     }
   },
   "invoice": {
@@ -2541,6 +2610,8 @@
         "exchangeRatesDesc": "Set up and manage currency exchange rates",
         "currencies": "Currencies",
         "currenciesDesc": "Manage currencies and default settings",
+        "itemsGrid": "Bulk Edit Items",
+        "itemsGridDesc": "Fix item info, prices and opening stock for many items from one grid",
         "auditLogs": "Audit Logs",
         "auditLogsDesc": "Review user activity and system events"
       }

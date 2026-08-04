@@ -326,6 +326,89 @@ export const itemQuerySchema = z.object({
 });
 
 // =============================================================================
+// ITEM GRID (BULK-EDIT) SCHEMAS
+// =============================================================================
+
+/**
+ * Query parameters for GET /items/grid.
+ *
+ * Booleans arrive as querystring text, so they go through qsBool rather than
+ * z.coerce.boolean() — see the helper's note.
+ */
+export const itemGridQuerySchema = z.object({
+  warehouseId: z.string().uuid('Invalid warehouse ID').optional(),
+  search: z.string().max(255).optional(),
+  categoryId: z.string().uuid('Invalid category ID').optional(),
+  missingBarcode: qsBool.optional(),
+  missingRetail: qsBool.optional(),
+  missingCost: qsBool.optional(),
+  zeroOpeningQty: qsBool.optional(),
+  missingOpeningCost: qsBool.optional(),
+  includeInactive: qsBool.optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  sortBy: z.enum(['name', 'sku', 'barcode']).default('name'),
+  sortDir: z.enum(['asc', 'desc']).default('asc'),
+});
+
+/**
+ * Opening-stock part of a row save. Precision limits mirror
+ * `openingStockItemSchema` in validation/warehouse.ts so the shared
+ * OpeningStockService never sees a value it would reject.
+ */
+export const itemGridOpeningSchema = z.object({
+  warehouseId: z.string().uuid('Invalid warehouse ID'),
+  quantity: z.coerce.number()
+    .min(0, 'Quantity cannot be negative')
+    .multipleOf(0.001, 'Quantity supports at most 3 decimal places'),
+  unitCost: z.coerce.number()
+    .min(0, 'Unit cost cannot be negative')
+    .multipleOf(0.0001, 'Unit cost supports at most 4 decimal places'),
+  asOfDate: z.string().date('Invalid date format'),
+});
+
+/**
+ * Body of POST /items/:id/grid-row.
+ *
+ * `tracksExpiry` is deliberately absent — the service derives it from
+ * expiryDate so the grid can't violate items_expiry_requires_flag.
+ * At least one section must be present, otherwise the call is a no-op.
+ */
+export const saveItemGridRowSchema = z.object({
+  item: z.object({
+    name: z.string()
+      .min(1, 'Item name is required')
+      .max(200, 'Item name must be 200 characters or less')
+      .optional(),
+    nameAlias: z.string()
+      .max(200, 'Alternative name must be 200 characters or less')
+      .nullable()
+      .optional(),
+    barcode: z.string()
+      .max(100, 'Barcode must be 100 characters or less')
+      .nullable()
+      .optional(),
+    expiryDate: z.string().date('Invalid date format').nullable().optional(),
+  }).optional(),
+  retailPrice: z.coerce.number()
+    .min(0, 'Retail price cannot be negative')
+    .multipleOf(0.01, 'Retail price supports at most 2 decimal places')
+    .optional(),
+  costPrice: z.coerce.number()
+    .min(0, 'Cost price cannot be negative')
+    .multipleOf(0.01, 'Cost price supports at most 2 decimal places')
+    .optional(),
+  opening: itemGridOpeningSchema.optional(),
+}).refine(
+  (data) =>
+    (data.item && Object.keys(data.item).length > 0) ||
+    data.retailPrice !== undefined ||
+    data.costPrice !== undefined ||
+    data.opening !== undefined,
+  { message: 'No changes supplied' }
+);
+
+// =============================================================================
 // EXPIRY SCHEMAS
 // =============================================================================
 
