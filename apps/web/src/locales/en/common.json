@@ -2820,5 +2820,68 @@
       "totals": "Totals",
       "empty": "No movement in this period"
     }
+  },
+  "offline": {
+    "title": "Pending changes ({count})",
+    "subtitle": "Saved on this device and waiting to reach the server, in the order they will be sent.",
+    "subtitleOffline": "You are offline. These changes are saved on this device and will be sent when you reconnect.",
+    "loading": "Reading local changes…",
+    "empty": "Everything is synced.",
+    "attempts": "{count} tries",
+    "waitingFor": "Waiting for {target}",
+    "blockedHint": "The server rejected this. Retrying as-is will fail again — fix the cause, or discard it.",
+    "summary": {
+      "blocked": "{count} need attention",
+      "failed": "{count} failed",
+      "queued": "{count} queued"
+    },
+    "kind": {
+      "invoiceCreate": "Invoice",
+      "invoiceFinalize": "Invoice finalize",
+      "invoiceReturn": "Invoice return",
+      "paymentCreate": "Payment",
+      "transferCreate": "Stock transfer",
+      "transferExecute": "Transfer execute",
+      "unknown": "Change"
+    },
+    "actions": {
+      "syncNow": "Sync now",
+      "retry": "Retry",
+      "discard": "Discard",
+      "details": "Technical details",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "discard": {
+      "title": "Discard this change?",
+      "body": "This change will never be sent to the server. The record stays on this device only, so the server will not have it — you would need to enter it again. This cannot be undone."
+    },
+    "toast": {
+      "offlineTitle": "You are offline",
+      "offlineBody": "Reconnect to send your pending changes.",
+      "nothingTitle": "Nothing to sync",
+      "nothingBody": "No changes were sent.",
+      "doneTitle": "Changes synced",
+      "doneBody": "{count} change(s) sent to the server.",
+      "partialTitle": "Some changes did not sync",
+      "partialBody": "{pushed} sent, {stuck} still stuck. Open the details for the reason.",
+      "errorTitle": "Sync failed",
+      "discardedTitle": "Change discarded",
+      "discardedBody": "It will not be sent to the server."
+    },
+    "badge": {
+      "syncing": "Syncing {count}…",
+      "syncingTitle": "Sending your locally-saved changes to the server.",
+      "offline": "Offline",
+      "offlineWithCount": "Offline · {count} to sync",
+      "offlineTitle": "You are offline. Click to review the changes saved on this device.",
+      "blocked": "{count} need attention",
+      "blockedTitle": "The server rejected some changes. Click to review.",
+      "failed": "{count} failed",
+      "failedTitle": "Some changes could not sync yet. Click to review.",
+      "pending": "{count} pending",
+      "pendingTitle": "Waiting to sync. Click to review and sync now.",
+      "lastError": "Last error: {error}"
+    }
   }
 }

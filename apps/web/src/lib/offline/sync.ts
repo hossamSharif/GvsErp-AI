@@ -11,18 +11,41 @@
  * Single-device-per-tenant: a strict serial drain is correct; no merge logic.
  */
 
-import { networkRequest } from '@/lib/api-client';
+import { networkRequest, ApiClientError } from '@/lib/api-client';
+import { classifyReplayFailure } from '@erp/offline-engine';
 import { getDB, type OutboxEntry, type CachedRecord } from './db';
-import { pendingEntries, markStatus, pruneSynced, mapId, getMappedServerId } from './outbox';
+import {
+  pendingEntries,
+  markStatus,
+  pruneSynced,
+  mapId,
+  getMappedServerId,
+  reclaimInflight,
+} from './outbox';
 import { useSyncStore } from '@/stores/sync-store';
 
 export interface SyncResult {
   pushed: number;
   failed: number;
   skipped: number;
+  /** Entries the server rejected permanently — they need a human decision. */
+  blocked: number;
 }
 
-let syncing = false;
+export interface SyncOptions {
+  /**
+   * When a drain is already running, wait for it and return its result instead
+   * of returning zeros. Manual "Sync now" must set this: the background loop
+   * ticks every 15–60s, so a click frequently lands mid-tick and would
+   * otherwise appear to do nothing at all.
+   */
+  force?: boolean;
+}
+
+const EMPTY: SyncResult = { pushed: 0, failed: 0, skipped: 0, blocked: 0 };
+
+/** The in-flight drain, so a forced call can await it rather than no-op. */
+let current: Promise<SyncResult> | null = null;
 
 function isOnline(): boolean {
   return typeof navigator === 'undefined' ? false : navigator.onLine;
@@ -118,23 +141,49 @@ async function reconcile(entry: OutboxEntry, resp: unknown): Promise<void> {
  * Drain the outbox. Entries whose dependencies failed earlier this run are left
  * pending (skipped) so they retry on a later sync once the dependency clears.
  */
-export async function runSync(): Promise<SyncResult> {
-  if (typeof window === 'undefined' || !isOnline() || syncing) {
-    return { pushed: 0, failed: 0, skipped: 0 };
-  }
-  syncing = true;
+export async function runSync(options: SyncOptions = {}): Promise<SyncResult> {
+  if (typeof window === 'undefined' || !isOnline()) return EMPTY;
+  if (current) return options.force ? current : EMPTY;
+
+  current = drain().finally(() => {
+    current = null;
+  });
+  return current;
+}
+
+async function drain(): Promise<SyncResult> {
   useSyncStore.setState({ isSyncing: true });
   let pushed = 0;
   let failed = 0;
   let skipped = 0;
+  let blocked = 0;
   let lastError: string | null = null;
-  const failedIds = new Set<string>();
+  // Entries that did not clear this run — dependents must wait, whether the
+  // dependency merely failed or was rejected outright.
+  const unresolved = new Set<string>();
 
   try {
+    // Recover anything stranded `inflight` by a reload mid-replay, otherwise it
+    // is counted by the badge but never picked up by the drain.
+    await reclaimInflight();
+
     const entries = await pendingEntries(); // ordered by seq
+
+    // Blocked entries are not in `entries` at all, but their dependents must
+    // still wait — replaying a finalize whose create was rejected just produces
+    // a second, confusing rejection.
+    const db = getDB();
+    for (const e of await db.outbox.toArray()) {
+      if (e.blocked) unresolved.add(e.id);
+    }
+
     for (const entry of entries) {
-      // If any dependency failed this run, defer this entry.
-      if (entry.dependsOn.some((d) => failedIds.has(d))) {
+      // If any dependency is still unresolved, defer this entry and record why
+      // so the pending-changes dialog can say what it is waiting for.
+      const waitingOn = entry.dependsOn.find((d) => unresolved.has(d));
+      if (waitingOn) {
+        await markStatus(entry.id, 'pending', { waitingOn });
+        unresolved.add(entry.id);
         skipped++;
         continue;
       }
@@ -146,22 +195,29 @@ export async function runSync(): Promise<SyncResult> {
         pushed++;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        const status = err instanceof ApiClientError ? err.status : undefined;
+        const isBlocked = classifyReplayFailure(status) === 'blocked';
         lastError = message;
-        await markStatus(entry.id, 'failed', message);
-        failedIds.add(entry.id);
-        failed++;
+        await markStatus(entry.id, 'failed', {
+          lastError: message,
+          lastStatus: status,
+          lastCode: err instanceof ApiClientError ? err.code : undefined,
+          blocked: isBlocked || undefined,
+        });
+        unresolved.add(entry.id);
+        if (isBlocked) blocked++;
+        else failed++;
       }
     }
     await pruneSynced();
   } finally {
-    syncing = false;
     useSyncStore.setState({
       isSyncing: false,
       lastPushed: pushed,
-      // Keep the error only if something is still failing this run.
-      lastError: failed > 0 ? lastError : null,
+      // Keep the error only if something is still unresolved this run.
+      lastError: failed + blocked > 0 ? lastError : null,
     });
   }
 
-  return { pushed, failed, skipped };
+  return { pushed, failed, skipped, blocked };
 }

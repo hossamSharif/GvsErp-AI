@@ -72,6 +72,19 @@ export interface OutboxEntry {
   attempts: number;
   lastError?: string;
   createdAt: string;
+  /**
+   * The server rejected this permanently (a 4xx that retrying cannot fix, e.g.
+   * a deleted item or an already-finalized invoice). Auto-retry stops; the user
+   * must retry or discard it explicitly from the pending-changes dialog.
+   */
+  blocked?: boolean;
+  /** HTTP status / API error code from the last failed replay, for display. */
+  lastStatus?: number;
+  lastCode?: string;
+  /** Outbox entry id this one is deferred behind (dependency not yet synced). */
+  waitingOn?: string;
+  /** ISO of the last status transition — powers "3 tries, last attempt 2h ago". */
+  updatedAt?: string;
 }
 
 /** Per-table delta cursors + global sync state. */
