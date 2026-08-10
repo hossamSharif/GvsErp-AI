@@ -899,6 +899,13 @@
       "discountAriaLabel": "Discount amount",
       "total": "Total:",
       "draftSavedAt": "Draft saved locally {time}",
+      "clearDraft": "Clear",
+      "clearConfirm": {
+        "title": "Clear invoice?",
+        "body": "This removes all {count} items, the notes and the discount. The warehouse, customer/supplier, date and currency are kept.",
+        "cancel": "Cancel",
+        "confirm": "Clear"
+      },
       "saveDraft": "Save as Draft",
       "saveChanges": "Save Changes",
       "finalize": "Finalize",
@@ -920,6 +927,7 @@
         "addOneItem": "Please add at least one item",
         "draftSaved": "Draft Saved",
         "draftSavedDescription": "Invoice {number} saved as draft",
+        "draftCleared": "Invoice cleared",
         "saveFailed": "Failed to save draft",
         "finalized": "Invoice Finalized",
         "finalizedDescription": "Invoice {number} has been finalized",

@@ -899,6 +899,13 @@
       "discountAriaLabel": "قيمة الخصم",
       "total": "الإجمالي:",
       "draftSavedAt": "تم حفظ المسودة محلياً {time}",
+      "clearDraft": "مسح",
+      "clearConfirm": {
+        "title": "مسح الفاتورة؟",
+        "body": "سيتم حذف جميع الأصناف ({count}) والملاحظات والخصم. سيتم الاحتفاظ بالمستودع والعميل/المورد والتاريخ والعملة.",
+        "cancel": "إلغاء",
+        "confirm": "مسح"
+      },
       "saveDraft": "حفظ كمسودة",
       "saveChanges": "حفظ التغييرات",
       "finalize": "اعتماد",
@@ -920,6 +927,7 @@
         "addOneItem": "يرجى إضافة صنف واحد على الأقل",
         "draftSaved": "تم حفظ المسودة",
         "draftSavedDescription": "تم حفظ الفاتورة {number} كمسودة",
+        "draftCleared": "تم مسح الفاتورة",
         "saveFailed": "فشل حفظ المسودة",
         "finalized": "تم اعتماد الفاتورة",
         "finalizedDescription": "تم اعتماد الفاتورة {number}",

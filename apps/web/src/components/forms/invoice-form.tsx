@@ -10,7 +10,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Save, Send, FileText, Check, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { Save, Send, FileText, Check, ChevronDown, ChevronUp, ArrowLeft, Eraser } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
@@ -146,6 +156,9 @@ export function InvoiceForm({
   // near the top; a chevron toggles it open when the user needs to change
   // the customer/supplier, warehouse, currency, or date.
   const [headerOpen, setHeaderOpen] = useState(false);
+
+  // Confirmation for the "clear invoice" action in the sticky bottom bar.
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Quick-add bar: ref to focus the input, and a transient row highlight shown
   // when a scan/selection increments an already-present line.
@@ -399,6 +412,24 @@ export function InvoiceForm({
     },
     [currentDraftId, removeItem]
   );
+
+  // Clear the invoice body (items, notes, discount) while keeping the header
+  // selections the user already made — party, warehouse, currency, date and
+  // exchange rate are deliberately absent from the patch, and the payment
+  // accelerators are component state we never touch. Confirmed first when the
+  // table has rows so a mis-click can't drop a long scanned list.
+  const clearDraftBody = useCallback(() => {
+    if (!currentDraftId) return;
+    updateDraft(currentDraftId, { items: [], notes: '', discountAmount: 0 });
+    setShowClearConfirm(false);
+    quickAddInputRef.current?.focus();
+    toast({ title: t('toasts.draftCleared') });
+  }, [currentDraftId, updateDraft, toast, t]);
+
+  const handleClearClick = useCallback(() => {
+    if ((draft?.items.length ?? 0) > 0) setShowClearConfirm(true);
+    else clearDraftBody();
+  }, [draft, clearDraftBody]);
 
   const handleReorderItems = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -949,6 +980,23 @@ export function InvoiceForm({
                 {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
               </span>
             )}
+            {!existingInvoice && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearClick}
+                disabled={
+                  !currentDraftId ||
+                  ((draft?.items.length ?? 0) === 0 &&
+                    !draft?.notes &&
+                    !draft?.discountAmount)
+                }
+                className="text-muted-foreground"
+              >
+                <Eraser className="h-4 w-4 mr-2" />
+                {t('clearDraft')}
+              </Button>
+            )}
             <Button
               variant={existingInvoice ? 'default' : 'outline'}
               onClick={handleSaveDraft}
@@ -973,6 +1021,23 @@ export function InvoiceForm({
       )}
 
       {paymentWorkflowDialogs}
+
+      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('clearConfirm.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('clearConfirm.body', { count: draft?.items.length ?? 0 })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('clearConfirm.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={clearDraftBody}>
+              {t('clearConfirm.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
