@@ -36,6 +36,7 @@ const ROUTE_ENTITY_MAP: Record<string, AuditEntityType> = {
   '/api/v1/payments': 'payment',
   '/api/v1/warehouses': 'warehouse',
   '/api/v1/transfers': 'transfer',
+  '/api/v1/settlements': 'settlement',
   '/api/v1/expenses': 'expense',
   '/api/v1/pos': 'pos_location',
   '/api/v1/users': 'user',

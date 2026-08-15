@@ -3,6 +3,7 @@ import {
   PartyService,
   PartyError,
   buildOpeningBalanceLines,
+  assembleStatementRows,
 } from '../../src/services/party.service';
 import {
   naturalDirection,
@@ -383,5 +384,225 @@ describe('buildOpeningBalanceLines', () => {
     const lines = buildOpeningBalanceLines('customer', 33.333, LEDGER, EQUITY);
     expect(lines[0].debit).toBe(33.33);
     expect(lines[1].credit).toBe(33.33);
+  });
+});
+
+// ==========================================================================
+// assembleStatementRows
+// ==========================================================================
+
+/**
+ * A statement is built from two halves: a brought-forward figure covering
+ * everything strictly before dateFrom, and the rows inside the window. Both
+ * halves must window on the SAME column, or a transaction lands in neither
+ * (money vanishes) or in both (money doubles). These tests pin the row half and
+ * the `< dateFrom` predicate that the brought-forward half mirrors.
+ */
+
+const NO_OPENING = { amount: 0, date: null };
+
+const invoice = (id: string, date: string, total: number) => ({
+  id,
+  invoice_number: `INV-${id}`,
+  total,
+  exchange_rate: 1,
+  invoice_date: date,
+});
+
+const payment = (id: string, date: string, amount: number) => ({
+  id,
+  reference: `PAY-${id}`,
+  amount,
+  exchange_rate: 1,
+  payment_date: date,
+  notes: null,
+});
+
+const empty = { invoices: [], returns: [], payments: [] };
+
+/** The brought-forward predicate getBalanceAtDate applies, in isolation. */
+const isBroughtForward = (date: string, dateFrom: string) => date < dateFrom;
+
+describe('assembleStatementRows', () => {
+  it('excludes a back-dated payment from the window and brings it forward instead', () => {
+    // Regression: this payment was entered on 2026-08-06 but dated 2026-03-08.
+    // getBalanceAtDate windowed on created_at while the row query used
+    // payment_date, so it was neither brought forward nor listed, and the
+    // ledger closed 100,000 above the party's actual balance.
+    const backDated = payment('p1', '2026-03-08', 100000);
+
+    const rows = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, payments: [backDated] },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows).toHaveLength(0);
+    expect(isBroughtForward(backDated.payment_date, '2026-05-17')).toBe(true);
+  });
+
+  it('counts a payment inside the window exactly once', () => {
+    const inWindow = payment('p2', '2026-08-03', 520000);
+
+    const rows = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, payments: [inWindow] },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(isBroughtForward(inWindow.payment_date, '2026-05-17')).toBe(false);
+  });
+
+  it('does not double-count a payment dated after the window', () => {
+    const future = payment('p3', '2026-09-09', 200000);
+
+    const rows = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, payments: [future] },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows).toHaveLength(0);
+    expect(isBroughtForward(future.payment_date, '2026-05-17')).toBe(false);
+  });
+
+  it('lists an opening balance dated exactly on dateFrom as a row, not brought forward', () => {
+    const rows = assembleStatementRows(
+      { opening: { amount: 620000, date: '2026-05-17' }, ...empty },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].type).toBe('opening');
+    expect(rows[0].debit).toBe(620000);
+    expect(isBroughtForward('2026-05-17', '2026-05-17')).toBe(false);
+  });
+
+  it('puts a negative opening balance on the credit side', () => {
+    const rows = assembleStatementRows(
+      { opening: { amount: -5400, date: '2026-06-01' }, ...empty },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows[0].debit).toBe(0);
+    expect(rows[0].credit).toBe(5400);
+  });
+
+  it('emits return documents on the credit side', () => {
+    const rows = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, returns: [invoice('r1', '2026-07-01', 1200)] },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows[0].type).toBe('return');
+    expect(rows[0].debit).toBe(0);
+    expect(rows[0].credit).toBe(1200);
+  });
+
+  it('orders same-day rows opening, invoice, return, payment', () => {
+    const day = '2026-08-03';
+    const rows = assembleStatementRows(
+      {
+        opening: { amount: 100, date: day },
+        invoices: [invoice('i1', day, 200)],
+        returns: [invoice('r1', day, 50)],
+        payments: [payment('p1', day, 75)],
+      },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    expect(rows.map((r) => r.type)).toEqual(['opening', 'invoice', 'return', 'payment']);
+  });
+
+  it('breaks ties on id so repeated calls return a stable order', () => {
+    const day = '2026-08-03';
+    const forward = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, payments: [payment('b', day, 1), payment('a', day, 2)] },
+      '2026-01-01',
+      '2026-12-31'
+    );
+    const reversed = assembleStatementRows(
+      { opening: NO_OPENING, ...empty, payments: [payment('a', day, 2), payment('b', day, 1)] },
+      '2026-01-01',
+      '2026-12-31'
+    );
+
+    expect(forward.map((r) => r.id)).toEqual(['a', 'b']);
+    expect(forward.map((r) => r.id)).toEqual(reversed.map((r) => r.id));
+  });
+
+  it('sorts across dates chronologically', () => {
+    const rows = assembleStatementRows(
+      {
+        opening: NO_OPENING,
+        returns: [],
+        invoices: [invoice('i2', '2026-08-06', 1529000), invoice('i1', '2026-08-03', 520000)],
+        payments: [payment('p1', '2026-07-01', 10)],
+      },
+      '2026-01-01',
+      '2026-12-31'
+    );
+
+    expect(rows.map((r) => r.date)).toEqual(['2026-07-01', '2026-08-03', '2026-08-06']);
+  });
+
+  it('reproduces the reported supplier: brought forward -100,000, closing 520,000', () => {
+    // Window 2026-05-17..2026-08-15. The March payment is brought forward; the
+    // opening balance and both invoice/payment pairs fall inside the window.
+    const broughtForward = -100000;
+
+    const rows = assembleStatementRows(
+      {
+        opening: { amount: 620000, date: '2026-08-02' },
+        invoices: [invoice('i1', '2026-08-03', 520000), invoice('i2', '2026-08-06', 1529000)],
+        returns: [],
+        payments: [payment('p2', '2026-08-03', 520000), payment('p3', '2026-08-06', 1529000)],
+      },
+      '2026-05-17',
+      '2026-08-15'
+    );
+
+    const closing = rows.reduce((bal, r) => bal + r.debit - r.credit, broughtForward);
+    expect(closing).toBe(520000);
+  });
+
+  it('keeps broughtForward + sum(debit - credit) === closing for a randomised fixture', () => {
+    const pick = (n: number) => Math.floor(Math.random() * n);
+    const day = () => `2026-0${1 + pick(9)}-${String(1 + pick(28)).padStart(2, '0')}`;
+
+    for (let run = 0; run < 50; run++) {
+      const invoices = Array.from({ length: pick(4) }, (_, i) =>
+        invoice(`i${i}`, day(), pick(10000))
+      );
+      const returns = Array.from({ length: pick(3) }, (_, i) =>
+        invoice(`r${i}`, day(), pick(1000))
+      );
+      const payments = Array.from({ length: pick(4) }, (_, i) =>
+        payment(`p${i}`, day(), pick(10000))
+      );
+
+      const broughtForward = pick(50000) - 25000;
+      const rows = assembleStatementRows(
+        { opening: NO_OPENING, invoices, returns, payments },
+        '2026-01-01',
+        '2026-12-31'
+      );
+
+      // Mirrors the running-balance loop in getPartyStatement.
+      let running = broughtForward;
+      const balances = rows.map((r) => (running += r.debit - r.credit));
+      const closing = balances.length ? balances[balances.length - 1] : broughtForward;
+
+      expect(closing).toBeCloseTo(
+        rows.reduce((sum, r) => sum + r.debit - r.credit, broughtForward),
+        10
+      );
+      expect(rows).toHaveLength(invoices.length + returns.length + payments.length);
+    }
   });
 });

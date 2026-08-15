@@ -26,6 +26,110 @@
     "reports": "Reports",
     "settings": "Settings"
   },
+  "settlements": {
+    "title": "Stock Settlements",
+    "description": "Correct warehouse quantities against a physical count",
+    "empty": "No settlements yet",
+    "notFound": "Settlement not found",
+    "new": {
+      "title": "New Settlement",
+      "description": "Enter your physical count — only items that differ will be recorded"
+    },
+    "detail": {
+      "linesTitle": "Lines",
+      "isReversal": "This document reverses an earlier settlement."
+    },
+    "form": {
+      "detailsTitle": "Settlement Details",
+      "countSheetTitle": "Count Sheet",
+      "selectWarehouse": "Select a warehouse",
+      "selectWarehouseFirst": "Select a warehouse to load its items",
+      "searchItems": "Search items…",
+      "noItems": "No items found",
+      "notesPlaceholder": "Reason, reference, who counted…",
+      "changedLines": "{count} item(s) will be adjusted",
+      "increaseValue": "Increase",
+      "decreaseValue": "Decrease",
+      "netValue": "Net",
+      "saveDraft": "Save Draft"
+    },
+    "fields": {
+      "number": "Number",
+      "date": "Date",
+      "warehouse": "Warehouse",
+      "reason": "Reason",
+      "notes": "Notes",
+      "status": "Status",
+      "lines": "Lines",
+      "item": "Item",
+      "systemQty": "System Qty",
+      "countedQty": "Counted Qty",
+      "difference": "Difference",
+      "unitCost": "Unit Cost",
+      "valueImpact": "Value Impact",
+      "netValue": "Net Value"
+    },
+    "status": {
+      "draft": "Draft",
+      "posted": "Posted",
+      "canceled": "Reversed"
+    },
+    "reasons": {
+      "count_correction": "Count Correction",
+      "damage": "Damage",
+      "theft": "Theft",
+      "expiry": "Expiry",
+      "other": "Other"
+    },
+    "filters": {
+      "title": "Filters",
+      "searchPlaceholder": "Search by number or notes…",
+      "allStatuses": "All statuses",
+      "allWarehouses": "All warehouses"
+    },
+    "actions": {
+      "new": "New Settlement",
+      "view": "View",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "back": "Back",
+      "post": "Post",
+      "reverse": "Reverse"
+    },
+    "deleteDialog": {
+      "title": "Delete this draft?",
+      "description": "This draft settlement will be permanently removed. Stock is not affected."
+    },
+    "postDialog": {
+      "title": "Post this settlement?",
+      "description": "Warehouse quantities will be corrected, stock valuation updated, and a journal entry posted. This can only be undone by reversing the document."
+    },
+    "reverseDialog": {
+      "title": "Reverse this settlement?",
+      "description": "A mirror settlement will be created and posted to restore the previous quantities, and the original journal entry will be reversed."
+    },
+    "errors": {
+      "warehouseRequired": "Select a warehouse first",
+      "noChanges": "No counted quantity differs from the system quantity"
+    },
+    "toasts": {
+      "draftCreated": "Draft settlement created",
+      "createFailed": "Could not create settlement",
+      "deleted": "Draft deleted",
+      "deleteFailed": "Could not delete draft",
+      "posted": "Settlement posted",
+      "postedDetail": "{count} item(s) adjusted · net value {value}",
+      "postFailed": "Could not post settlement",
+      "accountingWarning": "Stock updated, ledger not",
+      "reversed": "Settlement reversed",
+      "reverseFailed": "Could not reverse settlement"
+    },
+    "pagination": {
+      "showing": "Showing {from} to {to} of {total}",
+      "previous": "Previous",
+      "next": "Next"
+    }
+  },
   "openingStock": {
     "draftRestoredNotice": "You have unsaved changes from a previous session — review and save, or discard them.",
     "discardDraft": "Discard changes",
@@ -1323,10 +1427,21 @@
       "recalculateBalance": "Recalculate Balance",
       "summary": "Summary",
       "transactionTotals": "Transaction totals",
-      "totalInvoiced": "Total Invoiced",
-      "totalPaid": "Total Paid",
+      "broughtForward": "Balance brought forward",
+      "invoicedInPeriod": "Invoiced this period",
+      "paidInPeriod": "Paid this period",
+      "returnsInPeriod": "Returns this period",
+      "closingBalance": "Closing balance",
+      "periodDiffersFromBalance": "This period closes before today. Widen it to All time to see the full balance.",
       "transactions": "Transactions",
       "period": "Period",
+      "rangeAllTime": "All time",
+      "rangeThisMonth": "This month",
+      "rangeLast90": "Last 90 days",
+      "rangeThisYear": "This year",
+      "rangeCustom": "Custom",
+      "rangeFrom": "From",
+      "rangeTo": "To",
       "transactionHistory": "Transaction History",
       "transactionHistoryDescription": "All invoices and payments for the selected period",
       "noTransactions": "No transactions found for this period",
@@ -1391,6 +1506,7 @@
     "settingsDescription": "Configure low-stock thresholds and warehouse preferences.",
     "transfers": "Transfers",
     "openingStock": "Opening Stock",
+    "settlements": "Settlements",
     "addWarehouse": "Add Warehouse",
     "totalWarehouses": "Total Warehouses",
     "lowStockAlerts": "Low Stock Alerts",
@@ -2802,7 +2918,8 @@
       "sale": "Sale",
       "sale_return": "Sale Return",
       "transfer_in": "Transfer In",
-      "transfer_out": "Transfer Out"
+      "transfer_out": "Transfer Out",
+      "adjustment": "Settlement"
     },
     "table": {
       "date": "Date",

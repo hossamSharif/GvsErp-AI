@@ -32,7 +32,8 @@ export type AccountingDefaultRole =
   | 'salary_payable'
   | 'general_expense'
   | 'service_purchase_expense'
-  | 'opening_balance_equity';
+  | 'opening_balance_equity'
+  | 'inventory_adjustment';
 
 export interface AccountingDefaultsResponse {
   roles: AccountingDefaultRole[];

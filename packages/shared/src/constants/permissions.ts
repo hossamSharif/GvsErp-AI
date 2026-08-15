@@ -52,6 +52,12 @@ export const TRANSFER_PERMISSIONS = [
   'transfers:complete',
 ] as const;
 
+export const SETTLEMENT_PERMISSIONS = [
+  'settlements:read',
+  'settlements:write',
+  'settlements:post',
+] as const;
+
 export const EXPENSE_PERMISSIONS = [
   'expenses:read',
   'expenses:write',
@@ -157,6 +163,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   ...WAREHOUSE_PERMISSIONS,
   ...INVENTORY_PERMISSIONS,
   ...TRANSFER_PERMISSIONS,
+  ...SETTLEMENT_PERMISSIONS,
   ...EXPENSE_PERMISSIONS,
   ...REPORT_PERMISSIONS,
   ...USER_PERMISSIONS,
@@ -217,6 +224,10 @@ export const DEFAULT_ROLES: Record<SystemRoleName, {
       'transfers:read',
       'transfers:write',
       'transfers:complete',
+      // Warehouse staff can count and draft; posting moves stock and hits the
+      // ledger, so it stays with admin.
+      'settlements:read',
+      'settlements:write',
     ],
   },
   viewer: {
@@ -304,6 +315,9 @@ export function getPermissionLabel(permission: Permission): string {
     'transfers:read': 'View Transfers',
     'transfers:write': 'Create Transfers',
     'transfers:complete': 'Complete Transfers',
+    'settlements:read': 'View Stock Settlements',
+    'settlements:write': 'Create/Edit Stock Settlements',
+    'settlements:post': 'Post/Reverse Stock Settlements',
     'expenses:read': 'View Expenses',
     'expenses:write': 'Create/Edit Expenses',
     'expenses:delete': 'Delete Expenses',
@@ -365,6 +379,7 @@ export function getPermissionsByCategory(): Record<string, Permission[]> {
     'Warehouses': [...WAREHOUSE_PERMISSIONS],
     'Inventory': [...INVENTORY_PERMISSIONS],
     'Transfers': [...TRANSFER_PERMISSIONS],
+    'Stock Settlements': [...SETTLEMENT_PERMISSIONS],
     'Expenses': [...EXPENSE_PERMISSIONS],
     'Reports': [...REPORT_PERMISSIONS],
     'Users': [...USER_PERMISSIONS],

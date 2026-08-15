@@ -82,7 +82,12 @@ function daysAgoIso(days: number): string {
 }
 
 /** Movement kinds that never have an invoice to open. */
-const NON_INVOICE_TYPES: ItemMovementType[] = ['opening', 'transfer_in', 'transfer_out'];
+const NON_INVOICE_TYPES: ItemMovementType[] = [
+  'opening',
+  'transfer_in',
+  'transfer_out',
+  'adjustment',
+];
 
 const BADGE_CLASSES: Record<ItemMovementType, string> = {
   sale: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
@@ -92,6 +97,7 @@ const BADGE_CLASSES: Record<ItemMovementType, string> = {
   transfer_in: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
   transfer_out: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
   opening: 'bg-transparent text-muted-foreground border border-border',
+  adjustment: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
 };
 
 // =============================================================================

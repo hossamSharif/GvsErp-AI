@@ -371,7 +371,9 @@ export type ItemMovementType =
   | 'sale'
   | 'sale_return'
   | 'transfer_in'
-  | 'transfer_out';
+  | 'transfer_out'
+  /** Posted stock settlement (physical-count correction), either direction. */
+  | 'adjustment';
 
 /**
  * A single row in the item movement ledger.

@@ -26,6 +26,110 @@
     "reports": "التقارير",
     "settings": "الإعدادات"
   },
+  "settlements": {
+    "title": "تسويات المخزون",
+    "description": "تصحيح كميات المستودع بناءً على الجرد الفعلي",
+    "empty": "لا توجد تسويات بعد",
+    "notFound": "التسوية غير موجودة",
+    "new": {
+      "title": "تسوية جديدة",
+      "description": "أدخل الجرد الفعلي — سيتم تسجيل الأصناف المختلفة فقط"
+    },
+    "detail": {
+      "linesTitle": "البنود",
+      "isReversal": "هذا المستند يعكس تسوية سابقة."
+    },
+    "form": {
+      "detailsTitle": "بيانات التسوية",
+      "countSheetTitle": "كشف الجرد",
+      "selectWarehouse": "اختر مستودعاً",
+      "selectWarehouseFirst": "اختر مستودعاً لعرض أصنافه",
+      "searchItems": "بحث في الأصناف…",
+      "noItems": "لا توجد أصناف",
+      "notesPlaceholder": "السبب، المرجع، اسم القائم بالجرد…",
+      "changedLines": "سيتم تعديل {count} صنف",
+      "increaseValue": "الزيادة",
+      "decreaseValue": "النقص",
+      "netValue": "الصافي",
+      "saveDraft": "حفظ كمسودة"
+    },
+    "fields": {
+      "number": "الرقم",
+      "date": "التاريخ",
+      "warehouse": "المستودع",
+      "reason": "السبب",
+      "notes": "ملاحظات",
+      "status": "الحالة",
+      "lines": "البنود",
+      "item": "الصنف",
+      "systemQty": "كمية النظام",
+      "countedQty": "الكمية المجرودة",
+      "difference": "الفرق",
+      "unitCost": "تكلفة الوحدة",
+      "valueImpact": "أثر القيمة",
+      "netValue": "صافي القيمة"
+    },
+    "status": {
+      "draft": "مسودة",
+      "posted": "مرحّلة",
+      "canceled": "معكوسة"
+    },
+    "reasons": {
+      "count_correction": "تصحيح جرد",
+      "damage": "تلف",
+      "theft": "سرقة",
+      "expiry": "انتهاء صلاحية",
+      "other": "أخرى"
+    },
+    "filters": {
+      "title": "عوامل التصفية",
+      "searchPlaceholder": "بحث بالرقم أو الملاحظات…",
+      "allStatuses": "كل الحالات",
+      "allWarehouses": "كل المستودعات"
+    },
+    "actions": {
+      "new": "تسوية جديدة",
+      "view": "عرض",
+      "delete": "حذف",
+      "cancel": "إلغاء",
+      "back": "رجوع",
+      "post": "ترحيل",
+      "reverse": "عكس"
+    },
+    "deleteDialog": {
+      "title": "حذف هذه المسودة؟",
+      "description": "سيتم حذف مسودة التسوية نهائياً. لن يتأثر المخزون."
+    },
+    "postDialog": {
+      "title": "ترحيل هذه التسوية؟",
+      "description": "سيتم تصحيح كميات المستودع وتحديث تقييم المخزون وترحيل قيد محاسبي. لا يمكن التراجع إلا بعكس المستند."
+    },
+    "reverseDialog": {
+      "title": "عكس هذه التسوية؟",
+      "description": "سيتم إنشاء وترحيل تسوية معاكسة لاستعادة الكميات السابقة، وعكس القيد المحاسبي الأصلي."
+    },
+    "errors": {
+      "warehouseRequired": "اختر مستودعاً أولاً",
+      "noChanges": "لا يوجد فرق بين الكميات المجرودة وكميات النظام"
+    },
+    "toasts": {
+      "draftCreated": "تم إنشاء مسودة التسوية",
+      "createFailed": "تعذر إنشاء التسوية",
+      "deleted": "تم حذف المسودة",
+      "deleteFailed": "تعذر حذف المسودة",
+      "posted": "تم ترحيل التسوية",
+      "postedDetail": "تم تعديل {count} صنف · صافي القيمة {value}",
+      "postFailed": "تعذر ترحيل التسوية",
+      "accountingWarning": "تم تحديث المخزون دون القيد المحاسبي",
+      "reversed": "تم عكس التسوية",
+      "reverseFailed": "تعذر عكس التسوية"
+    },
+    "pagination": {
+      "showing": "عرض {from} إلى {to} من {total}",
+      "previous": "السابق",
+      "next": "التالي"
+    }
+  },
   "openingStock": {
     "draftRestoredNotice": "لديك تغييرات غير محفوظة من جلسة سابقة — راجعها واحفظها أو تجاهلها.",
     "discardDraft": "تجاهل التغييرات",
@@ -1323,10 +1427,21 @@
       "recalculateBalance": "إعادة حساب الرصيد",
       "summary": "الملخص",
       "transactionTotals": "إجمالي المعاملات",
-      "totalInvoiced": "إجمالي الفواتير",
-      "totalPaid": "إجمالي المدفوعات",
+      "broughtForward": "رصيد ما قبل الفترة",
+      "invoicedInPeriod": "فواتير الفترة",
+      "paidInPeriod": "مدفوعات الفترة",
+      "returnsInPeriod": "مرتجعات الفترة",
+      "closingBalance": "الرصيد الختامي",
+      "periodDiffersFromBalance": "تنتهي هذه الفترة قبل تاريخ اليوم. اختر \"كل الفترات\" لعرض الرصيد الكامل.",
       "transactions": "المعاملات",
       "period": "الفترة",
+      "rangeAllTime": "كل الفترات",
+      "rangeThisMonth": "هذا الشهر",
+      "rangeLast90": "آخر ٩٠ يوماً",
+      "rangeThisYear": "هذه السنة",
+      "rangeCustom": "فترة مخصصة",
+      "rangeFrom": "من",
+      "rangeTo": "إلى",
       "transactionHistory": "سجل المعاملات",
       "transactionHistoryDescription": "جميع الفواتير والمدفوعات للفترة المحددة",
       "noTransactions": "لا توجد معاملات في هذه الفترة",
@@ -1391,6 +1506,7 @@
     "settingsDescription": "اضبط حدود نقص المخزون وتفضيلات المستودعات.",
     "transfers": "التحويلات",
     "openingStock": "المخزون الافتتاحي",
+    "settlements": "التسويات",
     "addWarehouse": "إضافة مستودع",
     "totalWarehouses": "إجمالي المستودعات",
     "lowStockAlerts": "تنبيهات نقص المخزون",
@@ -2802,7 +2918,8 @@
       "sale": "بيع",
       "sale_return": "مرتجع بيع",
       "transfer_in": "تحويل وارد",
-      "transfer_out": "تحويل صادر"
+      "transfer_out": "تحويل صادر",
+      "adjustment": "تسوية"
     },
     "table": {
       "date": "التاريخ",

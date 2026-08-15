@@ -120,7 +120,10 @@ export class OpeningStockService {
       .select('item_id, qty_in, qty_remaining, unit_cost')
       .eq('tenant_id', this.tenantId)
       .eq('warehouse_id', warehouseId)
-      .is('source_invoice_id', null);
+      .is('source_invoice_id', null)
+      // Exclude settlement overages — they have no source invoice either, but
+      // they are adjustments rather than opening stock.
+      .is('source_settlement_id', null);
     if (layerErr) throw layerErr;
 
     interface OpeningAgg {
@@ -211,7 +214,11 @@ export class OpeningStockService {
         .eq('tenant_id', this.tenantId)
         .eq('item_id', item.itemId)
         .eq('warehouse_id', warehouseId)
-        .is('source_invoice_id', null);
+        .is('source_invoice_id', null)
+        // Settlement overages also have no source invoice. They are adjustments,
+        // not opening stock — excluding them keeps step 4 below from deleting
+        // them when opening stock is re-saved.
+        .is('source_settlement_id', null);
       if (readErr) throw readErr;
 
       const openingLayers = (layers ?? []) as unknown as {

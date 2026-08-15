@@ -28,6 +28,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/tables/data-table';
+import {
+  StatementDateRange,
+  type StatementRange,
+  type StatementRangePreset,
+} from '@/components/parties/statement-date-range';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import type { PartyTransaction } from '@erp/shared';
@@ -47,6 +52,13 @@ import {
   BookOpen,
 } from 'lucide-react';
 
+/**
+ * Synthetic first ledger row carrying the balance the window opens at. Real
+ * opening-balance rows share its `type`, so anything that needs to tell them
+ * apart matches on this id.
+ */
+const BROUGHT_FORWARD_ID = '__brought_forward__';
+
 export default function CustomerDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -57,11 +69,10 @@ export default function CustomerDetailPage() {
   const t = useTranslations('parties');
   const tCommon = useTranslations('common');
 
-  // Date range for statement (last 3 months by default)
-  const [dateRange] = useState({
-    dateFrom: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    dateTo: new Date().toISOString().split('T')[0],
-  });
+  // Statement period. All time by default so the ledger's closing balance ties
+  // to the balance card; a narrower window is opt-in via the picker.
+  const [preset, setPreset] = useState<StatementRangePreset>('all');
+  const [dateRange, setDateRange] = useState<StatementRange>({});
 
   // Fetch customer data
   const {
@@ -138,36 +149,63 @@ export default function CustomerDetailPage() {
     [intlLocale],
   );
 
+  // Ledger rows, led by the balance the window opens at. Without it the running
+  // balance column starts mid-air and cannot be reconciled against the card.
+  const ledgerRows = useMemo<PartyTransaction[]>(() => {
+    const statement = statementData?.data;
+    if (!statement) return [];
+
+    return [
+      {
+        id: BROUGHT_FORWARD_ID,
+        type: 'opening' as const,
+        date: statement.dateFrom,
+        reference: '',
+        description: t('detail.broughtForward'),
+        debit: 0,
+        credit: 0,
+        balance: statement.openingBalance,
+      },
+      ...statement.transactions,
+    ];
+  }, [statementData, t]);
+
   // Transaction table columns
   const columns = useMemo<ColumnDef<PartyTransaction>[]>(
     () => [
       {
         accessorKey: 'date',
         header: t('txnColumns.date'),
-        cell: ({ row }) => formatDate(row.original.date),
+        // The brought-forward row carries the window start, which is a sentinel
+        // year on an all-time statement — showing it would be noise.
+        cell: ({ row }) =>
+          row.original.id === BROUGHT_FORWARD_ID ? '—' : formatDate(row.original.date),
       },
       {
         accessorKey: 'type',
         header: t('txnColumns.type'),
-        cell: ({ row }) => (
-          <Badge
-            variant={
-              row.original.type === 'invoice'
-                ? 'default'
-                : row.original.type === 'opening'
-                  ? 'outline'
-                  : 'secondary'
-            }
-          >
-            {t(
-              `txnTypes.${row.original.type}` as
-                | 'txnTypes.invoice'
-                | 'txnTypes.payment'
-                | 'txnTypes.return'
-                | 'txnTypes.opening'
-            )}
-          </Badge>
-        ),
+        cell: ({ row }) =>
+          row.original.id === BROUGHT_FORWARD_ID ? null : (
+            <Badge
+              variant={
+                row.original.type === 'invoice'
+                  ? 'default'
+                  : row.original.type === 'opening'
+                    ? 'outline'
+                    : row.original.type === 'return'
+                      ? 'destructive'
+                      : 'secondary'
+              }
+            >
+              {t(
+                `txnTypes.${row.original.type}` as
+                  | 'txnTypes.invoice'
+                  | 'txnTypes.payment'
+                  | 'txnTypes.return'
+                  | 'txnTypes.opening'
+              )}
+            </Badge>
+          ),
       },
       {
         accessorKey: 'reference',
@@ -374,6 +412,11 @@ export default function CustomerDetailPage() {
                 })}
               </p>
             )}
+            {statement && Math.abs(statement.closingBalance - balance) > 0.005 && (
+              <p className="text-xs text-muted-foreground">
+                {t('detail.periodDiffersFromBalance')}
+              </p>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -397,14 +440,40 @@ export default function CustomerDetailPage() {
             {statement && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{t('detail.totalInvoiced')}</span>
-                  <span className="font-medium">{formatCurrency(statement.totalDebits)}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('detail.broughtForward')}
+                  </span>
+                  <span className="font-medium">
+                    {formatCurrency(statement.openingBalance)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{t('detail.totalPaid')}</span>
-                  <span className="font-medium">{formatCurrency(statement.totalCredits)}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('detail.invoicedInPeriod')}
+                  </span>
+                  <span className="font-medium">{formatCurrency(statement.totalInvoiced)}</span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">{t('detail.paidInPeriod')}</span>
+                  <span className="font-medium">{formatCurrency(statement.totalPaid)}</span>
+                </div>
+                {statement.totalReturns > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      {t('detail.returnsInPeriod')}
+                    </span>
+                    <span className="font-medium">{formatCurrency(statement.totalReturns)}</span>
+                  </div>
+                )}
                 <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {t('detail.closingBalance')}
+                  </span>
+                  <span className="font-medium">
+                    {formatCurrency(statement.closingBalance)}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t('detail.transactions')}</span>
                   <Badge variant="outline">{statement.transactions.length}</Badge>
@@ -412,7 +481,9 @@ export default function CustomerDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t('detail.period')}</span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDate(statement.dateFrom)} - {formatDate(statement.dateTo)}
+                    {preset === 'all'
+                      ? t('detail.rangeAllTime')
+                      : `${formatDate(statement.dateFrom)} - ${formatDate(statement.dateTo)}`}
                   </span>
                 </div>
               </>
@@ -429,20 +500,27 @@ export default function CustomerDetailPage() {
             {t('detail.transactionHistoryDescription')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <StatementDateRange
+            preset={preset}
+            range={dateRange}
+            onPresetChange={setPreset}
+            onRangeChange={setDateRange}
+          />
           {isStatementLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
-          ) : statement && statement.transactions.length > 0 ? (
+          ) : statement &&
+            (statement.transactions.length > 0 || statement.openingBalance !== 0) ? (
             <DataTable
               columns={columns}
-              data={statement.transactions}
+              data={ledgerRows}
               pageCount={1}
               pageIndex={0}
-              pageSize={statement.transactions.length}
+              pageSize={ledgerRows.length}
               onPageChange={() => {}}
               onSortingChange={() => {}}
               isLoading={false}

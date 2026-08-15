@@ -1398,36 +1398,38 @@ export class InvoiceService {
   }
 
   /**
-   * Update party balance
+   * Update party balance.
+   *
+   * Delegates to the adjust_party_balance RPC rather than reading the balance
+   * and writing back a total: the payment and invoice triggers write the same
+   * column, so a read-modify-write here can silently lose one of their updates.
+   * The RPC is also tenant-scoped, which the direct update was not.
    */
   private async updatePartyBalance(
     partyId: string,
     amount: number,
     _invoiceType: InvoiceType
   ): Promise<FinalizeInvoiceResult['partyBalanceUpdate']> {
-    const { data: party } = await this.supabase
-      .from('parties')
-      .select('id, balance')
-      .eq('id', partyId)
-      .maybeSingle();
+    // Both sale and purchase increase the party's outstanding balance.
+    // Returns pass a negative amount to reverse.
+    // `as never` on the name: generated Database types predate migration 038.
+    const { data, error } = await this.supabase.rpc('adjust_party_balance' as never, {
+      p_tenant_id: this.tenantId,
+      p_party_id: partyId,
+      p_delta: amount,
+    } as never);
 
-    if (!party) {
+    // A missing party raises no_data_found; the previous implementation simply
+    // returned undefined for that case, so keep it non-fatal.
+    if (error) {
       return undefined;
     }
 
-    const previousBalance = Number(party.balance);
-    // Both sale and purchase increase the party's outstanding balance.
-    // Returns pass a negative amount to reverse.
-    const newBalance = previousBalance + amount;
-
-    await this.supabase
-      .from('parties')
-      .update({ balance: newBalance })
-      .eq('id', partyId);
+    const newBalance = Number(data || 0);
 
     return {
       partyId,
-      previousBalance,
+      previousBalance: newBalance - amount,
       newBalance,
       change: amount,
     };

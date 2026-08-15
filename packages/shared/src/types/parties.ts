@@ -145,6 +145,7 @@ export interface PartyBalanceSummary {
   partyType: PartyType;
   openingBalance: number;
   totalInvoiced: number;
+  totalReturned: number;
   totalPaid: number;
   currentBalance: number;
 }
@@ -499,6 +500,14 @@ export interface PartyStatement {
   closingBalance: number;
   totalDebits: number;
   totalCredits: number;
+  /**
+   * Per-row-type totals for the period. `totalDebits`/`totalCredits` lump the
+   * opening-balance row in with real activity, which made "total invoiced" on
+   * the party detail page overstate by the opening balance.
+   */
+  totalInvoiced: number;
+  totalPaid: number;
+  totalReturns: number;
   dateFrom: string;
   dateTo: string;
   generatedAt: string;

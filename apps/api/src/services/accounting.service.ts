@@ -110,7 +110,8 @@ export type AccountingDefaultRole =
   | 'salary_payable'
   | 'general_expense'
   | 'service_purchase_expense'
-  | 'opening_balance_equity';
+  | 'opening_balance_equity'
+  | 'inventory_adjustment';
 
 export type AccountingDefaults = Partial<Record<AccountingDefaultRole, string>>;
 
@@ -132,6 +133,7 @@ const DEFAULT_ROLE_TO_CODE: Partial<Record<AccountingDefaultRole, string>> = {
   service_purchase_expense: '5200',
   salary_expense: '5210',
   opening_balance_equity: '3200',
+  inventory_adjustment: '5300',
 };
 
 /**
@@ -401,6 +403,44 @@ export class AccountingService {
     }
 
     await this.setDefaultAccount(tenantId, 'opening_balance_equity', accountId);
+    return accountId;
+  }
+
+  /**
+   * Get or lazily create the Inventory Adjustment account (code 5300) and ensure
+   * it is mapped to the 'inventory_adjustment' default role. Returns the account
+   * ID.
+   *
+   * Created lazily rather than seeded so that existing tenants' charts of
+   * accounts are untouched until they actually post a settlement. Modelled on
+   * getOrCreateOpeningBalanceEquityAccount.
+   *
+   * Booked as an expense: a shortage debits it (shrinkage cost), an overage
+   * credits it (a negative expense, i.e. a gain).
+   */
+  async getOrCreateInventoryAdjustmentAccount(tenantId: string): Promise<string> {
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    if (defaults.inventory_adjustment) {
+      return defaults.inventory_adjustment;
+    }
+
+    const existing = await this.accountRepo.findByCode(tenantId, '5300');
+    let accountId: string;
+    if (existing) {
+      accountId = existing.id;
+    } else {
+      // Resolve the Expenses parent (5000) if it exists.
+      const expenseParent = await this.accountRepo.findByCode(tenantId, '5000');
+      const created = await this.accountRepo.create(tenantId, {
+        code: '5300',
+        name: 'Inventory Adjustment',
+        type: 'expense',
+        parent_id: expenseParent?.id,
+      });
+      accountId = created.id;
+    }
+
+    await this.setDefaultAccount(tenantId, 'inventory_adjustment', accountId);
     return accountId;
   }
 
@@ -1238,6 +1278,9 @@ export class AccountingService {
       { code: '5210', name: 'Salaries Expense', type: 'expense', parent_id: '5200' },
       { code: '5220', name: 'Rent Expense', type: 'expense', parent_id: '5200' },
       { code: '5230', name: 'Utilities Expense', type: 'expense', parent_id: '5200' },
+      // Shrinkage / overage from posted stock settlements. Existing tenants get
+      // this lazily via getOrCreateInventoryAdjustmentAccount().
+      { code: '5300', name: 'Inventory Adjustment', type: 'expense', parent_id: '5000' },
     ];
 
     const createdAccounts: Account[] = [];
@@ -1754,6 +1797,89 @@ export class AccountingService {
       description: 'COGS for sale',
       source_type: 'cogs',
       source_id: invoiceId,
+      lines,
+    });
+  }
+
+  /**
+   * Post the value change of an inventory settlement (stock adjustment).
+   *
+   *   net decrease (shrinkage):  Dr Inventory Adjustment / Cr Inventory Asset
+   *   net increase (overage):    Dr Inventory Asset       / Cr Inventory Adjustment
+   *
+   * Uses source_type='settlement' with the settlement's own id, so the entry is
+   * idempotent via the partial unique index and can be found by reverseEntry()
+   * — unlike the opening-stock JE, which posts as 'manual' and therefore can be
+   * neither deduplicated nor reversed.
+   *
+   * The Inventory Adjustment account (5300) is created lazily on first use so
+   * existing tenants' charts of accounts stay untouched until they settle.
+   */
+  async generateJournalEntryFromSettlement(
+    tenantId: string,
+    userId: string | null,
+    settlementId: string,
+    netValueDelta: number,
+    entryDate: string,
+    description: string
+  ): Promise<JournalEntry | null> {
+    if (Math.abs(netValueDelta) < 0.01) return null;
+
+    const existing = await this.findExistingPostedEntry(
+      tenantId,
+      'settlement',
+      settlementId
+    );
+    if (existing) return existing;
+
+    const defaults = await this.getDefaultAccountIds(tenantId);
+    if (!defaults.inventory_asset) {
+      console.warn(
+        `[accounting] Skipping settlement JE for ${settlementId}: inventory_asset role unmapped`
+      );
+      return null;
+    }
+
+    const adjustmentAccountId =
+      await this.getOrCreateInventoryAdjustmentAccount(tenantId);
+
+    const amount = Math.abs(netValueDelta);
+    const lines: CreateJournalLineInput[] =
+      netValueDelta < 0
+        ? [
+            {
+              account_id: adjustmentAccountId,
+              debit: amount,
+              credit: 0,
+              description: 'Inventory shortage',
+            },
+            {
+              account_id: defaults.inventory_asset,
+              debit: 0,
+              credit: amount,
+              description: 'Inventory written down',
+            },
+          ]
+        : [
+            {
+              account_id: defaults.inventory_asset,
+              debit: amount,
+              credit: 0,
+              description: 'Inventory written up',
+            },
+            {
+              account_id: adjustmentAccountId,
+              debit: 0,
+              credit: amount,
+              description: 'Inventory overage',
+            },
+          ];
+
+    return this.createAndPost(tenantId, userId, {
+      entry_date: entryDate,
+      description,
+      source_type: 'settlement',
+      source_id: settlementId,
       lines,
     });
   }

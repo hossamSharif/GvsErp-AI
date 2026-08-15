@@ -25,6 +25,7 @@ import type {
   PartyTransaction,
   PartyStatement,
   PartyStatementParams,
+  TransactionType,
   CustomerBalanceReportParams,
   CustomerBalanceReportResponse,
   CustomerBalanceReportEntry,
@@ -74,6 +75,7 @@ interface BalanceSummaryRow {
   party_type: string;
   opening_balance: number;
   total_invoiced: number;
+  total_returned: number;
   total_paid: number;
   current_balance: number;
 }
@@ -87,6 +89,142 @@ interface JournalLineInput {
 
 /** Amounts below this are treated as zero (DECIMAL(15,2) rounding noise) */
 const OPENING_BALANCE_EPSILON = 0.005;
+
+/**
+ * Tiebreaker for statement rows sharing a date. The opening balance has to lead
+ * the day it opens; beyond that the order only needs to be stable, so that two
+ * requests for the same window never return the rows in a different sequence.
+ */
+const STATEMENT_ROW_RANK: Record<TransactionType, number> = {
+  opening: 0,
+  invoice: 1,
+  return: 2,
+  payment: 3,
+};
+
+/**
+ * A standalone return document, as created by InvoiceService.createReturn: its
+ * own invoice row pointing back at the original. A row whose status was flipped
+ * to 'returned' in place is not one of these — the balance trigger already
+ * netted it to zero, so it must not be counted again.
+ */
+function isReturnRow(row: { status?: string | null; returned_from_id?: string | null }): boolean {
+  return row.status === 'returned' && row.returned_from_id != null;
+}
+
+/** An invoice or return row as the statement queries select it */
+export interface StatementInvoiceRow {
+  id: string;
+  invoice_number: string;
+  total: number | string;
+  exchange_rate: number | string;
+  invoice_date: string;
+}
+
+/** A payment row as the statement query selects it */
+export interface StatementPaymentRow {
+  id: string;
+  reference: string | null;
+  amount: number | string;
+  exchange_rate: number | string;
+  payment_date: string;
+  notes: string | null;
+}
+
+/** Everything a statement is built from, before windowing */
+export interface StatementSources {
+  opening: { amount: number; date: string | null };
+  invoices: StatementInvoiceRow[];
+  returns: StatementInvoiceRow[];
+  payments: StatementPaymentRow[];
+}
+
+/**
+ * Turn the raw rows into ordered ledger lines.
+ *
+ * Debit/credit follow the statement's own natural-direction convention — a row
+ * lands in Debit when it increases what is outstanding in the party's natural
+ * direction — so this needs no per-party-type branch. The running balance is
+ * layered on top by `getPartyStatement`.
+ *
+ * Every source is re-windowed here even though the queries already narrow them.
+ * Splitting the window rule between the query and the assembler is what let a
+ * back-dated payment fall out of the statement in the first place; keeping the
+ * whole rule in one pure function is what makes it testable.
+ */
+export function assembleStatementRows(
+  sources: StatementSources,
+  dateFrom: string,
+  dateTo: string
+): Omit<PartyTransaction, 'balance'>[] {
+  const rows: Omit<PartyTransaction, 'balance'>[] = [];
+
+  /** Complement of the strict `< dateFrom` used for the brought-forward half */
+  const inWindow = (date: string) => date >= dateFrom && date <= dateTo;
+
+  const { amount: openingBalance, date: openingBalanceDate } = sources.opening;
+  if (openingBalance !== 0 && openingBalanceDate !== null && inWindow(openingBalanceDate)) {
+    rows.push({
+      id: `opening-${dateFrom}`,
+      type: 'opening',
+      date: openingBalanceDate,
+      reference: 'OB',
+      description: 'Opening balance',
+      debit: openingBalance > 0 ? openingBalance : 0,
+      credit: openingBalance < 0 ? -openingBalance : 0,
+    });
+  }
+
+  for (const invoice of sources.invoices.filter((i) => inWindow(i.invoice_date))) {
+    const amount = Number(invoice.total) * Number(invoice.exchange_rate);
+    rows.push({
+      id: invoice.id,
+      type: 'invoice',
+      date: invoice.invoice_date,
+      reference: invoice.invoice_number,
+      description: `Invoice ${invoice.invoice_number}`,
+      debit: amount,
+      credit: 0,
+    });
+  }
+
+  // Returns reduce what is outstanding, which is why they sit on the credit
+  // side next to payments. They move parties.balance the same way.
+  for (const invoice of sources.returns.filter((i) => inWindow(i.invoice_date))) {
+    const amount = Number(invoice.total) * Number(invoice.exchange_rate);
+    rows.push({
+      id: invoice.id,
+      type: 'return',
+      date: invoice.invoice_date,
+      reference: invoice.invoice_number,
+      description: `Return ${invoice.invoice_number}`,
+      debit: 0,
+      credit: amount,
+    });
+  }
+
+  for (const payment of sources.payments.filter((p) => inWindow(p.payment_date))) {
+    const amount = Number(payment.amount) * Number(payment.exchange_rate);
+    rows.push({
+      id: payment.id,
+      type: 'payment',
+      date: payment.payment_date,
+      reference: payment.reference || 'N/A',
+      description: payment.notes || 'Payment',
+      debit: 0,
+      credit: amount,
+    });
+  }
+
+  // Every date here is a plain YYYY-MM-DD, so string comparison is chronological
+  // and there is no timestamp-vs-date skew to work around.
+  return rows.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    const byRank = STATEMENT_ROW_RANK[a.type] - STATEMENT_ROW_RANK[b.type];
+    if (byRank !== 0) return byRank;
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+  });
+}
 
 /** Today as a plain calendar date (YYYY-MM-DD) */
 function todayIso(): string {
@@ -488,9 +626,9 @@ export class PartyService {
    * Recalculate party balance from transactions
    */
   async recalculateBalance(id: string): Promise<number> {
-    const { data, error } = await this.supabase.rpc('recalculate_party_balance', {
+    const { data, error } = await this.supabase.rpc('recalculate_party_balance' as never, {
       p_party_id: id,
-    });
+    } as never);
 
     if (error) {
       throw new PartyError(
@@ -507,21 +645,22 @@ export class PartyService {
    * Get party balance summary for all parties of a type
    */
   async getBalanceSummary(partyType?: PartyType): Promise<PartyBalanceSummary[]> {
-    const { data, error } = await this.supabase.rpc('get_party_balance_summary', {
+    const { data, error } = await this.supabase.rpc('get_party_balance_summary' as never, {
       p_tenant_id: this.tenantId,
       p_party_type: partyType || null,
-    });
+    } as never);
 
     if (error) {
       throw new PartyError('Failed to get balance summary', 'SUMMARY_FAILED', 500);
     }
 
-    return (data || []).map((row: BalanceSummaryRow) => ({
+    return ((data || []) as BalanceSummaryRow[]).map((row: BalanceSummaryRow) => ({
       partyId: row.party_id,
       partyName: row.party_name,
       partyType: row.party_type as PartyType,
       openingBalance: Number(row.opening_balance || 0),
       totalInvoiced: Number(row.total_invoiced || 0),
+      totalReturned: Number(row.total_returned || 0),
       totalPaid: Number(row.total_paid || 0),
       // The RPC column is current_balance; reading row.balance here previously
       // yielded undefined, so every summary reported a zero balance.
@@ -568,6 +707,12 @@ export class PartyService {
     const totalDebits = transactions.reduce((sum, txn) => sum + txn.debit, 0);
     const totalCredits = transactions.reduce((sum, txn) => sum + txn.credit, 0);
 
+    // Per-type totals, because totalDebits counts the opening-balance row as if
+    // it were an invoice and totalCredits counts returns as if they were
+    // payments. The detail page reports these instead.
+    const sumWhere = (type: TransactionType, side: 'debit' | 'credit') =>
+      transactions.reduce((sum, txn) => (txn.type === type ? sum + txn[side] : sum), 0);
+
     return {
       party: this.mapRow(party),
       openingBalance,
@@ -575,6 +720,9 @@ export class PartyService {
       closingBalance: runningBalance,
       totalDebits,
       totalCredits,
+      totalInvoiced: sumWhere('invoice', 'debit'),
+      totalPaid: sumWhere('payment', 'credit'),
+      totalReturns: sumWhere('return', 'credit'),
       dateFrom,
       dateTo,
       generatedAt: new Date().toISOString(),
@@ -589,36 +737,40 @@ export class PartyService {
     date: string,
     party: PartyRow
   ): Promise<number> {
-    // Opening balance counts toward the brought-forward figure only when it
-    // predates the window. Strict `<` matches the .lt() used for invoices and
-    // payments below, so a balance dated exactly on `date` shows up as a
-    // transaction row instead — counted once either way, never twice.
+    // Every predicate here is the strict `<` complement of the `>= dateFrom`
+    // used by getTransactions, over the *same* column, so each transaction is
+    // counted exactly once: either brought forward or as a row, never both and
+    // never neither. Windowing the two halves on different columns is what let
+    // a back-dated payment disappear from the statement entirely.
     const openingBalance = Number(party.opening_balance || 0);
     const openingBalanceDate = party.opening_balance_date ?? null;
     const openingApplies =
       openingBalance !== 0 && openingBalanceDate !== null && openingBalanceDate < date;
 
-    // Get all invoices finalized before date
+    // Invoices dated before the window. `invoice_date` is the user-chosen
+    // business date; `finalized_at` is a system timestamp and would put
+    // back-dated invoices in the wrong period.
     const { data: invoices } = await this.supabase
       .from('invoices')
-      .select('total, exchange_rate')
+      .select('total, exchange_rate, status, returned_from_id')
       .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
-      .eq('status', 'final')
-      .lt('finalized_at', date);
+      .in('status', ['final', 'returned'])
+      .lt('invoice_date', date);
 
-    const invoiceTotal = (invoices || []).reduce(
-      (sum, inv) => sum + Number(inv.total) * Number(inv.exchange_rate),
-      0
-    );
+    const invoiceTotal = (invoices || []).reduce((sum, inv) => {
+      const amount = Number(inv.total) * Number(inv.exchange_rate);
+      // Return rows reduce the balance; see assembleStatementRows.
+      return isReturnRow(inv) ? sum - amount : inv.status === 'final' ? sum + amount : sum;
+    }, 0);
 
-    // Get all payments before date
+    // Payments dated before the window, by payment_date to match the rows.
     const { data: payments } = await this.supabase
       .from('payments')
       .select('amount, exchange_rate')
       .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
-      .lt('created_at', date);
+      .lt('payment_date', date);
 
     const paymentTotal = (payments || []).reduce(
       (sum, pay) => sum + Number(pay.amount) * Number(pay.exchange_rate),
@@ -637,85 +789,42 @@ export class PartyService {
     dateTo: string,
     party: PartyRow
   ): Promise<Omit<PartyTransaction, 'balance'>[]> {
-    const transactions: Omit<PartyTransaction, 'balance'>[] = [];
-
-    // Opening balance, when it falls inside the window. debit/credit follow the
-    // statement's own natural-direction convention (running balance is
-    // debit - credit), so this needs no per-party-type branch.
-    const openingBalance = Number(party.opening_balance || 0);
-    const openingBalanceDate = party.opening_balance_date ?? null;
-    if (
-      openingBalance !== 0 &&
-      openingBalanceDate !== null &&
-      openingBalanceDate >= dateFrom &&
-      openingBalanceDate <= dateTo
-    ) {
-      transactions.push({
-        id: `opening-${partyId}`,
-        type: 'opening',
-        date: openingBalanceDate,
-        reference: 'OB',
-        description: 'Opening balance',
-        debit: openingBalance > 0 ? openingBalance : 0,
-        credit: openingBalance < 0 ? -openingBalance : 0,
-      });
-    }
-
-    // Get invoices
-    const { data: invoices } = await this.supabase
+    // Invoices and standalone returns come back together, then split by shape.
+    // Windowed on invoice_date to match getBalanceAtDate — see the note there.
+    const { data: invoiceRows } = await this.supabase
       .from('invoices')
-      .select('id, invoice_number, total, exchange_rate, status, finalized_at')
+      .select(
+        'id, invoice_number, total, exchange_rate, status, returned_from_id, invoice_date'
+      )
       .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
-      .eq('status', 'final')
-      .gte('finalized_at', dateFrom)
-      .lte('finalized_at', dateTo)
-      .order('finalized_at', { ascending: true });
+      .in('status', ['final', 'returned'])
+      .gte('invoice_date', dateFrom)
+      .lte('invoice_date', dateTo);
 
-    for (const invoice of invoices || []) {
-      const amount = Number(invoice.total) * Number(invoice.exchange_rate);
-      transactions.push({
-        id: invoice.id,
-        type: 'invoice',
-        date: invoice.finalized_at || '',
-        reference: invoice.invoice_number,
-        description: `Invoice ${invoice.invoice_number}`,
-        debit: amount,
-        credit: 0,
-      });
-    }
-
-    // Get payments
-    const { data: payments } = await this.supabase
+    const { data: paymentRows } = await this.supabase
       .from('payments')
       .select('id, reference, amount, exchange_rate, payment_date, notes')
       .eq('tenant_id', this.tenantId)
       .eq('party_id', partyId)
       .gte('payment_date', dateFrom)
-      .lte('payment_date', dateTo)
-      .order('payment_date', { ascending: true });
+      .lte('payment_date', dateTo);
 
-    for (const payment of payments || []) {
-      const amount = Number(payment.amount) * Number(payment.exchange_rate);
-      transactions.push({
-        id: payment.id,
-        type: 'payment',
-        date: payment.payment_date,
-        reference: payment.reference || 'N/A',
-        description: payment.notes || 'Payment',
-        debit: 0,
-        credit: amount,
-      });
-    }
-
-    // Sort by date, with the opening balance pinned ahead of same-day activity.
-    // The tiebreaker matters because the opening date is a bare YYYY-MM-DD
-    // (parsed as UTC midnight) while invoices carry a full timestamp.
-    return transactions.sort((a, b) => {
-      const byDate = new Date(a.date).getTime() - new Date(b.date).getTime();
-      if (byDate !== 0) return byDate;
-      return (a.type === 'opening' ? 0 : 1) - (b.type === 'opening' ? 0 : 1);
-    });
+    return assembleStatementRows(
+      {
+        opening: {
+          amount: Number(party.opening_balance || 0),
+          date: party.opening_balance_date ?? null,
+        },
+        invoices: (invoiceRows || []).filter(
+          (row) => row.status === 'final'
+        ) as unknown as StatementInvoiceRow[],
+        returns: (invoiceRows || []).filter(isReturnRow) as unknown as StatementInvoiceRow[],
+        payments: (paymentRows || []) as unknown as StatementPaymentRow[],
+      },
+      dateFrom,
+      dateTo
+    );
   }
 
   // ==========================================================================

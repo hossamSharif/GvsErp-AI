@@ -37,6 +37,7 @@ const DEFAULT_ROLES: AccountingDefaultRole[] = [
   'general_expense',
   'service_purchase_expense',
   'opening_balance_equity',
+  'inventory_adjustment',
 ];
 
 const defaultRoleParamSchema = z.object({

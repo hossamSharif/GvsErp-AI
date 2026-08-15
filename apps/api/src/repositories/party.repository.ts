@@ -260,26 +260,29 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
 
   /**
    * Adjust party balance by amount (increment/decrement)
+   *
+   * Uses the adjust_party_balance RPC so the delta is applied in a single
+   * statement. Reading the balance and writing back a total loses whatever the
+   * invoice/payment triggers wrote in between.
    */
   async adjustBalance(tenantId: string, id: string, amount: number): Promise<Party | null> {
-    // Get current balance
-    const { data: current, error: fetchError } = await this.supabase
-      .from('parties')
-      .select('balance')
-      .eq('tenant_id', tenantId)
-      .eq('id', id)
-      .single();
+    // `as never` on the name: generated Database types predate migration 038.
+    const { error } = await this.supabase.rpc('adjust_party_balance' as never, {
+      p_tenant_id: tenantId,
+      p_party_id: id,
+      p_delta: amount,
+    } as never);
 
-    if (fetchError) {
-      if (fetchError.code === 'PGRST116') {
+    if (error) {
+      // The RPC raises no_data_found when the party is missing for this tenant.
+      if (error.code === 'P0002' || error.message?.includes('not found')) {
         return null;
       }
-      throw fetchError;
+      throw error;
     }
 
-    const newBalance = Number(current.balance) + amount;
-
-    return this.updateBalance(tenantId, id, newBalance);
+    const row = await this.findById(tenantId, id);
+    return row ? this.mapParty(row) : null;
   }
 
   /**
@@ -331,6 +334,22 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
         0
       );
 
+      // Standalone return documents, which reduce the balance the same way a
+      // payment does. Rows flipped to 'returned' in place are excluded: the
+      // trigger already netted those and they have left totalInvoiced.
+      const { data: returns } = await this.supabase
+        .from('invoices')
+        .select('total, exchange_rate')
+        .eq('tenant_id', tenantId)
+        .eq('party_id', party.id)
+        .eq('status', 'returned')
+        .not('returned_from_id', 'is', null);
+
+      const totalReturned = (returns || []).reduce(
+        (sum, inv) => sum + Number(inv.total) * Number(inv.exchange_rate),
+        0
+      );
+
       // Get payment totals
       const { data: payments } = await this.supabase
         .from('payments')
@@ -349,6 +368,7 @@ export class PartyRepository extends BaseRepository<'parties', PartyRow, PartyIn
         partyType: party.type as PartyType,
         openingBalance: Number(party.opening_balance || 0),
         totalInvoiced,
+        totalReturned,
         totalPaid,
         currentBalance: Number(party.balance),
       });

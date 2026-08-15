@@ -151,6 +151,10 @@ export type Permission =
   | 'transfers:read'
   | 'transfers:write'
   | 'transfers:complete'
+  // Stock settlements (physical-count adjustments)
+  | 'settlements:read'
+  | 'settlements:write'
+  | 'settlements:post'
   // Expenses
   | 'expenses:read'
   | 'expenses:write'

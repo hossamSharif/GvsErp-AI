@@ -14,9 +14,13 @@
  *     type=purchase, returned_from_id NOT NULL  → OUT  (purchase return)
  *     type=sale,     returned_from_id IS NULL   → OUT  (sale, incl. POS)
  *     type=sale,     returned_from_id NOT NULL  → IN   (sale return)
- *   stock_valuation_layers where source_invoice_id IS NULL → IN (opening entry)
+ *   stock_valuation_layers where source_invoice_id IS NULL
+ *     AND source_settlement_id IS NULL       → IN   (opening entry)
  *   transfer_items ⋈ transfers status='completed' → IN/OUT, only when a
  *     warehouse filter is applied (company-wide they net to zero)
+ *   settlement_items ⋈ settlements status='posted' → IN/OUT by the sign of
+ *     difference_quantity. Always included: a settlement creates or destroys
+ *     stock outright, so unlike transfers it never nets to zero.
  *
  * Opening quantity is computed BACKWARDS from current on-hand
  * (`opening = onHand − totalIn + totalOut`) rather than read from the opening
@@ -107,19 +111,31 @@ export class ItemMovementService {
       throw new ItemMovementError('Warehouse not found', 'WAREHOUSE_NOT_FOUND', 404);
     }
 
-    // Gather the three movement sources in parallel.
-    const [invoiceRows, openingRows, transferRows, onHandQuantity, stockValue] =
-      await Promise.all([
-        this.getInvoiceMovements(itemId, dateFrom, dateTo, warehouseId),
-        this.getOpeningLayerMovements(itemId, dateFrom, dateTo, warehouseId),
-        warehouseId
-          ? this.getTransferMovements(itemId, dateFrom, dateTo, warehouseId)
-          : Promise.resolve<ItemMovementRow[]>([]),
-        this.getOnHandQuantity(itemId, warehouseId),
-        this.getStockValue(itemId, warehouseId),
-      ]);
+    // Gather the four movement sources in parallel.
+    const [
+      invoiceRows,
+      openingRows,
+      transferRows,
+      settlementRows,
+      onHandQuantity,
+      stockValue,
+    ] = await Promise.all([
+      this.getInvoiceMovements(itemId, dateFrom, dateTo, warehouseId),
+      this.getOpeningLayerMovements(itemId, dateFrom, dateTo, warehouseId),
+      warehouseId
+        ? this.getTransferMovements(itemId, dateFrom, dateTo, warehouseId)
+        : Promise.resolve<ItemMovementRow[]>([]),
+      this.getSettlementMovements(itemId, dateFrom, dateTo, warehouseId),
+      this.getOnHandQuantity(itemId, warehouseId),
+      this.getStockValue(itemId, warehouseId),
+    ]);
 
-    const merged = [...invoiceRows, ...openingRows, ...transferRows].sort((a, b) => {
+    const merged = [
+      ...invoiceRows,
+      ...openingRows,
+      ...transferRows,
+      ...settlementRows,
+    ].sort((a, b) => {
       // Opening entries always lead, whatever their layer_date. Tenants
       // commonly record opening stock AFTER they have already entered some
       // sales; sorting it chronologically would run the ledger negative for
@@ -310,6 +326,10 @@ export class ItemMovementService {
       .eq('tenant_id', this.tenantId)
       .eq('item_id', itemId)
       .is('source_invoice_id', null)
+      // A settlement overage also creates a layer with no source invoice, but it
+      // is an adjustment, not opening stock — it is reported by
+      // getSettlementMovements instead.
+      .is('source_settlement_id', null)
       .gte('layer_date', dateFrom)
       // layer_date is a timestamptz — extend to the end of the closing day so
       // same-day entries are not silently dropped.
@@ -345,6 +365,83 @@ export class ItemMovementService {
       currency: null,
       notes: null,
     }));
+  }
+
+  /**
+   * Posted stock settlements (physical-count adjustments). Unlike transfers,
+   * these do NOT net to zero company-wide — a settlement creates or destroys
+   * stock outright — so they are always included, warehouse filter or not.
+   *
+   * Omitting this source would not trip the `reconciles` flag, because opening
+   * is derived backwards from on-hand: the ledger would silently absorb every
+   * adjustment into the opening balance and still look self-consistent.
+   */
+  private async getSettlementMovements(
+    itemId: string,
+    dateFrom: string,
+    dateTo: string,
+    warehouseId?: string
+  ): Promise<ItemMovementRow[]> {
+    let query = this.supabase
+      .from('settlement_items' as any)
+      .select(
+        `
+        id,
+        difference_quantity,
+        unit_cost,
+        value_delta,
+        notes,
+        settlement:settlements!inner(
+          id,
+          settlement_number,
+          settlement_date,
+          status,
+          reason,
+          warehouse_id,
+          warehouse:warehouses(id, name)
+        )
+      `
+      )
+      .eq('tenant_id', this.tenantId)
+      .eq('item_id', itemId)
+      .eq('settlement.status', 'posted')
+      .gte('settlement.settlement_date', dateFrom)
+      .lte('settlement.settlement_date', dateTo);
+
+    if (warehouseId) {
+      query = query.eq('settlement.warehouse_id', warehouseId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return ((data ?? []) as any[])
+      .filter((row) => Number(row.difference_quantity ?? 0) !== 0)
+      .map((row) => {
+        const diff = Number(row.difference_quantity);
+        const settlement = row.settlement;
+
+        return {
+          id: row.id,
+          movementType: 'adjustment' as const,
+          date: settlement.settlement_date,
+          invoiceId: null,
+          invoiceType: null,
+          invoiceNumber: settlement.settlement_number,
+          partyId: null,
+          partyName: null,
+          warehouseId: settlement.warehouse_id ?? null,
+          warehouseName: settlement.warehouse?.name ?? null,
+          quantityIn: diff > 0 ? diff : 0,
+          quantityOut: diff < 0 ? -diff : 0,
+          runningBalance: 0,
+          unitPrice: row.unit_cost === null ? null : Number(row.unit_cost),
+          discountPercent: null,
+          lineNet: row.value_delta === null ? null : round2(Number(row.value_delta)),
+          currency: null,
+          notes: row.notes ?? settlement.reason ?? null,
+        };
+      });
   }
 
   /**

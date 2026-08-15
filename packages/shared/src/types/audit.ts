@@ -41,6 +41,8 @@ export type AuditEntityType =
   | 'expense_category'
   | 'transfer'
   | 'transfer_item'
+  | 'settlement'
+  | 'settlement_item'
   | 'pos_location'
   | 'currency'
   | 'exchange_rate'
