@@ -126,13 +126,16 @@ export default function CustomerDetailPage() {
     router.push(`/${locale}/customers`);
   }, [router, locale]);
 
-  // Format currency (locale-aware)
+  // Format currency (locale-aware). Falls back to zero for a missing or
+  // non-finite amount: the web deploys ahead of the API, so a field the older
+  // API does not return yet must not render as "NaN" across the whole card.
   const formatCurrency = useCallback(
-    (amount: number) => {
+    (amount: number | null | undefined) => {
+      const value = Number(amount);
       return new Intl.NumberFormat(intlLocale === 'ar' ? 'ar-EG' : 'en-US', {
         style: 'currency',
         currency: 'USD',
-      }).format(amount);
+      }).format(Number.isFinite(value) ? value : 0);
     },
     [intlLocale],
   );
