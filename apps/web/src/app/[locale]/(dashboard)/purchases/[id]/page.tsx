@@ -59,6 +59,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { LinkedPaymentsDialog } from '@/components/dialogs/linked-payments-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useInvoice, useFinalizeInvoice, useDeleteInvoice, invoiceKeys } from '@/hooks/use-invoices';
 import { usePrintInvoice } from '@/hooks/use-print-invoice';
@@ -67,18 +68,12 @@ import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog'
 import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
 import { ApiClientError } from '@/lib/api-client';
-import type { InvoiceStatus, InvoiceWithRelations } from '@erp/shared';
+import type {
+  InvoiceStatus,
+  InvoiceWithRelations,
+  LinkedPaymentsMeta,
+} from '@erp/shared';
 
-/**
- * Shape of the `meta` returned with an INVOICE_HAS_PAYMENTS error — the payments
- * linked to the invoice, used to drive the cascade-delete confirmation.
- */
-interface LinkedPaymentsMeta {
-  paymentCount: number;
-  totalPaid: number;
-  hasSharedPayments: boolean;
-  payments: { id: string; reference: string | null; amount: number; shared: boolean }[];
-}
 
 const STATUS_ICONS: Record<InvoiceStatus, { icon: React.ElementType; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   draft: { icon: Clock, variant: 'secondary' },
@@ -514,52 +509,15 @@ export default function PurchaseDetailPage() {
       </Dialog>
 
       {/* Cascade-delete confirmation: also delete the linked payment(s) */}
-      <Dialog
+      <LinkedPaymentsDialog
         open={paymentsPrompt !== null}
         onOpenChange={(open) => !open && setPaymentsPrompt(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('paymentsDeleteDialog.title')}</DialogTitle>
-            <DialogDescription>
-              {t('paymentsDeleteDialog.body', {
-                count: paymentsPrompt?.paymentCount ?? 0,
-                total: (paymentsPrompt?.totalPaid ?? 0).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                }),
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          {paymentsPrompt && paymentsPrompt.payments.length > 0 && (
-            <ul className="text-sm space-y-1 max-h-40 overflow-y-auto">
-              {paymentsPrompt.payments.map((p) => (
-                <li key={p.id} className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">
-                    {p.reference ?? p.id.slice(0, 8)}
-                  </span>
-                  <span>
-                    {p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPaymentsPrompt(null)}>
-              {t('paymentsDeleteDialog.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleDelete(true)}
-              disabled={deleteInvoice.isPending}
-            >
-              {deleteInvoice.isPending
-                ? t('paymentsDeleteDialog.pending')
-                : t('paymentsDeleteDialog.confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        mode="delete"
+        meta={paymentsPrompt}
+        locale={locale as string}
+        isPending={deleteInvoice.isPending}
+        onConfirm={() => handleDelete(true)}
+      />
 
       {showReturnDialog && invoice && (
         <ReturnInvoiceDialog

@@ -479,3 +479,39 @@ export interface DraftInvoiceItem {
   lineTotal: number;
   sortOrder: number;
 }
+
+// =============================================================================
+// LINKED PAYMENTS (blocking an invoice edit or delete)
+// =============================================================================
+
+/**
+ * A payment linked to an invoice — either through the legacy
+ * `payments.invoice_id` column or a bill-wise `payment_allocations` row.
+ */
+export interface LinkedPayment {
+  id: string;
+  reference: string | null;
+  amount: number;
+  /** Payment date (YYYY-MM-DD). */
+  paymentDate: string;
+  paymentMethod: string | null;
+  /** Bank account the payment landed in, when it wasn't cash. */
+  bankAccountName: string | null;
+  /**
+   * True when the payment also allocates to a *different* invoice, so it can't
+   * be deleted automatically without wrongly unwinding those other invoices.
+   */
+  shared: boolean;
+}
+
+/**
+ * Context returned as `error.meta` with an `INVOICE_HAS_PAYMENTS` or
+ * `INVOICE_HAS_SHARED_PAYMENTS` 409 — enough for the client to show the
+ * payments and offer a cascade delete.
+ */
+export interface LinkedPaymentsMeta {
+  paymentCount: number;
+  totalPaid: number;
+  hasSharedPayments: boolean;
+  payments: LinkedPayment[];
+}

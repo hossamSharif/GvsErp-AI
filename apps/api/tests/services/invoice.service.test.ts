@@ -387,10 +387,25 @@ describe('InvoiceService.getLinkedPayments', () => {
         // Allocation link: pay-2 is allocated to inv-1.
         return [{ payment_id: 'pay-2' }];
       }
-      if (table === 'payments' && select === 'id, reference, amount') {
+      if (table === 'payments' && select.startsWith('id, reference, amount')) {
         return [
-          { id: 'pay-1', reference: 'RCV-1', amount: 100 },
-          { id: 'pay-2', reference: 'RCV-2', amount: 50 },
+          {
+            id: 'pay-1',
+            reference: 'RCV-1',
+            amount: 100,
+            payment_date: '2026-08-02',
+            payment_method: 'cash',
+            bank_account: null,
+          },
+          {
+            id: 'pay-2',
+            reference: 'RCV-2',
+            amount: 50,
+            payment_date: '2026-08-11',
+            payment_method: 'bank',
+            // Supabase can type the embed as an array; the mapper normalises it.
+            bank_account: [{ name: 'Main Account' }],
+          },
         ];
       }
       if (table === 'payment_allocations' && select === 'payment_id, invoice_id') {
@@ -410,7 +425,12 @@ describe('InvoiceService.getLinkedPayments', () => {
     const byId = Object.fromEntries(linked.map((p: any) => [p.id, p]));
     expect(byId['pay-1'].shared).toBe(false);
     expect(byId['pay-1'].amount).toBe(100);
+    expect(byId['pay-1'].paymentDate).toBe('2026-08-02');
+    expect(byId['pay-1'].paymentMethod).toBe('cash');
+    expect(byId['pay-1'].bankAccountName).toBeNull();
     expect(byId['pay-2'].shared).toBe(true);
+    // The embed arrives as an array here; it must still flatten to the name.
+    expect(byId['pay-2'].bankAccountName).toBe('Main Account');
   });
 
   it('returns empty when no payments are linked', async () => {
@@ -483,5 +503,113 @@ describe('InvoiceService.deleteInvoice (linked payments)', () => {
     expect(result).toEqual({ id: 'inv-1' });
     expect(deletePayment).not.toHaveBeenCalled();
     expect(deleteRow).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ==========================================================================
+// updateInvoice — a finalized invoice blocked by its linked payments
+// ==========================================================================
+
+describe('InvoiceService.updateInvoice (linked payments)', () => {
+  /**
+   * Wire a service whose repo returns a *finalized* invoice, so updateInvoice
+   * routes into updateFinalInvoice and hits the linked-payment gate. The
+   * stock/balance machinery past the gate is stubbed out — these tests are
+   * about the gate itself.
+   */
+  function setup(
+    linked: Array<{ id: string; reference: string | null; amount: number; shared: boolean }>
+  ) {
+    const svc = new (InvoiceService as any)(null, 'tenant-1', 'user-1');
+    const deletePayment = vi.fn(async () => undefined);
+    const updateWithItems = vi.fn(async () => ({
+      id: 'inv-1',
+      status: 'final',
+      type: 'sale',
+      partyId: null,
+      total: 150,
+      items: [],
+    }));
+    svc.invoiceRepository = {
+      findByIdWithRelations: async () => ({
+        id: 'inv-1',
+        status: 'final',
+        type: 'sale',
+        partyId: null,
+        total: 100,
+        warehouseId: 'wh-1',
+        items: [],
+      }),
+      updateWithItems,
+    };
+    svc.getLinkedPayments = async () => linked;
+    svc.getPaymentService = () => ({ deletePayment });
+    // Past the gate: no child return, and no real stock movements to apply.
+    svc.assertNoChildReturn = async () => undefined;
+    svc.revertInvoiceStock = async () => undefined;
+    svc.applyStockMovements = async () => undefined;
+    svc.validateStockAvailability = async () => undefined;
+    return { svc, deletePayment, updateWithItems };
+  }
+
+  const input = { notes: 'edited' };
+
+  it('blocks with INVOICE_HAS_PAYMENTS + meta when payments exist and no flag', async () => {
+    const { svc, deletePayment, updateWithItems } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 100, shared: false },
+    ]);
+    await expect(svc.updateInvoice('inv-1', input)).rejects.toMatchObject({
+      code: 'INVOICE_HAS_PAYMENTS',
+      statusCode: 409,
+      details: {
+        paymentCount: 1,
+        totalPaid: 100,
+        hasSharedPayments: false,
+        payments: [{ id: 'pay-1', reference: 'RCV-1', amount: 100, shared: false }],
+      },
+    });
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(updateWithItems).not.toHaveBeenCalled();
+  });
+
+  it('refuses INVOICE_HAS_SHARED_PAYMENTS even with the flag, deleting nothing', async () => {
+    const { svc, deletePayment, updateWithItems } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 60, shared: false },
+      { id: 'pay-2', reference: 'RCV-2', amount: 40, shared: true },
+    ]);
+    await expect(
+      svc.updateInvoice('inv-1', input, { deletePayments: true })
+    ).rejects.toMatchObject({
+      code: 'INVOICE_HAS_SHARED_PAYMENTS',
+      statusCode: 409,
+      details: { hasSharedPayments: true },
+    });
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(updateWithItems).not.toHaveBeenCalled();
+  });
+
+  it('cascade-deletes exclusive payments before applying the edit', async () => {
+    const { svc, deletePayment, updateWithItems } = setup([
+      { id: 'pay-1', reference: 'RCV-1', amount: 60, shared: false },
+      { id: 'pay-2', reference: 'RCV-2', amount: 40, shared: false },
+    ]);
+    const result = await svc.updateInvoice('inv-1', input, { deletePayments: true });
+    expect(result).toMatchObject({ id: 'inv-1' });
+    expect(deletePayment).toHaveBeenCalledTimes(2);
+    expect(deletePayment).toHaveBeenCalledWith('pay-1');
+    expect(deletePayment).toHaveBeenCalledWith('pay-2');
+    expect(updateWithItems).toHaveBeenCalledTimes(1);
+    // Payments must be reversed first, so a failed edit leaves an unpaid invoice
+    // rather than a paid one that no longer matches its payments.
+    expect(deletePayment.mock.invocationCallOrder[0]).toBeLessThan(
+      updateWithItems.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('edits directly when there are no linked payments', async () => {
+    const { svc, deletePayment, updateWithItems } = setup([]);
+    await svc.updateInvoice('inv-1', input);
+    expect(deletePayment).not.toHaveBeenCalled();
+    expect(updateWithItems).toHaveBeenCalledTimes(1);
   });
 });

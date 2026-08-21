@@ -234,20 +234,32 @@ export function useCreateInvoice(
 }
 
 /**
- * Update a draft invoice
+ * Variables accepted by {@link useUpdateInvoice}. `deletePayments` opts into
+ * deleting the payments linked solely to this invoice before the edit is
+ * applied — a finalized invoice can't be edited while payments reference it.
+ */
+export interface UpdateInvoiceVars {
+  id: string;
+  data: UpdateInvoiceInput;
+  deletePayments?: boolean;
+}
+
+/**
+ * Update an invoice. Drafts are edited freely; finalized invoices are re-mapped
+ * server-side with stock + party-balance reversal/reapply.
  */
 export function useUpdateInvoice(
-  options?: UseMutationOptions<
-    ApiResponse<InvoiceWithRelations>,
-    Error,
-    { id: string; data: UpdateInvoiceInput }
-  >
+  options?: UseMutationOptions<ApiResponse<InvoiceWithRelations>, Error, UpdateInvoiceVars>
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateInvoiceInput }) => {
-      const response = await api.put<ApiResponse<InvoiceWithRelations>>(`/invoices/${id}`, data);
+    mutationFn: async ({ id, data, deletePayments }: UpdateInvoiceVars) => {
+      const query = deletePayments ? '?deletePayments=true' : '';
+      const response = await api.put<ApiResponse<InvoiceWithRelations>>(
+        `/invoices/${id}${query}`,
+        data
+      );
       return response;
     },
     onSuccess: (response, variables) => {
@@ -255,6 +267,11 @@ export function useUpdateInvoice(
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       // Editing a final invoice re-applies stock server-side; refresh warehouse views.
       queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      // The edit shifts the party balance, and a cascade removes payments too.
+      queryClient.invalidateQueries({ queryKey: ['parties'] });
+      if (variables.deletePayments) {
+        queryClient.invalidateQueries({ queryKey: ['payments'] });
+      }
     },
     ...options,
   });

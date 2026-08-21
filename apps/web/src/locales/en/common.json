@@ -949,13 +949,6 @@
         "confirm": "Delete",
         "pending": "Deleting..."
       },
-      "paymentsDeleteDialog": {
-        "title": "Also delete linked payment(s)?",
-        "body": "This invoice has {count} linked payment(s) totaling {total}. Deleting the invoice will also delete them and reverse the related cash and accounting entries. This cannot be undone.",
-        "cancel": "Keep",
-        "confirm": "Delete invoice + payment(s)",
-        "pending": "Deleting..."
-      },
       "toasts": {
         "finalized": "Invoice Finalized",
         "finalizedDescription": "The invoice has been finalized successfully",
@@ -1035,7 +1028,8 @@
         "saveFailed": "Failed to save draft",
         "finalized": "Invoice Finalized",
         "finalizedDescription": "Invoice {number} has been finalized",
-        "finalizeFailed": "Failed to finalize invoice"
+        "finalizeFailed": "Failed to finalize invoice",
+        "deletePaymentsForbidden": "You don't have permission to delete payments. Ask an administrator for the “payments: delete” permission, or remove the payment from the payments section first."
       },
       "scanOrSearch": "Scan barcode or search by name / SKU...",
       "quickAddHint": "Scan a barcode to add it instantly, or type a name to search",
@@ -1257,13 +1251,6 @@
         "bodyCanceled": "Are you sure you want to permanently delete this canceled purchase?",
         "cancel": "Keep",
         "confirm": "Delete",
-        "pending": "Deleting..."
-      },
-      "paymentsDeleteDialog": {
-        "title": "Also delete linked payment(s)?",
-        "body": "This purchase has {count} linked payment(s) totaling {total}. Deleting the purchase will also delete them and reverse the related cash and accounting entries. This cannot be undone.",
-        "cancel": "Keep",
-        "confirm": "Delete purchase + payment(s)",
         "pending": "Deleting..."
       },
       "toasts": {
@@ -3000,5 +2987,27 @@
       "pendingTitle": "Waiting to sync. Click to review and sync now.",
       "lastError": "Last error: {error}"
     }
+  },
+  "linkedPayments": {
+    "editTitle": "Delete the linked payment(s) and save?",
+    "editBody": "This invoice has {count} linked payment(s) totaling {total}. It can't be edited while they exist. Deleting them reverses the related cash, party balance and accounting entries, then your changes are saved. This cannot be undone.",
+    "deleteTitle": "Also delete linked payment(s)?",
+    "deleteBody": "This invoice has {count} linked payment(s) totaling {total}. Deleting the invoice will also delete them and reverse the related cash and accounting entries. This cannot be undone.",
+    "columns": {
+      "date": "Date",
+      "reference": "Reference",
+      "method": "Method",
+      "amount": "Amount"
+    },
+    "cash": "Cash",
+    "sharedBadge": "Shared",
+    "sharedWarning": "One or more of these payments also cover other invoices, so they can't be deleted automatically. Open the payment and remove or re-allocate it first, then try again.",
+    "totalPaid": "{count} payment(s) · {total} total",
+    "openPayment": "Open payment",
+    "cancel": "Keep payment(s)",
+    "close": "Close",
+    "confirmEdit": "Delete payment(s) + save",
+    "confirmDelete": "Delete invoice + payment(s)",
+    "pending": "Working…"
   }
 }

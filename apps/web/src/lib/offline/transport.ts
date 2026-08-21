@@ -179,6 +179,13 @@ export async function writeOffline<T>(
 
   let m = /^\/invoices\/([^/]+)$/.exec(path);
   if (m && method === 'PUT') {
+    // `toPath` strips the query string, so a cascade edit
+    // (?deletePayments=true) would otherwise land here and be replayed as a
+    // plain update — silently dropping the payment deletion. Deleting payments
+    // has no offline handler, so refuse the whole request.
+    if (endpoint.includes('deletePayments')) {
+      throw new OfflineUnavailableError();
+    }
     return (await engine.updateInvoiceOffline(m[1], body as never)) as T;
   }
 

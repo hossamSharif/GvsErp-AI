@@ -34,6 +34,33 @@ function getInvoiceService(req: Request): InvoiceService {
   return new InvoiceService(supabase, tenantId, userId);
 }
 
+/**
+ * Read the `?deletePayments=true|1` opt-in shared by the edit and delete
+ * endpoints. Cascading into payments needs the `payments:delete` permission on
+ * top of the endpoint's own guard — when the caller opted in without it this
+ * responds 403 itself and returns `handled: true`, meaning stop.
+ */
+function resolveDeletePayments(
+  req: Request,
+  res: Response
+): { deletePayments: boolean; handled: boolean } {
+  const deletePayments =
+    req.query.deletePayments === 'true' || req.query.deletePayments === '1';
+
+  if (deletePayments) {
+    const perms = req.user?.permissions ?? [];
+    if (!perms.includes('*' as Permission) && !perms.includes('payments:delete')) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'Required permission: payments:delete',
+      });
+      return { deletePayments, handled: true };
+    }
+  }
+
+  return { deletePayments, handled: false };
+}
+
 // =============================================================================
 // INVOICE CRUD ENDPOINTS
 // =============================================================================
@@ -109,7 +136,13 @@ router.get(
 
 /**
  * PUT /invoices/:id
- * Update a draft invoice
+ * Update an invoice. Drafts are edited freely; finalized invoices are re-mapped
+ * with full stock + party-balance reversal/reapply, and are blocked when they
+ * have linked payments.
+ *
+ * Pass `?deletePayments=true` to also delete payments linked *solely* to this
+ * invoice before applying the edit (requires the `payments:delete` permission).
+ * Payments shared with other invoices are still refused.
  */
 router.put(
   '/:id',
@@ -117,8 +150,13 @@ router.put(
   validateRequest({ body: updateInvoiceSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { deletePayments, handled } = resolveDeletePayments(req, res);
+      if (handled) return;
+
       const service = getInvoiceService(req);
-      const invoice = await service.updateInvoice(req.params.id, req.body);
+      const invoice = await service.updateInvoice(req.params.id, req.body, {
+        deletePayments,
+      });
 
       res.json({
         success: true,
@@ -145,20 +183,8 @@ router.delete(
   requirePermission('invoices:delete'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const deletePayments =
-        req.query.deletePayments === 'true' || req.query.deletePayments === '1';
-
-      // Cascading into payments needs the payments:delete permission too.
-      if (deletePayments) {
-        const perms = req.user?.permissions ?? [];
-        if (!perms.includes('*' as Permission) && !perms.includes('payments:delete')) {
-          res.status(403).json({
-            code: 'FORBIDDEN',
-            message: 'Required permission: payments:delete',
-          });
-          return;
-        }
-      }
+      const { deletePayments, handled } = resolveDeletePayments(req, res);
+      if (handled) return;
 
       const service = getInvoiceService(req);
       const result = await service.deleteInvoice(req.params.id, { deletePayments });

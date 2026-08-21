@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Save, Send, FileText, Check, ChevronDown, ChevronUp, ArrowLeft, Eraser } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,6 +46,7 @@ import { PartySelect } from '@/components/forms/party-select';
 import { CurrencySelect } from '@/components/forms/currency-select';
 import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
 import { RecordPaymentDialog, SENTINEL_CASH } from '@/components/dialogs/record-payment-dialog';
+import { LinkedPaymentsDialog } from '@/components/dialogs/linked-payments-dialog';
 import { buildInvoicePaymentPayload } from '@/lib/build-invoice-payment';
 import {
   useCreateInvoice,
@@ -57,7 +58,13 @@ import { useCreatePayment } from '@/hooks/use-payments';
 import { usePaymentFlow } from '@/hooks/use-payment-flow';
 import { useCurrencies } from '@/hooks/use-currencies';
 import { useBanks } from '@/hooks/use-banks';
-import type { DraftInvoiceItem, InvoiceType, InvoiceWithRelations } from '@erp/shared';
+import { ApiClientError } from '@/lib/api-client';
+import type {
+  DraftInvoiceItem,
+  InvoiceType,
+  InvoiceWithRelations,
+  LinkedPaymentsMeta,
+} from '@erp/shared';
 
 // =============================================================================
 // TYPES
@@ -109,6 +116,7 @@ export function InvoiceForm({
   headerBackHref,
 }: InvoiceFormProps) {
   const router = useRouter();
+  const { locale } = useParams();
   const { toast } = useToast();
   const t = useTranslations('sales.form');
   const tCommon = useTranslations('common');
@@ -144,6 +152,12 @@ export function InvoiceForm({
   // (the parent's redirect) until the user finishes or skips the payment.
   const [savedInvoice, setSavedInvoice] = useState<InvoiceWithRelations | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // A finalized invoice can't be edited while payments reference it. The server
+  // returns the blocking payments as `error.meta`; holding them here opens the
+  // dialog that offers to delete them and re-run the save in one step, so the
+  // user never has to leave the invoice for the payments section.
+  const [paymentsPrompt, setPaymentsPrompt] = useState<LinkedPaymentsMeta | null>(null);
 
   // Payment accelerators (new invoices only): the user picks the payment way and
   // reference up front so the post-finalize payment modal opens ready to save.
@@ -448,7 +462,9 @@ export function InvoiceForm({
   );
 
   // Save: create a new invoice OR update the existingInvoice if we're editing.
-  const handleSaveDraft = useCallback(async () => {
+  // `deletePayments` re-runs a save that was blocked by linked payments, asking
+  // the server to delete those payments as part of the same request.
+  const handleSaveDraft = useCallback(async (opts?: { deletePayments?: boolean }) => {
     if (!draft || !draft.warehouseId) {
       toast({
         variant: 'destructive',
@@ -481,6 +497,7 @@ export function InvoiceForm({
       if (existingInvoice) {
         const result = await updateInvoiceMutation.mutateAsync({
           id: existingInvoice.id,
+          deletePayments: opts?.deletePayments,
           data: {
             partyId: draft.partyId,
             warehouseId: draft.warehouseId,
@@ -496,6 +513,8 @@ export function InvoiceForm({
         if (currentDraftId) {
           deleteDraft(currentDraftId);
         }
+
+        setPaymentsPrompt(null);
 
         toast({
           title: t('toasts.draftSaved'),
@@ -530,6 +549,32 @@ export function InvoiceForm({
 
       onSaved?.(result.data);
     } catch (error) {
+      if (error instanceof ApiClientError) {
+        // Blocked by linked payments — show them and offer to delete them as
+        // part of the save. INVOICE_HAS_SHARED_PAYMENTS comes back when the
+        // cascade was attempted but a payment also covers other invoices; the
+        // dialog renders that as a blocking warning with links to each payment.
+        if (
+          (error.code === 'INVOICE_HAS_PAYMENTS' ||
+            error.code === 'INVOICE_HAS_SHARED_PAYMENTS') &&
+          error.meta
+        ) {
+          setPaymentsPrompt((error.meta as unknown) as LinkedPaymentsMeta);
+          return;
+        }
+
+        // The cascade needs payments:delete on top of invoices:write.
+        if (error.status === 403 && opts?.deletePayments) {
+          setPaymentsPrompt(null);
+          toast({
+            variant: 'destructive',
+            title: tCommon('error'),
+            description: t('toasts.deletePaymentsForbidden'),
+          });
+          return;
+        }
+      }
+
       toast({
         variant: 'destructive',
         title: tCommon('error'),
@@ -691,6 +736,15 @@ export function InvoiceForm({
   // mounted until the user records the payment or skips.
   const paymentWorkflowDialogs = (
     <>
+      <LinkedPaymentsDialog
+        open={paymentsPrompt !== null}
+        onOpenChange={(open) => !open && setPaymentsPrompt(null)}
+        mode="edit"
+        meta={paymentsPrompt}
+        locale={locale as string}
+        isPending={updateInvoiceMutation.isPending}
+        onConfirm={() => handleSaveDraft({ deletePayments: true })}
+      />
       {savedInvoice && (
         <RecordPaymentDialog
           open={showPaymentModal}
@@ -999,7 +1053,7 @@ export function InvoiceForm({
             )}
             <Button
               variant={existingInvoice ? 'default' : 'outline'}
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveDraft()}
               disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
               title={existingInvoice ? 'Ctrl+S' : undefined}
             >
