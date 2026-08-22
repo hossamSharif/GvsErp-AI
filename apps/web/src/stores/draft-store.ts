@@ -25,10 +25,12 @@ interface DraftStoreState {
 }
 
 interface DraftStoreActions {
-  /** Create a new draft */
-  createDraft: (type: InvoiceType, warehouseId?: string) => string;
+  /** Create a new draft. Pass `sourceInvoiceId` for unsaved edits of an existing invoice. */
+  createDraft: (type: InvoiceType, warehouseId?: string, sourceInvoiceId?: string) => string;
   /** Get a draft by ID */
   getDraft: (draftId: string) => DraftInvoice | undefined;
+  /** Find the draft holding unsaved edits for a given server invoice */
+  findDraftBySource: (type: InvoiceType, sourceInvoiceId: string) => DraftInvoice | undefined;
   /** Get the active draft */
   getActiveDraft: () => DraftInvoice | undefined;
   /** Set active draft */
@@ -72,11 +74,16 @@ function calculateLineTotal(
 /**
  * Create empty draft
  */
-function createEmptyDraft(type: InvoiceType, warehouseId?: string): DraftInvoice {
+function createEmptyDraft(
+  type: InvoiceType,
+  warehouseId?: string,
+  sourceInvoiceId?: string
+): DraftInvoice {
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
     type,
+    sourceInvoiceId: sourceInvoiceId ?? null,
     partyId: null,
     warehouseId: warehouseId || null,
     currency: 'USD',
@@ -102,8 +109,8 @@ export const useDraftStore = create<DraftStore>()(
       activeDraftId: null,
 
       // Actions
-      createDraft: (type, warehouseId) => {
-        const draft = createEmptyDraft(type, warehouseId);
+      createDraft: (type, warehouseId, sourceInvoiceId) => {
+        const draft = createEmptyDraft(type, warehouseId, sourceInvoiceId);
         set((state) => ({
           drafts: {
             ...state.drafts,
@@ -116,6 +123,12 @@ export const useDraftStore = create<DraftStore>()(
 
       getDraft: (draftId) => {
         return get().drafts[draftId];
+      },
+
+      findDraftBySource: (type, sourceInvoiceId) => {
+        return Object.values(get().drafts).find(
+          (d) => d.type === type && d.sourceInvoiceId === sourceInvoiceId
+        );
       },
 
       getActiveDraft: () => {
@@ -310,6 +323,13 @@ export const useDraftStore = create<DraftStore>()(
     {
       name: 'erp-invoice-drafts',
       storage: createJSONStorage(() => localStorage),
+      version: 1,
+      // v0 drafts carry no `sourceInvoiceId`, so a leaked copy of an existing
+      // invoice (created by the edit screen) is indistinguishable from a new
+      // invoice being composed — which is exactly what made stale invoices
+      // resurface on the "new invoice" screen. There is no safe way to classify
+      // them after the fact, so the pile is dropped once on upgrade.
+      migrate: () => ({ drafts: {}, activeDraftId: null }),
       partialize: (state) => ({
         drafts: state.drafts,
         activeDraftId: state.activeDraftId,

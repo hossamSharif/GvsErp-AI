@@ -8,6 +8,7 @@
  */
 
 import { getDB, wipeOfflineDB, type AuthLocalEntry } from './db';
+import { useDraftStore } from '@/stores/draft-store';
 
 const LOCKOUT_MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -67,6 +68,9 @@ export async function saveOfflineIdentity(input: OfflineIdentityInput): Promise<
   // user A's invoices/parties, then start a fresh identity (no inherited PIN).
   if (existing && !sameUser) {
     await wipeOfflineDB();
+    // Invoice drafts live in localStorage, not Dexie, so wipeOfflineDB() misses
+    // them — without this they would resurface under the new tenant.
+    useDraftStore.getState().clearAllDrafts();
     db = getDB();
   }
 

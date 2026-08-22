@@ -139,6 +139,8 @@ export function InvoiceForm({
     reorderItems,
     deleteDraft,
     listDrafts,
+    findDraftBySource,
+    cleanupOldDrafts,
   } = useDraftStore();
 
   // Current draft
@@ -222,16 +224,31 @@ export function InvoiceForm({
     itemIds
   );
 
+  // Garbage-collect drafts abandoned more than 7 days ago. Declared before the
+  // restore effect below so it runs first on mount — otherwise it could delete
+  // the draft that effect has just recovered, leaving the form with no draft.
+  const cleanupDoneRef = useRef(false);
+  useEffect(() => {
+    if (cleanupDoneRef.current) return;
+    cleanupDoneRef.current = true;
+    cleanupOldDrafts();
+  }, [cleanupOldDrafts]);
+
   // Initialize draft — rehydrate most recent non-empty draft, else create new
   useEffect(() => {
     if (currentDraftId || existingInvoice) return;
 
-    const existingDrafts = listDrafts(type);
+    // Only drafts of a *new* invoice are recoverable here. Drafts carrying a
+    // `sourceInvoiceId` hold unsaved edits of an existing invoice and belong to
+    // that invoice's edit screen — offering them here is what made a stale
+    // invoice reappear after every finalize.
+    const existingDrafts = listDrafts(type).filter((d) => d.sourceInvoiceId === null);
+    // Party, warehouse, currency and date are pre-filled by this form, not
+    // typed by the user, so they must not count as content — otherwise every
+    // empty sales draft looks recoverable, never gets purged below, and the
+    // drafts pile up in localStorage.
     const hasContent = (d: typeof existingDrafts[number]) =>
-      d.partyId !== null ||
-      d.items.length > 0 ||
-      (d.notes ?? '') !== '' ||
-      d.discountAmount !== 0;
+      d.items.length > 0 || (d.notes ?? '') !== '' || d.discountAmount !== 0;
 
     const recoverable = existingDrafts
       .filter(hasContent)
@@ -284,8 +301,18 @@ export function InvoiceForm({
   // Sync existing invoice to draft
   useEffect(() => {
     if (existingInvoice && !currentDraftId) {
-      // Create draft from existing invoice
-      const newDraftId = createDraft(type, existingInvoice.warehouseId);
+      // Resume the unsaved edits for this same invoice if we already have them,
+      // so a refresh mid-edit doesn't lose work and repeat visits don't leave a
+      // new draft behind on every mount.
+      const resumable = findDraftBySource(type, existingInvoice.id);
+      if (resumable) {
+        setCurrentDraftId(resumable.id);
+        return;
+      }
+
+      // Create draft from existing invoice, tagged so it can only ever be
+      // restored here and never on the "new invoice" screen.
+      const newDraftId = createDraft(type, existingInvoice.warehouseId, existingInvoice.id);
       setCurrentDraftId(newDraftId);
 
       // Update with existing invoice data
@@ -312,7 +339,7 @@ export function InvoiceForm({
         })),
       });
     }
-  }, [existingInvoice, currentDraftId, type, createDraft, updateDraft]);
+  }, [existingInvoice, currentDraftId, type, createDraft, updateDraft, findDraftBySource]);
 
   // Autosave (debounced updates)
   useEffect(() => {
@@ -630,9 +657,13 @@ export function InvoiceForm({
         id: createResult.data.id,
       });
 
-      // Clean up local draft
+      // Clean up local draft and hand the form a blank slate. Resetting
+      // `currentDraftId` lets the restore effect build a fresh draft on the
+      // next render, so the user can carry on selling even if the parent never
+      // remounts us (e.g. the payment dialog is dismissed).
       if (currentDraftId) {
         deleteDraft(currentDraftId);
+        setCurrentDraftId(null);
       }
 
       toast({

@@ -450,6 +450,13 @@ export interface PurchaseReportResponse {
 export interface DraftInvoice {
   id: string; // Local UUID for draft identification
   type: InvoiceType;
+  /**
+   * The server invoice this draft holds unsaved edits for, or `null` when the
+   * draft is a brand-new invoice being composed. Drafts bound to an invoice are
+   * only ever restored on that invoice's edit screen, never offered as the
+   * starting point for a new invoice.
+   */
+  sourceInvoiceId: string | null;
   partyId: string | null;
   warehouseId: string | null;
   currency: string;
