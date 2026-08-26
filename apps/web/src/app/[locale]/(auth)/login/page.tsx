@@ -112,17 +112,6 @@ export default function LoginPage() {
           {isLoading ? t('signingIn') : t('signIn')}
         </button>
       </form>
-
-      {/* Footer */}
-      <p className="text-center text-sm text-muted-foreground">
-        {t('noAccount')}{' '}
-        <Link
-          href={`/${locale}/register`}
-          className="text-primary hover:underline font-medium"
-        >
-          {t('createAccount')}
-        </Link>
-      </p>
     </div>
   );
 }
