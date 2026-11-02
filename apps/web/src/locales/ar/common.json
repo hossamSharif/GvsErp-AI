@@ -2908,6 +2908,74 @@
       "footerNote": "ملاحظة أسفل كشف البيان",
       "footerNotePlaceholder": "مثال: لا تسترد البضاعة ولا تستبدل",
       "footerNoteHint": "تُطبع أسفل كشف البيان. اتركها فارغة لإخفائها."
+    },
+    "general": {
+      "title": "الإعدادات العامة",
+      "description": "تهيئة اللغة والمظهر ومعلومات الشركة",
+      "backAriaLabel": "العودة إلى الإعدادات",
+      "preferences": {
+        "title": "التفضيلات",
+        "description": "إعدادات اللغة والمظهر الافتراضية لمؤسستك",
+        "language": "اللغة الافتراضية",
+        "languageHint": "اللغة الافتراضية للمستخدمين الجدد ورسائل النظام",
+        "languageEn": "English",
+        "languageAr": "العربية",
+        "theme": "المظهر الافتراضي",
+        "themeHint": "المظهر الافتراضي للمستخدمين الجدد",
+        "themeLight": "فاتح",
+        "themeDark": "داكن",
+        "currency": "العملة الافتراضية",
+        "currencyHint": "العملة الافتراضية للمعاملات والتقارير",
+        "dateFormat": "تنسيق التاريخ",
+        "dateFormatHint": "طريقة عرض التواريخ"
+      },
+      "company": {
+        "title": "معلومات الشركة",
+        "description": "بيانات شركتك التي تظهر في الفواتير والتقارير",
+        "name": "اسم الشركة",
+        "namePlaceholder": "شركة المثال",
+        "email": "البريد الإلكتروني للشركة",
+        "emailPlaceholder": "contact@company.com",
+        "phone": "هاتف الشركة",
+        "phonePlaceholder": "+249 912 345 678",
+        "address": "عنوان الشركة",
+        "addressPlaceholder": "الشارع، المدينة، الدولة",
+        "taxNumber": "الرقم الضريبي",
+        "taxNumberPlaceholder": "رقم التعريف الضريبي",
+        "taxNumberHint": "رقم التسجيل الضريبي لشركتك"
+      },
+      "business": {
+        "title": "تفضيلات العمل",
+        "description": "تهيئة السنة المالية والمنطقة الزمنية",
+        "fiscalYearStart": "بداية السنة المالية",
+        "fiscalYearStartPlaceholder": "01-01 (شهر-يوم)",
+        "fiscalYearStartHint": "الشهر واليوم اللذان تبدأ فيهما سنتك المالية (مثال: 01-01 لأول يناير)",
+        "timeZone": "المنطقة الزمنية",
+        "timeZonePlaceholder": "Africa/Khartoum",
+        "timeZoneHint": "معرّف المنطقة الزمنية حسب IANA (مثال: Africa/Khartoum، Asia/Riyadh)"
+      },
+      "modules": {
+        "title": "تفعيل الوحدات",
+        "description": "تفعيل أو تعطيل الوحدات الاختيارية لمؤسستك",
+        "accounting": "وحدة المحاسبة",
+        "accountingHint": "تفعيل ميزات المحاسبة المتقدمة ودليل الحسابات",
+        "hr": "وحدة الموارد البشرية",
+        "hrHint": "تفعيل إدارة الموارد البشرية والرواتب"
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "save": "حفظ الإعدادات",
+        "saving": "جارٍ الحفظ..."
+      },
+      "validation": {
+        "invalidEmail": "صيغة البريد الإلكتروني غير صحيحة"
+      },
+      "toasts": {
+        "updatedTitle": "تم تحديث الإعدادات",
+        "updatedDescription": "تم تحديث إعداداتك بنجاح.",
+        "errorTitle": "خطأ",
+        "updateFailed": "تعذّر تحديث الإعدادات"
+      }
     }
   },
   "itemMovement": {

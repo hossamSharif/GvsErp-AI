@@ -2908,6 +2908,74 @@
       "footerNote": "Statement footer note",
       "footerNotePlaceholder": "e.g. Goods sold are not returnable or exchangeable",
       "footerNoteHint": "Printed at the bottom of the statement of account. Leave empty to hide."
+    },
+    "general": {
+      "title": "General Settings",
+      "description": "Configure language, theme, and company information",
+      "backAriaLabel": "Back to settings",
+      "preferences": {
+        "title": "Preferences",
+        "description": "Default language and theme settings for your organization",
+        "language": "Default Language",
+        "languageHint": "Default language for new users and system messages",
+        "languageEn": "English",
+        "languageAr": "العربية",
+        "theme": "Default Theme",
+        "themeHint": "Default theme for new users",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "currency": "Default Currency",
+        "currencyHint": "Default currency for transactions and reports",
+        "dateFormat": "Date Format",
+        "dateFormatHint": "How dates are displayed"
+      },
+      "company": {
+        "title": "Company Information",
+        "description": "Your company details for invoices and reports",
+        "name": "Company Name",
+        "namePlaceholder": "Acme Inc.",
+        "email": "Company Email",
+        "emailPlaceholder": "contact@company.com",
+        "phone": "Company Phone",
+        "phonePlaceholder": "+1 (555) 123-4567",
+        "address": "Company Address",
+        "addressPlaceholder": "123 Business St, City, Country",
+        "taxNumber": "Tax Number / VAT ID",
+        "taxNumberPlaceholder": "Tax identification number",
+        "taxNumberHint": "Your company's tax registration number"
+      },
+      "business": {
+        "title": "Business Preferences",
+        "description": "Configure fiscal year and timezone",
+        "fiscalYearStart": "Fiscal Year Start",
+        "fiscalYearStartPlaceholder": "01-01 (MM-DD)",
+        "fiscalYearStartHint": "Month and day when your fiscal year starts (e.g., 01-01 for January 1st)",
+        "timeZone": "Time Zone",
+        "timeZonePlaceholder": "America/New_York",
+        "timeZoneHint": "IANA timezone identifier (e.g., America/New_York, Europe/London)"
+      },
+      "modules": {
+        "title": "Module Activation",
+        "description": "Enable or disable optional modules for your organization",
+        "accounting": "Accounting Module",
+        "accountingHint": "Enable advanced accounting features and chart of accounts",
+        "hr": "HR Module",
+        "hrHint": "Enable human resources management and payroll features"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "save": "Save Settings",
+        "saving": "Saving..."
+      },
+      "validation": {
+        "invalidEmail": "Invalid email format"
+      },
+      "toasts": {
+        "updatedTitle": "Settings updated",
+        "updatedDescription": "Your settings have been updated successfully.",
+        "errorTitle": "Error",
+        "updateFailed": "Failed to update settings"
+      }
     }
   },
   "itemMovement": {
