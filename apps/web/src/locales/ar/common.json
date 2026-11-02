@@ -1831,6 +1831,62 @@
     "editExpense": "تعديل المصروف",
     "newExpenseDescription": "سجّل مصروفاً جديداً مع الفئة والمبلغ والتاريخ",
     "editExpenseDescription": "تحديث تفاصيل المصروف",
+    "manageCategories": "إدارة الفئات",
+    "categoriesPage": {
+      "title": "فئات المصروفات",
+      "description": "أضف فئات المصروفات وأعد تسميتها ونظّمها",
+      "back": "العودة إلى المصروفات",
+      "addButton": "إضافة فئة",
+      "listTitle": "الفئات",
+      "listDescription": "الفئات غير النشطة لا تظهر عند تسجيل مصروفات جديدة لكنها تبقى على المصروفات الحالية",
+      "emptyTitle": "لا توجد فئات بعد",
+      "emptyHint": "أضف أول فئة مصروفات للبدء",
+      "columns": {
+        "name": "الاسم",
+        "usage": "الاستخدام",
+        "status": "الحالة"
+      },
+      "usageCount": "{count, plural, =0 {غير مستخدمة} =1 {مصروف واحد} =2 {مصروفان} few {# مصروفات} many {# مصروفًا} other {# مصروف}}",
+      "status": {
+        "active": "نشطة",
+        "inactive": "غير نشطة"
+      },
+      "actions": {
+        "activate": "تفعيل",
+        "deactivate": "إيقاف",
+        "editAria": "تعديل {name}",
+        "activateAria": "تفعيل {name}",
+        "deactivateAria": "إيقاف {name}",
+        "deleteAria": "حذف {name}"
+      },
+      "newTitle": "فئة جديدة",
+      "newDescription": "إنشاء فئة مصروفات جديدة",
+      "editTitle": "تعديل الفئة",
+      "editDescription": "أعد تسمية الفئة أو غيّر حالتها",
+      "nameLabel": "اسم الفئة",
+      "namePlaceholder": "مثال: وقود، إيجار المحل",
+      "renameHint": "{count, plural, =1 {تغيير الاسم سيحدّث مصروفًا واحدًا موجودًا.} other {تغيير الاسم سيحدّث # من المصروفات الموجودة.}}",
+      "activeLabel": "نشطة",
+      "activeHint": "يمكن اختيار الفئات النشطة فقط للمصروفات الجديدة",
+      "createButton": "إنشاء",
+      "saveButton": "حفظ",
+      "deleteConfirm": {
+        "title": "حذف الفئة؟",
+        "description": "سيتم حذف \"{name}\" نهائيًا."
+      },
+      "errors": {
+        "exists": "توجد فئة بهذا الاسم بالفعل",
+        "inUse": "هذه الفئة مستخدمة في مصروفات ولا يمكن حذفها. قم بإيقافها بدلاً من ذلك."
+      },
+      "toast": {
+        "created": "تم إنشاء الفئة",
+        "updated": "تم تحديث الفئة",
+        "deleted": "تم حذف الفئة",
+        "createError": "فشل إنشاء الفئة",
+        "updateError": "فشل تحديث الفئة",
+        "deleteError": "فشل حذف الفئة"
+      }
+    },
     "exportReport": "تصدير التقرير",
     "downloadPdf": "تنزيل PDF",
     "generating": "جارٍ الإنشاء...",
@@ -1857,7 +1913,8 @@
       "actions": "الإجراءات"
     },
     "placeholders": {
-      "category": "اختر أو اكتب فئة",
+      "category": "اختر فئة",
+      "newCategory": "فئة جديدة…",
       "amount": "0.00",
       "description": "ما هو هذا المصروف؟",
       "reference": "رقم الإيصال أو المرجع",

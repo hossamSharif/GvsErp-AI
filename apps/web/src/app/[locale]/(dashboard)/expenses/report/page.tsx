@@ -27,7 +27,7 @@ import { useExpenseReport, useExpenseCategories } from '@/hooks/use-expenses';
 import { useAuth } from '@/providers/auth-provider';
 import { downloadExpensesReport } from '@/components/reports/expenses-report';
 import type { ExpenseReportParams } from '@erp/shared';
-import { EXPENSE_CATEGORY_VALUES } from '@erp/shared';
+import { labelForExpenseCategory } from '@/lib/expense-category-label';
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'check', 'credit_card', 'other'];
 
@@ -46,20 +46,15 @@ export default function ExpensesReportPage() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const { data, isLoading, error } = useExpenseReport(reportParams);
-  const { data: categoriesData } = useExpenseCategories();
-  const tenantCategories = categoriesData?.data ?? [];
-
-  const allCategories = useMemo(() => {
-    const set = new Set<string>([...EXPENSE_CATEGORY_VALUES, ...tenantCategories]);
-    return Array.from(set).sort();
-  }, [tenantCategories]);
+  // Inactive categories are still reportable
+  const { data: categoriesData } = useExpenseCategories({ includeInactive: true });
+  const allCategories = useMemo(
+    () => (categoriesData?.data ?? []).map((c) => c.name),
+    [categoriesData]
+  );
 
   const labelForCategory = useCallback(
-    (cat: string) => {
-      const known = EXPENSE_CATEGORY_VALUES as readonly string[];
-      if (known.includes(cat)) return t(`categories.${cat}` as never);
-      return cat;
-    },
+    (cat: string) => labelForExpenseCategory(cat, t),
     [t]
   );
 

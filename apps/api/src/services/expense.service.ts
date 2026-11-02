@@ -7,8 +7,14 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { ExpenseRepository } from '../repositories/expense.repository';
+import { ExpenseCategoryRepository } from '../repositories/expense-category.repository';
 import { AccountingService } from './accounting.service';
+import { EXPENSE_CATEGORY_VALUES } from '@erp/shared';
 import type {
+  ExpenseCategoryRecord,
+  ExpenseCategoryQueryParams,
+  CreateExpenseCategoryInput,
+  UpdateExpenseCategoryInput,
   Expense,
   ExpenseWithCreator,
   ExpenseQueryParams,
@@ -34,11 +40,13 @@ export class ExpenseError extends Error {
 
 export class ExpenseService {
   private readonly repo: ExpenseRepository;
+  private readonly categoryRepo: ExpenseCategoryRepository;
   private readonly accountingService: AccountingService;
   private readonly tenantId: string;
 
   constructor(supabase: SupabaseClient<Database>, tenantId: string) {
     this.repo = new ExpenseRepository(supabase);
+    this.categoryRepo = new ExpenseCategoryRepository(supabase);
     this.accountingService = new AccountingService(supabase);
     this.tenantId = tenantId;
   }
@@ -70,7 +78,7 @@ export class ExpenseService {
 
   async createExpense(input: CreateExpenseInput, userId?: string): Promise<ExpenseWithCreator> {
     const data = {
-      category: input.category.trim(),
+      category: await this.resolveCategoryName(input.category),
       amount: input.amount,
       currency: input.currency || 'USD',
       exchange_rate: input.exchangeRate ?? 1,
@@ -120,7 +128,9 @@ export class ExpenseService {
     }
 
     const updates: Record<string, unknown> = {};
-    if (input.category !== undefined) updates.category = input.category.trim();
+    if (input.category !== undefined) {
+      updates.category = await this.resolveCategoryName(input.category, existing.category);
+    }
     if (input.amount !== undefined) updates.amount = input.amount;
     if (input.currency !== undefined) updates.currency = input.currency;
     if (input.exchangeRate !== undefined) updates.exchange_rate = input.exchangeRate;
@@ -175,8 +185,102 @@ export class ExpenseService {
     }
   }
 
-  async getCategories(): Promise<string[]> {
-    return this.repo.getDistinctCategories(this.tenantId);
+  // ==========================================================================
+  // CATEGORIES
+  // ==========================================================================
+
+  async getCategories(params: ExpenseCategoryQueryParams = {}): Promise<ExpenseCategoryRecord[]> {
+    await this.ensureDefaultCategories();
+    const rows = await this.categoryRepo.list(this.tenantId, params.includeInactive ?? false);
+    const usage = await this.categoryRepo.countUsage(this.tenantId);
+    return rows.map((row) => this.categoryRepo.mapRow(row, usage.get(row.name) ?? 0));
+  }
+
+  async createCategory(input: CreateExpenseCategoryInput): Promise<ExpenseCategoryRecord> {
+    const name = input.name.trim();
+    if (await this.categoryRepo.findByName(this.tenantId, name)) {
+      throw new ExpenseError('A category with this name already exists', 'CATEGORY_EXISTS', 409);
+    }
+
+    const created = await this.categoryRepo.create(this.tenantId, { name });
+    return this.categoryRepo.mapRow(created);
+  }
+
+  async updateCategory(id: string, input: UpdateExpenseCategoryInput): Promise<ExpenseCategoryRecord> {
+    let row = await this.categoryRepo.findById(this.tenantId, id);
+    if (!row) {
+      throw new ExpenseError('Category not found', 'CATEGORY_NOT_FOUND', 404);
+    }
+
+    const name = input.name?.trim();
+    if (name !== undefined && name !== row.name) {
+      const duplicate = await this.categoryRepo.findByName(this.tenantId, name);
+      if (duplicate && duplicate.id !== id) {
+        throw new ExpenseError('A category with this name already exists', 'CATEGORY_EXISTS', 409);
+      }
+      row = await this.categoryRepo.rename(this.tenantId, id, name);
+      if (!row) {
+        throw new ExpenseError('Failed to rename category', 'UPDATE_FAILED', 500);
+      }
+    }
+
+    if (input.isActive !== undefined && input.isActive !== row.is_active) {
+      row = await this.categoryRepo.update(this.tenantId, id, { is_active: input.isActive });
+      if (!row) {
+        throw new ExpenseError('Failed to update category', 'UPDATE_FAILED', 500);
+      }
+    }
+
+    const expenseCount = await this.categoryRepo.countUsageForName(this.tenantId, row.name);
+    return this.categoryRepo.mapRow(row, expenseCount);
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    const row = await this.categoryRepo.findById(this.tenantId, id);
+    if (!row) {
+      throw new ExpenseError('Category not found', 'CATEGORY_NOT_FOUND', 404);
+    }
+
+    if ((await this.categoryRepo.countUsageForName(this.tenantId, row.name)) > 0) {
+      throw new ExpenseError(
+        'Category is used by existing expenses; deactivate it instead',
+        'CATEGORY_IN_USE',
+        409
+      );
+    }
+
+    await this.categoryRepo.delete(this.tenantId, id, false);
+  }
+
+  /**
+   * Tenants created after migration 040 start with the built-in defaults.
+   * Returns true when it seeded.
+   */
+  private async ensureDefaultCategories(): Promise<boolean> {
+    if ((await this.categoryRepo.count(this.tenantId, true)) > 0) return false;
+    await this.categoryRepo.seed(this.tenantId, EXPENSE_CATEGORY_VALUES);
+    return true;
+  }
+
+  /**
+   * Resolve a category name to its stored spelling. New expenses need an
+   * active category; an edit may keep the expense's current (inactive) one.
+   */
+  private async resolveCategoryName(name: string, currentName?: string): Promise<string> {
+    const trimmed = name.trim();
+    if (currentName !== undefined && trimmed === currentName) return currentName;
+
+    let row = await this.categoryRepo.findByName(this.tenantId, trimmed);
+    if (!row && (await this.ensureDefaultCategories())) {
+      row = await this.categoryRepo.findByName(this.tenantId, trimmed);
+    }
+    if (!row) {
+      throw new ExpenseError('Unknown expense category', 'CATEGORY_NOT_FOUND', 400);
+    }
+    if (!row.is_active) {
+      throw new ExpenseError('Expense category is inactive', 'CATEGORY_INACTIVE', 400);
+    }
+    return row.name;
   }
 
   async getReport(params: ExpenseReportParams): Promise<ExpenseReportResponse> {

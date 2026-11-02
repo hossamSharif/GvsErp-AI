@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import type { ExpenseQueryParams, ExpenseWithCreator } from '@erp/shared';
-import { EXPENSE_CATEGORY_VALUES } from '@erp/shared';
+import { labelForExpenseCategory } from '@/lib/expense-category-label';
 import {
   Plus,
   MoreHorizontal,
@@ -54,6 +54,7 @@ import {
   Trash2,
   Download,
   Filter,
+  Tags,
 } from 'lucide-react';
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'check', 'credit_card', 'other'];
@@ -79,14 +80,12 @@ export default function ExpensesPage() {
 
   // Fetch expenses + categories
   const { data, isLoading } = useExpenses(queryParams);
-  const { data: categoriesData } = useExpenseCategories();
-  const tenantCategories = categoriesData?.data ?? [];
-
-  // Combine default + tenant-defined categories (de-duped)
-  const allCategories = useMemo(() => {
-    const set = new Set<string>([...EXPENSE_CATEGORY_VALUES, ...tenantCategories]);
-    return Array.from(set).sort();
-  }, [tenantCategories]);
+  // Inactive categories stay filterable for old expenses
+  const { data: categoriesData } = useExpenseCategories({ includeInactive: true });
+  const allCategories = useMemo(
+    () => (categoriesData?.data ?? []).map((c) => c.name),
+    [categoriesData]
+  );
 
   const deleteMutation = useDeleteExpense({
     onSuccess: () => {
@@ -181,13 +180,7 @@ export default function ExpensesPage() {
 
   // Translate category label (use translation if it's a known key, else show raw)
   const labelForCategory = useCallback(
-    (category: string) => {
-      const knownKeys = EXPENSE_CATEGORY_VALUES as readonly string[];
-      if (knownKeys.includes(category)) {
-        return t(`categories.${category}` as never);
-      }
-      return category;
-    },
+    (category: string) => labelForExpenseCategory(category, t),
     [t]
   );
 
@@ -319,6 +312,13 @@ export default function ExpensesPage() {
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/${locale}/expenses/categories`)}
+          >
+            <Tags className="mr-2 h-4 w-4" />
+            {t('manageCategories')}
+          </Button>
           <Button variant="outline" onClick={handleExportReport}>
             <Download className="mr-2 h-4 w-4" />
             {t('exportReport')}

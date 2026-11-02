@@ -20,6 +20,10 @@ import type {
   UpdateExpenseInput,
   ExpenseReportParams,
   ExpenseReportResponse,
+  ExpenseCategoryRecord,
+  ExpenseCategoryQueryParams,
+  CreateExpenseCategoryInput,
+  UpdateExpenseCategoryInput,
 } from '@erp/shared';
 
 interface ApiResponse<T> {
@@ -96,15 +100,90 @@ export function useExpense(
 }
 
 export function useExpenseCategories(
-  options?: Omit<UseQueryOptions<ApiResponse<string[]>>, 'queryKey' | 'queryFn'>
+  params: ExpenseCategoryQueryParams = {},
+  options?: Omit<UseQueryOptions<ApiResponse<ExpenseCategoryRecord[]>>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    queryKey: expenseKeys.categories(),
+    queryKey: [...expenseKeys.categories(), params],
     queryFn: async () => {
-      const response = await api.get<ApiResponse<string[]>>('/expenses/categories');
+      const response = await api.get<ApiResponse<ExpenseCategoryRecord[]>>(
+        '/expenses/categories',
+        { includeInactive: params.includeInactive }
+      );
       return response;
     },
     ...options,
+  });
+}
+
+export function useCreateExpenseCategory(
+  options?: UseMutationOptions<ApiResponse<ExpenseCategoryRecord>, Error, CreateExpenseCategoryInput>
+) {
+  const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
+
+  return useMutation({
+    mutationFn: async (input: CreateExpenseCategoryInput) => {
+      const response = await api.post<ApiResponse<ExpenseCategoryRecord>>(
+        '/expenses/categories',
+        input
+      );
+      return response;
+    },
+    onSuccess: (data, variables, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.categories() });
+      callerOnSuccess?.(data, variables, onMutateResult, context);
+    },
+    ...rest,
+  });
+}
+
+export function useUpdateExpenseCategory(
+  options?: UseMutationOptions<
+    ApiResponse<ExpenseCategoryRecord>,
+    Error,
+    { id: string; input: UpdateExpenseCategoryInput }
+  >
+) {
+  const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
+
+  return useMutation({
+    mutationFn: async ({ id, input }) => {
+      const response = await api.put<ApiResponse<ExpenseCategoryRecord>>(
+        `/expenses/categories/${id}`,
+        input
+      );
+      return response;
+    },
+    onSuccess: (data, variables, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.categories() });
+      // A rename also renames the category on existing expenses.
+      if (variables.input.name !== undefined) {
+        queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: expenseKeys.details() });
+      }
+      callerOnSuccess?.(data, variables, onMutateResult, context);
+    },
+    ...rest,
+  });
+}
+
+export function useDeleteExpenseCategory(
+  options?: UseMutationOptions<void, Error, { id: string }>
+) {
+  const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
+
+  return useMutation({
+    mutationFn: async ({ id }) => {
+      await api.delete(`/expenses/categories/${id}`);
+    },
+    onSuccess: (data, variables, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.categories() });
+      callerOnSuccess?.(data, variables, onMutateResult, context);
+    },
+    ...rest,
   });
 }
 

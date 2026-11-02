@@ -120,21 +120,6 @@ export class ExpenseRepository extends BaseRepository<'expenses', ExpenseRow, Ex
     return this.mapWithCreator(data as any);
   }
 
-  async getDistinctCategories(tenantId: string): Promise<string[]> {
-    const { data, error } = await this.supabase
-      .from('expenses')
-      .select('category')
-      .eq('tenant_id', tenantId);
-
-    if (error) throw error;
-
-    const set = new Set<string>();
-    for (const row of data || []) {
-      if (row.category) set.add(row.category);
-    }
-    return Array.from(set).sort();
-  }
-
   // ==========================================================================
   // MAPPERS
   // ==========================================================================

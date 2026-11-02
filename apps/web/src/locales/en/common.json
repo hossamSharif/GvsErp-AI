@@ -1831,6 +1831,62 @@
     "editExpense": "Edit Expense",
     "newExpenseDescription": "Record a new business expense with category, amount, and date",
     "editExpenseDescription": "Update the expense details",
+    "manageCategories": "Manage Categories",
+    "categoriesPage": {
+      "title": "Expense Categories",
+      "description": "Add, rename, and organize the categories used for expenses",
+      "back": "Back to expenses",
+      "addButton": "Add Category",
+      "listTitle": "Categories",
+      "listDescription": "Inactive categories are hidden when recording new expenses but remain on existing ones",
+      "emptyTitle": "No categories yet",
+      "emptyHint": "Add your first expense category to get started",
+      "columns": {
+        "name": "Name",
+        "usage": "Usage",
+        "status": "Status"
+      },
+      "usageCount": "{count, plural, =0 {Not used} =1 {# expense} other {# expenses}}",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "editAria": "Edit {name}",
+        "activateAria": "Activate {name}",
+        "deactivateAria": "Deactivate {name}",
+        "deleteAria": "Delete {name}"
+      },
+      "newTitle": "New Category",
+      "newDescription": "Create a new expense category",
+      "editTitle": "Edit Category",
+      "editDescription": "Rename the category or change its status",
+      "nameLabel": "Category name",
+      "namePlaceholder": "e.g. Fuel, Shop rent",
+      "renameHint": "{count, plural, =1 {Renaming also updates # existing expense.} other {Renaming also updates # existing expenses.}}",
+      "activeLabel": "Active",
+      "activeHint": "Only active categories can be chosen for new expenses",
+      "createButton": "Create",
+      "saveButton": "Save",
+      "deleteConfirm": {
+        "title": "Delete category?",
+        "description": "\"{name}\" will be permanently deleted."
+      },
+      "errors": {
+        "exists": "A category with this name already exists",
+        "inUse": "This category is used by expenses and can't be deleted. Deactivate it instead."
+      },
+      "toast": {
+        "created": "Category created",
+        "updated": "Category updated",
+        "deleted": "Category deleted",
+        "createError": "Failed to create category",
+        "updateError": "Failed to update category",
+        "deleteError": "Failed to delete category"
+      }
+    },
     "exportReport": "Export Report",
     "downloadPdf": "Download PDF",
     "generating": "Generating...",
@@ -1857,7 +1913,8 @@
       "actions": "Actions"
     },
     "placeholders": {
-      "category": "Select or type a category",
+      "category": "Select a category",
+      "newCategory": "New category…",
       "amount": "0.00",
       "description": "What was this expense for?",
       "reference": "Receipt # or invoice ref",

@@ -6,7 +6,7 @@
  * Shared form for creating and editing expenses.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,13 +20,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader2, Plus } from 'lucide-react';
 import type { CreateExpenseInput, UpdateExpenseInput, ExpenseWithCreator } from '@erp/shared';
-import { EXPENSE_CATEGORY_VALUES } from '@erp/shared';
 import { CurrencySelect } from '@/components/forms/currency-select';
+import { useExpenseCategories, useCreateExpenseCategory } from '@/hooks/use-expenses';
+import { labelForExpenseCategory } from '@/lib/expense-category-label';
 
 const PAYMENT_METHODS = ['cash', 'bank_transfer', 'check', 'credit_card', 'other'];
 const NONE_VALUE = '__none__';
+const NEW_CATEGORY_VALUE = '__new_category__';
+const DEFAULT_CATEGORY = 'other';
 
 export interface ExpenseFormProps {
   initialValues?: Partial<ExpenseWithCreator>;
@@ -47,7 +58,7 @@ export function ExpenseForm({
 
   const today = new Date().toISOString().split('T')[0];
 
-  const [category, setCategory] = useState(initialValues?.category || 'other');
+  const [category, setCategory] = useState(initialValues?.category || '');
   const [amount, setAmount] = useState<string>(
     initialValues?.amount !== undefined && initialValues.amount !== null
       ? String(initialValues.amount)
@@ -66,7 +77,7 @@ export function ExpenseForm({
 
   useEffect(() => {
     if (initialValues) {
-      setCategory(initialValues.category || 'other');
+      setCategory(initialValues.category || '');
       setAmount(
         initialValues.amount !== undefined && initialValues.amount !== null
           ? String(initialValues.amount)
@@ -81,11 +92,62 @@ export function ExpenseForm({
     }
   }, [initialValues, today]);
 
-  const labelForCategory = (cat: string) => {
-    const known = EXPENSE_CATEGORY_VALUES as readonly string[];
-    if (known.includes(cat)) return t(`categories.${cat}` as never);
-    return cat;
+  // Quick-add category dialog
+  const [newCategoryOpen, setNewCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
+
+  const { data: categoriesData } = useExpenseCategories();
+  const createCategoryMutation = useCreateExpenseCategory({
+    onSuccess: (data) => {
+      setCategory(data.data.name);
+      setNewCategoryOpen(false);
+    },
+    onError: (error) => {
+      const code = (error as Error & { code?: string }).code;
+      setNewCategoryError(
+        code === 'CATEGORY_EXISTS'
+          ? t('categoriesPage.errors.exists')
+          : error.message || t('categoriesPage.toast.createError')
+      );
+    },
+  });
+
+  // Active categories, plus the expense's current one if it was deactivated
+  const categoryOptions = useMemo(() => {
+    const names = (categoriesData?.data ?? []).map((c) => c.name);
+    if (initialValues?.category && !names.includes(initialValues.category)) {
+      names.push(initialValues.category);
+    }
+    return names;
+  }, [categoriesData, initialValues?.category]);
+
+  // New expense: default to "other" when available, else the first category
+  useEffect(() => {
+    if (category || categoryOptions.length === 0) return;
+    setCategory(
+      categoryOptions.includes(DEFAULT_CATEGORY) ? DEFAULT_CATEGORY : categoryOptions[0]
+    );
+  }, [category, categoryOptions]);
+
+  const handleCategoryChange = (value: string) => {
+    if (value === NEW_CATEGORY_VALUE) {
+      setNewCategoryName('');
+      setNewCategoryError(null);
+      setNewCategoryOpen(true);
+      return;
+    }
+    setCategory(value);
   };
+
+  const handleCreateCategory = () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setNewCategoryError(null);
+    createCategoryMutation.mutate({ name });
+  };
+
+  const labelForCategory = (cat: string) => labelForExpenseCategory(cat, t);
 
   const labelForMethod = (m: string) => {
     if (PAYMENT_METHODS.includes(m)) return t(`methods.${m}` as never);
@@ -127,6 +189,7 @@ export function ExpenseForm({
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
@@ -139,16 +202,26 @@ export function ExpenseForm({
             {/* Category */}
             <div className="space-y-2">
               <Label htmlFor="category">{t('fields.category')} *</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={handleCategoryChange}>
                 <SelectTrigger id="category" data-testid="expense-category">
                   <SelectValue placeholder={t('placeholders.category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {EXPENSE_CATEGORY_VALUES.map((c) => (
+                  {categoryOptions.map((c) => (
                     <SelectItem key={c} value={c}>
                       {labelForCategory(c)}
                     </SelectItem>
                   ))}
+                  <SelectItem
+                    value={NEW_CATEGORY_VALUE}
+                    className="text-primary"
+                    data-testid="expense-category-new"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      {t('placeholders.newCategory')}
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {errors.category && (
@@ -274,5 +347,57 @@ export function ExpenseForm({
         </Button>
       </div>
     </form>
+
+    {/* Quick-add category (outside the <form> so its events don't submit the expense) */}
+    <Dialog open={newCategoryOpen} onOpenChange={setNewCategoryOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('categoriesPage.newTitle')}</DialogTitle>
+          <DialogDescription>{t('categoriesPage.newDescription')}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          <Label htmlFor="newCategoryName">{t('categoriesPage.nameLabel')}</Label>
+          <Input
+            id="newCategoryName"
+            data-testid="expense-category-new-name"
+            placeholder={t('categoriesPage.namePlaceholder')}
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleCreateCategory();
+              }
+            }}
+            maxLength={100}
+            autoFocus
+          />
+          {newCategoryError && (
+            <p className="text-sm text-destructive">{newCategoryError}</p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setNewCategoryOpen(false)}
+            disabled={createCategoryMutation.isPending}
+          >
+            {t('actions.cancel')}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleCreateCategory}
+            disabled={createCategoryMutation.isPending || !newCategoryName.trim()}
+          >
+            {createCategoryMutation.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {t('categoriesPage.createButton')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

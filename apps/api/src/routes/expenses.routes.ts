@@ -6,12 +6,15 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { ExpenseService } from '../services/expense.service';
-import type { ExpenseQueryParams } from '@erp/shared';
+import type { ExpenseQueryParams, ExpenseCategoryQueryParams } from '@erp/shared';
 import {
   createExpenseSchema,
   updateExpenseSchema,
   expenseQuerySchema,
   expenseReportParamsSchema,
+  createExpenseCategorySchema,
+  updateExpenseCategorySchema,
+  expenseCategoryQuerySchema,
 } from '@erp/shared';
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
@@ -56,18 +59,80 @@ router.get(
   }
 );
 
+// =============================================================================
+// CATEGORY ENDPOINTS (declared before /:id)
+// =============================================================================
+
 /**
  * GET /expenses/categories
- * Get distinct expense categories used by this tenant
+ * List this tenant's expense categories with usage counts
  */
 router.get(
   '/categories',
   requirePermission('expenses:read'),
+  validateRequest({ query: expenseCategoryQuerySchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const service = getService(req);
-      const categories = await service.getCategories();
+      const params = req.query as unknown as ExpenseCategoryQueryParams;
+      const categories = await service.getCategories(params);
       res.json({ success: true, data: categories });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /expenses/categories
+ * Create an expense category
+ */
+router.post(
+  '/categories',
+  requirePermission('expenses:write'),
+  validateRequest({ body: createExpenseCategorySchema }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getService(req);
+      const category = await service.createCategory(req.body);
+      res.status(201).json({ success: true, data: category });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * PUT /expenses/categories/:id
+ * Rename and/or activate/deactivate an expense category
+ */
+router.put(
+  '/categories/:id',
+  requirePermission('expenses:write'),
+  validateRequest({ body: updateExpenseCategorySchema }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getService(req);
+      const category = await service.updateCategory(req.params.id, req.body);
+      res.json({ success: true, data: category });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * DELETE /expenses/categories/:id
+ * Delete an unused expense category
+ */
+router.delete(
+  '/categories/:id',
+  requirePermission('expenses:delete'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getService(req);
+      await service.deleteCategory(req.params.id);
+      res.json({ success: true, message: 'Expense category deleted successfully' });
     } catch (error) {
       next(error);
     }

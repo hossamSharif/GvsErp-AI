@@ -79,6 +79,31 @@ export const updateExpenseSchema = z.object({
 });
 
 // =============================================================================
+// CATEGORY SCHEMAS
+// =============================================================================
+
+const categoryNameSchema = z.string()
+  .trim()
+  .min(1, 'Category name is required')
+  .max(100, 'Category name must be 100 characters or less');
+
+export const createExpenseCategorySchema = z.object({
+  name: categoryNameSchema,
+});
+
+export const updateExpenseCategorySchema = z.object({
+  name: categoryNameSchema.optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const expenseCategoryQuerySchema = z.object({
+  includeInactive: z.preprocess(
+    (val) => val === 'true' ? true : val === 'false' ? false : val,
+    z.boolean().default(false)
+  ),
+});
+
+// =============================================================================
 // QUERY SCHEMAS
 // =============================================================================
 

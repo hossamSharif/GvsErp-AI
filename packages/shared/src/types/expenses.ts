@@ -46,6 +46,38 @@ export const EXPENSE_CATEGORY_VALUES = [
 ] as const;
 
 // =============================================================================
+// EXPENSE CATEGORY ENTITY
+// =============================================================================
+
+/**
+ * Tenant-managed expense category. Built-in defaults are stored by key
+ * (see EXPENSE_CATEGORY_VALUES) and translated in the UI.
+ */
+export interface ExpenseCategoryRecord {
+  id: string;
+  tenantId: string;
+  name: string;
+  isActive: boolean;
+  /** Number of expenses using this category */
+  expenseCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateExpenseCategoryInput {
+  name: string;
+}
+
+export interface UpdateExpenseCategoryInput {
+  name?: string;
+  isActive?: boolean;
+}
+
+export interface ExpenseCategoryQueryParams {
+  includeInactive?: boolean;
+}
+
+// =============================================================================
 // EXPENSE ENTITY
 // =============================================================================
 
