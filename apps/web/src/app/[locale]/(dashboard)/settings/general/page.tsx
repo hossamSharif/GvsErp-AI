@@ -46,8 +46,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
 import { Save, Loader2, ArrowLeft } from 'lucide-react';
+import { PRINT_TEMPLATES, printTemplateFromSettings } from '@/lib/print-template';
 
 // Form schema
 const settingsFormSchema = z.object({
@@ -64,6 +66,9 @@ const settingsFormSchema = z.object({
   fiscal_year_start: z.string().optional().or(z.literal('')),
   time_zone: z.string().optional().or(z.literal('')),
   date_format: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']).optional(),
+  sales_print_template: z.enum(['standard', 'statement']),
+  purchase_print_template: z.enum(['standard', 'statement']),
+  invoice_footer_note: z.string().max(300).optional().or(z.literal('')),
 });
 
 type SettingsFormData = z.infer<typeof settingsFormSchema>;
@@ -73,6 +78,7 @@ export default function GeneralSettingsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const { toast } = useToast();
+  const tPrinting = useTranslations('settings.invoicePrinting');
 
   // Fetch settings
   const { data: settingsData, isLoading } = useTenantSettings();
@@ -111,6 +117,9 @@ export default function GeneralSettingsPage() {
       fiscal_year_start: settingsData?.data?.fiscal_year_start || '',
       time_zone: settingsData?.data?.time_zone || '',
       date_format: settingsData?.data?.date_format || 'DD/MM/YYYY',
+      sales_print_template: printTemplateFromSettings(settingsData?.data, 'sale'),
+      purchase_print_template: printTemplateFromSettings(settingsData?.data, 'purchase'),
+      invoice_footer_note: settingsData?.data?.invoice_footer_note || '',
     },
   });
 
@@ -130,6 +139,10 @@ export default function GeneralSettingsPage() {
         fiscal_year_start: data.fiscal_year_start || undefined,
         time_zone: data.time_zone || undefined,
         date_format: data.date_format,
+        sales_print_template: data.sales_print_template,
+        purchase_print_template: data.purchase_print_template,
+        // Sent even when empty so clearing the note actually removes it.
+        invoice_footer_note: data.invoice_footer_note?.trim() ?? '',
       };
       updateMutation.mutate(updateData);
     },
@@ -448,6 +461,72 @@ export default function GeneralSettingsPage() {
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Invoice Printing */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{tPrinting('title')}</CardTitle>
+              <CardDescription>{tPrinting('description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(['sales_print_template', 'purchase_print_template'] as const).map((name) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {tPrinting(
+                            name === 'sales_print_template' ? 'salesTemplate' : 'purchaseTemplate'
+                          )}
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {PRINT_TEMPLATES.map((template) => (
+                              <SelectItem key={template} value={template}>
+                                {tPrinting(
+                                  template === 'standard' ? 'templateStandard' : 'templateStatement'
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">{tPrinting('templateHint')}</p>
+
+              <FormField
+                control={form.control}
+                name="invoice_footer_note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{tPrinting('footerNote')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={2}
+                        maxLength={300}
+                        placeholder={tPrinting('footerNotePlaceholder')}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>{tPrinting('footerNoteHint')}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

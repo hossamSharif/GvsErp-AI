@@ -17,6 +17,7 @@ import {
   Send,
   Undo2,
   Printer,
+  FileText,
   Download,
   MoreHorizontal,
   CheckCircle,
@@ -67,6 +68,7 @@ import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog'
 import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
 import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
+import { formatAmount, formatShortDate } from '@/components/reports/invoice-format';
 import { ApiClientError } from '@/lib/api-client';
 import type {
   InvoiceStatus,
@@ -104,7 +106,8 @@ export default function PurchaseDetailPage() {
   const finalizeInvoice = useFinalizeInvoice();
   const deleteInvoice = useDeleteInvoice();
 
-  const { printRef, handlePrint } = usePrintInvoice(invoice);
+  const { printRef, handlePrint, activeTemplate, snapshot } = usePrintInvoice(invoice);
+  const tPrint = useTranslations('invoice.printMenu');
 
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -241,7 +244,7 @@ export default function PurchaseDetailPage() {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              {t('createdOn', { date: new Date(invoice.createdAt).toLocaleDateString() })}
+              {t('createdOn', { date: formatShortDate(invoice.createdAt) })}
             </p>
           </div>
         </div>
@@ -285,6 +288,15 @@ export default function PurchaseDetailPage() {
                 {tActions('exportPdf')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handlePrint('standard')}>
+                <Printer className="h-4 w-4 mr-2" />
+                {tPrint('printStandard')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint('statement')}>
+                <FileText className="h-4 w-4 mr-2" />
+                {tPrint('printStatement')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive"
                 onClick={() => setShowDeleteDialog(true)}
@@ -322,7 +334,7 @@ export default function PurchaseDetailPage() {
                 )}
                 <div className="pt-2">
                   <Badge variant={invoice.party.balance > 0 ? 'destructive' : 'secondary'} className="text-xs">
-                    {t('summary.total').replace(':', '')}: {invoice.party.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {t('summary.total').replace(':', '')}: {formatAmount(invoice.party.balance)}
                   </Badge>
                 </div>
               </div>
@@ -356,19 +368,19 @@ export default function PurchaseDetailPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t('summary.subtotal')}</span>
-              <span>{invoice.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span>{formatAmount(invoice.subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t('summary.tax')}</span>
-              <span>{invoice.taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span>{formatAmount(invoice.taxAmount)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t('summary.discount')}</span>
-              <span>-{invoice.discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span>-{formatAmount(invoice.discountAmount)}</span>
             </div>
             <div className="flex justify-between font-semibold pt-2 border-t">
               <span>{t('summary.total')}</span>
-              <span>{invoice.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span>{formatAmount(invoice.total)}</span>
             </div>
           </CardContent>
         </Card>
@@ -412,12 +424,12 @@ export default function PurchaseDetailPage() {
                   </TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
                   <TableCell className="text-right">
-                    {item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {formatAmount(item.unitPrice)}
                   </TableCell>
                   <TableCell className="text-right">{item.discountPercent}%</TableCell>
                   <TableCell className="text-right">{item.taxRate}%</TableCell>
                   <TableCell className="text-right font-medium">
-                    {item.lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {formatAmount(item.lineTotal)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -438,7 +450,12 @@ export default function PurchaseDetailPage() {
       )}
 
       <div className="hidden">
-        <InvoicePdf ref={printRef} invoice={invoice} />
+        <InvoicePdf
+          ref={printRef}
+          invoice={invoice}
+          template={activeTemplate}
+          snapshot={snapshot}
+        />
       </div>
 
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>

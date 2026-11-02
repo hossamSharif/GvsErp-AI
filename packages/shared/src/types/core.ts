@@ -21,6 +21,13 @@ export type SubscriptionStatus = 'active' | 'trialing' | 'canceled' | 'past_due'
  */
 export type PaymentFlow = 'dialog' | 'background' | 'skip';
 
+/**
+ * Printable layout for sales/purchase invoices.
+ * - `standard`: the full invoice (tax, discounts, signatures) — the default.
+ * - `statement`: the compact "كشف بيان" with the party balance/payment block.
+ */
+export type InvoicePrintTemplate = 'standard' | 'statement';
+
 // ============================================
 // TENANT
 // ============================================
@@ -60,6 +67,11 @@ export interface TenantSettings {
   // Invoice payment workflow (per type). Unset → 'dialog' (show payment dialog).
   sales_payment_flow?: PaymentFlow;
   purchase_payment_flow?: PaymentFlow;
+  // Invoice print template (per type). Unset → 'standard'.
+  sales_print_template?: InvoicePrintTemplate;
+  purchase_print_template?: InvoicePrintTemplate;
+  /** Free text printed in the statement template footer (e.g. a returns policy). */
+  invoice_footer_note?: string;
 }
 
 export interface Tenant {

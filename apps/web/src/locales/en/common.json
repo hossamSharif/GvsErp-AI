@@ -822,6 +822,52 @@
       "customerSignature": "Customer Signature",
       "defaultCompanyName": "Your Company",
       "zatcaQrLabel": "Scan to verify"
+    },
+    "statement": {
+      "title": "Statement of Account",
+      "titleAlt": "كشف بيان",
+      "returnTitle": "Return Statement",
+      "invoiceNo": "Invoice No.",
+      "date": "Date",
+      "name": "Name",
+      "address": "Address",
+      "phone": "Phone",
+      "warehouse": "Warehouse",
+      "columnRow": "No.",
+      "columnItem": "Item",
+      "columnQty": "Qty",
+      "columnPrice": "Price",
+      "columnTotal": "Amount",
+      "totalGross": "Invoice Total",
+      "totalDiscount": "Invoice Discount",
+      "totalNet": "Net Invoice",
+      "includesTax": "Includes tax {amount}",
+      "amountsIn": "Amounts in {currency}",
+      "sale": {
+        "previousBalance": "Owed by customer before invoice",
+        "balanceAfter": "Owed by customer after invoice",
+        "paidWithInvoice": "Paid with invoice",
+        "remaining": "Remaining owed by customer",
+        "negativeTag": "(credit)"
+      },
+      "purchase": {
+        "previousBalance": "Owed to supplier before invoice",
+        "balanceAfter": "Owed to supplier after invoice",
+        "paidWithInvoice": "Paid with invoice",
+        "remaining": "Remaining owed to supplier",
+        "negativeTag": "(debit)"
+      },
+      "note": "Note",
+      "pagePrefix": "Page",
+      "pageOf": "of"
+    },
+    "printMenu": {
+      "printStandard": "Print standard invoice",
+      "printStatement": "Print statement of account",
+      "loadFailed": "Couldn't load the invoice for printing",
+      "printWithTemplate": "Print with template",
+      "templateStandard": "Standard invoice",
+      "templateStatement": "Statement of account"
     }
   },
   "sales": {
@@ -2839,6 +2885,18 @@
         "updateFailed": "Failed to update currency",
         "deleteFailed": "Failed to delete currency"
       }
+    },
+    "invoicePrinting": {
+      "title": "Invoice Printing",
+      "description": "Choose the default print template for sales and purchase invoices.",
+      "salesTemplate": "Sales invoice template",
+      "purchaseTemplate": "Purchase invoice template",
+      "templateStandard": "Standard invoice",
+      "templateStatement": "Statement of account (كشف بيان)",
+      "templateHint": "Used by the Print button. Any template can still be printed from the actions menu.",
+      "footerNote": "Statement footer note",
+      "footerNotePlaceholder": "e.g. Goods sold are not returnable or exchangeable",
+      "footerNoteHint": "Printed at the bottom of the statement of account. Leave empty to hide."
     }
   },
   "itemMovement": {

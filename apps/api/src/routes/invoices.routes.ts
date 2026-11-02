@@ -135,6 +135,28 @@ router.get(
 );
 
 /**
+ * GET /invoices/:id/balance-snapshot
+ * The party's balance before/after this invoice and what was paid with it,
+ * as printed by the statement ("كشف بيان") template.
+ */
+router.get(
+  '/:id/balance-snapshot',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const service = getInvoiceService(req);
+      const snapshot = await service.getBalanceSnapshot(req.params.id);
+
+      res.json({
+        success: true,
+        data: snapshot,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * PUT /invoices/:id
  * Update an invoice. Drafts are edited freely; finalized invoices are re-mapped
  * with full stock + party-balance reversal/reapply, and are blocked when they

@@ -61,6 +61,9 @@ export const updateTenantSettingsSchema = z.object({
   }).optional(),
   sales_payment_flow: z.enum(['dialog', 'background', 'skip']).optional(),
   purchase_payment_flow: z.enum(['dialog', 'background', 'skip']).optional(),
+  sales_print_template: z.enum(['standard', 'statement']).optional(),
+  purchase_print_template: z.enum(['standard', 'statement']).optional(),
+  invoice_footer_note: z.string().max(300).optional(),
 });
 
 // User validation schemas

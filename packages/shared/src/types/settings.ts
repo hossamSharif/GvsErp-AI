@@ -1,7 +1,7 @@
 // Settings and Currency Types for Modular ERP SaaS
 // Covers: Currency management, Exchange rates, Tenant settings
 
-import type { PaymentFlow } from './core';
+import type { InvoicePrintTemplate, PaymentFlow } from './core';
 
 export type RateType = 'formal' | 'black_market';
 
@@ -81,6 +81,9 @@ export interface UpdateTenantSettingsInput {
   };
   sales_payment_flow?: PaymentFlow;
   purchase_payment_flow?: PaymentFlow;
+  sales_print_template?: InvoicePrintTemplate;
+  purchase_print_template?: InvoicePrintTemplate;
+  invoice_footer_note?: string;
 }
 
 // User is defined in core.ts — use that as the authoritative source

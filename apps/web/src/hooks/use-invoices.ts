@@ -16,6 +16,7 @@ import type {
   Invoice,
   InvoiceWithParty,
   InvoiceWithRelations,
+  InvoiceBalanceSnapshot,
   InvoiceQueryParams,
   CreateInvoiceInput,
   UpdateInvoiceInput,
@@ -90,6 +91,8 @@ export const invoiceKeys = {
   list: (params: InvoiceQueryParams) => [...invoiceKeys.lists(), params] as const,
   details: () => [...invoiceKeys.all, 'detail'] as const,
   detail: (id: string) => [...invoiceKeys.details(), id] as const,
+  // Nested under detail(id) so invalidating the invoice refreshes it too.
+  balanceSnapshot: (id: string) => [...invoiceKeys.detail(id), 'balance-snapshot'] as const,
   byNumber: (number: string) => [...invoiceKeys.all, 'by-number', number] as const,
   stockAvailability: (warehouseId: string, itemIds: string[]) =>
     [...invoiceKeys.all, 'stock', warehouseId, itemIds] as const,
@@ -146,6 +149,23 @@ export function useInvoice(
     },
     enabled: !!id,
     ...options,
+  });
+}
+
+/**
+ * Fetch the party balance around an invoice (statement print template).
+ * Pass `enabled: false` until the statement template is actually needed.
+ */
+export function useInvoiceBalanceSnapshot(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: invoiceKeys.balanceSnapshot(id!),
+    queryFn: async () => {
+      const response = await api.get<ApiResponse<InvoiceBalanceSnapshot>>(
+        `/invoices/${id}/balance-snapshot`
+      );
+      return response.data;
+    },
+    enabled: !!id && enabled,
   });
 }
 

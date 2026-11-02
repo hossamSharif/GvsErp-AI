@@ -6,7 +6,7 @@
  * Displays all sales invoices with filtering, sorting, and pagination.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -27,6 +27,8 @@ import {
   User,
   X,
   Settings2,
+  Printer,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +53,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -66,6 +71,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PaymentFlowSettingsDialog } from '@/components/dialogs/payment-flow-settings-dialog';
 import { LinkedPaymentsDialog } from '@/components/dialogs/linked-payments-dialog';
 import { useToast } from '@/hooks/use-toast';
+import {
+  InvoiceListPrinter,
+  type InvoicePrintRequest,
+} from '@/components/reports/invoice-list-printer';
+import type { InvoicePrintTemplate } from '@/lib/print-template';
 import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
 import { useUsers } from '@/hooks/use-users';
 import { ApiClientError } from '@/lib/api-client';
@@ -105,6 +115,13 @@ export default function SalesListPage() {
   const t = useTranslations('sales.list');
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('sales.actions');
+  const tPrint = useTranslations('invoice.printMenu');
+
+  // Print / export straight from a row's actions menu
+  const [printRequest, setPrintRequest] = useState<InvoicePrintRequest | null>(null);
+  const requestPrint = (id: string, template?: InvoicePrintTemplate) =>
+    setPrintRequest({ id, template, nonce: Date.now() });
+  const clearPrintRequest = useCallback(() => setPrintRequest(null), []);
   const tDetail = useTranslations('sales.detail');
   const tFlow = useTranslations('paymentFlow');
 
@@ -522,6 +539,29 @@ export default function SalesListPage() {
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => requestPrint(invoice.id)}>
+                              <Printer className="h-4 w-4 mr-2" />
+                              {tActions('print')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => requestPrint(invoice.id)}>
+                              <Download className="h-4 w-4 mr-2" />
+                              {tActions('exportPdf')}
+                            </DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>
+                                <FileText className="h-4 w-4 mr-2" />
+                                {tPrint('printWithTemplate')}
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenuItem onSelect={() => requestPrint(invoice.id, 'standard')}>
+                                  {tPrint('templateStandard')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => requestPrint(invoice.id, 'statement')}>
+                                  {tPrint('templateStatement')}
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
                               onSelect={(e) => {
@@ -609,6 +649,9 @@ export default function SalesListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Off-screen printable invoice for the row print/export actions */}
+      <InvoiceListPrinter request={printRequest} onFailed={clearPrintRequest} />
 
       {/* Cascade-delete confirmation: also delete the linked payment(s) */}
       <LinkedPaymentsDialog

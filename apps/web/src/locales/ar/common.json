@@ -822,6 +822,52 @@
       "customerSignature": "توقيع العميل",
       "defaultCompanyName": "اسم الشركة",
       "zatcaQrLabel": "امسح للتحقق"
+    },
+    "statement": {
+      "title": "كشف بيان",
+      "titleAlt": "Statement of Account",
+      "returnTitle": "كشف بيان مرتجع",
+      "invoiceNo": "رقم الفاتورة",
+      "date": "التاريخ",
+      "name": "الإسم",
+      "address": "العنوان",
+      "phone": "التلفون",
+      "warehouse": "المخزن",
+      "columnRow": "الرقم",
+      "columnItem": "اسم الصنف",
+      "columnQty": "الكمية",
+      "columnPrice": "السعر",
+      "columnTotal": "الجملة",
+      "totalGross": "مجموع الفاتورة",
+      "totalDiscount": "خصم الفاتورة",
+      "totalNet": "صافي الفاتورة",
+      "includesTax": "شامل الضريبة {amount}",
+      "amountsIn": "المبالغ بعملة {currency}",
+      "sale": {
+        "previousBalance": "المطلوب منه قبل الفاتورة",
+        "balanceAfter": "المطلوب منه بعد الفاتورة",
+        "paidWithInvoice": "سداد مع الفاتورة",
+        "remaining": "المتبقي عليه",
+        "negativeTag": "(رصيد دائن)"
+      },
+      "purchase": {
+        "previousBalance": "المطلوب له قبل الفاتورة",
+        "balanceAfter": "المطلوب له بعد الفاتورة",
+        "paidWithInvoice": "سداد مع الفاتورة",
+        "remaining": "المتبقي له",
+        "negativeTag": "(رصيد مدين)"
+      },
+      "note": "ملاحظة",
+      "pagePrefix": "صفحة",
+      "pageOf": "من"
+    },
+    "printMenu": {
+      "printStandard": "طباعة الفاتورة القياسية",
+      "printStatement": "طباعة كشف بيان",
+      "loadFailed": "تعذر تحميل الفاتورة للطباعة",
+      "printWithTemplate": "طباعة بقالب",
+      "templateStandard": "الفاتورة القياسية",
+      "templateStatement": "كشف بيان"
     }
   },
   "sales": {
@@ -2839,6 +2885,18 @@
         "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
         "currentIncorrect": "كلمة المرور الحالية غير صحيحة"
       }
+    },
+    "invoicePrinting": {
+      "title": "طباعة الفواتير",
+      "description": "اختر قالب الطباعة الافتراضي لفواتير المبيعات والمشتريات.",
+      "salesTemplate": "قالب فاتورة المبيعات",
+      "purchaseTemplate": "قالب فاتورة المشتريات",
+      "templateStandard": "الفاتورة القياسية",
+      "templateStatement": "كشف بيان",
+      "templateHint": "يُستخدم مع زر الطباعة، ويمكن طباعة أي قالب آخر من قائمة الإجراءات.",
+      "footerNote": "ملاحظة أسفل كشف البيان",
+      "footerNotePlaceholder": "مثال: لا تسترد البضاعة ولا تستبدل",
+      "footerNoteHint": "تُطبع أسفل كشف البيان. اتركها فارغة لإخفائها."
     }
   },
   "itemMovement": {

@@ -27,6 +27,7 @@ import type {
   ReturnInvoiceResult,
   LinkedPayment,
   LinkedPaymentsMeta,
+  InvoiceBalanceSnapshot,
   SalesReportEntry,
   SalesReportSummary,
   SalesReportParams,
@@ -61,6 +62,125 @@ export class InvoiceError extends Error {
  * Re-exported for the existing callers; the shape lives in `@erp/shared`.
  */
 export type { LinkedPayment, LinkedPaymentsMeta };
+
+// =============================================================================
+// BALANCE SNAPSHOT (statement print template)
+// =============================================================================
+
+/** An invoice row as the balance snapshot reads it */
+export interface SnapshotInvoiceRow {
+  id: string;
+  status: InvoiceStatus;
+  returned_from_id: string | null;
+  total: number | string;
+  exchange_rate: number | string;
+  invoice_date: string;
+  created_at: string;
+}
+
+/** A payment row as the balance snapshot reads it */
+export interface SnapshotPaymentRow {
+  id: string;
+  amount: number | string;
+  exchange_rate: number | string;
+  payment_date: string;
+  created_at: string;
+}
+
+/** Everything a balance snapshot is computed from */
+export interface BalanceSnapshotSources {
+  currency: string;
+  opening: { amount: number; date: string | null };
+  /** The invoice being printed */
+  invoice: SnapshotInvoiceRow;
+  /** The party's other invoices (any status; filtered here) */
+  invoices: SnapshotInvoiceRow[];
+  /** All of the party's payments */
+  payments: SnapshotPaymentRow[];
+  /**
+   * Portion of each payment linked to the printed invoice, in the payment's
+   * own currency, keyed by payment id.
+   */
+  linkedAmounts: Map<string, number>;
+}
+
+/**
+ * A standalone return document: its own row pointing back at the original.
+ * A row flipped to 'returned' in place was already netted to zero by the
+ * balance trigger. Same rule as PartyService's isReturnRow.
+ */
+function isReturnDocument(row: { status: string; returned_from_id: string | null }): boolean {
+  return row.status === 'returned' && row.returned_from_id != null;
+}
+
+/** Signed base-currency effect of an invoice row on the party balance */
+function invoiceBalanceEffect(row: SnapshotInvoiceRow, treatDraftAsFinal: boolean): number {
+  const amount = Number(row.total) * Number(row.exchange_rate);
+  if (row.status === 'final') return amount;
+  if (row.status === 'draft' && treatDraftAsFinal) return amount;
+  if (isReturnDocument(row)) return -amount;
+  return 0;
+}
+
+/**
+ * Work out the party's position around one invoice.
+ *
+ * "Before" is everything that precedes the invoice on the party's ledger:
+ * ordered by business date (invoice_date / payment_date), ties broken by
+ * created_at, the same order a statement would show. The opening balance is
+ * counted unless it is dated after the invoice — calculate_party_balance
+ * always counts it, so a null date must count too.
+ *
+ * Payments linked to the invoice are reported as "paid with the invoice"
+ * whenever they were recorded. Only the unlinked remainder of a payment (one
+ * that also settles other invoices) can fall into "before".
+ *
+ * A draft is projected as if it were final so its printout is meaningful.
+ */
+export function computeBalanceSnapshot(sources: BalanceSnapshotSources): InvoiceBalanceSnapshot {
+  const { invoice } = sources;
+  const ts = (value: string) => Date.parse(value) || 0;
+  const precedes = (date: string, createdAt: string) =>
+    date < invoice.invoice_date ||
+    (date === invoice.invoice_date && ts(createdAt) < ts(invoice.created_at));
+
+  let previousBalance = 0;
+
+  const { amount: opening, date: openingDate } = sources.opening;
+  if (opening !== 0 && (openingDate === null || openingDate <= invoice.invoice_date)) {
+    previousBalance += opening;
+  }
+
+  for (const row of sources.invoices) {
+    if (row.id === invoice.id) continue;
+    if (!precedes(row.invoice_date, row.created_at)) continue;
+    previousBalance += invoiceBalanceEffect(row, false);
+  }
+
+  let paidWithInvoice = 0;
+  for (const payment of sources.payments) {
+    const amount = Number(payment.amount);
+    const rate = Number(payment.exchange_rate);
+    const linked = Math.min(sources.linkedAmounts.get(payment.id) ?? 0, amount);
+    paidWithInvoice += linked * rate;
+    if (precedes(payment.payment_date, payment.created_at)) {
+      previousBalance -= (amount - linked) * rate;
+    }
+  }
+
+  const invoiceEffect = invoiceBalanceEffect(invoice, true);
+  const balanceAfter = previousBalance + invoiceEffect;
+
+  return {
+    currency: sources.currency,
+    hasParty: true,
+    previousBalance,
+    invoiceEffect,
+    balanceAfter,
+    paidWithInvoice,
+    remaining: balanceAfter - paidWithInvoice,
+  };
+}
 
 /**
  * Service for Invoice business logic
@@ -132,6 +252,107 @@ export class InvoiceService {
     }
 
     return invoice;
+  }
+
+  /**
+   * The party's balance before and after an invoice, and what was paid with
+   * it — the payment block of the statement print template. See
+   * {@link computeBalanceSnapshot} for the rules.
+   */
+  async getBalanceSnapshot(id: string): Promise<InvoiceBalanceSnapshot> {
+    const invoiceCols =
+      'id, status, returned_from_id, total, exchange_rate, invoice_date, created_at, party_id';
+
+    const { data: invoice, error: invErr } = await this.supabase
+      .from('invoices')
+      .select(invoiceCols)
+      .eq('tenant_id', this.tenantId)
+      .eq('id', id)
+      .maybeSingle();
+    if (invErr) throw invErr;
+    if (!invoice) {
+      throw new InvoiceError('Invoice not found', 'INVOICE_NOT_FOUND', 404);
+    }
+
+    const { data: tenant, error: tenantErr } = await this.supabase
+      .from('tenants')
+      .select('settings')
+      .eq('id', this.tenantId)
+      .maybeSingle();
+    if (tenantErr) throw tenantErr;
+    const currency =
+      ((tenant?.settings as { default_currency?: string } | null)?.default_currency) || 'USD';
+
+    const partyId = invoice.party_id as string | null;
+    if (!partyId) {
+      return {
+        currency,
+        hasParty: false,
+        previousBalance: 0,
+        invoiceEffect: 0,
+        balanceAfter: 0,
+        paidWithInvoice: 0,
+        remaining: 0,
+      };
+    }
+
+    const [partyRes, invoicesRes, paymentsRes, allocRes] = await Promise.all([
+      this.supabase
+        .from('parties')
+        .select('opening_balance, opening_balance_date')
+        .eq('tenant_id', this.tenantId)
+        .eq('id', partyId)
+        .maybeSingle(),
+      this.supabase
+        .from('invoices')
+        .select(invoiceCols)
+        .eq('tenant_id', this.tenantId)
+        .eq('party_id', partyId)
+        .in('status', ['final', 'returned']),
+      this.supabase
+        .from('payments')
+        .select('id, amount, exchange_rate, payment_date, created_at, invoice_id')
+        .eq('tenant_id', this.tenantId)
+        .eq('party_id', partyId),
+      this.supabase
+        .from('payment_allocations' as any)
+        .select('payment_id, amount')
+        .eq('tenant_id', this.tenantId)
+        .eq('invoice_id', id),
+    ]);
+    if (partyRes.error) throw partyRes.error;
+    if (invoicesRes.error) throw invoicesRes.error;
+    if (paymentsRes.error) throw paymentsRes.error;
+    if (allocRes.error) throw allocRes.error;
+
+    // Allocation rows are the bill-wise link; a legacy payment.invoice_id with
+    // no allocation row links the whole payment.
+    const linkedAmounts = new Map<string, number>();
+    for (const row of ((allocRes.data as unknown) as { payment_id: string; amount: number }[]) ?? []) {
+      linkedAmounts.set(row.payment_id, (linkedAmounts.get(row.payment_id) ?? 0) + Number(row.amount));
+    }
+    const payments = paymentsRes.data ?? [];
+    for (const p of payments) {
+      if (p.invoice_id === id && !linkedAmounts.has(p.id)) {
+        linkedAmounts.set(p.id, Number(p.amount));
+      }
+    }
+
+    const party = partyRes.data as
+      | { opening_balance: number | string | null; opening_balance_date: string | null }
+      | null;
+
+    return computeBalanceSnapshot({
+      currency,
+      opening: {
+        amount: Number(party?.opening_balance || 0),
+        date: party?.opening_balance_date ?? null,
+      },
+      invoice: (invoice as unknown) as SnapshotInvoiceRow,
+      invoices: ((invoicesRes.data ?? []) as unknown) as SnapshotInvoiceRow[],
+      payments: (payments as unknown) as SnapshotPaymentRow[],
+      linkedAmounts,
+    });
   }
 
   /**

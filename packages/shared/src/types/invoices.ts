@@ -488,6 +488,36 @@ export interface DraftInvoiceItem {
 }
 
 // =============================================================================
+// BALANCE SNAPSHOT (statement print template)
+// =============================================================================
+
+/**
+ * The party's position around one invoice, as printed by the statement
+ * ("كشف بيان") template. All amounts are in the tenant's base currency and
+ * signed in the party's natural direction — positive means the customer owes
+ * us, or we owe the supplier — exactly like `parties.balance`.
+ *
+ * Computed as of the invoice (not live), so reprinting an old invoice always
+ * shows the same numbers apart from payments later linked to it.
+ */
+export interface InvoiceBalanceSnapshot {
+  /** Base currency the amounts are expressed in. */
+  currency: string;
+  /** False for walk-in invoices: there is no balance to report. */
+  hasParty: boolean;
+  /** Balance before this invoice (and before the payments linked to it). */
+  previousBalance: number;
+  /** This invoice's effect on the balance: +total, −total for a return, 0 if canceled. */
+  invoiceEffect: number;
+  /** previousBalance + invoiceEffect */
+  balanceAfter: number;
+  /** Payments linked to this invoice (allocations or legacy invoice_id). */
+  paidWithInvoice: number;
+  /** balanceAfter − paidWithInvoice */
+  remaining: number;
+}
+
+// =============================================================================
 // LINKED PAYMENTS (blocking an invoice edit or delete)
 // =============================================================================
 
