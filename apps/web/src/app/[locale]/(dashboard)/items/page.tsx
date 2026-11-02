@@ -58,6 +58,7 @@ import {
   Download,
   Filter,
   DollarSign,
+  Percent,
   FolderTree,
   CalendarClock,
   ArrowRightLeft,
@@ -86,6 +87,7 @@ export default function ItemsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ItemWithCategory | null>(null);
   const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
+  const [bulkPriceMode, setBulkPriceMode] = useState<'selected' | 'all'>('selected');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   // Search input — debounced before promoting to the server query so we don't
@@ -175,6 +177,12 @@ export default function ItemsPage() {
   }, [itemToDelete, deleteMutation]);
 
   const handleBulkPriceUpdate = useCallback(() => {
+    setBulkPriceMode('selected');
+    setBulkPriceDialogOpen(true);
+  }, []);
+
+  const handleChangeAllPrices = useCallback(() => {
+    setBulkPriceMode('all');
     setBulkPriceDialogOpen(true);
   }, []);
 
@@ -311,46 +319,52 @@ export default function ItemsPage() {
           <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedItems.length > 0 && (
             <Button variant="outline" onClick={handleBulkPriceUpdate}>
               <DollarSign className="mr-2 h-4 w-4" />
               {t('updatePricesButton', { count: selectedItems.length })}
             </Button>
           )}
-          <Button variant="outline" onClick={handleExportPdf}>
-            <Download className="mr-2 h-4 w-4" />
-            {t('exportButton')}
+          <Button variant="outline" onClick={handleChangeAllPrices}>
+            <Percent className="mr-2 h-4 w-4" />
+            {t('changeAllPricesButton')}
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/${locale}/items/expiry-report`)}
-          >
-            <CalendarClock className="mr-2 h-4 w-4" />
-            {t('expiryReportButton')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/${locale}/items/categories`)}
-          >
-            <FolderTree className="mr-2 h-4 w-4" />
-            {t('manageCategoriesButton')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/${locale}/items/bulk-edit`)}
-          >
-            <Table2 className="mr-2 h-4 w-4" />
-            {t('bulkEditButton')}
-          </Button>
-          <Button variant="outline" onClick={handleQuickAdd}>
+          <Button onClick={handleQuickAdd}>
             <Plus className="mr-2 h-4 w-4" />
             {t('quickAddButton')}
           </Button>
-          <Button onClick={handleAddItem}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('addButton')}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <MoreHorizontal className="mr-2 h-4 w-4" />
+                {t('moreActionsButton')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleAddItem}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('addButton')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/${locale}/items/bulk-edit`)}>
+                <Table2 className="mr-2 h-4 w-4" />
+                {t('bulkEditButton')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/${locale}/items/categories`)}>
+                <FolderTree className="mr-2 h-4 w-4" />
+                {t('manageCategoriesButton')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push(`/${locale}/items/expiry-report`)}>
+                <CalendarClock className="mr-2 h-4 w-4" />
+                {t('expiryReportButton')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPdf}>
+                <Download className="mr-2 h-4 w-4" />
+                {t('exportButton')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -481,6 +495,7 @@ export default function ItemsPage() {
       <BulkPriceDialog
         open={bulkPriceDialogOpen}
         onOpenChange={setBulkPriceDialogOpen}
+        mode={bulkPriceMode}
         items={selectedItems}
       />
     </div>

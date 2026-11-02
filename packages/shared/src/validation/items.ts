@@ -452,6 +452,31 @@ export const bulkPriceUpdateSchema = z.object({
 );
 
 /**
+ * Schema for bulk price update across all items (optionally one category)
+ */
+export const bulkPriceUpdateAllSchema = z.object({
+  categoryId: z.string().uuid('Invalid category ID').optional(),
+  adjustmentType: z.enum(['percentage', 'fixed'], {
+    errorMap: () => ({ message: 'Adjustment type must be "percentage" or "fixed"' }),
+  }),
+  adjustmentValue: z.number({
+    required_error: 'Adjustment value is required',
+  }),
+  priceTier: z.string()
+    .min(1, 'Price tier is required')
+    .default('retail'),
+  currency: currencySchema,
+}).refine(
+  (data) => {
+    if (data.adjustmentType === 'percentage') {
+      return data.adjustmentValue >= -100 && data.adjustmentValue <= 1000;
+    }
+    return true;
+  },
+  { message: 'Percentage adjustment must be between -100% and 1000%' }
+);
+
+/**
  * Schema for item report parameters
  */
 export const itemReportParamsSchema = z.object({

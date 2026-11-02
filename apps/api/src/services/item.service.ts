@@ -23,6 +23,8 @@ import type {
   UpdateItemPackagingInput,
   BulkPriceUpdateInput,
   BulkPriceUpdateResult,
+  BulkPriceUpdateAllInput,
+  BulkPriceUpdateAllResult,
   ItemReportEntry,
   ItemReportParams,
 } from '@erp/shared';
@@ -378,6 +380,20 @@ export class ItemService {
       input.adjustmentValue,
       input.priceTier,
       input.currency || 'USD'
+    );
+  }
+
+  /**
+   * Bulk update prices for all items (optionally one category)
+   */
+  async bulkUpdateAllPrices(input: BulkPriceUpdateAllInput): Promise<BulkPriceUpdateAllResult> {
+    return this.itemRepository.bulkAdjustAllPrices(
+      this.tenantId,
+      input.adjustmentType,
+      input.adjustmentValue,
+      input.priceTier,
+      input.currency || 'USD',
+      input.categoryId
     );
   }
 

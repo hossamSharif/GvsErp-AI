@@ -14,6 +14,7 @@ import type {
   ItemPrice,
   ItemPackaging,
   BulkPriceUpdateResult,
+  BulkPriceUpdateAllResult,
 } from '@erp/shared';
 
 type ItemRow = Database['public']['Tables']['items']['Row'];
@@ -642,6 +643,39 @@ export class ItemRepository extends BaseRepository<'items', ItemRow, ItemInsert,
     }
 
     return result;
+  }
+
+  /**
+   * Bulk update prices for all items in the tenant (optionally one category)
+   * in a single atomic statement
+   */
+  async bulkAdjustAllPrices(
+    tenantId: string,
+    adjustmentType: 'percentage' | 'fixed',
+    adjustmentValue: number,
+    priceTier: string,
+    currency: string,
+    categoryId?: string
+  ): Promise<BulkPriceUpdateAllResult> {
+    const { data, error } = await this.supabase.rpc('bulk_adjust_item_prices' as never, {
+      p_tenant_id: tenantId,
+      p_adjustment_type: adjustmentType,
+      p_adjustment_value: adjustmentValue,
+      p_price_tier: priceTier,
+      p_currency: currency,
+      p_category_id: categoryId ?? null,
+    } as never);
+
+    if (error) {
+      throw error;
+    }
+
+    const rows = (data ?? []) as unknown as Array<{ updated_count: number; skipped_count: number }>;
+    const row = rows[0];
+    return {
+      updatedCount: Number(row?.updated_count ?? 0),
+      skippedCount: Number(row?.skipped_count ?? 0),
+    };
   }
 
   // ==========================================================================

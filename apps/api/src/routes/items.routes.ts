@@ -16,6 +16,7 @@ import {
   itemGridQuerySchema,
   saveItemGridRowSchema,
   bulkPriceUpdateSchema,
+  bulkPriceUpdateAllSchema,
   createItemPriceSchema,
   updateItemPriceSchema,
   createItemPackagingSchema,
@@ -362,6 +363,25 @@ router.post(
   asyncHandler(async (req: Request, res: Response) => {
     const service = getItemService(req);
     const result = await service.bulkUpdatePrices(req.body);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  })
+);
+
+/**
+ * POST /items/bulk-price-update-all
+ * Bulk update prices for all items (optionally one category)
+ */
+router.post(
+  '/bulk-price-update-all',
+  requirePermission('items:write'),
+  validateRequest({ body: bulkPriceUpdateAllSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const service = getItemService(req);
+    const result = await service.bulkUpdateAllPrices(req.body);
 
     res.json({
       success: true,

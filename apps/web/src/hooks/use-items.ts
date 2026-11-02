@@ -12,6 +12,7 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
+import { itemGridKeys } from './use-item-grid';
 import type {
   Item,
   ItemWithCategory,
@@ -21,6 +22,8 @@ import type {
   UpdateItemInput,
   BulkPriceUpdateInput,
   BulkPriceUpdateResult,
+  BulkPriceUpdateAllInput,
+  BulkPriceUpdateAllResult,
   ItemPrice,
   ItemPackaging,
   CreateItemPriceInput,
@@ -346,6 +349,32 @@ export function useBulkUpdatePrices(
       queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
     },
     ...options,
+  });
+}
+
+/**
+ * Bulk update prices for all items (optionally one category)
+ */
+export function useBulkUpdateAllPrices(
+  options?: UseMutationOptions<ApiResponse<BulkPriceUpdateAllResult>, Error, BulkPriceUpdateAllInput>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...options,
+    mutationFn: async (input: BulkPriceUpdateAllInput) => {
+      const response = await api.post<ApiResponse<BulkPriceUpdateAllResult>>(
+        '/items/bulk-price-update-all',
+        input
+      );
+      return response;
+    },
+    onSuccess: (data, input, onMutateResult, context) => {
+      // Any item's price may have changed — drop every cached item query
+      queryClient.invalidateQueries({ queryKey: itemKeys.all });
+      queryClient.invalidateQueries({ queryKey: itemGridKeys.all });
+      options?.onSuccess?.(data, input, onMutateResult, context);
+    },
   });
 }
 

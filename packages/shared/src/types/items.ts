@@ -316,6 +316,32 @@ export interface BulkPriceUpdateResult {
   }>;
 }
 
+/**
+ * Bulk price update input for all items (optionally scoped to one category)
+ */
+export interface BulkPriceUpdateAllInput {
+  /** Optional: limit the update to items in this category */
+  categoryId?: string;
+  /** Price adjustment type */
+  adjustmentType: 'percentage' | 'fixed';
+  /** Adjustment value (percentage or fixed amount) */
+  adjustmentValue: number;
+  /** Price tier to update */
+  priceTier: string;
+  /** Optional: currency to update (default: USD) */
+  currency?: string;
+}
+
+/**
+ * Bulk price update result for all items
+ */
+export interface BulkPriceUpdateAllResult {
+  /** Number of items whose price was updated */
+  updatedCount: number;
+  /** Number of items in scope with no price for the tier/currency */
+  skippedCount: number;
+}
+
 // =============================================================================
 // REPORT TYPES
 // =============================================================================

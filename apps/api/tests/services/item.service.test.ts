@@ -174,3 +174,73 @@ describe('ItemError specific error codes', () => {
     expect(err.statusCode).toBe(500);
   });
 });
+
+// ==========================================================================
+// bulkUpdateAllPrices
+// ==========================================================================
+
+describe('bulkUpdateAllPrices', () => {
+  it('maps RPC args and result counts', async () => {
+    let rpcName = '';
+    let rpcArgs: Record<string, unknown> = {};
+    const supabase = {
+      rpc: async (name: string, args: Record<string, unknown>) => {
+        rpcName = name;
+        rpcArgs = args;
+        return { data: [{ updated_count: 7, skipped_count: 3 }], error: null };
+      },
+    };
+    const service = new (ItemService as any)(supabase, 'test-tenant');
+
+    const result = await service.bulkUpdateAllPrices({
+      adjustmentType: 'percentage',
+      adjustmentValue: 10,
+      priceTier: 'retail',
+    });
+
+    expect(rpcName).toBe('bulk_adjust_item_prices');
+    expect(rpcArgs).toEqual({
+      p_tenant_id: 'test-tenant',
+      p_adjustment_type: 'percentage',
+      p_adjustment_value: 10,
+      p_price_tier: 'retail',
+      p_currency: 'USD',
+      p_category_id: null,
+    });
+    expect(result).toEqual({ updatedCount: 7, skippedCount: 3 });
+  });
+
+  it('passes the category scope through', async () => {
+    let rpcArgs: Record<string, unknown> = {};
+    const supabase = {
+      rpc: async (_name: string, args: Record<string, unknown>) => {
+        rpcArgs = args;
+        return { data: [{ updated_count: 0, skipped_count: 0 }], error: null };
+      },
+    };
+    const service = new (ItemService as any)(supabase, 'test-tenant');
+
+    await service.bulkUpdateAllPrices({
+      categoryId: 'cat-1',
+      adjustmentType: 'fixed',
+      adjustmentValue: -5,
+      priceTier: 'wholesale',
+      currency: 'SAR',
+    });
+
+    expect(rpcArgs.p_category_id).toBe('cat-1');
+    expect(rpcArgs.p_currency).toBe('SAR');
+    expect(rpcArgs.p_adjustment_value).toBe(-5);
+  });
+
+  it('throws when the RPC returns an error', async () => {
+    const supabase = {
+      rpc: async () => ({ data: null, error: new Error('boom') }),
+    };
+    const service = new (ItemService as any)(supabase, 'test-tenant');
+
+    await expect(
+      service.bulkUpdateAllPrices({ adjustmentType: 'fixed', adjustmentValue: 1, priceTier: 'retail' })
+    ).rejects.toThrow('boom');
+  });
+});
