@@ -126,13 +126,16 @@ export function ShareInvoiceWhatsAppDialog({
   const { toast } = useToast();
   const createShare = useCreateInvoiceShare();
 
-  const { data: settingsResp } = useTenantSettings();
+  const { data: settingsResp, isLoading: settingsLoading } = useTenantSettings();
   const settings = settingsResp?.data;
+  // Settings decide the default template and dial code, so the form is filled
+  // and the PDF rendered only once they're in (a failed load falls back to defaults).
+  const settingsReady = !settingsLoading;
   const dialCode = settings?.default_dial_code || DEFAULT_DIAL_CODE;
 
-  const [template, setTemplate] = useState<InvoicePrintTemplate>(() =>
-    printTemplateFromSettings(settings, invoice.type)
-  );
+  // The tenant's default template (fallback: standard) until the user picks one here.
+  const [templateChoice, setTemplateChoice] = useState<InvoicePrintTemplate | null>(null);
+  const template = templateChoice ?? printTemplateFromSettings(settings, invoice.type);
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [phoneTouched, setPhoneTouched] = useState(false);
@@ -149,11 +152,16 @@ export function ShareInvoiceWhatsAppDialog({
     return `${prefix}-${invoice.invoiceNumber}.pdf`;
   }, [template, invoice.type, invoice.invoiceNumber]);
 
-  // Reset the form each time the dialog opens.
+  // Reset the form each time the dialog opens (once settings are available).
   const wasOpen = useRef(false);
   useEffect(() => {
-    if (open && !wasOpen.current) {
-      setTemplate(printTemplateFromSettings(settings, invoice.type));
+    if (!open) {
+      wasOpen.current = false;
+      return;
+    }
+    if (!wasOpen.current && settingsReady) {
+      wasOpen.current = true;
+      setTemplateChoice(null);
       setPhone(toWhatsAppNumber(invoice.party?.phone, dialCode));
       setPhoneTouched(false);
       setMessage(
@@ -166,13 +174,12 @@ export function ShareInvoiceWhatsAppDialog({
         }).trim()
       );
     }
-    wasOpen.current = open;
-  }, [open, settings, invoice, dialCode, t]);
+  }, [open, settingsReady, invoice, dialCode, t]);
 
   // Render the PDF whenever the dialog is open and the template/invoice changes.
   const renderKey = `${invoice.id}:${invoice.updatedAt}:${template}:${locale}`;
   useEffect(() => {
-    if (!open || !captureNode || !snapshotReady) return;
+    if (!open || !captureNode || !snapshotReady || !settingsReady) return;
     let cancelled = false;
     setPdf(null);
     setRenderFailed(false);
@@ -191,7 +198,7 @@ export function ShareInvoiceWhatsAppDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, captureNode, snapshotReady, renderKey, fileName]);
+  }, [open, captureNode, snapshotReady, settingsReady, renderKey, fileName]);
 
   const canShareFiles = useMemo(() => {
     if (!pdf || typeof navigator === 'undefined' || !navigator.canShare) return false;
@@ -325,7 +332,7 @@ export function ShareInvoiceWhatsAppDialog({
               <Label>{t('templateLabel')}</Label>
               <Select
                 value={template}
-                onValueChange={(value) => setTemplate(value as InvoicePrintTemplate)}
+                onValueChange={(value) => setTemplateChoice(value as InvoicePrintTemplate)}
               >
                 <SelectTrigger>
                   <SelectValue />
