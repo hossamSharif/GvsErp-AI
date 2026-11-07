@@ -879,6 +879,33 @@
       "printWithTemplate": "Print with template",
       "templateStandard": "Standard invoice",
       "templateStatement": "Statement of account"
+    },
+    "share": {
+      "title": "Share via WhatsApp",
+      "menuItem": "Share via WhatsApp",
+      "button": "WhatsApp",
+      "description": "Send invoice {number} as a PDF.",
+      "phoneLabel": "WhatsApp number",
+      "phoneHintParty": "The party's saved number, in international format. You can change it.",
+      "phoneHintNone": "No saved number. Enter one in international format (e.g. 249912345678).",
+      "phoneInvalid": "Enter a valid number with the country code (8–15 digits).",
+      "templateLabel": "Template",
+      "messageLabel": "Message",
+      "messageSale": "Hello {name},\nPlease find attached invoice {number} dated {date}, total {total} {currency}.\nThank you for your business.",
+      "messagePurchase": "Hello {name},\nPlease find attached purchase invoice {number} dated {date}, total {total} {currency}.",
+      "linkLine": "Download the invoice (PDF):\n{url}",
+      "preparing": "Preparing PDF…",
+      "renderFailed": "Couldn't create the PDF. Close the dialog and try again.",
+      "hintFileShare": "Share PDF opens WhatsApp with the file attached: pick the chat there. \"Open chat\" sends a download link to the number above.",
+      "hintLink": "WhatsApp opens this number's chat with a download link to the PDF. The PDF is also downloaded so you can drag it into the chat.",
+      "shareFile": "Share PDF to WhatsApp",
+      "shareFileDesktop": "Share PDF (other apps)",
+      "openChat": "Open WhatsApp chat",
+      "openChatLink": "Open chat (link)",
+      "download": "Download PDF",
+      "shareFailed": "Couldn't open the share sheet",
+      "uploadFailed": "Couldn't create the share link",
+      "loadFailed": "Couldn't load the invoice for sharing"
     }
   },
   "sales": {
@@ -2964,7 +2991,10 @@
       "templateHint": "Used by the Print button. Any template can still be printed from the actions menu.",
       "footerNote": "Statement footer note",
       "footerNotePlaceholder": "e.g. Goods sold are not returnable or exchangeable",
-      "footerNoteHint": "Printed at the bottom of the statement of account. Leave empty to hide."
+      "footerNoteHint": "Printed at the bottom of the statement of account. Leave empty to hide.",
+      "dialCode": "Default country dial code",
+      "dialCodeHint": "Used to turn local phone numbers (e.g. 0912345678) into WhatsApp numbers.",
+      "dialCodeInvalid": "Enter 1–4 digits, e.g. 249"
     },
     "general": {
       "title": "General Settings",

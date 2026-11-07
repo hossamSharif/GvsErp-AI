@@ -11,7 +11,7 @@ import {
   UseQueryOptions,
   UseMutationOptions,
 } from '@tanstack/react-query';
-import { api } from '@/lib/api-client';
+import { api, networkRequest } from '@/lib/api-client';
 import type {
   Invoice,
   InvoiceWithParty,
@@ -421,6 +421,35 @@ export function useCreateReturn(
 // =============================================================================
 // PREFETCH HELPERS
 // =============================================================================
+
+export interface CreateInvoiceShareVars {
+  id: string;
+  /** Rendered PDF, base64 without the data: prefix */
+  pdfBase64: string;
+  /** WhatsApp number (digits) the link goes to */
+  phone?: string;
+}
+
+export interface InvoiceShare {
+  token: string;
+  expiresAt: string;
+}
+
+/**
+ * Upload a rendered invoice PDF and get a short share token (/s/<token>).
+ * Goes straight to the network: a share link is useless if queued offline.
+ */
+export function useCreateInvoiceShare(
+  options?: UseMutationOptions<ApiResponse<InvoiceShare>, Error, CreateInvoiceShareVars>
+) {
+  return useMutation({
+    mutationFn: ({ id, pdfBase64, phone }: CreateInvoiceShareVars) =>
+      networkRequest<ApiResponse<InvoiceShare>>('POST', `/invoices/${id}/shares`, {
+        body: { pdfBase64, phone },
+      }),
+    ...options,
+  });
+}
 
 /**
  * Prefetch invoice details

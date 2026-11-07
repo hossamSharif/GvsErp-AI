@@ -25,6 +25,7 @@ import auditRoutes from './audit.routes';
 import expensesRoutes from './expenses.routes';
 import banksRoutes from './banks.routes';
 import costCentersRoutes from './cost-centers.routes';
+import shareRoutes from './shares.routes';
 
 const router: IRouter = Router();
 
@@ -54,5 +55,6 @@ router.use('/audit', auditRoutes);
 router.use('/expenses', expensesRoutes);
 router.use('/banks', banksRoutes);
 router.use('/cost-centers', costCentersRoutes);
+router.use('/public/shares', shareRoutes);
 
 export default router;

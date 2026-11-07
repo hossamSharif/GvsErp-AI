@@ -84,6 +84,7 @@ export interface UpdateTenantSettingsInput {
   sales_print_template?: InvoicePrintTemplate;
   purchase_print_template?: InvoicePrintTemplate;
   invoice_footer_note?: string;
+  default_dial_code?: string;
 }
 
 // User is defined in core.ts — use that as the authoritative source

@@ -20,6 +20,7 @@ import {
   FileText,
   Download,
   MoreHorizontal,
+  MessageCircle,
   CheckCircle,
   Clock,
   XCircle,
@@ -67,6 +68,7 @@ import { ReturnInvoiceDialog } from '@/components/dialogs/return-invoice-dialog'
 import { RecordPaymentDialog } from '@/components/dialogs/record-payment-dialog';
 import { EntityAuditTrail } from '@/components/audit/entity-audit-trail';
 import { InvoicePdf } from '@/components/reports/invoice-pdf';
+import { ShareInvoiceWhatsAppDialog } from '@/components/dialogs/share-invoice-whatsapp-dialog';
 import { formatAmount, formatShortDate } from '@/components/reports/invoice-format';
 import { ApiClientError } from '@/lib/api-client';
 import type {
@@ -116,11 +118,13 @@ export default function SaleDetailPage() {
   // Print ref
   const { printRef, handlePrint, activeTemplate, snapshot } = usePrintInvoice(invoice);
   const tPrint = useTranslations('invoice.printMenu');
+  const tShare = useTranslations('invoice.share');
 
   // Dialog state
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(showReturn);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   // Second-step confirmation: linked payments to also delete (cascade).
   const [paymentsPrompt, setPaymentsPrompt] = useState<LinkedPaymentsMeta | null>(null);
 
@@ -282,6 +286,10 @@ export default function SaleDetailPage() {
               {tActions('createReturn')}
             </Button>
           )}
+          <Button variant="outline" onClick={() => setShowShareDialog(true)}>
+            <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
+            {tShare('button')}
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" aria-label={tActions('label')}>
@@ -463,6 +471,12 @@ export default function SaleDetailPage() {
           snapshot={snapshot}
         />
       </div>
+
+      <ShareInvoiceWhatsAppDialog
+        invoice={invoice}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+      />
 
       {/* Finalize Confirmation Dialog */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>

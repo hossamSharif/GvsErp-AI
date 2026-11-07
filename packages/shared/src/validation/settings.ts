@@ -64,6 +64,7 @@ export const updateTenantSettingsSchema = z.object({
   sales_print_template: z.enum(['standard', 'statement']).optional(),
   purchase_print_template: z.enum(['standard', 'statement']).optional(),
   invoice_footer_note: z.string().max(300).optional(),
+  default_dial_code: z.string().regex(/^\d{1,4}$/).optional(),
 });
 
 // User validation schemas

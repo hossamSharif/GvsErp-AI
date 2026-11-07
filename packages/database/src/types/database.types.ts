@@ -357,6 +357,63 @@ export type Database = {
           },
         ]
       }
+      invoice_shares: {
+        Row: {
+          channel: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          file_name: string
+          id: string
+          invoice_id: string
+          phone: string | null
+          storage_path: string
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          file_name: string
+          id?: string
+          invoice_id: string
+          phone?: string | null
+          storage_path: string
+          tenant_id: string
+          token: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          file_name?: string
+          id?: string
+          invoice_id?: string
+          phone?: string | null
+          storage_path?: string
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_shares_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number

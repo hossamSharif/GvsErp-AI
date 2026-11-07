@@ -72,6 +72,8 @@ export interface TenantSettings {
   purchase_print_template?: InvoicePrintTemplate;
   /** Free text printed in the statement template footer (e.g. a returns policy). */
   invoice_footer_note?: string;
+  /** Country dial code (digits, e.g. "249") that turns local phone numbers into WhatsApp numbers. */
+  default_dial_code?: string;
 }
 
 export interface Tenant {

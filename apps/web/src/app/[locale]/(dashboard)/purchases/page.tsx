@@ -29,6 +29,7 @@ import {
   Settings2,
   Printer,
   Download,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,6 +76,7 @@ import {
   InvoiceListPrinter,
   type InvoicePrintRequest,
 } from '@/components/reports/invoice-list-printer';
+import { InvoiceListSharer } from '@/components/reports/invoice-list-sharer';
 import type { InvoicePrintTemplate } from '@/lib/print-template';
 import { useInvoices, usePrefetchInvoice, useDeleteInvoice } from '@/hooks/use-invoices';
 import { useUsers } from '@/hooks/use-users';
@@ -108,12 +110,15 @@ export default function PurchasesListPage() {
   const tStatus = useTranslations('sales.status');
   const tActions = useTranslations('purchases.actions');
   const tPrint = useTranslations('invoice.printMenu');
+  const tShare = useTranslations('invoice.share');
 
   // Print / export straight from a row's actions menu
   const [printRequest, setPrintRequest] = useState<InvoicePrintRequest | null>(null);
   const requestPrint = (id: string, template?: InvoicePrintTemplate) =>
     setPrintRequest({ id, template, nonce: Date.now() });
   const clearPrintRequest = useCallback(() => setPrintRequest(null), []);
+  const [shareInvoiceId, setShareInvoiceId] = useState<string | null>(null);
+  const clearShareInvoice = useCallback(() => setShareInvoiceId(null), []);
   const tDetail = useTranslations('purchases.detail');
   const tFlow = useTranslations('paymentFlow');
 
@@ -522,6 +527,10 @@ export default function PurchasesListPage() {
                               <Download className="h-4 w-4 mr-2" />
                               {tActions('exportPdf')}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setShareInvoiceId(invoice.id)}>
+                              <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
+                              {tShare('menuItem')}
+                            </DropdownMenuItem>
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger>
                                 <FileText className="h-4 w-4 mr-2" />
@@ -625,6 +634,7 @@ export default function PurchasesListPage() {
 
       {/* Off-screen printable invoice for the row print/export actions */}
       <InvoiceListPrinter request={printRequest} onFailed={clearPrintRequest} />
+      <InvoiceListSharer invoiceId={shareInvoiceId} onClose={clearShareInvoice} />
 
       {/* Cascade-delete confirmation: also delete the linked payment(s) */}
       <LinkedPaymentsDialog

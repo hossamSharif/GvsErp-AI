@@ -5,7 +5,9 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { InvoiceService } from '../services/invoice.service';
+import { InvoiceShareService } from '../services/invoice-share.service';
 import {
   createInvoiceSchema,
   updateInvoiceSchema,
@@ -60,6 +62,12 @@ function resolveDeletePayments(
 
   return { deletePayments, handled: false };
 }
+
+const createInvoiceShareSchema = z.object({
+  // ~8 MB of PDF once decoded; express.json caps the body at 10 MB.
+  pdfBase64: z.string().min(1).max(11_200_000).regex(/^[A-Za-z0-9+/]+={0,2}$/),
+  phone: z.string().regex(/^\d{6,15}$/).optional(),
+});
 
 // =============================================================================
 // INVOICE CRUD ENDPOINTS
@@ -149,6 +157,31 @@ router.get(
       res.json({
         success: true,
         data: snapshot,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /invoices/:id/shares
+ * Store a browser-rendered invoice PDF and return a short share token for the
+ * WhatsApp link (/s/<token>).
+ */
+router.post(
+  '/:id/shares',
+  requirePermission('invoices:read'),
+  validateRequest({ body: createInvoiceShareSchema }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { supabase, tenantId, userId } = getTenantContext(req);
+      const service = new InvoiceShareService(supabase, tenantId, userId);
+      const share = await service.createShare(req.params.id, req.body);
+
+      res.status(201).json({
+        success: true,
+        data: share,
       });
     } catch (error) {
       next(error);

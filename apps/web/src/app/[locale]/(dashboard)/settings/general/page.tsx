@@ -51,9 +51,10 @@ import { useTranslations } from 'next-intl';
 import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
 import { Save, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { PRINT_TEMPLATES, printTemplateFromSettings } from '@/lib/print-template';
+import { DEFAULT_DIAL_CODE } from '@/lib/whatsapp';
 
 // Form schema (built per render so validation messages follow the active locale)
-function createSettingsSchema(messages: { invalidEmail: string }) {
+function createSettingsSchema(messages: { invalidEmail: string; invalidDialCode: string }) {
   return z.object({
     default_language: z.enum(['en', 'ar']).optional(),
     default_theme: z.enum(['light', 'dark']).optional(),
@@ -71,6 +72,7 @@ function createSettingsSchema(messages: { invalidEmail: string }) {
     sales_print_template: z.enum(['standard', 'statement']),
     purchase_print_template: z.enum(['standard', 'statement']),
     invoice_footer_note: z.string().max(300).optional().or(z.literal('')),
+    default_dial_code: z.string().regex(/^\d{1,4}$/, messages.invalidDialCode).optional().or(z.literal('')),
   });
 }
 
@@ -109,7 +111,10 @@ export default function GeneralSettingsPage() {
 
   // Form
   const form = useForm<SettingsFormData>({
-    resolver: zodResolver(createSettingsSchema({ invalidEmail: t('validation.invalidEmail') })),
+    resolver: zodResolver(createSettingsSchema({
+      invalidEmail: t('validation.invalidEmail'),
+      invalidDialCode: tPrinting('dialCodeInvalid'),
+    })),
     values: {
       default_language: (settingsData?.data?.default_language || locale) as 'en' | 'ar',
       default_theme: settingsData?.data?.default_theme || 'light',
@@ -127,6 +132,7 @@ export default function GeneralSettingsPage() {
       sales_print_template: printTemplateFromSettings(settingsData?.data, 'sale'),
       purchase_print_template: printTemplateFromSettings(settingsData?.data, 'purchase'),
       invoice_footer_note: settingsData?.data?.invoice_footer_note || '',
+      default_dial_code: settingsData?.data?.default_dial_code || DEFAULT_DIAL_CODE,
     },
   });
 
@@ -150,6 +156,7 @@ export default function GeneralSettingsPage() {
         purchase_print_template: data.purchase_print_template,
         // Sent even when empty so clearing the note actually removes it.
         invoice_footer_note: data.invoice_footer_note?.trim() ?? '',
+        default_dial_code: data.default_dial_code || undefined,
       };
       updateMutation.mutate(updateData);
     },
@@ -512,6 +519,24 @@ export default function GeneralSettingsPage() {
                       />
                     </FormControl>
                     <FormDescription>{tPrinting('footerNoteHint')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="default_dial_code"
+                render={({ field }) => (
+                  <FormItem className="max-w-xs">
+                    <FormLabel>{tPrinting('dialCode')}</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2" dir="ltr">
+                        <span className="text-muted-foreground">+</span>
+                        <Input inputMode="numeric" maxLength={4} placeholder="249" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormDescription>{tPrinting('dialCodeHint')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
