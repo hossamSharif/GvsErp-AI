@@ -100,6 +100,33 @@ export class SettingsService {
   }
 
   /**
+   * Remove keys from tenant settings (updateSettings can only merge)
+   */
+  async unsetKeys(keys: Array<keyof TenantSettings>): Promise<TenantSettings> {
+    const updatedSettings: TenantSettings = { ...(await this.getSettings()) };
+    for (const key of keys) {
+      delete updatedSettings[key];
+    }
+
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .update({ settings: updatedSettings as unknown as Json })
+      .eq('id', this.tenantId)
+      .select('settings')
+      .maybeSingle();
+
+    if (error) {
+      throw new SettingsError('Failed to update settings', 'UPDATE_FAILED', 500);
+    }
+
+    if (!data) {
+      throw new SettingsError('Tenant not found', 'TENANT_NOT_FOUND', 404);
+    }
+
+    return (data.settings as unknown as TenantSettings) || {};
+  }
+
+  /**
    * Reset settings to defaults
    */
   async resetSettings(): Promise<TenantSettings> {

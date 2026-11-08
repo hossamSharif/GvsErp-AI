@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { usePOSLocation, useProcessQuickSale } from '@/hooks/use-pos';
 import { useItems } from '@/hooks/use-items';
+import { useTenantSettings } from '@/hooks/use-settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +77,9 @@ export default function POSTerminalPage() {
   const { data: locationResponse, isLoading: locationLoading } = usePOSLocation(posLocationId);
   const { data: itemsResponse } = useItems({ search: searchQuery, limit: 10 });
   const location = locationResponse?.data;
+  const { data: settingsResponse } = useTenantSettings();
+  const logoUrl = settingsResponse?.data?.logo_url;
+  const [logoFailed, setLogoFailed] = useState(false);
   const items = itemsResponse?.data || [];
 
   const subtotal = cart.reduce((sum, item) => {
@@ -473,6 +477,15 @@ export default function POSTerminalPage() {
           {completedSale && (
             <div ref={receiptRef} className="space-y-3 text-sm print:text-xs">
               <div className="text-center border-b pb-2">
+                {logoUrl && !logoFailed && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className="receipt-logo mx-auto mb-1 max-h-16 max-w-[160px] object-contain"
+                    onError={() => setLogoFailed(true)}
+                  />
+                )}
                 <p className="font-bold text-lg">{location?.name}</p>
                 <p className="text-muted-foreground print:text-black">
                   {completedSale.invoiceNumber}
@@ -525,7 +538,7 @@ export default function POSTerminalPage() {
               {t('close')}
             </Button>
             <Button
-              onClick={() => {
+              onClick={async () => {
                 const printContent = receiptRef.current;
                 if (!printContent) return;
                 const printWindow = window.open('', '_blank', 'width=400,height=600');
@@ -548,10 +561,17 @@ export default function POSTerminalPage() {
                     .space-y-1>*+*{margin-top:4px}
                     .space-y-3>*+*{margin-top:12px}
                     hr{border:none;border-top:1px dashed #000;margin:8px 0}
+                    .receipt-logo{display:block;max-width:160px;max-height:80px;margin:0 auto 6px;filter:grayscale(1)}
                   </style></head><body>`);
                 printWindow.document.write(printContent.innerHTML);
                 printWindow.document.write('</body></html>');
                 printWindow.document.close();
+                // Let the logo load first, or it prints blank; give up after 2s.
+                const images = Array.from(printWindow.document.images);
+                await Promise.race([
+                  Promise.all(images.map((img) => img.decode().catch(() => img.remove()))),
+                  new Promise((resolve) => setTimeout(resolve, 2000)),
+                ]);
                 printWindow.print();
               }}
             >

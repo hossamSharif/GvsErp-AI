@@ -52,6 +52,7 @@ import type { TenantSettings, UpdateTenantSettingsInput } from '@erp/shared';
 import { Save, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { PRINT_TEMPLATES, printTemplateFromSettings } from '@/lib/print-template';
 import { DEFAULT_DIAL_CODE } from '@/lib/whatsapp';
+import { TenantLogoField } from '@/components/settings/tenant-logo-field';
 
 // Form schema (built per render so validation messages follow the active locale)
 function createSettingsSchema(messages: { invalidEmail: string; invalidDialCode: string }) {
@@ -295,6 +296,8 @@ export default function GeneralSettingsPage() {
               <CardDescription>{t('company.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <TenantLogoField logoUrl={settingsData?.data?.logo_url} />
+
               <FormField
                 control={form.control}
                 name="company_name"

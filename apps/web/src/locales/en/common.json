@@ -3029,7 +3029,25 @@
         "addressPlaceholder": "123 Business St, City, Country",
         "taxNumber": "Tax Number / VAT ID",
         "taxNumberPlaceholder": "Tax identification number",
-        "taxNumberHint": "Your company's tax registration number"
+        "taxNumberHint": "Your company's tax registration number",
+        "logo": {
+          "title": "Company Logo",
+          "hint": "Printed on invoices and POS receipts. PNG, JPG or WebP; a transparent PNG looks best.",
+          "upload": "Upload Logo",
+          "change": "Change",
+          "remove": "Remove",
+          "alt": "Company logo",
+          "removeTitle": "Remove the logo?",
+          "removeDescription": "Invoices and receipts will show the company name instead.",
+          "cancel": "Cancel",
+          "uploadedTitle": "Logo updated",
+          "uploadedDescription": "Your invoices will use the new logo.",
+          "removedTitle": "Logo removed",
+          "errorTitle": "Logo error",
+          "tooLarge": "The image is too large (max 5 MB).",
+          "invalidType": "Please choose a PNG, JPG or WebP image.",
+          "failed": "Could not save the logo. Please try again."
+        }
       },
       "business": {
         "title": "Business Preferences",

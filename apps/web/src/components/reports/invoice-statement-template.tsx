@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { isRtlLocale, type Locale } from '@/i18n/config';
 import { useTenantSettings } from '@/hooks/use-settings';
 import { InvoicePrintStyles } from './invoice-print-styles';
+import { InvoiceCompanyHeading } from './invoice-company-heading';
 import {
   formatAmount,
   formatQty,
@@ -169,21 +170,7 @@ export const InvoiceStatementTemplate = forwardRef<HTMLDivElement, InvoiceStatem
             <header className="flex justify-between items-start gap-8 mb-6">
               {/* Company block */}
               <div className="flex-1 min-w-0">
-                {companyLogo ? (
-                  <img
-                    src={companyLogo}
-                    alt={companyName}
-                    className="h-14 w-auto object-contain mb-3"
-                    crossOrigin="anonymous"
-                  />
-                ) : (
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">
-                    {companyName}
-                  </h1>
-                )}
-                {companyLogo && (
-                  <p className="text-base font-semibold text-slate-900">{companyName}</p>
-                )}
+                <InvoiceCompanyHeading logoUrl={companyLogo} companyName={companyName} />
                 <div className="text-xs leading-relaxed text-slate-600 mt-1 space-y-0.5">
                   {companyPhone && (
                     <p className="tabular-nums">

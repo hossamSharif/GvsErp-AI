@@ -84,3 +84,44 @@ export function useUpdateTenantSettings(
     ...rest,
   });
 }
+
+/**
+ * Upload (or replace) the company logo. Takes the image as base64 (no data: prefix).
+ */
+export function useUploadTenantLogo(
+  options?: UseMutationOptions<ApiResponse<TenantSettings>, Error, string>
+) {
+  const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
+
+  return useMutation({
+    mutationFn: (imageBase64: string) =>
+      api.post<ApiResponse<TenantSettings>>('/settings/logo', { imageBase64 }),
+    onSuccess: (data, variables, onMutateResult, context) => {
+      queryClient.setQueryData(settingsKeys.tenant(), data);
+      queryClient.invalidateQueries({ queryKey: settingsKeys.tenant() });
+      callerOnSuccess?.(data, variables, onMutateResult, context);
+    },
+    ...rest,
+  });
+}
+
+/**
+ * Remove the company logo.
+ */
+export function useRemoveTenantLogo(
+  options?: UseMutationOptions<ApiResponse<TenantSettings>, Error, void>
+) {
+  const queryClient = useQueryClient();
+  const { onSuccess: callerOnSuccess, ...rest } = options ?? {};
+
+  return useMutation({
+    mutationFn: () => api.delete<ApiResponse<TenantSettings>>('/settings/logo'),
+    onSuccess: (data, variables, onMutateResult, context) => {
+      queryClient.setQueryData(settingsKeys.tenant(), data);
+      queryClient.invalidateQueries({ queryKey: settingsKeys.tenant() });
+      callerOnSuccess?.(data, variables, onMutateResult, context);
+    },
+    ...rest,
+  });
+}

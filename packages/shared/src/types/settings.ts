@@ -70,6 +70,7 @@ export interface UpdateTenantSettingsInput {
   company_address?: string;
   tax_number?: string;
   logo_url?: string;
+  logo_path?: string;
   accounting_module_enabled?: boolean;
   hr_module_enabled?: boolean;
   fiscal_year_start?: string;

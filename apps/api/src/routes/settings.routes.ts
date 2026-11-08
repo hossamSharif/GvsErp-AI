@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { SettingsService } from '../services/settings.service';
+import { TenantLogoService } from '../services/tenant-logo.service';
 import { AppError, asyncHandler } from '../middleware/error';
 import { updateTenantSettingsSchema } from '@erp/shared';
 import type { TenantSettings } from '@erp/shared';
@@ -142,6 +143,55 @@ router.put(
   asyncHandler(async (req: Request, res: Response) => {
     const service = getSettingsService(req);
     const settings = await service.updateCompanyInfo(req.body);
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
+);
+
+// =============================================================================
+// COMPANY LOGO ENDPOINTS
+// =============================================================================
+
+const uploadLogoSchema = z.object({
+  // ~2 MB of image once decoded.
+  imageBase64: z.string().min(1).max(2_800_000).regex(/^[A-Za-z0-9+/]+={0,2}$/),
+});
+
+function getTenantLogoService(req: Request): TenantLogoService {
+  const { supabase, tenantId } = getTenantContext(req);
+  return new TenantLogoService(supabase, tenantId);
+}
+
+/**
+ * POST /settings/logo
+ * Upload (or replace) the company logo
+ */
+router.post(
+  '/logo',
+  requirePermission('settings:write'),
+  validateRequest({ body: uploadLogoSchema }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const settings = await getTenantLogoService(req).uploadLogo(req.body.imageBase64);
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  })
+);
+
+/**
+ * DELETE /settings/logo
+ * Remove the company logo
+ */
+router.delete(
+  '/logo',
+  requirePermission('settings:write'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const settings = await getTenantLogoService(req).removeLogo();
 
     res.json({
       success: true,
