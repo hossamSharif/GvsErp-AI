@@ -92,21 +92,21 @@ export default function EditSalePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-center gap-2 md:gap-4">
         <Button variant="ghost" size="icon" asChild aria-label={tActions('back')}>
           <Link href={`/${locale}/sales/${invoiceId}`}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold md:text-2xl">{t('title')}</h1>
           <p className="text-muted-foreground">{invoice.invoiceNumber}</p>
         </div>
       </div>
 
       {invoice.status === 'final' && (
-        <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+        <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 md:p-4 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
           <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
           <div className="space-y-1">
             <p className="font-semibold">{t('editFinalBanner.title')}</p>

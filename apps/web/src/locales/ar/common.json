@@ -1126,7 +1126,14 @@
       "stagedHint": "حدد الكمية والسعر ثم اضغط Enter لإضافة “{name}”",
       "quickAddNewItem": "إضافة صنف جديد بسرعة",
       "editStagedItem": "تعديل “{name}”",
-      "quickAddOfflineTitle": "تتطلب إضافة الأصناف اتصالاً بالإنترنت"
+      "quickAddOfflineTitle": "تتطلب إضافة الأصناف اتصالاً بالإنترنت",
+      "addItems": "إضافة أصناف",
+      "addNote": "إضافة ملاحظة",
+      "checkout": "إتمام الفاتورة",
+      "moreActions": "إجراءات أخرى",
+      "itemCount": "{count, plural, =0 {لا توجد أصناف} one {صنف واحد} two {صنفان} few {# أصناف} many {# صنفاً} other {# صنف}}",
+      "done": "تم",
+      "clearSearch": "مسح البحث"
     },
     "items": {
       "columns": {
@@ -1153,7 +1160,8 @@
       "ariaDiscountPercent": "نسبة خصم {name}",
       "ariaTaxRate": "نسبة ضريبة {name}",
       "ariaIncrement": "زيادة كمية {name}",
-      "ariaDecrement": "إنقاص كمية {name}"
+      "ariaDecrement": "إنقاص كمية {name}",
+      "deleteItem": "حذف الصنف"
     },
     "party": {
       "selectPlaceholder": "اختر طرفاً...",

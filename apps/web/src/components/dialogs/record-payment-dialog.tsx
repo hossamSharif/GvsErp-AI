@@ -172,7 +172,7 @@ export function RecordPaymentDialog({
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : handleSkip())}>
       <DialogContent
-        className="sm:max-w-xl"
+        className="max-h-[90dvh] overflow-y-auto sm:max-w-xl"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -341,7 +341,7 @@ export function RecordPaymentDialog({
               />
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"

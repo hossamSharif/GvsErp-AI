@@ -10,7 +10,20 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Save, Send, FileText, Check, ChevronDown, ChevronUp, ArrowLeft, Eraser } from 'lucide-react';
+import {
+  Save,
+  Send,
+  FileText,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  Eraser,
+  MoreVertical,
+  Plus,
+  ShoppingCart,
+  StickyNote,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,9 +52,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-media-query';
 import { useDraftStore, getDraftSubtotal, getDraftTaxAmount, getDraftTotal, isDraftValid } from '@/stores/draft-store';
 import { InvoiceItemsTable } from '@/components/tables/invoice-items-table';
+import { InvoiceItemCards } from '@/components/tables/invoice-item-cards';
+import { MobileItemPicker } from '@/components/forms/mobile-item-picker';
+import { InvoiceCheckoutSheet } from '@/components/forms/invoice-checkout-sheet';
 import { PartySelect } from '@/components/forms/party-select';
 import { CurrencySelect } from '@/components/forms/currency-select';
 import { ItemQuickAdd, type QuickAddItem } from '@/components/forms/item-quick-add';
@@ -175,6 +200,13 @@ export function InvoiceForm({
 
   // Confirmation for the "clear invoice" action in the sticky bottom bar.
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Mobile layout (< md): full-screen item picker, accordion item cards, and a
+  // checkout sheet in place of the desktop quick-add bar / table / summary.
+  const isMobile = useIsMobile();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   // Quick-add bar: ref to focus the input, and a transient row highlight shown
   // when a scan/selection increments an already-present line.
@@ -412,10 +444,12 @@ export function InvoiceForm({
     [currentDraftId, updateDraft]
   );
 
-  // Empty-state button now just focuses the always-visible quick-add bar.
+  // Empty-state button: focuses the quick-add bar on desktop, opens the
+  // full-screen picker on mobile.
   const handleAddItem = useCallback(() => {
-    quickAddInputRef.current?.focus();
-  }, []);
+    if (isMobile) setPickerOpen(true);
+    else quickAddInputRef.current?.focus();
+  }, [isMobile]);
 
   // Add the scanned/selected item — or, if it is already on the invoice,
   // increment that line's quantity and flash it (key for barcode scanning).
@@ -568,6 +602,7 @@ export function InvoiceForm({
       if (currentDraftId) {
         deleteDraft(currentDraftId);
       }
+      setCheckoutOpen(false);
 
       toast({
         title: t('toasts.draftSaved'),
@@ -665,6 +700,8 @@ export function InvoiceForm({
         deleteDraft(currentDraftId);
         setCurrentDraftId(null);
       }
+      // Close the mobile checkout sheet before any payment dialog opens.
+      setCheckoutOpen(false);
 
       toast({
         title: t('toasts.finalized'),
@@ -735,6 +772,22 @@ export function InvoiceForm({
     (p) => p.type === (type === 'sale' ? 'customer' : 'supplier')
   );
 
+  const partyLabel =
+    filteredParties.find((p) => p.id === draft?.partyId)?.name ||
+    (type === 'sale' ? t('selectCustomer') : t('selectSupplier'));
+
+  // Why the invoice can't be submitted yet (shown in the mobile checkout sheet).
+  const missingWarehouse = !draft?.warehouseId;
+  const missingItems = (draft?.items.length ?? 0) === 0;
+  const validationMessage =
+    missingWarehouse && missingItems
+      ? t('validation.warehouseAndItems')
+      : missingWarehouse
+        ? t('validation.warehouseOnly')
+        : missingItems
+          ? t('validation.itemsOnly')
+          : null;
+
   // Ctrl/Cmd+S finalizes the invoice (overriding the browser's save-page
   // dialog). When editing an existing invoice there is no finalize step, so it
   // saves the changes instead. Guarded by the same conditions as the buttons.
@@ -803,24 +856,59 @@ export function InvoiceForm({
     );
   }
 
+  // Payment way + reference — rendered in the header card on desktop and in
+  // the checkout sheet on mobile; both write the same component state.
+  const paymentFields = (
+    <>
+      <div className="w-full sm:w-44">
+        <Select value={paymentBankAccountId} onValueChange={setPaymentBankAccountId}>
+          <SelectTrigger aria-label={tPay('paymentWay')} className={cn(isMobile && 'h-11')}>
+            <SelectValue placeholder={tPayForm('bankAccountPlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={SENTINEL_CASH}>{tPayForm('bankAccountCash')}</SelectItem>
+            {banks
+              .filter((b) => b.is_active)
+              .map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  <span className="font-mono text-xs me-2">{b.ledger?.code ?? ''}</span>
+                  {b.name}
+                  {b.bank_name ? ` · ${b.bank_name}` : ''}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-full sm:w-44">
+        <Input
+          aria-label={tPayForm('reference')}
+          placeholder={tPayForm('referencePlaceholder')}
+          value={paymentReference}
+          onChange={(e) => setPaymentReference(e.target.value)}
+          className={cn('h-10', isMobile && 'h-11 text-base')}
+        />
+      </div>
+    </>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* In-form title row (new invoices): title + back on the start, date on
           the end — moved here from the header card so the date sits with the
           page title and the card row has room for the payment fields. */}
       {headerTitle && (
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-2 md:gap-4">
+          <div className="flex min-w-0 items-center gap-2 md:gap-4">
             {headerBackHref && (
               <Button variant="ghost" size="icon" asChild aria-label={tCommon('back')}>
                 <Link href={headerBackHref}>
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
                 </Link>
               </Button>
             )}
-            <h1 className="text-2xl font-bold">{headerTitle}</h1>
+            <h1 className="truncate text-xl font-bold md:text-2xl">{headerTitle}</h1>
           </div>
-          <div className="w-40">
+          <div className="w-36 shrink-0 md:w-40">
             <Input
               type="date"
               aria-label={t('date')}
@@ -847,8 +935,7 @@ export function InvoiceForm({
         >
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm min-w-0">
             <span className="font-medium truncate">
-              {filteredParties.find((p) => p.id === draft?.partyId)?.name ||
-                (type === 'sale' ? t('selectCustomer') : t('selectSupplier'))}
+              {partyLabel}
             </span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground truncate">
@@ -872,10 +959,10 @@ export function InvoiceForm({
         </button>
 
         {headerOpen && (
-          <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t">
+          <div className="grid grid-cols-1 gap-3 mt-3 pt-3 border-t sm:flex sm:flex-wrap sm:items-center">
             {/* Party/warehouse narrowed (from flex-1) so the payment-accelerator
                 fields fit on the same row for new invoices. */}
-            <div className="w-48">
+            <div className="w-full sm:w-48">
               <PartySelect
                 value={draft?.partyId || null}
                 onChange={handlePartyChange}
@@ -885,7 +972,7 @@ export function InvoiceForm({
                 disabled={readOnly}
               />
             </div>
-            <div className="w-40">
+            <div className="w-full sm:w-40">
               <Select
                 value={draft?.warehouseId || ''}
                 onValueChange={handleWarehouseChange}
@@ -903,7 +990,7 @@ export function InvoiceForm({
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-32">
+            <div className="w-full sm:w-32">
               <CurrencySelect
                 value={draft?.currency || 'USD'}
                 onValueChange={handleCurrencyChange}
@@ -911,49 +998,12 @@ export function InvoiceForm({
               />
             </div>
             {/* Payment accelerators (new invoices only) — prefill the post-finalize
-                payment modal so the user can just save it. */}
-            {isNew && (
-              <>
-                <div className="w-44">
-                  <Select
-                    value={paymentBankAccountId}
-                    onValueChange={setPaymentBankAccountId}
-                  >
-                    <SelectTrigger aria-label={tPay('paymentWay')}>
-                      <SelectValue placeholder={tPayForm('bankAccountPlaceholder')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={SENTINEL_CASH}>
-                        {tPayForm('bankAccountCash')}
-                      </SelectItem>
-                      {banks
-                        .filter((b) => b.is_active)
-                        .map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            <span className="font-mono text-xs me-2">
-                              {b.ledger?.code ?? ''}
-                            </span>
-                            {b.name}
-                            {b.bank_name ? ` · ${b.bank_name}` : ''}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-44">
-                  <Input
-                    aria-label={tPayForm('reference')}
-                    placeholder={tPayForm('referencePlaceholder')}
-                    value={paymentReference}
-                    onChange={(e) => setPaymentReference(e.target.value)}
-                    className="h-10"
-                  />
-                </div>
-              </>
-            )}
+                payment modal so the user can just save it. On mobile they live
+                in the checkout sheet instead. */}
+            {isNew && !isMobile && paymentFields}
             {/* Date only shown here when there is no in-form title row (edit/view). */}
             {!headerTitle && (
-              <div className="w-40">
+              <div className="w-full sm:w-40">
                 <Input
                   type="date"
                   aria-label={t('date')}
@@ -968,141 +1018,325 @@ export function InvoiceForm({
         )}
       </Card>
 
-      {/* Items Table */}
-      <Card>
-        <CardContent className="space-y-4 pt-4">
-          {/* Persistent scan/search bar — always visible above the table */}
-          {!readOnly && (
-            <ItemQuickAdd
-              onSelect={handleSelectItem}
-              priceTier={type === 'sale' ? 'retail' : 'cost'}
-              inputRef={quickAddInputRef}
+      {isMobile ? (
+        <>
+          {/* Mobile items: big "Add items" button → full-screen picker, then
+              accordion cards for the lines. */}
+          <div className="space-y-3">
+            {!readOnly && (
+              <Button
+                type="button"
+                className="h-12 w-full text-base"
+                onClick={() => setPickerOpen(true)}
+              >
+                <Plus className="me-2 h-5 w-5" />
+                {t('addItems')}
+              </Button>
+            )}
+            <InvoiceItemCards
+              items={draft?.items || []}
+              onRemoveItem={handleRemoveItem}
+              onItemUpdate={handleItemUpdate}
+              stockAvailability={stockData?.data}
+              highlightLocalId={flashLocalId}
+              readOnly={readOnly}
             />
-          )}
-          <InvoiceItemsTable
-            items={draft?.items || []}
-            onItemsChange={(items) => {
-              if (currentDraftId) {
-                updateDraft(currentDraftId, { items });
-              }
-            }}
-            onAddItem={handleAddItem}
-            onRemoveItem={handleRemoveItem}
-            onReorder={handleReorderItems}
-            onItemUpdate={handleItemUpdate}
-            stockAvailability={stockData?.data}
-            highlightLocalId={flashLocalId}
-            readOnly={readOnly}
-          />
-        </CardContent>
-      </Card>
+          </div>
 
-      {/* Notes & Discount */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t('notes')}</CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Notes — collapsed behind a toggle until used */}
+          {notesOpen || draft?.notes ? (
             <Textarea
               value={draft?.notes || ''}
               onChange={(e) => handleNotesChange(e.target.value)}
               placeholder={t('notesPlaceholder')}
+              aria-label={t('notes')}
               rows={3}
               disabled={readOnly}
+              autoFocus={notesOpen && !draft?.notes}
+              className="text-base"
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">{t('summary')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t('subtotal')}</span>
-              <span>{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{t('tax')}</span>
-              <span>{taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">{t('discount')}</span>
-              <Input
-                type="number"
-                value={draft?.discountAmount || 0}
-                onChange={(e) => handleDiscountChange(parseFloat(e.target.value) || 0)}
-                className="w-24 h-8 text-right"
-                min={0}
-                step={0.01}
-                disabled={readOnly}
-                aria-label={t('discountAriaLabel')}
-              />
-            </div>
-            <div className="flex justify-between text-lg font-semibold pt-3 border-t">
-              <span>{t('total')}</span>
-              <span>{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actions */}
-      {!readOnly && (
-        <div className="sticky bottom-0 z-10 bg-background border-t -mx-4 md:-mx-6 -mb-4 md:-mb-6 px-4 md:px-6 py-3 flex items-center gap-3 justify-between">
-          {/* Running total — always visible, opposite the action buttons */}
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm text-muted-foreground">{t('total')}</span>
-            <span className="text-lg font-semibold">
-              {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {draft?.lastSavedAt && !existingInvoice && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Check className="h-3 w-3 text-green-500" />
-                {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
-              </span>
-            )}
-            {!existingInvoice && (
+          ) : (
+            !readOnly && (
               <Button
+                type="button"
                 variant="ghost"
-                size="sm"
-                onClick={handleClearClick}
-                disabled={
-                  !currentDraftId ||
-                  ((draft?.items.length ?? 0) === 0 &&
-                    !draft?.notes &&
-                    !draft?.discountAmount)
-                }
-                className="text-muted-foreground"
+                className="h-11 w-full justify-start text-muted-foreground"
+                onClick={() => setNotesOpen(true)}
               >
-                <Eraser className="h-4 w-4 mr-2" />
-                {t('clearDraft')}
+                <StickyNote className="me-2 h-4 w-4" />
+                {t('addNote')}
               </Button>
-            )}
-            <Button
-              variant={existingInvoice ? 'default' : 'outline'}
-              onClick={() => handleSaveDraft()}
-              disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
-              title={existingInvoice ? 'Ctrl+S' : undefined}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {existingInvoice ? t('saveChanges') : t('saveDraft')}
-            </Button>
-            {!existingInvoice && (
-              <Button
-                onClick={handleFinalize}
-                disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
-                title="Ctrl+S"
-              >
-                <Send className="h-4 w-4 mr-2" />
-                {t('finalize')}
-              </Button>
-            )}
+            )
+          )}
+
+          {/* Mobile sticky bar: total + one primary action; secondary actions
+              live in the overflow menu. */}
+          {!readOnly && (
+            <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex items-center gap-2 border-t bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground">
+                  {t('itemCount', { count: draft?.items.length ?? 0 })}
+                </p>
+                <p className="truncate text-xl font-bold tabular-nums">
+                  {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              {existingInvoice ? (
+                <Button
+                  className="h-12 px-5 text-base"
+                  onClick={() => handleSaveDraft()}
+                  disabled={!isValid || updateInvoiceMutation.isPending}
+                >
+                  <Save className="me-2 h-4 w-4" />
+                  {t('saveChanges')}
+                </Button>
+              ) : (
+                <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0"
+                        aria-label={t('moreActions')}
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="top" className="w-56">
+                      {draft?.lastSavedAt && (
+                        <>
+                          <DropdownMenuLabel className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                            <Check className="h-3 w-3 text-green-500" />
+                            {t('draftSavedAt', {
+                              time: new Date(draft.lastSavedAt).toLocaleTimeString(),
+                            })}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        className="min-h-[44px]"
+                        disabled={!isValid || createInvoice.isPending}
+                        onSelect={() => handleSaveDraft()}
+                      >
+                        <Save className="me-2 h-4 w-4" />
+                        {t('saveDraft')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="min-h-[44px] text-destructive focus:text-destructive"
+                        disabled={
+                          !currentDraftId ||
+                          ((draft?.items.length ?? 0) === 0 &&
+                            !draft?.notes &&
+                            !draft?.discountAmount)
+                        }
+                        onSelect={handleClearClick}
+                      >
+                        <Eraser className="me-2 h-4 w-4" />
+                        {t('clearDraft')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    className="h-12 px-5 text-base"
+                    onClick={() => setCheckoutOpen(true)}
+                    disabled={(draft?.items.length ?? 0) === 0}
+                  >
+                    <ShoppingCart className="me-2 h-5 w-5" />
+                    {t('checkout')}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {!readOnly && (
+            <MobileItemPicker
+              open={pickerOpen}
+              onOpenChange={setPickerOpen}
+              priceTier={type === 'sale' ? 'retail' : 'cost'}
+              lines={draft?.items || []}
+              onSelect={handleSelectItem}
+              onQuantityChange={(localId, quantity) =>
+                handleItemUpdate(localId, 'quantity', quantity)
+              }
+              onRemove={handleRemoveItem}
+              total={total}
+            />
+          )}
+
+          {isNew && (
+            <InvoiceCheckoutSheet
+              open={checkoutOpen}
+              onOpenChange={setCheckoutOpen}
+              partyLabel={partyLabel}
+              onEditDetails={() => {
+                setCheckoutOpen(false);
+                setHeaderOpen(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              itemCount={draft?.items.length ?? 0}
+              subtotal={subtotal}
+              taxAmount={taxAmount}
+              discountAmount={draft?.discountAmount || 0}
+              onDiscountChange={handleDiscountChange}
+              total={total}
+              currency={draft?.currency || 'USD'}
+              // Walk-in invoices and the 'skip' flow record no payment.
+              paymentFields={
+                paymentFlow !== 'skip' && draft?.partyId ? (
+                  <div className="space-y-2">{paymentFields}</div>
+                ) : undefined
+              }
+              validationMessage={
+                validationMessage ?? (!isValid ? t('validation.itemsOnly') : null)
+              }
+              onFinalize={() => void handleFinalize()}
+              onSaveDraft={() => void handleSaveDraft()}
+              pending={createInvoice.isPending || finalizeInvoice.isPending}
+            />
+          )}
+        </>
+      ) : (
+        <>
+          {/* Items Table */}
+          <Card>
+            <CardContent className="space-y-4 pt-4">
+              {/* Persistent scan/search bar — always visible above the table */}
+              {!readOnly && (
+                <ItemQuickAdd
+                  onSelect={handleSelectItem}
+                  priceTier={type === 'sale' ? 'retail' : 'cost'}
+                  inputRef={quickAddInputRef}
+                />
+              )}
+              <InvoiceItemsTable
+                items={draft?.items || []}
+                onItemsChange={(items) => {
+                  if (currentDraftId) {
+                    updateDraft(currentDraftId, { items });
+                  }
+                }}
+                onAddItem={handleAddItem}
+                onRemoveItem={handleRemoveItem}
+                onReorder={handleReorderItems}
+                onItemUpdate={handleItemUpdate}
+                stockAvailability={stockData?.data}
+                highlightLocalId={flashLocalId}
+                readOnly={readOnly}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Notes & Discount */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">{t('notes')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={draft?.notes || ''}
+                  onChange={(e) => handleNotesChange(e.target.value)}
+                  placeholder={t('notesPlaceholder')}
+                  rows={3}
+                  disabled={readOnly}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">{t('summary')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('subtotal')}</span>
+                  <span>{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('tax')}</span>
+                  <span>{taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">{t('discount')}</span>
+                  <Input
+                    type="number"
+                    value={draft?.discountAmount || 0}
+                    onChange={(e) => handleDiscountChange(parseFloat(e.target.value) || 0)}
+                    className="w-24 h-8 text-end"
+                    min={0}
+                    step={0.01}
+                    disabled={readOnly}
+                    aria-label={t('discountAriaLabel')}
+                  />
+                </div>
+                <div className="flex justify-between text-lg font-semibold pt-3 border-t">
+                  <span>{t('total')}</span>
+                  <span>{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+
+          {/* Actions */}
+          {!readOnly && (
+            <div className="sticky bottom-0 z-10 bg-background border-t -mx-4 md:-mx-6 -mb-4 md:-mb-6 px-4 md:px-6 py-3 flex items-center gap-3 justify-between">
+              {/* Running total — always visible, opposite the action buttons */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm text-muted-foreground">{t('total')}</span>
+                <span className="text-lg font-semibold">
+                  {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {draft?.lastSavedAt && !existingInvoice && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="h-3 w-3 text-green-500" />
+                    {t('draftSavedAt', { time: new Date(draft.lastSavedAt).toLocaleTimeString() })}
+                  </span>
+                )}
+                {!existingInvoice && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearClick}
+                    disabled={
+                      !currentDraftId ||
+                      ((draft?.items.length ?? 0) === 0 &&
+                        !draft?.notes &&
+                        !draft?.discountAmount)
+                    }
+                    className="text-muted-foreground"
+                  >
+                    <Eraser className="h-4 w-4 me-2" />
+                    {t('clearDraft')}
+                  </Button>
+                )}
+                <Button
+                  variant={existingInvoice ? 'default' : 'outline'}
+                  onClick={() => handleSaveDraft()}
+                  disabled={!isValid || createInvoice.isPending || updateInvoiceMutation.isPending}
+                  title={existingInvoice ? 'Ctrl+S' : undefined}
+                >
+                  <Save className="h-4 w-4 me-2" />
+                  {existingInvoice ? t('saveChanges') : t('saveDraft')}
+                </Button>
+                {!existingInvoice && (
+                  <Button
+                    onClick={handleFinalize}
+                    disabled={!isValid || createInvoice.isPending || finalizeInvoice.isPending}
+                    title="Ctrl+S"
+                  >
+                    <Send className="h-4 w-4 me-2" />
+                    {t('finalize')}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {paymentWorkflowDialogs}

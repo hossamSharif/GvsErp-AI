@@ -64,7 +64,7 @@ interface ItemQuickAddProps {
 // HELPERS
 // =============================================================================
 
-function toQuickAddItem(i: ItemWithCategory, priceTier: PriceTier): QuickAddItem {
+export function toQuickAddItem(i: ItemWithCategory, priceTier: PriceTier): QuickAddItem {
   const prices = i.prices ?? [];
   // Sales default to the first retail price, purchases to the first cost price;
   // fall back to whatever price exists so an item is never priced at 0 by accident.

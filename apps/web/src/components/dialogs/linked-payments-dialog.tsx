@@ -83,7 +83,7 @@ export function LinkedPaymentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onOpenChange(false)}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t(mode === 'edit' ? 'editTitle' : 'deleteTitle')}</DialogTitle>
           <DialogDescription>
@@ -159,7 +159,7 @@ export function LinkedPaymentsDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t(blocked ? 'close' : 'cancel')}
           </Button>

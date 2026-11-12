@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#0f172a',
+  // Lets env(safe-area-inset-*) report real insets on notched phones.
+  viewportFit: 'cover',
 };
 
 export function generateStaticParams() {

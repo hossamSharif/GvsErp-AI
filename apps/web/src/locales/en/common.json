@@ -1126,7 +1126,14 @@
       "stagedHint": "Set quantity & price, then press Enter to add “{name}”",
       "quickAddNewItem": "Quick add new item",
       "editStagedItem": "Edit “{name}”",
-      "quickAddOfflineTitle": "Adding items requires an internet connection"
+      "quickAddOfflineTitle": "Adding items requires an internet connection",
+      "addItems": "Add items",
+      "addNote": "Add a note",
+      "checkout": "Checkout",
+      "moreActions": "More actions",
+      "itemCount": "{count, plural, =0 {No items} one {# item} other {# items}}",
+      "done": "Done",
+      "clearSearch": "Clear search"
     },
     "items": {
       "columns": {
@@ -1153,7 +1160,8 @@
       "ariaDiscountPercent": "Discount percent for {name}",
       "ariaTaxRate": "Tax rate for {name}",
       "ariaIncrement": "Increase quantity for {name}",
-      "ariaDecrement": "Decrease quantity for {name}"
+      "ariaDecrement": "Decrease quantity for {name}",
+      "deleteItem": "Delete item"
     },
     "party": {
       "selectPlaceholder": "Select party...",
