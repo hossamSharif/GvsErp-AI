@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import { loginSchema, registerSchema } from '@erp/shared';
 import { validateBody, asyncHandler, AppError, authRateLimiter } from '../middleware';
 import type { Database } from '@erp/database';
+import { isLocalMode } from '../lib/deployment';
 
 const router: Router = Router();
 
@@ -86,6 +87,36 @@ router.post(
 );
 
 /**
+ * Local edition: true until the first company has been created on this PC.
+ * The cloud is multi-tenant, so it never "needs setup".
+ */
+async function localNeedsSetup(): Promise<boolean> {
+  const { count, error } = await getServiceClient()
+    .from('tenants')
+    .select('id', { count: 'exact', head: true });
+  if (error) throw AppError.internal('Failed to read setup status');
+  return (count ?? 0) === 0;
+}
+
+/**
+ * GET /auth/setup-status
+ * Public. Lets the local edition's login page send a brand-new install to the
+ * first-run setup (company + owner account).
+ */
+router.get(
+  '/setup-status',
+  asyncHandler(async (_req, res) => {
+    const local = isLocalMode();
+    res.json({
+      data: {
+        mode: local ? 'local' : 'cloud',
+        needsSetup: local ? await localNeedsSetup() : false,
+      },
+    });
+  })
+);
+
+/**
  * POST /auth/register
  * Register new tenant with admin user
  */
@@ -94,6 +125,12 @@ router.post(
   authRateLimiter,
   validateBody(registerSchema),
   asyncHandler(async (req, res) => {
+    // Local edition: one company per install. Once it exists, new staff
+    // accounts are created by an admin under Settings > Users.
+    if (isLocalMode() && !(await localNeedsSetup())) {
+      throw AppError.forbidden('This installation is already set up. Ask an administrator to create your account.');
+    }
+
     const { email, password, tenant_name, full_name } = req.body;
 
     const supabase = getServiceClient();

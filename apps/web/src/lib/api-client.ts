@@ -5,8 +5,7 @@
  */
 
 import type { ApiError, ApiResponse, ApiListResponse, PaginationParams } from '@erp/shared';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { getApiBaseUrl, getSupabaseAnonKey, getSupabaseUrl } from './runtime-config';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -49,10 +48,7 @@ async function getAccessToken(): Promise<string | null> {
   if (typeof window !== 'undefined') {
     if (!browserSupabase) {
       const { createBrowserClient } = await import('@supabase/ssr');
-      browserSupabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      browserSupabase = createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey());
     }
     const { data: { session } } = await browserSupabase.auth.getSession();
     return session?.access_token ?? null;
@@ -83,7 +79,7 @@ export async function networkRequest<T>(
   const { params, body, headers = {} } = options;
 
   // Build URL with query params
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  const url = new URL(`${getApiBaseUrl()}${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value === undefined || value === null) return;

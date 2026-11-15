@@ -12,6 +12,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { useOnline } from '@/hooks/use-online';
+import { isLocalMode } from '@/lib/runtime-config';
 
 export function ServiceWorkerRegistrar() {
   const { session } = useAuth();
@@ -22,6 +23,9 @@ export function ServiceWorkerRegistrar() {
     if (!('serviceWorker' in navigator)) return;
     // SW is disabled in development (see next.config.mjs) — nothing to register.
     if (process.env.NODE_ENV === 'development') return;
+    // Local edition: no offline shell needed (server is on this PC), and a
+    // cached shell would outlive app updates.
+    if (isLocalMode()) return;
     // Only after the user has authenticated online at least once, so a brand-new
     // user is never trapped in an empty offline shell before any data has synced.
     if (!session || !online) return;

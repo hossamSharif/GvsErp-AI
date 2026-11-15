@@ -13,6 +13,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@erp/database';
 import { getAdminClient } from './auth-admin';
 import { AppError } from '../middleware/error';
+import { toPublicSupabaseUrl } from '../lib/deployment';
 
 export const INVOICE_SHARE_BUCKET = 'invoice-shares';
 const MAX_PDF_BYTES = 8 * 1024 * 1024;
@@ -166,5 +167,5 @@ export async function resolveInvoiceShare(token: string): Promise<ResolvedShare>
     });
   if (signError || !signed?.signedUrl) return { status: 'not_found' };
 
-  return { status: 'ok', url: signed.signedUrl };
+  return { status: 'ok', url: toPublicSupabaseUrl(signed.signedUrl) };
 }

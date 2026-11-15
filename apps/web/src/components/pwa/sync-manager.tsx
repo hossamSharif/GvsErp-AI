@@ -14,6 +14,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalMode } from '@/lib/runtime-config';
 
 const BASE_DELAY = 15_000; // first retry after ~15s
 const MAX_DELAY = 60_000; // cap backoff at 60s
@@ -24,6 +25,8 @@ export function SyncManager() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !session) return;
+    // Local edition is always online: nothing is ever queued offline.
+    if (isLocalMode()) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;

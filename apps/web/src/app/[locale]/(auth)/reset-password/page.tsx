@@ -14,8 +14,16 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalMode } from '@/lib/runtime-config';
 
 export default function ResetPasswordPage() {
+  // Local edition has no email server: password resets are done by an admin.
+  const localRouter = useRouter();
+  const localLocale = useParams().locale as string;
+  useEffect(() => {
+    if (isLocalMode()) localRouter.replace(`/${localLocale}/login`);
+  }, [localRouter, localLocale]);
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');

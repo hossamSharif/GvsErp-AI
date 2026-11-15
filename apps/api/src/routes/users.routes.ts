@@ -13,8 +13,9 @@ import {
 import { validateRequest } from '../middleware/validate';
 import { requireAuth, requirePermission } from '../middleware/auth';
 import { getTenantContext } from '../middleware/tenant';
-import { asyncHandler } from '../middleware/error';
+import { asyncHandler, AppError } from '../middleware/error';
 import { z } from 'zod';
+import { isLocalMode } from '../lib/deployment';
 
 const router: Router = Router();
 
@@ -286,6 +287,13 @@ router.post(
     }),
   }),
   asyncHandler(async (req: Request, res: Response) => {
+    if (isLocalMode()) {
+      // No email server on a local install: an admin sets the password instead
+      // (POST /users/:id/change-password).
+      throw AppError.badRequest(
+        'Password reset emails are not available in the local edition. Ask an administrator to set a new password.'
+      );
+    }
     const service = getUserService(req);
     await service.sendPasswordResetEmail(req.body.email);
 

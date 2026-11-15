@@ -8,14 +8,18 @@
  */
 
 import { useEffect, useState } from 'react';
+import { isLocalMode } from '@/lib/runtime-config';
 
 export function useOnline(): boolean {
   // Default to true so SSR/first paint assumes connectivity; corrected on mount.
   const [online, setOnline] = useState<boolean>(
-    typeof navigator === 'undefined' ? true : navigator.onLine
+    typeof navigator === 'undefined' || isLocalMode() ? true : navigator.onLine
   );
 
   useEffect(() => {
+    // Local edition: the server runs on this PC, so the app is always "online"
+    // even when the PC itself has no network (navigator.onLine is false then).
+    if (isLocalMode()) return;
     const update = () => setOnline(navigator.onLine);
     update();
     window.addEventListener('online', update);

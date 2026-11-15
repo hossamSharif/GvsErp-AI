@@ -7,13 +7,21 @@
  * returns to the /{locale}/reset-password page.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalMode } from '@/lib/runtime-config';
 
 export default function ForgotPasswordPage() {
+  // Local edition has no email server: password resets are done by an admin.
+  const localRouter = useRouter();
+  const localLocale = useParams().locale as string;
+  useEffect(() => {
+    if (isLocalMode()) localRouter.replace(`/${localLocale}/login`);
+  }, [localRouter, localLocale]);
+
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

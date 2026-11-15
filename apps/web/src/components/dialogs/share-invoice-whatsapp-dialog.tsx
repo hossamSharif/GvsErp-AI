@@ -53,6 +53,7 @@ import {
   toWhatsAppNumber,
 } from '@/lib/whatsapp';
 import type { InvoicePrintTemplate, InvoiceWithRelations } from '@erp/shared';
+import { isLocalMode } from '@/lib/runtime-config';
 
 interface ShareInvoiceWhatsAppDialogProps {
   invoice: InvoiceWithRelations;
@@ -122,6 +123,7 @@ export function ShareInvoiceWhatsAppDialog({
 }: ShareInvoiceWhatsAppDialogProps) {
   const t = useTranslations('invoice.share');
   const tPrint = useTranslations('invoice.printMenu');
+  const tLocal = useTranslations('local');
   const locale = useLocale();
   const { toast } = useToast();
   const createShare = useCreateInvoiceShare();
@@ -232,6 +234,16 @@ export function ShareInvoiceWhatsAppDialog({
     setPhoneTouched(true);
     if (!pdf || !phoneValid) return;
 
+    // Local edition: the PC isn't reachable from the customer's phone, so no
+    // public link — open the chat with the message and download the PDF to
+    // drag into it.
+    if (isLocalMode()) {
+      window.open(buildWhatsAppUrl(phone, message), '_blank');
+      downloadFile(pdf.file);
+      onOpenChange(false);
+      return;
+    }
+
     // Open the tab inside the click so the popup blocker allows it; it is
     // pointed at WhatsApp once the upload finishes.
     const win = window.open('', '_blank');
@@ -292,6 +304,9 @@ export function ShareInvoiceWhatsAppDialog({
             <DialogDescription>
               {t('description', { number: invoice.invoiceNumber })}
             </DialogDescription>
+            {isLocalMode() && (
+              <p className="text-sm text-muted-foreground">{tLocal('shareLinkLocal')}</p>
+            )}
           </DialogHeader>
 
           <div className="space-y-4">

@@ -10,7 +10,9 @@
  * - Payment history
  */
 
+import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { isLocalMode } from '@/lib/runtime-config';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -87,6 +89,11 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+
+  // Local edition: no online subscription.
+  useEffect(() => {
+    if (isLocalMode()) router.replace(`/${locale}/settings`);
+  }, [router, locale]);
 
   return (
     <div className="flex h-full flex-col space-y-6 p-8">

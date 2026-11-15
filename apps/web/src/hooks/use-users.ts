@@ -205,3 +205,17 @@ export function useChangeOwnPassword(
     ...options,
   });
 }
+
+/**
+ * Admin: set another user's password (no email involved). Used by the local
+ * edition, which has no email server for reset links.
+ */
+export function useSetUserPassword(
+  options?: UseMutationOptions<ApiResponse<null>, Error, { id: string; password: string }>
+) {
+  return useMutation({
+    mutationFn: async ({ id, password }: { id: string; password: string }) =>
+      api.post<ApiResponse<null>>(`/users/${id}/change-password`, { password }),
+    ...options,
+  });
+}

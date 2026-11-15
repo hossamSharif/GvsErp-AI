@@ -6,6 +6,7 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker-registrar';
 import { SyncManager } from '@/components/pwa/sync-manager';
+import { getServerRuntimeConfig } from '@/lib/runtime-config';
 import '@/styles/globals.css';
 
 const inter = { className: 'font-sans' };
@@ -39,9 +40,23 @@ export default async function RootLayout({
   unstable_setRequestLocale(locale);
   const messages = await getMessages();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  // Local edition only: per-install config read from the server env at request
+  // time. Must run before any client code, so it is a blocking inline script.
+  const runtimeConfig = getServerRuntimeConfig();
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
+      {runtimeConfig && (
+        <head>
+          <script
+            // Inline + first in <head>: runs before any app bundle. '<' is
+            // escaped so the JSON can't close the script tag.
+            dangerouslySetInnerHTML={{
+              __html: `window.__GVS_CONFIG__=${JSON.stringify(runtimeConfig).replace(/</g, '\\u003c')};`,
+            }}
+          />
+        </head>
+      )}
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>

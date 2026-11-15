@@ -277,7 +277,14 @@
     "updatingPassword": "جارٍ التحديث...",
     "passwordUpdated": "تم تحديث كلمة المرور. يُرجى تسجيل الدخول.",
     "passwordsMismatch": "كلمتا المرور غير متطابقتين",
-    "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل"
+    "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "organizationName": "اسم المنشأة",
+    "organizationNamePlaceholder": "اسم شركتك",
+    "fullName": "الاسم الكامل",
+    "fullNamePlaceholder": "الاسم الكامل",
+    "newAccountPasswordPlaceholder": "8 أحرف على الأقل",
+    "repeatPasswordPlaceholder": "أعد كتابة كلمة المرور",
+    "creatingAccount": "جارٍ إنشاء الحساب..."
   },
   "common": {
     "save": "حفظ",
@@ -3259,5 +3266,21 @@
     "confirmEdit": "حذف المدفوعات وحفظ",
     "confirmDelete": "حذف الفاتورة والمدفوعات",
     "pending": "جارٍ التنفيذ…"
+  },
+  "local": {
+    "setupTitle": "إعداد شركتك",
+    "setupSubtitle": "أنشئ شركتك وحساب المالك. تتم هذه الخطوة مرة واحدة فقط على هذا الجهاز.",
+    "setupComplete": "تم إعداد هذا الجهاز بالفعل. سجّل الدخول بحسابك.",
+    "checkingSetup": "جارٍ التحقق من الإعداد…",
+    "forgotPasswordHint": "نسيت كلمة المرور؟ اطلب من المسؤول تعيين كلمة مرور جديدة.",
+    "switchUser": "تبديل المستخدم",
+    "idleSignedOut": "تم تسجيل خروجك بعد {minutes} دقيقة دون نشاط.",
+    "setPassword": "تعيين كلمة المرور",
+    "setPasswordTitle": "تعيين كلمة مرور جديدة",
+    "setPasswordDescription": "كلمة مرور جديدة للمستخدم {name}. أبلغه بها شخصياً؛ لن يتم إرسال بريد إلكتروني.",
+    "setPasswordSave": "حفظ كلمة المرور",
+    "passwordSet": "تم تحديث كلمة المرور",
+    "passwordSetFailed": "تعذر تحديث كلمة المرور",
+    "shareLinkLocal": "على هذا الجهاز تُرسل الفاتورة كملف: يتم تنزيل ملف PDF، ثم اسحبه إلى محادثة واتساب."
   }
 }

@@ -277,7 +277,14 @@
     "updatingPassword": "Updating...",
     "passwordUpdated": "Your password has been updated. Please sign in.",
     "passwordsMismatch": "Passwords do not match",
-    "passwordTooShort": "Password must be at least 8 characters"
+    "passwordTooShort": "Password must be at least 8 characters",
+    "organizationName": "Organization Name",
+    "organizationNamePlaceholder": "Your company name",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "newAccountPasswordPlaceholder": "At least 8 characters",
+    "repeatPasswordPlaceholder": "Repeat your password",
+    "creatingAccount": "Creating account..."
   },
   "common": {
     "save": "Save",
@@ -3259,5 +3266,21 @@
     "confirmEdit": "Delete payment(s) + save",
     "confirmDelete": "Delete invoice + payment(s)",
     "pending": "Working…"
+  },
+  "local": {
+    "setupTitle": "Set up your company",
+    "setupSubtitle": "Create your company and the owner account. You only do this once on this PC.",
+    "setupComplete": "This PC is already set up. Sign in with your account.",
+    "checkingSetup": "Checking setup…",
+    "forgotPasswordHint": "Forgot your password? Ask an administrator to set a new one.",
+    "switchUser": "Switch user",
+    "idleSignedOut": "You were signed out after {minutes} minutes without activity.",
+    "setPassword": "Set password",
+    "setPasswordTitle": "Set a new password",
+    "setPasswordDescription": "New password for {name}. Tell the user in person; no email is sent.",
+    "setPasswordSave": "Save password",
+    "passwordSet": "Password updated",
+    "passwordSetFailed": "Could not update the password",
+    "shareLinkLocal": "On this PC the invoice is sent as a file: the PDF downloads, then drag it into the WhatsApp chat."
   }
 }

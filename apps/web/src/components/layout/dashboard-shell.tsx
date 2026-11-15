@@ -13,6 +13,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/hooks/use-direction';
 import { useOnline } from '@/hooks/use-online';
+import { useIdleSignOut } from '@/hooks/use-idle-sign-out';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
@@ -28,6 +29,8 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Local edition (shared PC): auto sign-out after inactivity. No-op in the cloud.
+  useIdleSignOut();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const { user, isLoading } = useAuth();

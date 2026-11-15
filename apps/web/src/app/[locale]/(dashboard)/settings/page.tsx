@@ -8,6 +8,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { isLocalMode } from '@/lib/runtime-config';
 import {
   Card,
   CardContent,
@@ -92,7 +93,10 @@ export default function SettingsPage() {
       href: `/${locale}/settings/subscription`,
       badge: t('comingSoon'),
     },
-  ];
+  ].filter(
+    // Local edition: no online subscription.
+    (section) => !(isLocalMode() && section.href.endsWith('/settings/subscription'))
+  );
 
   const handleNavigate = (href: string) => {
     router.push(href);

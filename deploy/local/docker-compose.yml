@@ -163,12 +163,34 @@ services:
       SUPABASE_URL: http://gateway:8080
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      # Origin the BROWSER uses for Supabase. Public file URLs (logos,
+      # signed PDF links) are rewritten from SUPABASE_URL to this.
+      SUPABASE_PUBLIC_URL: http://localhost:${GVS_PORT:-8080}
       CORS_ORIGIN: http://localhost:${GVS_PORT:-8080}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  web:
+    image: gvs-web:${GVS_VERSION:-dev}
+    build:
+      context: ../..
+      dockerfile: deploy/local/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      DEPLOYMENT_MODE: local
+      # Read at request time and injected into the page (runtime-config.ts).
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/ar/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   gateway:
     image: nginx:1.27-alpine
@@ -177,6 +199,8 @@ services:
       - auth
       - rest
       - storage
+      - api
+      - web
     ports:
       - "127.0.0.1:${GVS_PORT:-8080}:8080"
     volumes:

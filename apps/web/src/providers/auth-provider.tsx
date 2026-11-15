@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/runtime-config';
 import type { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
 import type { CurrentUser } from '@erp/shared';
 
@@ -42,9 +43,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // One client for the provider's lifetime (it was re-created on every render).
+  const [supabase] = useState(() =>
+    createBrowserClient(getSupabaseUrl(), getSupabaseAnonKey())
   );
 
   useEffect(() => {

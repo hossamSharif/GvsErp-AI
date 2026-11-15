@@ -76,7 +76,10 @@ import {
   UserCheck,
   Loader2,
   ArrowLeft,
+  KeyRound,
 } from 'lucide-react';
+import { isLocalMode } from '@/lib/runtime-config';
+import { SetUserPasswordDialog } from '@/components/dialogs/set-user-password-dialog';
 
 // Form schema
 // password accepts '' (edit mode prefill) or a >=8 char string (create mode).
@@ -134,6 +137,10 @@ export default function UsersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  // Local edition: admins set passwords directly (no reset emails).
+  const [passwordUser, setPasswordUser] = useState<User | null>(null);
+  const tLocal = useTranslations('local');
+  const local = isLocalMode();
 
   // Fetch users
   const { data, isLoading, error } = useUsers(queryParams);
@@ -379,6 +386,12 @@ export default function UsersPage() {
                   </>
                 )}
               </DropdownMenuItem>
+              {local && (
+                <DropdownMenuItem onClick={() => setPasswordUser(row.original)}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {tLocal('setPassword')}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => handleDeleteUser(row.original)}
@@ -392,7 +405,7 @@ export default function UsersPage() {
         ),
       },
     ],
-    [t, handleEditUser, handleToggleActive, handleDeleteUser]
+    [t, tLocal, local, handleEditUser, handleToggleActive, handleDeleteUser]
   );
 
   return (
@@ -608,6 +621,10 @@ export default function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {local && (
+        <SetUserPasswordDialog user={passwordUser} onOpenChange={(open) => !open && setPasswordUser(null)} />
+      )}
     </div>
   );
 }

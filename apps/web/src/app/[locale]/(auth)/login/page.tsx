@@ -6,11 +6,14 @@
  * User authentication form.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalMode } from '@/lib/runtime-config';
+import { useSetupStatus } from '@/hooks/use-setup-status';
+import { IDLE_SIGN_OUT_KEY } from '@/hooks/use-idle-sign-out';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,7 +27,28 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const locale = params.locale as string;
   const t = useTranslations('auth');
+  const tLocal = useTranslations('local');
   const resetSuccess = searchParams.get('reset') === 'success';
+  // Set by useIdleSignOut (local edition) just before an automatic sign-out.
+  const [idleMinutes, setIdleMinutes] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const v = sessionStorage.getItem(IDLE_SIGN_OUT_KEY);
+      if (v) {
+        setIdleMinutes(v);
+        sessionStorage.removeItem(IDLE_SIGN_OUT_KEY);
+      }
+    } catch {
+      // storage unavailable: no notice
+    }
+  }, []);
+  const local = isLocalMode();
+  const setup = useSetupStatus();
+
+  // Local edition: a brand-new install goes straight to the one-time setup.
+  useEffect(() => {
+    if (setup === 'needs-setup') router.replace(`/${locale}/register`);
+  }, [setup, router, locale]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +75,11 @@ export default function LoginPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {idleMinutes && !error && (
+          <div role="status" className="p-3 rounded-md bg-muted text-sm">
+            {tLocal('idleSignedOut', { minutes: idleMinutes })}
+          </div>
+        )}
         {resetSuccess && !error && (
           <div role="status" className="p-3 rounded-md bg-primary/10 text-sm">
             {t('passwordUpdated')}
@@ -84,12 +113,14 @@ export default function LoginPage() {
             <label htmlFor="password" className="text-sm font-medium">
               {t('password')}
             </label>
-            <Link
-              href={`/${locale}/forgot-password`}
-              className="text-sm text-primary hover:underline"
-            >
-              {t('forgotPassword')}
-            </Link>
+            {!local && (
+              <Link
+                href={`/${locale}/forgot-password`}
+                className="text-sm text-primary hover:underline"
+              >
+                {t('forgotPassword')}
+              </Link>
+            )}
           </div>
           <input
             id="password"
@@ -111,6 +142,10 @@ export default function LoginPage() {
         >
           {isLoading ? t('signingIn') : t('signIn')}
         </button>
+
+        {local && (
+          <p className="text-center text-sm text-muted-foreground">{tLocal('forgotPasswordHint')}</p>
+        )}
       </form>
     </div>
   );

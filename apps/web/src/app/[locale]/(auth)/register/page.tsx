@@ -6,10 +6,13 @@
  * New tenant registration form with organization setup.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalMode } from '@/lib/runtime-config';
+import { useSetupStatus } from '@/hooks/use-setup-status';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -26,6 +29,16 @@ export default function RegisterPage() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const tLocal = useTranslations('local');
+  const t = useTranslations('auth');
+  const local = isLocalMode();
+  const setup = useSetupStatus();
+
+  // Local edition: registering is the one-time setup. Once the company
+  // exists, staff accounts are created by an admin, so send people to login.
+  useEffect(() => {
+    if (local && setup === 'ready') router.replace(`/${locale}/login`);
+  }, [local, setup, router, locale]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,12 +51,12 @@ export default function RegisterPage() {
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsMismatch'));
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('passwordTooShort'));
       return;
     }
 
@@ -68,9 +81,11 @@ export default function RegisterPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">Create your account</h1>
+        <h1 className="text-2xl font-bold">
+          {local ? tLocal('setupTitle') : 'Create your account'}
+        </h1>
         <p className="text-muted-foreground">
-          Start your free trial - no credit card required
+          {local ? tLocal('setupSubtitle') : 'Start your free trial - no credit card required'}
         </p>
       </div>
 
@@ -84,7 +99,7 @@ export default function RegisterPage() {
 
         <div className="space-y-2">
           <label htmlFor="tenantName" className="text-sm font-medium">
-            Organization Name
+            {t('organizationName')}
           </label>
           <input
             id="tenantName"
@@ -94,13 +109,13 @@ export default function RegisterPage() {
             onChange={handleChange}
             required
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Your company name"
+            placeholder={t('organizationNamePlaceholder')}
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="fullName" className="text-sm font-medium">
-            Full Name
+            {t('fullName')}
           </label>
           <input
             id="fullName"
@@ -109,13 +124,13 @@ export default function RegisterPage() {
             value={formData.fullName}
             onChange={handleChange}
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="John Doe"
+            placeholder={t('fullNamePlaceholder')}
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">
-            Email
+            {t('email')}
           </label>
           <input
             id="email"
@@ -126,14 +141,14 @@ export default function RegisterPage() {
             required
             autoComplete="email"
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="you@example.com"
+            placeholder={t('emailPlaceholder')}
             dir="ltr"
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium">
-            Password
+            {t('password')}
           </label>
           <input
             id="password"
@@ -144,14 +159,14 @@ export default function RegisterPage() {
             required
             autoComplete="new-password"
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="At least 8 characters"
+            placeholder={t('newAccountPasswordPlaceholder')}
             dir="ltr"
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-sm font-medium">
-            Confirm Password
+            {t('confirmPassword')}
           </label>
           <input
             id="confirmPassword"
@@ -162,7 +177,7 @@ export default function RegisterPage() {
             required
             autoComplete="new-password"
             className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Repeat your password"
+            placeholder={t('repeatPasswordPlaceholder')}
             dir="ltr"
           />
         </div>
@@ -172,11 +187,12 @@ export default function RegisterPage() {
           disabled={isLoading}
           className="w-full py-2.5 px-4 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading ? 'Creating account...' : 'Create account'}
+          {isLoading ? t('creatingAccount') : t('createAccount')}
         </button>
       </form>
 
-      {/* Terms */}
+      {/* Terms (cloud only: the local edition has no online service terms) */}
+      {!local && (
       <p className="text-center text-xs text-muted-foreground">
         By creating an account, you agree to our{' '}
         <Link href={`/${locale}/terms`} className="text-primary hover:underline">
@@ -187,8 +203,10 @@ export default function RegisterPage() {
           Privacy Policy
         </Link>
       </p>
+      )}
 
       {/* Footer */}
+      {!local && (
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
         <Link
@@ -198,6 +216,7 @@ export default function RegisterPage() {
           Sign in
         </Link>
       </p>
+      )}
     </div>
   );
 }

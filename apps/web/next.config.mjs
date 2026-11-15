@@ -1,5 +1,7 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import withSerwistInit from '@serwist/next';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -20,10 +22,16 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
+// Local edition image only (deploy/local/web/Dockerfile): a self-contained
+// server in .next/standalone. Off by default, so the Vercel build is unchanged.
+const standalone = process.env.NEXT_BUILD_STANDALONE === '1';
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@erp/shared', '@erp/offline-engine', '@erp/database', '@erp/ui'],
-  experimental: {},
+  ...(standalone ? { output: 'standalone' } : {}),
+  experimental: standalone ? { outputFileTracingRoot: repoRoot } : {},
   async rewrites() {
     const apiTarget =
       process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1$/, '') || 'http://localhost:3001';

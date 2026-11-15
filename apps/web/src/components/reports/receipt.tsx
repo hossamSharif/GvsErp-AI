@@ -16,17 +16,14 @@ import {
 } from '@react-pdf/renderer';
 import type { Invoice, POSLocationSettings } from '@erp/shared';
 
-// Register fonts for proper rendering
+// Register fonts for proper rendering. Bundled in public/fonts (no CDN), so
+// receipts also render on the offline / local edition.
+const fontBase = typeof window !== 'undefined' ? window.location.origin : '';
 Font.register({
   family: 'Roboto',
   fonts: [
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf',
-    },
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf',
-      fontWeight: 'bold',
-    },
+    { src: `${fontBase}/fonts/Roboto-Regular.ttf` },
+    { src: `${fontBase}/fonts/Roboto-Bold.ttf`, fontWeight: 'bold' },
   ],
 });
 

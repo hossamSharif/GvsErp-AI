@@ -5,8 +5,9 @@ Runs the whole ERP on one PC with Docker: a trimmed self-hosted Supabase
 nginx gateway. See [`docs/local-edition-plan.md`](../../docs/local-edition-plan.md)
 for the full plan.
 
-> Status: **Phase 1** (database + backend). The web container, Windows
-> installer, backups and license come in later phases.
+> Status: **Phase 2 done** — database, API and web app run together and were
+> tested in a browser with internet blocked. The Windows installer, backups,
+> updates and license key come in later phases.
 
 ## Services
 
@@ -18,20 +19,22 @@ for the full plan.
 | `storage` | Storage API (file backend) — logos, invoice PDFs, item images     |
 | `migrate` | One-shot: applies pending `packages/database/migrations/*.sql`, then exits |
 | `api`     | GVS Express API (`DEPLOYMENT_MODE=local`)                         |
+| `web`     | Next.js standalone server (`DEPLOYMENT_MODE=local`, image `deploy/local/web/Dockerfile`) |
 | `gateway` | nginx — the only published port, `127.0.0.1:8080`                 |
 
 Gateway routes, all on one origin (`http://localhost:8080`):
 `/auth/v1` → GoTrue, `/rest/v1` → PostgREST, `/storage/v1` → Storage,
-`/api/v1` → API, `/` → web (Phase 2).
+`/api/v1` → API, `/api/health` → API readiness, `/` → web.
 
 ## Run it (developer machine)
 
 ```bash
 cd deploy/local
 node scripts/generate-env.mjs      # once: writes .env with fresh secrets
-docker compose up -d --build       # builds gvs-migrate + gvs-api, starts everything
+docker compose up -d --build       # builds gvs-migrate, gvs-api, gvs-web; starts everything
 docker compose ps                  # all healthy; migrate shows "exited (0)"
-curl http://localhost:8080/health
+curl http://localhost:8080/api/health
+# open http://localhost:8080 — a fresh install opens the company setup
 ```
 
 Reset to an empty database (deletes all local data):
@@ -76,16 +79,44 @@ accounting + COGS → journals for purchase, sale, FIFO COGS and receipt, all
 balanced → audit log rows → logo upload to Storage and public URL served via
 the gateway.
 
-## Known gaps (next phases)
+## Local mode (Phase 2)
 
-- **Web container** (Phase 2): runtime config instead of build-time
-  `NEXT_PUBLIC_*`, always-online in local mode, hide email-based flows.
-- **Public file URLs**: the API builds public URLs from `SUPABASE_URL`. Inside
-  Docker that is `http://gateway:8080`, which the browser can't reach — add a
-  separate public URL setting (Phase 2).
+One runtime switch, `DEPLOYMENT_MODE=local`, on the `api` and `web` containers.
+When it is unset (the cloud), nothing below changes.
+
+| Area | Local behaviour | Where |
+|---|---|---|
+| Config | Web reads `SUPABASE_ANON_KEY` from its env at request time and injects `window.__GVS_CONFIG__`; URLs are the page's own origin (one gateway). No per-install values in the image. | `apps/web/src/lib/runtime-config.ts`, `app/[locale]/layout.tsx` |
+| Online state | Always online (server is on the same PC); no service worker, no offline sync queue | `hooks/use-online.ts`, `lib/offline/transport.ts`, `components/pwa/*` |
+| First run | Login sends a fresh install to **Set up your company**; after that `/register` redirects to login and the API refuses a second company (403) | `GET /api/v1/auth/setup-status`, `auth.routes.ts`, `(auth)/login`, `(auth)/register` |
+| Passwords | No email: "Forgot password" hidden, reset pages redirect to login, admins use **Set password** on Settings → Users | `components/dialogs/set-user-password-dialog.tsx`, `users.routes.ts` |
+| Shared PC | **Switch user** button in the header; automatic sign-out after 30 minutes without activity | `components/layout/header.tsx`, `hooks/use-idle-sign-out.ts` |
+| No internet | Receipt fonts bundled (`public/fonts`); WhatsApp share sends the message + downloads the PDF instead of a public link; Subscription settings hidden | `components/reports/receipt.tsx`, `share-invoice-whatsapp-dialog.tsx` |
+| File URLs | API rewrites Supabase URLs from the internal `SUPABASE_URL` to `SUPABASE_PUBLIC_URL` so logos/PDFs open in the browser | `apps/api/src/lib/deployment.ts` |
+
+The web standalone build is opt-in (`NEXT_BUILD_STANDALONE=1`), so the Vercel
+build is unchanged.
+
+## Verified in a browser (Phase 2)
+
+Playwright against the full stack at `http://localhost:8080`, with **every
+non-localhost request blocked** — 24/24 checks passed: fresh install → Arabic
+setup page → company created and signed in → items/purchase/sale created and
+shown in the UI → logo URL opens in the browser → Subscription hidden →
+staff user created → admin sets their password → Switch user → staff signs in
+→ forgot-password hidden → `/register` and `/forgot-password` redirect →
+second company refused → 30-minute idle sign-out with explanation → zero
+internet requests, zero page errors. Cloud check: a normal `next build` has no
+standalone output and pages contain no injected config.
+
+## Known gaps
+
 - **`POST /api/v1/auth/login`** returns "User not found" (it signs in on the
   service client, which then queries as the user). The web doesn't use it — it
   signs in with GoTrue directly — so it's left as is.
 - **Image builds in this cloud sandbox**: `apk`/`npm` downloads inside
-  `docker build` can't reach the internet here, so `gvs-api` was verified by
-  running the built API on the host. The CI workflow (Phase 4) builds the images.
+  `docker build` can't reach the internet here, so `gvs-api` and `gvs-web` were
+  verified by running their built output in `node:20-alpine`. The CI workflow
+  (Phase 4) builds the real images.
+- **Lint**: `next lint` / ESLint fail repo-wide (missing
+  `@typescript-eslint/eslint-plugin`); pre-existing, unrelated to this work.

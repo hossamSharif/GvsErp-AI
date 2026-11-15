@@ -5,8 +5,8 @@
 | Phase | Status |
 |---|---|
 | 1. Fresh DB + migration runner + local `docker-compose.yml` | ✅ Done — see [`deploy/local/README.md`](../deploy/local/README.md) |
-| 2. Code changes (runtime config, always-online, auth flows, first-run, shared PC, no CDN) | ⏳ Next |
-| 3. License key | — |
+| 2. Code changes (runtime config, always-online, auth flows, first-run, shared PC, no CDN) | ✅ Done — browser-tested with internet blocked (24/24), cloud build unchanged |
+| 3. License key | ⏳ Next |
 | 4. Packaging (CI images, Windows install/update/backup scripts, launcher) | — |
 | 5. Pilot | — |
 

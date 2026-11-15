@@ -14,6 +14,7 @@ import type { TenantSettings } from '@erp/shared';
 import { getAdminClient } from './auth-admin';
 import { SettingsService } from './settings.service';
 import { AppError } from '../middleware/error';
+import { toPublicSupabaseUrl } from '../lib/deployment';
 
 export const TENANT_LOGO_BUCKET = 'tenant-logos';
 export const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -76,7 +77,7 @@ export class TenantLogoService {
     let settings: TenantSettings;
     try {
       settings = await this.settings.updateSettings({
-        logo_url: publicUrl.publicUrl,
+        logo_url: toPublicSupabaseUrl(publicUrl.publicUrl),
         logo_path: storagePath,
       });
     } catch (error) {

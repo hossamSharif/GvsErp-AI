@@ -16,6 +16,8 @@ import { useOnline } from '@/hooks/use-online';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { SyncStatusBadge } from '@/components/pwa/sync-status-badge';
 import { cn, getInitials } from '@/lib/utils';
+import { Users as UsersIcon } from 'lucide-react';
+import { isLocalMode } from '@/lib/runtime-config';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -36,6 +38,9 @@ export function Header({ onMenuClick }: HeaderProps) {
   const tProfile = useTranslations('settings.profile');
   const tSettings = useTranslations('settings.home');
   const tAuth = useTranslations('auth');
+  const tLocal = useTranslations('local');
+  // Local edition: several staff share one PC, so switching user is one click.
+  const local = isLocalMode();
 
   const currentLocale = params.locale as string;
 
@@ -188,6 +193,17 @@ export function Header({ onMenuClick }: HeaderProps) {
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" aria-hidden="true" />
           <span className="sr-only">You have unread notifications</span>
         </button>
+
+        {local && (
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md border hover:bg-muted transition-colors text-sm"
+            title={tLocal('switchUser')}
+          >
+            <UsersIcon className="w-4 h-4" />
+            <span className="hidden sm:inline">{tLocal('switchUser')}</span>
+          </button>
+        )}
 
         {/* User Menu */}
         <div className="relative" ref={userMenuRef}>

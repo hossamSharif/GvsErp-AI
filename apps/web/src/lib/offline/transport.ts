@@ -13,6 +13,7 @@
 import { getDB, inventoryKey, type CachedRecord } from './db';
 import { matchRoute } from './routes';
 import type { CreateInvoiceInput } from '@erp/shared';
+import { isLocalMode } from '@/lib/runtime-config';
 
 /** Standard list envelope produced by the API. */
 interface ListMeta {
@@ -34,6 +35,8 @@ export class OfflineUnavailableError extends Error {
 }
 
 export function isOnline(): boolean {
+  // Local edition: the server is on this PC — never fall back to offline mode.
+  if (isLocalMode()) return true;
   return typeof navigator === 'undefined' ? true : navigator.onLine;
 }
 
