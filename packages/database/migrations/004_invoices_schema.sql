@@ -28,8 +28,12 @@ CREATE TABLE IF NOT EXISTS invoices (
     invoice_number TEXT NOT NULL,
     type invoice_type NOT NULL,
     status invoice_status NOT NULL DEFAULT 'draft',
-    party_id UUID REFERENCES parties(id) ON DELETE SET NULL,
-    warehouse_id UUID NOT NULL REFERENCES warehouses(id) ON DELETE RESTRICT,
+    -- FK to parties(id) is added at the end of 007_parties_schema.sql
+    -- (parties is created there; adding it here fails on a fresh database).
+    party_id UUID,
+    -- FK to warehouses(id) is added at the end of 007_parties_schema.sql
+    -- (warehouses is created in 005; adding it here fails on a fresh database).
+    warehouse_id UUID NOT NULL,
     subtotal DECIMAL(15,2) NOT NULL DEFAULT 0,
     tax_amount DECIMAL(15,2) NOT NULL DEFAULT 0,
     discount_amount DECIMAL(15,2) NOT NULL DEFAULT 0,

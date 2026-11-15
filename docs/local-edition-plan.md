@@ -1,5 +1,38 @@
 # GVS ERP — Local Edition (On-Premise, Single PC) Plan
 
+## Progress
+
+| Phase | Status |
+|---|---|
+| 1. Fresh DB + migration runner + local `docker-compose.yml` | ✅ Done — see [`deploy/local/README.md`](../deploy/local/README.md) |
+| 2. Code changes (runtime config, always-online, auth flows, first-run, shared PC, no CDN) | ⏳ Next |
+| 3. License key | — |
+| 4. Packaging (CI images, Windows install/update/backup scripts, launcher) | — |
+| 5. Pilot | — |
+
+**Phase 1 result:** all migrations apply in order to an empty database, and the
+full backend flow works locally (register → login → items → purchase → sale →
+payment → stock → FIFO COGS → balanced journals → audit → file storage).
+That needed 1 fix to existing migrations (`004`/`007` circular FKs) and 4 new
+ones (`000`, `043`, `044`, `045`) for objects the cloud DB got by hand.
+**Takeaway:** the cloud database differs from the migrations in the repo; a
+schema diff against the cloud (`pg_dump --schema-only`) is recommended before
+the pilot.
+
+> ### ⚠️ Security finding (affects the live cloud app — not fixed yet)
+> RLS policies read `tenant_id` from `auth.jwt() -> 'user_metadata'` (66 places,
+> e.g. `013`, `015`, `017`, `020`, `030`, `045`). In Supabase, **users can edit their own
+> `user_metadata`** (`PUT /auth/v1/user`). Reproduced on the local stack: a
+> user of company A set their metadata `tenant_id` to company B and could then
+> read company B's customers directly from the data API (`/rest/v1`, using the
+> public anon key). The Express API filters by the DB tenant, but the data API
+> is reachable directly from any browser.
+> **Fix (needs your approval because it changes the live DB):** store `tenant_id` in
+> `app_metadata` (writable only with the service role) in
+> `apps/api/src/services/auth-admin.ts`, backfill existing users, and switch the
+> policies to `auth.jwt() -> 'app_metadata' ->> 'tenant_id'`.
+> The local edition (single tenant per PC) is not exposed.
+
 ## Context
 
 Many leads want the ERP to run **locally on their own PC** instead of the cloud

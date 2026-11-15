@@ -387,3 +387,24 @@ BEGIN
     RETURN v_reference;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- Deferred foreign keys for invoices (see 004_invoices_schema.sql).
+-- invoices is created in 004, before warehouses (005) and parties (this file),
+-- so its FKs are added here. Constraint names match Postgres' defaults, so the
+-- resulting schema is identical to databases where 004 created them inline.
+-- Guarded, so this is a no-op on databases that already have them.
+-- ============================================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoices_party_id_fkey') THEN
+        ALTER TABLE invoices
+            ADD CONSTRAINT invoices_party_id_fkey
+            FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE SET NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoices_warehouse_id_fkey') THEN
+        ALTER TABLE invoices
+            ADD CONSTRAINT invoices_warehouse_id_fkey
+            FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE RESTRICT;
+    END IF;
+END $$;
