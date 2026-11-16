@@ -3,7 +3,11 @@
 #
 # Release:  push a tag like  local-v1.0.0
 #           -> images pushed to GHCR, GitHub Release with GvsERP-Local-1.0.0.zip
-# Test/pilot build: Actions tab -> "Local Edition release" -> Run workflow
+# Pilot:    push a tag like  local-pilot-v0.9.0  (works from any branch)
+#           -> TEST license key allowed, version "0.9.0-testkey",
+#              GitHub *pre-release* with the zip, images not pushed
+# Manual:   Actions tab -> "Local Edition release" -> Run workflow
+#           (only once this file is on the default branch)
 #           -> zip uploaded as a workflow artifact (optionally images pushed)
 #
 # Release builds refuse to run while the license TEST key is embedded
@@ -16,7 +20,7 @@ name: Local Edition release
 
 on:
   push:
-    tags: ['local-v*']
+    tags: ['local-v*', 'local-pilot-v*']
   workflow_dispatch:
     inputs:
       version:
@@ -51,11 +55,18 @@ jobs:
         id: meta
         shell: bash
         run: |
+          prerelease=false
           if [[ "${GITHUB_REF}" == refs/tags/local-v* ]]; then
             version="${GITHUB_REF#refs/tags/local-v}"
             release=true
             allow_test_key=false
             push_images=true
+          elif [[ "${GITHUB_REF}" == refs/tags/local-pilot-v* ]]; then
+            version="${GITHUB_REF#refs/tags/local-pilot-v}"
+            release=true
+            prerelease=true
+            allow_test_key=true
+            push_images=false
           else
             version="${{ inputs.version }}"
             release=false
@@ -77,6 +88,7 @@ jobs:
           {
             echo "version=$version"
             echo "release=$release"
+            echo "prerelease=$prerelease"
             echo "push_images=$push_images"
             echo "registry=$registry"
           } >> "$GITHUB_OUTPUT"
@@ -176,7 +188,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VER: ${{ steps.meta.outputs.version }}
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" "${{ steps.package.outputs.zip }}" \
+          extra=()
+          if [ "$PRERELEASE" = "true" ]; then extra=(--prerelease); fi
+          gh release create "${GITHUB_REF_NAME}" "${{ steps.package.outputs.zip }}" "${extra[@]}" \
             --title "GVS ERP Local Edition $VER" \
             --notes "Windows installer for the Local Edition. Unzip, then double-click Install.bat. To update an existing PC, run Install.bat from this package."

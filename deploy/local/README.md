@@ -185,9 +185,11 @@ PowerShell swallowed `-d` (as `-Debug`) so `up -d` hung.
   start them with the client compose file (health, setup status, injected
   config, a backup) → push to GHCR → GitHub Release with
   `GvsERP-Local-1.0.0.zip` (`Install.bat`, `README.txt`, `app\`, `images\*.tar`).
-- **Pilot/test build**: Actions → *Local Edition release* → Run workflow
-  (version, optionally allow the TEST license key → version gets `-testkey`,
-  optionally push images). The zip is a workflow artifact.
+- **Pilot build** (works from any branch, no merge needed): push tag
+  `local-pilot-v0.9.0` → same build with the TEST license key allowed, version
+  `0.9.0-testkey`, published as a GitHub **pre-release**; images not pushed.
+- **Manual run**: Actions → *Local Edition release* → Run workflow (only after
+  this workflow is on the default branch). The zip is a workflow artifact.
 - Release builds **fail while the license TEST key is embedded**.
 - Supabase images are not bundled: the first install downloads them from
   Docker Hub (~1.5 GB), so a PC needs internet once.
