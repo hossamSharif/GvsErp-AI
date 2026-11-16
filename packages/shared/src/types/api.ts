@@ -58,7 +58,11 @@ export type ErrorCode =
   | 'LIMIT_EXCEEDED'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
-  | 'SERVICE_UNAVAILABLE';
+  | 'SERVICE_UNAVAILABLE'
+  // Local edition license (apps/api/src/lib/license)
+  | 'LICENSE_READ_ONLY'
+  | 'LICENSE_USER_LIMIT'
+  | 'LICENSE_INVALID';
 
 export interface ValidationError {
   field: string;

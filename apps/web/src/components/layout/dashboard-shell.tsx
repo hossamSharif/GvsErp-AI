@@ -14,6 +14,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { useDirection } from '@/hooks/use-direction';
 import { useOnline } from '@/hooks/use-online';
 import { useIdleSignOut } from '@/hooks/use-idle-sign-out';
+import { LicenseBanner } from '@/components/license/license-banner';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
@@ -178,6 +179,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
         )}
       >
         <Header onMenuClick={() => setMobileSidebarOpen(true)} />
+        {/* Local edition only: trial / expiry / read-only notice. */}
+        <LicenseBanner />
 
         <main id="main-content" className="p-4 md:p-6">{children}</main>
       </div>

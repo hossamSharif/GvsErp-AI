@@ -26,8 +26,18 @@ import expensesRoutes from './expenses.routes';
 import banksRoutes from './banks.routes';
 import costCentersRoutes from './cost-centers.routes';
 import shareRoutes from './shares.routes';
+import licenseRoutes from './license.routes';
+import { licenseGuard } from '../middleware/license-guard';
+import { isLocalMode } from '../lib/deployment';
 
 const router: IRouter = Router();
+
+// Local edition: read-only when unlicensed, plus the license endpoints.
+// Not mounted in the cloud.
+if (isLocalMode()) {
+  router.use(licenseGuard);
+  router.use('/license', licenseRoutes);
+}
 
 router.use('/auth', authRoutes);
 router.use('/items', itemRoutes);

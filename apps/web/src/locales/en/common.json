@@ -3281,6 +3281,41 @@
     "setPasswordSave": "Save password",
     "passwordSet": "Password updated",
     "passwordSetFailed": "Could not update the password",
-    "shareLinkLocal": "On this PC the invoice is sent as a file: the PDF downloads, then drag it into the WhatsApp chat."
+    "shareLinkLocal": "On this PC the invoice is sent as a file: the PDF downloads, then drag it into the WhatsApp chat.",
+    "license": {
+      "title": "License",
+      "cardDescription": "License key, trial and number of users",
+      "states": {
+        "valid": "Licensed",
+        "trial": "Free trial",
+        "trial_expired": "Trial ended",
+        "expired": "License expired",
+        "invalid": "Invalid license",
+        "wrong_machine": "License is for another PC",
+        "clock_tampered": "PC date and time look wrong"
+      },
+      "bannerTrial": "Free trial: {days} day(s) left.",
+      "bannerExpiring": "Your license expires in {days} day(s).",
+      "bannerReadOnly": "Read-only: {state}. You can view your data, but adding and editing is blocked until a valid license key is entered.",
+      "enterKeyLink": "Enter license key",
+      "client": "Licensed to",
+      "users": "Active users",
+      "expires": "Expires",
+      "never": "Never",
+      "trialEnds": "Trial ends",
+      "pcId": "PC ID",
+      "pcIdHint": "Send this PC ID to your supplier if your license key should be locked to this PC.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "keyLabel": "License key",
+      "keyPlaceholder": "Paste the license key (starts with GVS1.)",
+      "install": "Activate key",
+      "installing": "Activating...",
+      "installed": "License activated",
+      "adminOnly": "Only an administrator can enter a license key.",
+      "testKeyWarning": "Development build: this installation uses the TEST signing key. Do not give it to clients.",
+      "readOnlyError": "Read-only: there is no valid license. Ask an administrator to enter a license key.",
+      "userLimitError": "Your license doesn't allow more active users. Deactivate a user or upgrade the license."
+    }
   }
 }

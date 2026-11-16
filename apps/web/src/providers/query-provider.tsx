@@ -9,7 +9,7 @@
  * cache is for fast first paint and offline read continuity.
  */
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -31,10 +31,23 @@ function createPersister() {
   });
 }
 
+// Set once the provider creates its client (used by the MutationCache handler).
+let queryClientRef: QueryClient | null = null;
+
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
+        // Local edition: a save rejected for licensing means the license
+        // status changed (e.g. the trial just ended) — refresh the banner now.
+        mutationCache: new MutationCache({
+          onError: (error) => {
+            const code = (error as { code?: unknown }).code;
+            if (typeof code === 'string' && code.startsWith('LICENSE_')) {
+              void queryClientRef?.invalidateQueries({ queryKey: ['license'] });
+            }
+          },
+        }),
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000, // 1 minute
@@ -61,6 +74,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         },
       })
   );
+  queryClientRef = queryClient;
 
   // Persister is browser-only; created once.
   const [persister] = useState(() =>

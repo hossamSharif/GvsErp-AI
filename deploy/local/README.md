@@ -5,9 +5,9 @@ Runs the whole ERP on one PC with Docker: a trimmed self-hosted Supabase
 nginx gateway. See [`docs/local-edition-plan.md`](../../docs/local-edition-plan.md)
 for the full plan.
 
-> Status: **Phase 2 done** — database, API and web app run together and were
-> tested in a browser with internet blocked. The Windows installer, backups,
-> updates and license key come in later phases.
+> Status: **Phase 3 done** — database, API, web app and offline license key
+> run together and were tested in a browser with internet blocked. The
+> Windows installer, backups and updates come in Phase 4.
 
 ## Services
 
@@ -108,6 +108,34 @@ staff user created → admin sets their password → Switch user → staff signs
 second company refused → 30-minute idle sign-out with explanation → zero
 internet requests, zero page errors. Cloud check: a normal `next build` has no
 standalone output and pages contain no injected config.
+
+## License (Phase 3)
+
+Owner guide: [`scripts/license/README.md`](../../scripts/license/README.md).
+
+- No key → **14-day trial** (3 users) from company setup; then **read-only**
+  (writes return `403 LICENSE_READ_ONLY`, reads keep working).
+- Key = `GVS1.<payload>.<Ed25519 signature>`: client, max active users, expiry
+  (or never), optional PC lock. Verified offline with the public key embedded
+  in `apps/api/src/lib/license/public-key.ts` — currently the **TEST key**
+  (`IS_TEST_KEY = true`, yellow warning on the License page). Replace it with
+  your own before the first client.
+- PC ID = short hash of `GVS_MACHINE_ID` (`.env`; random for now, the Windows
+  installer will use the machine's MachineGuid).
+- Stored in `app_license` (migration 046), readable/writable only by the API's
+  service role. Clock set back > 48 h → read-only until corrected.
+- API: `GET /api/v1/license/status`, `POST /api/v1/license` (admin). Guard and
+  routes are mounted only with `DEPLOYMENT_MODE=local`.
+- Web: banner under the header (trial days left / expiring / read-only),
+  Settings → License page (status, PC ID, activate key); license errors are
+  shown in the user's language.
+
+Verified: 17 unit tests (`apps/api/tests/lib/license.test.ts`) + browser test
+with internet blocked, 19/19: trial banner → trial over → read-only (writes
+403, reads 200) → garbage and other-PC keys rejected with clear reasons →
+PC-locked key activates → writes work → user limit enforced, shown in Arabic
+in the Add User form → users can't edit `app_license` via the data API. Cloud
+mode: no license endpoint (404) and writes unaffected.
 
 ## Known gaps
 

@@ -159,6 +159,8 @@ services:
       NODE_ENV: production
       PORT: 3001
       DEPLOYMENT_MODE: local
+      # PC identity for PC-locked license keys (shown as the PC ID on the License page).
+      GVS_MACHINE_ID: ${GVS_MACHINE_ID:-}
       # Internal URL: the API reaches Supabase through the gateway on the Docker network.
       SUPABASE_URL: http://gateway:8080
       SUPABASE_ANON_KEY: ${ANON_KEY}

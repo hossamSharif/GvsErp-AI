@@ -6,6 +6,7 @@
 
 import type { ApiError, ApiResponse, ApiListResponse, PaginationParams } from '@erp/shared';
 import { getApiBaseUrl, getSupabaseAnonKey, getSupabaseUrl } from './runtime-config';
+import { licenseErrorMessage } from './license-errors';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -125,6 +126,9 @@ export async function networkRequest<T>(
         message: `HTTP ${response.status}: ${response.statusText}`,
       };
     }
+    // Local edition license errors: show them in the user's language.
+    const licenseMessage = licenseErrorMessage(error.code);
+    if (licenseMessage) error = { ...error, message: licenseMessage };
     throw new ApiClientError(error, response.status);
   }
 

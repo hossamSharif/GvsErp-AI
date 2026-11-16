@@ -11,6 +11,8 @@ import { UserRepository, UserWithRole } from '../repositories/user.repository';
 import type { User, UserWithRole as SharedUserWithRole, CreateUserInput, UpdateUserInput, Permission } from '@erp/shared';
 import type { QueryResult } from '../repositories/base.repository';
 import { getAdminClient, createAnonClient, resolveRoleClaims, syncUserAuthMetadata } from './auth-admin';
+import { isLocalMode } from '../lib/deployment';
+import { assertUserSlotAvailable } from './license.service';
 
 /**
  * Application error for user-related operations
@@ -84,6 +86,9 @@ export class UserService {
    * Create a new user with Supabase Auth
    */
   async createUser(input: CreateUserInput): Promise<User> {
+    // Local edition: the license limits the number of active users.
+    if (isLocalMode()) await assertUserSlotAvailable();
+
     // Validate email uniqueness
     const emailExists = await this.userRepository.emailExists(
       this.tenantId,
@@ -192,6 +197,9 @@ export class UserService {
     if (input.full_name !== undefined) updates.full_name = input.full_name;
     if (input.role_id !== undefined) updates.role_id = input.role_id;
     if (input.is_active !== undefined) updates.is_active = input.is_active;
+    if (input.is_active === true && !existing.is_active && isLocalMode()) {
+      await assertUserSlotAvailable();
+    }
     if (input.preferences !== undefined) {
       updates.preferences = {
         ...(existing.preferences as Record<string, unknown> || {}),
@@ -261,10 +269,18 @@ export class UserService {
   // USER STATUS & PREFERENCES
   // ==========================================================================
 
+  /** Local edition: reactivating an inactive user needs a free license seat. */
+  private async assertCanActivate(id: string): Promise<void> {
+    const existing = await this.userRepository.findById(this.tenantId, id);
+    if (existing && !existing.is_active) await assertUserSlotAvailable();
+  }
+
   /**
    * Activate/deactivate user
    */
   async setUserActive(id: string, isActive: boolean): Promise<User> {
+    if (isActive && isLocalMode()) await this.assertCanActivate(id);
+
     const user = await this.userRepository.setActive(this.tenantId, id, isActive);
 
     if (!user) {

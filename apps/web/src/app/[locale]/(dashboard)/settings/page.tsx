@@ -27,6 +27,7 @@ import {
   Palette,
   UserCircle,
   Table2,
+  KeyRound,
 } from 'lucide-react';
 
 interface SettingsSection {
@@ -42,6 +43,7 @@ export default function SettingsPage() {
   const params = useParams();
   const locale = params.locale as string;
   const t = useTranslations('settings.home');
+  const tLicense = useTranslations('local.license');
 
   const sections: SettingsSection[] = [
     {
@@ -93,6 +95,17 @@ export default function SettingsPage() {
       href: `/${locale}/settings/subscription`,
       badge: t('comingSoon'),
     },
+    // Local edition only: license key / trial.
+    ...(isLocalMode()
+      ? [
+          {
+            title: tLicense('title'),
+            description: tLicense('cardDescription'),
+            icon: <KeyRound className="h-6 w-6" />,
+            href: `/${locale}/settings/license`,
+          },
+        ]
+      : []),
   ].filter(
     // Local edition: no online subscription.
     (section) => !(isLocalMode() && section.href.endsWith('/settings/subscription'))

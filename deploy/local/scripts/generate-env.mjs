@@ -59,6 +59,10 @@ GVS_VERSION=dev
 # The only port exposed on the PC (bound to 127.0.0.1). Open http://localhost:<port>
 GVS_PORT=8080
 
+# Identifies this PC for PC-locked license keys. The Windows installer sets it
+# from the machine's MachineGuid; this random value is the fallback.
+GVS_MACHINE_ID=${randomToken(32)}
+
 POSTGRES_PASSWORD=${randomToken(40)}
 JWT_SECRET=${jwtSecret}
 JWT_EXPIRY=3600
