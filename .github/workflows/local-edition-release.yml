@@ -183,15 +183,24 @@ jobs:
           path: ${{ steps.package.outputs.zip }}
           retention-days: 30
 
-      - name: Create GitHub Release
+      # The tag may come from a release created on github.com (Releases → Draft a
+      # new release → new tag). Then attach the zip to that release instead of
+      # creating another one.
+      - name: Create GitHub Release (or attach to an existing one)
         if: steps.meta.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VER: ${{ steps.meta.outputs.version }}
           PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+          ZIP: ${{ steps.package.outputs.zip }}
         run: |
-          extra=()
-          if [ "$PRERELEASE" = "true" ]; then extra=(--prerelease); fi
-          gh release create "${GITHUB_REF_NAME}" "${{ steps.package.outputs.zip }}" "${extra[@]}" \
-            --title "GVS ERP Local Edition $VER" \
-            --notes "Windows installer for the Local Edition. Unzip, then double-click Install.bat. To update an existing PC, run Install.bat from this package."
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" "$ZIP" --clobber
+            echo "Attached $ZIP to the existing release ${GITHUB_REF_NAME}"
+          else
+            extra=()
+            if [ "$PRERELEASE" = "true" ]; then extra=(--prerelease); fi
+            gh release create "${GITHUB_REF_NAME}" "$ZIP" "${extra[@]}" \
+              --title "GVS ERP Local Edition $VER" \
+              --notes "Windows installer for the Local Edition. Unzip, then double-click Install.bat. To update an existing PC, run Install.bat from this package."
+          fi
