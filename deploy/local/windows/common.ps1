@@ -68,6 +68,11 @@ function Get-AppPort {
 
 function Get-AppUrl { return "http://localhost:$(Get-AppPort)" }
 
+# Health probes use 127.0.0.1: the port is published on 127.0.0.1 only, and
+# "localhost" may resolve to IPv6 (::1) first on some PCs. Users still open
+# Get-AppUrl (http://localhost:...), which is the app's origin.
+function Get-HealthUrl { return "http://127.0.0.1:$(Get-AppPort)/api/health" }
+
 # ---------- Docker ----------
 
 function Test-DockerReady {
@@ -101,7 +106,7 @@ function Invoke-Compose {
 
 function Test-AppHealthy {
     try {
-        $r = Invoke-WebRequest -Uri "$(Get-AppUrl)/api/health" -UseBasicParsing -TimeoutSec 5
+        $r = Invoke-WebRequest -Uri (Get-HealthUrl) -UseBasicParsing -TimeoutSec 5
         return ($r.StatusCode -eq 200)
     } catch {
         return $false

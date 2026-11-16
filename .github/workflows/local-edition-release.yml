@@ -132,9 +132,9 @@ jobs:
           echo "GVS_REGISTRY=$REG" >> .env
           docker compose pull --ignore-pull-failures --quiet db auth rest storage gateway backup
           docker compose up -d --wait --pull never
-          curl -fsS http://localhost:8080/api/health
-          test "$(curl -fsS http://localhost:8080/api/v1/auth/setup-status)" = '{"data":{"mode":"local","needsSetup":true}}'
-          curl -fsS http://localhost:8080/en/login | grep -q '__GVS_CONFIG__'
+          curl -fsS http://127.0.0.1:8080/api/health
+          test "$(curl -fsS http://127.0.0.1:8080/api/v1/auth/setup-status)" = '{"data":{"mode":"local","needsSetup":true}}'
+          curl -fsS http://127.0.0.1:8080/en/login | grep -q '__GVS_CONFIG__'
           docker compose exec -T backup /bin/sh /opt/gvs/backup.sh now ci
           ls -la backups
           docker compose ps --all

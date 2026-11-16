@@ -73,7 +73,7 @@ services:
       GOTRUE_SMTP_ADMIN_EMAIL: admin@localhost
       GOTRUE_RATE_LIMIT_EMAIL_SENT: "0"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9999/health"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -168,7 +168,7 @@ services:
       SUPABASE_PUBLIC_URL: http://localhost:${GVS_PORT:-8080}
       CORS_ORIGIN: http://localhost:${GVS_PORT:-8080}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -203,7 +203,7 @@ services:
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 10
