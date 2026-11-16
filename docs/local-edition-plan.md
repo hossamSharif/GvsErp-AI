@@ -7,8 +7,8 @@
 | 1. Fresh DB + migration runner + local `docker-compose.yml` | ✅ Done — see [`deploy/local/README.md`](../deploy/local/README.md) |
 | 2. Code changes (runtime config, always-online, auth flows, first-run, shared PC, no CDN) | ✅ Done — browser-tested with internet blocked (24/24), cloud build unchanged |
 | 3. License key | ✅ Done — 14-day trial → read-only; signed keys (users, expiry, optional PC lock); browser-tested 19/19. **Before the first client:** create your own signing key (`scripts/license/README.md`) |
-| 4. Packaging (CI images, Windows install/update/backup scripts, launcher) | ⏳ Next |
-| 5. Pilot | — |
+| 4. Packaging (CI images, Windows install/update/backup scripts, launcher) | ✅ Done — daily backups + disaster restore tested; Windows scripts syntax- and function-tested in PowerShell; package installed and browser-tested (24/24). **Not yet run on real Windows / in GitHub Actions** |
+| 5. Pilot | ⏳ Next — clean Windows PC test, first GitHub Actions build, then 1–2 leads |
 
 **Phase 1 result:** all migrations apply in order to an empty database, and the
 full backend flow works locally (register → login → items → purchase → sale →

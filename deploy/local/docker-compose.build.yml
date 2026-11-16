@@ -1,0 +1,16 @@
+# Developer override: build the GVS images from this repository instead of
+# pulling released ones.
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+services:
+  migrate:
+    build:
+      context: ../..
+      dockerfile: deploy/local/migrate/Dockerfile
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/local/web/Dockerfile

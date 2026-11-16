@@ -53,3 +53,6 @@ docs/supabaseNew.md
 /*.png
 .playwright-mcp/
 .claude/settings.local.json
+
+# Local edition: backups made by the local stack (deploy/local)
+deploy/local/backups/

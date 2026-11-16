@@ -5,9 +5,9 @@ Runs the whole ERP on one PC with Docker: a trimmed self-hosted Supabase
 nginx gateway. See [`docs/local-edition-plan.md`](../../docs/local-edition-plan.md)
 for the full plan.
 
-> Status: **Phase 3 done** — database, API, web app and offline license key
-> run together and were tested in a browser with internet blocked. The
-> Windows installer, backups and updates come in Phase 4.
+> Status: **Phase 4 done** — full stack, offline license, daily backups,
+> Windows installer/updater/launcher and the release workflow. Remaining: a
+> real Windows PC test and a pilot client (see "Not yet tested on Windows").
 
 ## Services
 
@@ -21,6 +21,7 @@ for the full plan.
 | `api`     | GVS Express API (`DEPLOYMENT_MODE=local`)                         |
 | `web`     | Next.js standalone server (`DEPLOYMENT_MODE=local`, image `deploy/local/web/Dockerfile`) |
 | `gateway` | nginx — the only published port, `127.0.0.1:8080`                 |
+| `backup`  | Daily full backup (database + uploaded files) into `./backups` (`C:\GvsERP\backups`) |
 
 Gateway routes, all on one origin (`http://localhost:8080`):
 `/auth/v1` → GoTrue, `/rest/v1` → PostgREST, `/storage/v1` → Storage,
@@ -31,7 +32,9 @@ Gateway routes, all on one origin (`http://localhost:8080`):
 ```bash
 cd deploy/local
 node scripts/generate-env.mjs      # once: writes .env with fresh secrets
-docker compose up -d --build       # builds gvs-migrate, gvs-api, gvs-web; starts everything
+# docker-compose.yml uses released images only (what clients run);
+# the build override builds gvs-migrate, gvs-api, gvs-web from this repo:
+docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 docker compose ps                  # all healthy; migrate shows "exited (0)"
 curl http://localhost:8080/api/health
 # open http://localhost:8080 — a fresh install opens the company setup
@@ -137,6 +140,70 @@ PC-locked key activates → writes work → user limit enforced, shown in Arabic
 in the Add User form → users can't edit `app_license` via the data API. Cloud
 mode: no license endpoint (404) and writes unaffected.
 
+## Backups (Phase 4)
+
+`backup/backup.sh` runs in the `backup` container (`postgres:17-alpine`):
+
+- **Daily, automatically**: about a minute after start and then every 10
+  minutes it checks whether today's backup exists; if not, it makes one. A set
+  is `gvs-<UTC time>.dump` (full `pg_dump` as `supabase_admin`) +
+  `gvs-<UTC time>.storage.tgz` (uploaded files). Written to a temp name, checked
+  with `pg_restore -l`, then renamed.
+- **Retention by count**: newest 30 daily + 10 labelled (`manual`,
+  `pre-update`, `before-restore`) — a PC that was off for weeks keeps its backups.
+- `docker compose exec backup /bin/sh /opt/gvs/backup.sh now|list`
+- **Restore**: stop `api web auth rest storage gateway`, then
+  `docker compose run --rm backup restore <name>` (makes a `before-restore`
+  backup first, recreates the database from the dump, restores the files,
+  sanity-checks tables), then `docker compose up -d`.
+
+Verified: automatic daily backup; disaster restore (all volumes deleted → fresh
+install → restore → login works, data and logo back, later data gone,
+migrations already applied); retention; damaged/missing backups refused.
+
+## Windows (Phase 4)
+
+`windows/` — Windows PowerShell 5.1 scripts, ASCII only:
+
+| File | What it does |
+|---|---|
+| `Install.bat` → `install.ps1` | **Install and update.** Fresh PC: checks Windows build/RAM/disk/virtualization, enables WSL2, installs Docker Desktop (downloaded, or from `installers\` in the package), sets Docker to start with Windows and caps WSL memory, copies the app to `C:\GvsERP`, loads the bundled images, creates `.env` (Node from the API image; `GVS_MACHINE_ID` = Windows MachineGuid), starts the stack, creates the **GVS ERP** and **GVS ERP Tools** shortcuts. Restarts needed by WSL/Docker resume automatically after sign-in. Existing install: `pre-update` backup → new files and images → start → if it doesn't come up, previous files + version + pre-update backup are restored automatically. Log: `C:\GvsERP\logs\`. |
+| `GvsERP.bat` → `start.ps1` | Desktop icon: starts Docker Desktop and the stack if needed, waits for `/api/health`, opens Edge in app mode. |
+| `tools.ps1` | **GVS ERP Tools** menu: status, back up now, restore (pick from list, type YES), open backups folder, collect logs (zip on the desktop, secret values excluded), set a user's password (`scripts/reset-password.mjs` piped into the API container), stop. |
+| `common.ps1` | Shared helpers. |
+
+Verified here (Linux): all scripts parse with the PowerShell parser; the
+`.env` helpers; and — run in PowerShell against the real stack — health checks,
+back up now, restore and password reset. That run found and fixed a bug where
+PowerShell swallowed `-d` (as `-Debug`) so `up -d` hung.
+
+## Release (Phase 4)
+
+`.github/workflows/local-edition-release.yml`:
+
+- **Release**: push tag `local-v1.0.0` → tests → build the three images →
+  start them with the client compose file (health, setup status, injected
+  config, a backup) → push to GHCR → GitHub Release with
+  `GvsERP-Local-1.0.0.zip` (`Install.bat`, `README.txt`, `app\`, `images\*.tar`).
+- **Pilot/test build**: Actions → *Local Edition release* → Run workflow
+  (version, optionally allow the TEST license key → version gets `-testkey`,
+  optionally push images). The zip is a workflow artifact.
+- Release builds **fail while the license TEST key is embedded**.
+- Supabase images are not bundled: the first install downloads them from
+  Docker Hub (~1.5 GB), so a PC needs internet once.
+
+The packaging step was run locally and the zip was installed the way the
+installer does (images loaded from the bundle, `.env` generated, started): the
+24-check browser test passed on that install.
+
+## Not yet tested on Windows
+
+Can't run here: WSL2/Docker Desktop installation, restarts and resume,
+shortcuts, Edge app window, MachineGuid, Docker auto-start, and the GitHub
+Actions run itself (real `docker build` of the images). Do these on a clean
+Windows 10/11 PC (or VM) before the first client — checklist in
+`docs/local-edition-plan.md` §8.
+
 ## Known gaps
 
 - **`POST /api/v1/auth/login`** returns "User not found" (it signs in on the
@@ -144,7 +211,7 @@ mode: no license endpoint (404) and writes unaffected.
   signs in with GoTrue directly — so it's left as is.
 - **Image builds in this cloud sandbox**: `apk`/`npm` downloads inside
   `docker build` can't reach the internet here, so `gvs-api` and `gvs-web` were
-  verified by running their built output in `node:20-alpine`. The CI workflow
-  (Phase 4) builds the real images.
+  verified by running their built output in `node:20-alpine`. The release
+  workflow builds the real images (first run not done yet).
 - **Lint**: `next lint` / ESLint fail repo-wide (missing
   `@typescript-eslint/eslint-plugin`); pre-existing, unrelated to this work.
