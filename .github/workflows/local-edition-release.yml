@@ -121,6 +121,7 @@ jobs:
           docker build -f deploy/local/migrate/Dockerfile -t "$REG/gvs-migrate:$VER" .
 
       - name: Smoke test with the client compose file
+        id: smoke
         working-directory: deploy/local
         env:
           REG: ${{ steps.meta.outputs.registry }}
@@ -139,7 +140,7 @@ jobs:
           docker compose ps --all
 
       - name: Smoke test logs
-        if: failure()
+        if: failure() && steps.smoke.outcome == 'failure'
         working-directory: deploy/local
         run: docker compose logs --no-color --tail 300
 

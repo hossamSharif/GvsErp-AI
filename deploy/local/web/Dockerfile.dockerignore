@@ -1,0 +1,41 @@
+# Build context for deploy/local/web/Dockerfile (Local Edition web image).
+# BuildKit uses this file INSTEAD of the repo-root .dockerignore, which is
+# written for the cloud API image and excludes apps/web and packages/ui.
+
+# Dependencies & build output
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/coverage
+**/.cache
+
+# Not part of the web image
+apps/ai
+apps/api
+
+# VCS, editor, OS
+.git
+.gitignore
+.github
+.vscode
+.idea
+**/.DS_Store
+**/Thumbs.db
+
+# Secrets — never bake into images
+**/.env
+**/.env.*
+
+# Local-only artifacts
+.claude
+.playwright-mcp
+.specify
+/*.png
+**/*.log
+**/*.tsbuildinfo
+deploy/local/backups
+
+# Docs / planning
+docs
+specs

@@ -1,0 +1,5 @@
+# Build context for deploy/local/migrate/Dockerfile: only the SQL migrations
+# and the runner script. Used instead of the repo-root .dockerignore.
+*
+!packages/database/migrations
+!deploy/local/migrate/migrate.sh
