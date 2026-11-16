@@ -201,8 +201,9 @@ installer does (images loaded from the bundle, `.env` generated, started): the
 ## Not yet tested on Windows
 
 Can't run here: WSL2/Docker Desktop installation, restarts and resume,
-shortcuts, Edge app window, MachineGuid, Docker auto-start, and the GitHub
-Actions run itself (real `docker build` of the images). Do these on a clean
+shortcuts, Edge app window, MachineGuid and Docker auto-start. (The GitHub
+Actions build itself works: pilot `local-pilot-v0.9.3` built the real images,
+passed the smoke test and attached the zip.) Do these on a clean
 Windows 10/11 PC (or VM) before the first client — checklist in
 `docs/local-edition-plan.md` §8.
 
